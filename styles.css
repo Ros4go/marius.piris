@@ -7,14 +7,46 @@
 body {
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #23272A; /* Gris foncé (Discord) */
+    color: #FFFFFF; /* Blanc */
+}
+
+nav {
+    position: sticky;
+    top: 0;
+    background-color: #5865F2; /* Bleu Discord */
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 1.1em;
+    padding: 5px 10px;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #7289DA; /* Gris clair (Discord) */
+    border-radius: 5px;
 }
 
 header {
-    background-color: #3a3a3a;
+    background-color: #5865F2; /* Bleu Discord */
     color: white;
-    padding: 20px;
+    padding: 40px 0;
     text-align: center;
 }
 
@@ -25,30 +57,26 @@ h1 {
 h2 {
     font-size: 1.5em;
     font-weight: 300;
-    color: #ccc;
+    color: #FFFFFF;
 }
 
-section {
+.section-content {
     margin: 20px;
     padding: 20px;
-    background: white;
+    background: #2C2F33; /* Gris foncé (Discord) */
     border-radius: 10px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
 }
 
 h3 {
-    font-size: 1.2em;
+    font-size: 1.5em;
     margin-bottom: 10px;
-}
-
-ul {
-    list-style-type: none;
 }
 
 footer {
     text-align: center;
     padding: 20px;
-    background-color: #3a3a3a;
+    background-color: #5865F2;
     color: white;
     margin-top: 20px;
 }
