@@ -1,46 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <style>
-    main {
-      padding: 20px;
-      display: block;
-      min-height: 100vh;
-      min-width: 100vh;
-    }
-    h2 {
-      text-align: center;
-      color: #004aad;
-    }
-    .comment-section {
-      max-height: 50vh;
-      max-width: 100%;
-      background-color: #004aad;
-      overflow-y: scroll;
-    }
-    .comment {
-     height: 10%;
-      padding: 2%;
-      margin: 2%;
-      background-color: #ffff;
-      color: black;
-    }
-  </style>
-  <body>
-    <h2>Scrollable HTML Comment Box Code</h2>
-    <main>
-      <div class="comment-section">
-        <div class="comment">This is first comment.</div>
-        <div class="comment">This is second comment.</div>
-        <div class="comment">This is third comment.</div>
-        <div class="comment">This is fourth comment.</div>
-        <div class="comment">This is fifth comment.</div>
-        <div class="comment">This is sixth comment.</div>
-    </div>
-    </main>
-  </body>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV de Marius PIRIS</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Marius PIRIS</h1>
+        <h2>Développeur Full Stack</h2>
+    </header>
+    
+    <section class="contact">
+        <h3>Coordonnées</h3>
+        <p><strong>Téléphone :</strong> 06 01 16 00 93</p>
+        <p><strong>Email :</strong> marius.piris@universite-paris-saclay.fr</p>
+        <p><strong>Adresse :</strong> 16, rue André Blanc Lapierre, 91190 Gif Sur Yvette</p>
+    </section>
+
+    <section class="formation">
+        <h3>Formation</h3>
+        <ul>
+            <li>BUT informatique (3ème année) - IUT Orsay, Université Paris Saclay</li>
+            <li>BAC Scientifique option informatique (mention très bien) - Lycée Pierre Marie Théas</li>
+        </ul>
+    </section>
+
+    <section class="competences">
+        <h3>Compétences</h3>
+        <p>Langages de programmation : Java, C++, C#, Python, SQL, HTML/CSS, Php...</p>
+        <p>UML, MERISE, UX/UI, Interaction humain-machine</p>
+    </section>
+
+    <section class="experience">
+        <h3>Expériences Professionnelles</h3>
+        <div class="job">
+            <h4>Responsable de salle - Restaurant plage MATIPI (Théoule sur Mer)</h4>
+            <p><em>Été 2020 et 2018</em></p>
+            <p>Gestion de la salle, bar, réservations et service.</p>
+        </div>
+        <div class="job">
+            <h4>Développeur d'application Python - CEA Paris Saclay</h4>
+            <p><em>Avril 2023 à Juillet 2023</em></p>
+            <p>Développement de programme pour traitement de données et interface graphique.</p>
+        </div>
+    </section>
+
+    <section class="passions">
+        <h3>Passions</h3>
+        <p>Jeux vidéo, lecture, nouvelles technologies, jeux de rôles, sports (voile, aviron, ski).</p>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Marius PIRIS</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
 </html>
