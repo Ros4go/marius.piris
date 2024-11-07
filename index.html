@@ -1,51 +1,90 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV de Marius PIRIS</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page de Chargement</title>
+  <style>
+    /* Conteneur principal pour centrer l'animation */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f5f5f5; /* Couleur d'arrière-plan */
+    }
+
+    /* Centrage vertical et horizontal du loader */
+    .center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh; /* S'étend sur toute la hauteur de la vue */
+      width: 100vw; /* S'étend sur toute la largeur de la vue */
+    }
+
+    /* CSS loader */
+    .loader {
+      width: fit-content;
+      font-size: 17px;
+      font-family: monospace;
+      line-height: 1.4;
+      font-weight: bold;
+      background: 
+        linear-gradient(#000 0 0) left ,
+        linear-gradient(#000 0 0) right;
+      background-repeat: no-repeat; 
+      border-right: 5px solid #0000;
+      border-left: 5px solid #0000;
+      background-origin: border-box;
+      position: relative;
+      animation: l9-0 2s infinite;
+    }
+    .loader::before {
+      content:"Loading";
+    }
+    .loader::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 22px;
+      height: 60px;
+      background: 
+       linear-gradient(90deg,#000 4px,#0000 0 calc(100% - 4px),#000 0) bottom            /22px 20px,
+       linear-gradient(90deg,red  4px,#0000 0 calc(100% - 4px),red  0) bottom 10px left 0/22px 6px,
+       linear-gradient(#000 0 0) bottom 3px left 0  /22px 8px,
+       linear-gradient(#000 0 0) bottom 0   left 50%/8px  16px;
+      background-repeat: no-repeat;
+      animation: l9-1 2s infinite;
+    }
+    @keyframes l9-0{
+      0%,25%    {background-size: 50% 100%}
+      25.1%,75% {background-size: 0 0,50% 100%}
+      75.1%,100%{background-size: 0 0,0 0}
+    }
+    @keyframes l9-1{
+      25%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
+      25.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
+      50%   { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
+      75%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
+      75.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
+    }
+  </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="#marius">Marius</a></li>
-            <li><a href="#jeux">Jeux</a></li>
-            <li><a href="archipelago.html">Archipelago</a></li>
-            <li><a href="#art">Art</a></li>
-        </ul>
-    </nav>
+  <!-- Conteneur centré -->
+  <div class="center">
+    <div class="loader"></div>
+  </div>
 
-    <header id="home">
-        <h1>Marius PIRIS</h1>
-        <h2>Développeur Full Stack</h2>
-    </header>
-
-    <section id="marius" class="section-content">
-        <h3>Marius</h3>
-        <p>Je suis étudiant en informatique, passionné de jeux vidéo, de conception et de création.</p>
-    </section>
-
-    <section id="jeux" class="section-content">
-        <h3>Jeux</h3>
-        <p>Réalisation de plusieurs projets liés aux jeux vidéo, comme la création d'un jeu vidéo 2D (RPG / plateforme).</p>
-    </section>
-
-    <section id="archipelago" class="section-content">
-        <h3>Archipelago</h3>
-        <p>Projet de conception d'une base de données et d'applications pour la gestion de location de vélos.</p>
-    </section>
-
-    <section id="art" class="section-content">
-        <h3>Art</h3>
-        <p>Création et développement sont au cœur de mes passions, avec une touche artistique via l'écriture, le dessin et le développement.</p>
-    </section>
-
-    <footer>
-        <p>&copy; 2024 Marius PIRIS</p>
-    </footer>
-
-    <script src="script.js"></script>
+  <!-- Script pour redirection après un délai (par exemple 3 secondes) -->
+  <script>
+    setTimeout(function() {
+      window.location.href = "home_CV.html"; // Remplacez par l'URL de la page principale
+    }, 5000); // 3000 ms = 3 secondes
+  </script>
 </body>
 </html>
