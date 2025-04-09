@@ -23,6 +23,7 @@ body {
 main {
   flex: 1;
   background-color: var(--bg-color);
+  margin-top: 60px;
 }
 
 /* ===== SECTION ABOUT ===== */
