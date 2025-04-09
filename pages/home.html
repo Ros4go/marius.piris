@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon CV</title>
+  <link rel="stylesheet" href="../style/partials.css">
+  <link rel="stylesheet" href="../style/home.css">
+</head>
+<body>
+  <div id="header"></div>
+  
+  <main>
+    <section class="hero-video">
+      <div class="video-wrapper">
+        <video id="bg-video" autoplay muted loop playsinline>
+          <source src="../assets/video/isart_techart_2025.mp4" type="video/mp4">
+          Ton navigateur ne supporte pas la vidéo.
+        </video>
+      </div>
+      <div class="video-menu">
+        <div class="menu-toggle" id="menu-toggle">
+          <div class="bar1"></div>
+          <div class="bar2"></div>
+          <div class="bar3"></div>
+        </div>
+        <div class="menu-items" id="menu-items">
+          <img src="../assets/icons/pause.png" id="play-toggle" alt="Pause">
+          <img src="../assets/icons/muted.png" id="mute-toggle" alt="Mute">
+          <img src="../assets/icons/fullscreen.png" id="fullscreen-toggle" alt="Fullscreen">
+        </div>
+      </div>
+      
+    </section>    
+    
+    <section id="about">
+      <div class="container">
+        <div class="profile-image">
+          <img src="../assets/images/marius_profile.png" alt="Profile">
+        </div>
+        <div class="profile-content">
+          <h2>À propos de moi</h2>
+          <h3>Marius Piris</h3>
+          <p class="title">Développeur Unity, Unreal Engine 5, Godot & Full Stack</p>
+          <div class="profile-text">
+            <p>
+              Je m'appelle Marius Piris, étudiant en 3ème année de Game Programming, 
+              passionné par le développement de jeux vidéo, la création et la conception. 
+              Actuellement en formation à Isart Digital Paris, je possède de solides compétences en programmation, notamment en Python, Java, C++ et C#, 
+              ainsi qu'une expérience pratique en création de jeux et en gestion de projets.
+            </p>
+            <a href="../assets/CV_PIRIS_Marius_GP3.pdf" download target="_blank"><button>CV en PDF</button></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+  <script src="../script/partials.js"></script>
+  <script src="../script/home.js"></script>
+</body>
+</html>
