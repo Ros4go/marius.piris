@@ -3,7 +3,7 @@
 :root {
     --main-color: #f04e4e;
     --hover-color: #e43d3d;
-    --text-color: #333;
+    --text-color: #1e2124;
     --header-bg: white;
     --bg-color: white;
     --font-family: Arial, sans-serif;
@@ -39,39 +39,43 @@ header {
 nav {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 10px;
+    justify-content: space-between;
+    padding: 10px 30px;
     position: relative;
 }
-  
-nav ul {
+
+.nav-left {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: var(--main-color);
+}
+
+.nav-center {
     display: flex;
     gap: 20px;
     list-style: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
-  
+
+.nav-center li a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.nav-center li a.active,
+.nav-center li a:hover {
+    color: var(--main-color);
+}
+
 #toggle-theme {
     position: absolute;
     right: 20px;
     cursor: pointer;
     font-size: 1.2em;
     user-select: none;
-}
-
-nav ul li {
-    list-style: none;
-    margin: 0 15px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: var(--text-color);
-    font-weight: bold;
-}
-
-nav ul li a.active,
-nav ul li a:hover {
-    color: var(--main-color);
 }
 
 /* ===== FOOTER STYLES ===== */
