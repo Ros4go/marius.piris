@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setActiveNavLink();
         setupTheme(); 
     });
-    
+    requestAnimationFrame(() => {
+      document.querySelector("header").style.position = "sticky";
+    });
     loadComponent("footer", "../partials/footer.html");
   });
   
