@@ -80,7 +80,7 @@ main {
 button {
   padding: 10px 20px;
   background-color: var(--main-color);
-  color: white;
+  color: var(--btn-text-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -205,32 +205,66 @@ button:hover {
 
 /* ===== SECTION CAROUSEL ===== */
 
+/* === CAROUSEL STRUCTURE === */
+
 .carousel {
   overflow: hidden;
-  background-color: var(--bg-color); /* ou une couleur opaque (#fff, rgba, etc.) */
+  background-color: var(--bg-color);
   position: relative;
   z-index: 2;
 }
 
+.carousel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 10%;
+  max-width: 100%;
+}
+
+.carousel-title h2 {
+  color: var(--main-color);
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.carousel-prev,
+.carousel-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  border: none;
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.carousel-prev { left: 10px; }
+.carousel-next { right: 10px; }
+
+/* === GALLERY SCROLLABLE === */
+
 .carousel-gallery {
-  padding: 1rem;
   display: grid;
   grid-template-columns: repeat(10, 80vw);
   grid-template-rows: 1fr;
-  column-gap: 1rem;
-  row-gap: 1rem;
+  gap: 1rem;
+  padding: 1rem;
+  height: 85vh;
   overflow-x: auto;
-  height: 90vh;
   scroll-snap-type: x mandatory;
   scroll-padding: 1rem;
   cursor: grab;
   user-select: none;
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE/Edge */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
 .carousel-gallery::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
+  display: none;
 }
 
 .carousel-gallery:active {
@@ -248,42 +282,209 @@ button:hover {
   font-size: 0;
 }
 
-.carousel-prev,
-.carousel-next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0,0,0,0.4);
-  color: white;
-  border: none;
-  font-size: 2rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  z-index: 3;
-}
+/* === CAROUSEL ITEM CONTENT === */
 
-.carousel-prev {
-  left: 10px;
-}
-
-.carousel-next {
-  right: 10px;
-}
-
-.carousel-title {
+.carousel-inner {
   display: flex;
-  max-width: 100%;
   flex-direction: row;
-  flex-wrap: nowrap;
-  align-content: center;
+  align-items: stretch;
   justify-content: space-between;
+  height: 100%;
+  gap: 2rem;
+}
+
+.carousel-item-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 30%;
+  height: 100%;
+  padding: 2rem;
+  font-size: 1rem;
+  color: var(--main-color);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-item-content h3 {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+  color: var(--main-color);
+}
+
+.carousel-item-content .tagline {
+  font-style: italic;
+  margin-bottom: 1em;
+  color: #555;
+}
+
+.carousel-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin: 0.5em 0 1em;
+  padding: 0;
+  list-style: none;
+}
+
+.carousel-tags li {
+  background-color: var(--main-color);
+  color: var(--btn-text-color);
+  padding: 0.3em 0.7em;
+  border-radius: 20px;
+  font-size: 0.9em;
+}
+
+.carousel-link,
+.carousel-gallery-button {
+  background-color: var(--main-color);
+  color: var(--btn-text-color);
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.carousel-link:hover,
+.carousel-gallery-button:hover {
+  background-color: var(--hover-color);
+}
+
+/* === CAROUSEL GALLERY LAYOUT === */
+
+.carousel-gallery-top {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.carousel-gallery-images {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2rem;
+  width: 100%;
+}
+
+.carousel-gallery-preview {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  padding: 2rem;
+  flex: 1;
+}
+
+.carousel-gallery-details {
+  position: relative;
+  font-size: 0.95rem;
+  color: #555;
+  padding: 1rem 1rem 3rem;
+  width: 100%;
+}
+
+.carousel-gallery-button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  color: var(--text-color);
+}
+
+/* === POLAROID IMAGE === */
+
+.polaroid {
+  width: 50%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.19);
+  display: flex;
   align-items: center;
-  margin-left: 10%;
+  justify-content: center;
   margin-right: 10%;
 }
 
-.carousel-title h2 {
-  color: var(--main-color);
-  font-size: 2em;
-  margin-bottom: 10px;
+/* === CIRCLE GALLERY === */
+
+.circle-gallery {
+  --g: 8px;
+  --s: 15vw;
+  display: grid;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  position: relative;
+}
+
+.circle-gallery > img {
+  grid-area: 1/1;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  transform: translate(var(--_x, 0), var(--_y, 0));
+  cursor: pointer;
+  z-index: 0;
+  transition: 0.3s, z-index 0s 0.3s;
+}
+
+.circle-gallery:hover img {
+  transform: translate(0, 0);
+}
+
+.circle-gallery img:hover {
+  --_i: 1;
+  z-index: 1;
+  transition: transform 0.2s, clip-path 0.3s 0.2s, z-index 0s;
+}
+
+.circle-gallery > img:nth-child(1) {
+  clip-path: polygon(50% 50%, calc(50% * var(--_i,0)) calc(120% * var(--_i,0)), 0 calc(100% * var(--_i,0)), 0 0, 100% 0, 100% calc(100% * var(--_i,0)), calc(100% - 50% * var(--_i,0)) calc(120% * var(--_i,0)));
+  --_y: calc(-1 * var(--g));
+}
+
+.circle-gallery > img:nth-child(2) {
+  clip-path: polygon(50% 50%, calc(100% - 120% * var(--_i,0)) calc(50% * var(--_i,0)), calc(100% - 100% * var(--_i,0)) 0, 100% 0, 100% 100%, calc(100% - 100% * var(--_i,0)) 100%, calc(100% - 120% * var(--_i,0)) calc(100% - 50% * var(--_i,0)));
+  --_x: var(--g);
+}
+
+.circle-gallery > img:nth-child(3) {
+  clip-path: polygon(50% 50%, calc(100% - 50% * var(--_i,0)) calc(100% - 120% * var(--_i,0)), 100% calc(100% - 120% * var(--_i,0)), 100% 100%, 0 100%, 0 calc(100% - 100% * var(--_i,0)), calc(50% * var(--_i,0)) calc(100% - 120% * var(--_i,0)));
+  --_y: var(--g);
+}
+
+.circle-gallery > img:nth-child(4) {
+  clip-path: polygon(50% 50%, calc(120% * var(--_i,0)) calc(50% * var(--_i,0)), calc(100% * var(--_i,0)) 0, 0 0, 0 100%, calc(100% * var(--_i,0)) 100%, calc(120% * var(--_i,0)) calc(100% - 50% * var(--_i,0)));
+  --_x: calc(-1 * var(--g));
+}
+
+/* === IMAGE POPUP === */
+
+.image-popup,
+.image-popup-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  z-index: 999;
+}
+
+.image-popup {
+  width: 70vw;
+  max-width: 1000px;
+  max-height: 90vh;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+.image-popup-overlay {
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+}
+
+.image-popup.active,
+.image-popup-overlay.active {
+  display: block;
 }

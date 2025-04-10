@@ -6,6 +6,7 @@
     --text-color: #1e2124;
     --header-bg: white;
     --bg-color: white;
+    --btn-text-color: white;
     --font-family: Arial, sans-serif;
     --footer-bg: #f5f5f5;
     --footer-text: #777;
@@ -22,7 +23,7 @@ body.dark-mode {
     --font-family: Arial, sans-serif;
     --footer-bg: #424549;
     --footer-text: white;
-}  
+}
 
 /* ===== HEADER STYLES ===== */
 
