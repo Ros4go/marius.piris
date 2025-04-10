@@ -37,47 +37,104 @@ header {
     z-index: 1000;
 }
 
+/* ==== NAVIGATION (DESKTOP) ==== */
 nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 30px;
     position: relative;
-}
-
-.nav-left {
+  }
+  
+  .nav-left {
     font-weight: bold;
     font-size: 1.2em;
     color: var(--main-color);
-}
-
-.nav-center {
+  }
+  
+  .nav-center {
     display: flex;
     gap: 20px;
     list-style: none;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-}
-
-.nav-center li a {
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .nav-center li a {
     text-decoration: none;
     color: var(--text-color);
     font-weight: bold;
-}
-
-.nav-center li a.active,
-.nav-center li a:hover {
+  }
+  
+  .nav-center li a.active,
+  .nav-center li a:hover {
     color: var(--main-color);
-}
-
-#toggle-theme {
-    position: absolute;
-    right: 20px;
-    cursor: pointer;
+  }
+  
+  #toggle-theme {
     font-size: 1.2em;
+    cursor: pointer;
     user-select: none;
-}
+  }
+  
+  /* BURGER HIDDEN BY DEFAULT */
+  .nav-toggle {
+    display: none;
+  }
+  
+  /* ==== RESPONSIVE (MOBILE) ==== */
+  @media (max-width: 768px) {
+    nav {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      padding: 10px 20px;
+      position: relative;
+      height: 60px;
+    }
+  
+    .nav-toggle {
+      display: block;
+      font-size: 1.5em;
+      justify-self: start;
+      align-self: center;
+      cursor: pointer;
+    }
+  
+    .nav-left {
+      grid-column: 2;
+      justify-self: center;
+      align-self: center;
+    }
+  
+    #toggle-theme {
+      grid-column: 3;
+      justify-self: end;
+      align-self: center;
+    }
+  
+    .nav-center {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      display: none;
+      background-color: var(--header-bg);
+      padding: 10px 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transform: none;
+    }
+  
+    .nav-center.active {
+      display: flex;
+    }
+  }  
 
 /* ===== FOOTER STYLES ===== */
 
@@ -91,4 +148,3 @@ footer {
     position: relative;
     z-index: 10;
 }
-  

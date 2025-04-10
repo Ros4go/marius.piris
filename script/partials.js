@@ -1,13 +1,24 @@
 document.addEventListener("DOMContentLoaded", () => {
-    loadComponent("header", "../partials/header.html", () => {
-        setActiveNavLink();
-        setupTheme(); 
-    });
-    requestAnimationFrame(() => {
-      document.querySelector("header").style.position = "sticky";
-    });
-    loadComponent("footer", "../partials/footer.html");
+  loadComponent("header", "../partials/header.html", () => {
+      setActiveNavLink();
+      setupTheme(); 
+
+      const toggleBtn = document.getElementById('nav-toggle');
+      const navMenu = document.querySelector('.nav-center');
+      if (toggleBtn && navMenu) {
+          toggleBtn.addEventListener('click', () => {
+              navMenu.classList.toggle('active');
+          });
+      }
   });
+
+  requestAnimationFrame(() => {
+      document.querySelector("header").style.position = "sticky";
+  });
+
+  loadComponent("footer", "../partials/footer.html");
+});
+
   
 function loadComponent(id, url, callback) {
     fetch(url)
@@ -62,3 +73,4 @@ function setActiveNavLink() {
       }
     });
 }  
+
