@@ -220,3 +220,57 @@ window.addEventListener("wheel", (e) => {
     overlay.classList.remove('active');
   });
 })();
+
+document.querySelectorAll('.story').forEach(function(story) {
+  const videoId = story.getAttribute('data-video');
+  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+  const img = document.createElement('img');
+  img.src = thumbnailUrl;
+  img.alt = 'Story thumbnail';
+  img.loading = 'lazy';
+  img.className = 'thumbnail';
+  story.prepend(img); // on met le thumbnail en bas, le logo est déjà dans le HTML
+
+});
+
+document.querySelectorAll('.story').forEach(function(story) {
+  const videoId = story.getAttribute('data-video');
+  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+  const img = document.createElement('img');
+  img.src = thumbnailUrl;
+  img.alt = 'Story thumbnail';
+  img.loading = 'lazy';
+  img.className = 'thumbnail';
+  story.prepend(img);
+
+  story.addEventListener('click', function () {
+    const overlay = document.getElementById('video-overlay');
+    const iframe = document.getElementById('video-frame');
+    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&showinfo=0`;
+    overlay.style.display = 'flex';
+  });
+});
+
+// Fermer l'overlay en cliquant dehors ou sur ESC
+document.getElementById('video-overlay').addEventListener('click', function (e) {
+  if (e.target.id === 'video-overlay') {
+    closeVideo();
+  }
+});
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closeVideo();
+  }
+});
+
+function closeVideo() {
+  const overlay = document.getElementById('video-overlay');
+  const iframe = document.getElementById('video-frame');
+  overlay.style.display = 'none';
+  iframe.src = ''; // stop vidéo
+}
+
+document.getElementById('close-video').addEventListener('click', closeVideo);
