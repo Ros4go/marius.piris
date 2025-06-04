@@ -183,13 +183,7 @@
         }
 
         /* Console entry animation */
-        @keyframes consoleEntry {
-            from { opacity: 0; transform: translateX(-40px); } /* Start from left, more pronounced */
-            to { opacity: 1; transform: translateX(0); } /* End at original position */
-        }
-        .animate-console-entry {
-            animation: consoleEntry 0.4s ease-out forwards; /* Slightly longer duration */
-        }
+        /* Removed animate-console-entry as it was causing flickering */
 
         /* Loading Screen Animations */
         .animate-loading-fade-out {
@@ -242,9 +236,50 @@
         .animate-click-pop {
             animation: clickPop 0.2s ease-out;
         }
+
+        /* School Name Gradient Animation */
+        .animate-school-gradient {
+            animation: schoolGradient 5s ease-in-out infinite alternate;
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        @keyframes schoolGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Custom scrollbar for stats only */
+        .stats-scrollbar-container::-webkit-scrollbar {
+            width: 8px; /* Smaller width for stats scrollbar */
+        }
+
+        .stats-scrollbar-container::-webkit-scrollbar-track {
+            background: #2D3748; /* Darker track for stats */
+            border-radius: 4px;
+        }
+
+        .stats-scrollbar-container::-webkit-scrollbar-thumb {
+            background-color: #8B5CF6; /* Purple thumb for stats */
+            border-radius: 4px;
+            border: 2px solid #2D3748; /* Padding around thumb */
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #A78BFA; /* Lighter purple on hover */
+        }
+
+        /* Firefox scrollbar styling */
+        .stats-scrollbar-container {
+            scrollbar-width: thin; /* "auto" or "thin" */
+            scrollbar-color: #8B5CF6 #2D3748; /* thumb and track color */
+        }
     </style>
 </head>
-<body class="font-inter antialiased bg-gray-900 min-h-screen"> {/* Changed body background to bg-gray-900 */}
+<body class="font-inter antialiased bg-gray-900 min-h-screen">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -316,7 +351,20 @@
           const projects = [
             {
               title: "Sirius Project",
-              description: "Le 'Sirius Project' est une démonstration technique de pointe développée sous Unreal Engine 5, axée sur la génération procédurale de sorts et d'environnements. Ce projet de recherche et développement en Tech-Art, réalisé à Isart Digital Paris en 2025, présente un système robuste de création de sorts dynamiques. J'ai contribué à la mise en place du projet, au contrôleur du joueur, et à l'architecture des systèmes de fabrication et de génération de sorts. Le projet intègre également la fusion automatisée de shaders, l'ajout de VFX en temps réel, la création d'un environnement de jeu entièrement procédural, et la gestion des impacts de sorts sur l'environnement (cratères, propagation du feu, zones de glace). Il inclut même la pousse de plantes procédurales en temps réel, offrant une expérience visuelle riche et interactive.",
+              description: `Le 'Sirius Project' est une démonstration technique de pointe développée sous <strong>Unreal Engine 5</strong>, axée sur la <strong>génération procédurale de sorts et d'environnements</strong>.
+              <br/><br/>
+              Ce projet de recherche et développement en <strong>Tech-Art</strong>, réalisé à Isart Digital Paris en 2025, présente un système robuste de création de sorts dynamiques.
+              <br/><br/>
+              Mes contributions incluent :
+              <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li>Mise en place du projet et contrôleur du joueur</li>
+                <li>Architecture des systèmes de fabrication et de génération de sorts</li>
+                <li>Intégration de la fusion automatisée de shaders et ajout de VFX en temps réel</li>
+                <li>Création d'un environnement de jeu entièrement procédural</li>
+                <li>Gestion des impacts de sorts sur l'environnement (cratères, propagation du feu, zones de glace)</li>
+                <li>Pousse de plantes procédurales en temps réel</li>
+              </ul>
+              Ce projet offre une expérience visuelle riche et interactive.`,
               link: "https://ros4go.github.io/marius.piris/pages/home.html", // Link to the home page for now, as no specific project link provided
               images: [
                 "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt0.png",
@@ -325,12 +373,23 @@
                 "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt3.png",
                 "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt4.png"
               ],
-              videoUrl: "https://www.youtube.com/embed/5", // Corrected YouTube embed URL
+              videoUrl: "https://www.youtube.com/embed/9DvdSvEg0Sw", // Corrected YouTube embed URL
               skills: ["Unreal Engine 5", "C++", "Tech-Art", "Procedural Generation", "Shaders", "VFX", "Game Design", "Teamwork"]
             },
             {
               title: "Mytho Logie",
-              description: "Plongez dans 'Mytho Logie', un jeu de puzzle déjanté avec une narration à choix multiples, développé lors de la Game Jam GameWeek d'Isart Digital Paris en 2025. Votre mission : placer des stickers sur des affiches pour satisfaire les caprices des dieux et débloquer de nouveaux éléments. Chaque décision compte, vous poussant à choisir entre obéir aux divinités ou suivre vos propres principes. En tant que membre clé de l'équipe, j'ai été responsable du développement des affiches et des stickers, du contrôleur du joueur, de l'implémentation d'un système de score basé sur une base de données CSV, et de l'enchaînement fluide des phases de jeu. Ce projet fut un défi technique stimulant, réalisé en quelques jours, démontrant ma capacité à livrer des solutions créatives sous pression.",
+              description: `Plongez dans 'Mytho Logie', un <strong>jeu de puzzle déjanté</strong> avec une <strong>narration à choix multiples</strong>, développé lors de la Game Jam GameWeek d'Isart Digital Paris en 2025.
+              <br/><br/>
+              Votre mission : placer des stickers sur des affiches pour satisfaire les caprices des dieux et débloquer de nouveaux éléments. Chaque décision compte, vous poussant à choisir entre obéir aux divinités ou suivre vos propres principes.
+              <br/><br/>
+              En tant que membre clé de l'équipe, j'ai été responsable de :
+              <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li>Développement des affiches et des stickers</li>
+                <li>Contrôleur du joueur</li>
+                <li>Implémentation d'un système de score basé sur une base de données CSV</li>
+                <li>Enchaînement fluide des phases de jeu</li>
+              </ul>
+              Ce projet fut un défi technique stimulant, réalisé en quelques jours, démontrant ma capacité à livrer des solutions créatives sous pression.`,
               link: "https://ros4go.github.io/marius.piris/pages/home.html", // Link to the home page for now
               images: [
                 "https://ros4go.github.io/marius.piris/assets/images/MythoLogie1.png",
@@ -339,12 +398,23 @@
                 "https://ros4go.github.io/marius.piris/assets/images/MythoLogie3.png",
                 "https://ros4go.github.io/marius.piris/assets/images/Mytho_Logie_Poster.png"
               ],
-              videoUrl: "https://www.youtube.com/embed/6", // Corrected YouTube embed URL
+              videoUrl: "https://www.youtube.com/embed/iL_0Sh8zlkU", // Corrected YouTube embed URL
               skills: ["Unity", "C#", "Puzzle Game", "2D", "Game Jam", "Narrative", "CSV Database"]
             },
             {
               title: "Super Sushi Speed",
-              description: "'Super Sushi Speed' est un jeu de rythme intense où vous incarnez un sushi mutant en quête de liberté, développé lors de la Game Jam ScoreSpaceJam en 2024. Les niveaux, générés semi-procéduralement, augmentent progressivement en difficulté, vous poussant à maîtriser l'alternance gauche/droite en rythme pour avancer, sauter et dasher. Collectez du wasabi pour muter, gagner en vitesse et débloquer de nouvelles capacités comme le double saut. J'ai activement participé à la mise en place du projet, au développement du contrôleur du joueur, à la synchronisation précise des inputs avec le rythme, à la création de niveaux procéduraux infinis, à l'intégration des animations et au processus de build. Ce fut une expérience palpitante de donner vie à ce sushi lancé à pleine vitesse !",
+              description: `Plongez dans 'Super Sushi Speed', un <strong>jeu de rythme intense</strong> où vous incarnez un sushi mutant en quête de liberté, développé lors de la Game Jam ScoreSpaceJam en 2024.
+              <br/><br/>
+              Les niveaux, générés <strong>semi-procéduralement</strong>, augmentent progressivement en difficulté, vous poussant à maîtriser l'alternance gauche/droite en rythme pour avancer, sauter et dasher. Collectez du wasabi pour muter, gagner en vitesse et débloquer de nouvelles capacités comme le double saut.
+              <br/><br/>
+              Mes contributions incluent :
+              <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li>Mise en place du projet et développement du contrôleur du joueur</li>
+                <li>Synchronisation précise des inputs avec le rythme</li>
+                <li>Création de niveaux procéduraux infinis</li>
+                <li>Intégration des animations et processus de build</li>
+              </ul>
+              Ce fut une expérience palpitante de donner vie à ce sushi lancé à pleine vitesse !`,
               link: "https://shazalsadepts.itch.io/super-sushi-speed",
               images: [
                 "https://img.itch.zone/aW1nLzE0ODU5MzI4LnBuZw==/original/t8kUEc.png",
@@ -353,35 +423,52 @@
                 "https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzYxNC5wbmc=/original/xyolUF.png",
                 "https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzU5MC5wbmc=/original/2hunOg.png"
               ],
-              videoUrl: "https://www.youtube.com/embed/12", // Corrected YouTube embed URL
+              videoUrl: "https://www.youtube.com/embed/sdxrkLrejos", // Corrected YouTube embed URL
               skills: ["Godot", "GDScript", "Rhythm Game", "3D", "Procedural Generation", "Game Jam", "Animations"]
             },
             {
               title: "Pot Of Greed",
-              description: "'Pot of Greed' est un mini Rogue-Lite captivant, conçu pour les amateurs de speedrun et de défis, offrant plus de 300 combinaisons de jeu uniques grâce à sa génération procédurale. Incarnez un jeune alchimiste en formation, explorez une forêt mystérieuse, collectez des ingrédients rares, affrontez des monstres redoutables et préparez-vous pour un combat épique contre Goru, le légendaire Pot de la Convoitise. Développé en solo par Marius Piris dans le cadre d'un projet à l'IUT d'Orsay, Paris Saclay en 2024, j'ai géré l'intégralité du développement : mise en place du projet, contrôleur du joueur, système de combinaison procédurale d'objets, gestion de l'inventaire à 3 slots, animations des personnages et des ennemis, et le build final. Ce jeu a servi de prototype fondateur pour le futur système de combinaison runique d'Archipelago-JDR.",
+              description: `Réalisé en solo par Marius Piris dans le cadre d'un projet à l'IUT d'Orsay, Paris Saclay en 2024, j'ai géré l'intégralité du développement :
+              <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li>Mise en place du projet et contrôleur du joueur</li>
+                <li>Système de combinaison procédurale d'objets</li>
+                <li>Gestion de l'inventaire à 3 slots</li>
+                <li>Animations des personnages et des ennemis</li>
+                <li>Processus de build final</li>
+              </ul>
+              Ce jeu a servi de prototype fondateur pour le futur système de combinaison runique d'Archipelago-JDR.`,
               link: "https://shazalsadepts.itch.io/pot-of-greed",
               images: [
                 "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8yMDY1ODI2NS5wbmc=/original/4xn%2Bh4.png",
                 "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5My5wbmc=/original/EGuHFu.png",
-                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5NC4wbmc=/original/1gXAal.png",
+                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5NC5wbmc=/original/1gXAal.png",
                 "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5NS5wbmc=/original/0knbmU.png",
                 "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5Ni5wbmc=/original/UgI%2Bej.png"
               ],
-              videoUrl: "https://www.youtube.com/embed/13", // Corrected YouTube embed URL
+              videoUrl: "https://www.youtube.com/embed/D75UZmmcu4M", // Corrected YouTube embed URL
               skills: ["Unity", "C#", "Rogue-Lite", "2D", "Procedural Generation", "Speedrun", "Game Design"]
             },
             {
               title: "Space Squad",
-              description: "'Space Squad' est un projet de jeu axé sur l'exploration avancée de l'intelligence artificielle, notamment les <strong>Behavior Trees</strong> et l'algorithme de <strong>Flocking</strong>. Votre mission est de détruire des tourelles ennemies en dirigeant une escouade de soldats fidèles, qui obéissent à vos ordres au clic. Réalisé à Isart Digital en 2025, ce projet a été une opportunité d'apprentissage approfondie sur le fonctionnement des IA dans les jeux. En tant que membre de l'équipe, j'ai été responsable de la mise en place générale du projet, du développement du contrôleur du joueur, de la création de l'environnement de jeu, et de l'architecture complexe du Behavior Tree qui régit le comportement de vos soldats.",
+              description: `Plongez dans 'Space Squad', un <strong>jeu de rythme intense</strong> où vous incarnez un sushi mutant en quête de liberté, développé lors de la Game Jam ScoreSpaceJam en 2024.
+              <br/><br/>
+              Les niveaux, générés <strong>semi-procéduralement</strong>, augmentent progressivement en difficulté, vous poussant à maîtriser l'alternance gauche/droite en rythme pour avancer, sauter et dasher. Collectez du wasabi pour muter, gagner en vitesse et débloquer de nouvelles capacités comme le double saut.
+              <br/><br/>
+              Mes contributions incluent :
+              <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                <li>Mise en place du projet et développement du contrôleur du joueur</li>
+                <li>Synchronisation précise des inputs avec le rythme</li>
+                <li>Création de niveaux procéduraux infinis</li>
+                <li>Intégration des animations et processus de build</li>
+              </ul>
+              Ce fut une expérience palpitante de donner vie à ce sushi lancé à pleine vitesse !`,
               link: "https://rosago.itch.io/space-squad",
               images: [
                 "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIyNy5wbmc=/original/roTlwF.png",
-                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxNC5wbmc=/original/Goef2R.png",
                 "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxMy5wbmc=/original/50F7Vs.png",
-                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIyNy5wbmc=/original/roTlwF.png",
-                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxMy5wbmc=/original/50F7Vs.png"
+                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxNC5wbmc=/original/Goef2R.png"
               ],
-              videoUrl: "https://www.youtube.com/embed/14", // Corrected YouTube embed URL
+              videoUrl: "https://www.youtube.com/embed/4000G_UjKd8", // Corrected YouTube embed URL
               skills: ["Unity", "C#", "AI", "Behavior Tree", "Flocking", "3D", "Teamwork"]
             }
           ];
@@ -399,7 +486,7 @@
               "https://placehold.co/600x400/ABCDEF/000000?text=Image+Projet+2"  // URL d'une deuxième image (optionnel, pour le carrousel)
               // Ajoutez autant d'URLs d'images que nécessaire pour le carrousel
             ],
-            videoUrl: "https://www.youtube.com/embed/3", // URL d'intégration YouTube (optionnel, remplacez 'votre_id_youtube')
+            videoUrl: "https://www.youtube.com/embed/votre_id_youtube", // URL d'intégration YouTube (optionnel, remplacez 'votre_id_youtube')
             skills: ["Unity", "C#", "Game Design", "Procedural Generation", "Puzzle"]
           },
           // ------------------------------------------------
@@ -418,7 +505,7 @@
               title: "Développeur web",
               company: "Bijoux Factory Paris",
               duration: "juil. 2024 - août 2024 · 2 mois",
-              description: "Développement d'un système de B2B personnalisé sur Shopify, incluant la création de logiciels Python pour le traitement de données en gros (fiches produits et fiches clients). J'ai travaillé sur la conception d'interfaces homme-machine (IHM) et l'expérience utilisateur pour optimiser les flux e-commerce.",
+              description: "Développement d'un système de B2B personnalisé sur Shopify, inclus la création de logiciels Python pour le traitement de données en gros (fiches produits et fiches clients). J'ai travaillé sur la conception d'interfaces homme-machine (IHM) et l'expérience utilisateur pour optimiser les flux e-commerce.",
               skills: ["HTML", "CSS", "Liquid", "Shopify", "Python", "Conception d’IHM", "UI", "JavaScript", "Design d’interface utilisateur", "Business-to-Business (BtoB)", "Expérience utilisateur (UX)", "E-commerce", "PHP", "Big data", "Analyses Big Data"]
             },
             {
@@ -449,7 +536,7 @@
             images: [
               "https://placehold.co/600x400/FF5733/FFFFFF?text=Image+Exp+1", // Image représentative (optionnel)
             ],
-            videoUrl: "https://www.youtube.com/embed/3", // URL d'intégration YouTube (optionnel)
+            videoUrl: "https://www.youtube.com/embed/votre_id_youtube", // URL d'intégration YouTube (optionnel)
             skills: ["Compétence A", "Compétence B", "Compétence C"] // Compétences spécifiques à cette expérience
           },
           // ------------------------------------------------------------------
@@ -461,25 +548,54 @@
               title: "RNCP7, Game Programming",
               school: "ISART DIGITAL Paris",
               duration: "sept. 2024 - juil. 2026",
-              description: "Niveau : BAC +5. Compétences : Unity, Unreal Engine, Godot, Développement de logiciels et de jeux, Programmation de jeux vidéo (C#, C++, C, HLSL, Shaders), Réseaux informatiques (UDP, TCP), Programmation orientée objet (POO), Interface homme-machine (IHM)."
+              details: {
+                level: "BAC +5",
+                skills: [
+                  "Unity", "Unreal Engine", "Godot",
+                  "Développement de logiciels et de jeux",
+                  "Programmation de jeux vidéo (C#, C++, C, HLSL, Shaders)",
+                  "Réseaux informatiques (UDP, TCP)",
+                  "Programmation orientée objet (POO)",
+                  "Interface homme-machine (IHM)"
+                ]
+              }
             },
             {
               title: "BUT informatique, Informatique",
               school: "IUT d'Orsay",
               duration: "2021 - 2024",
-              description: "Niveau : BAC +3. Compétences : C#, UML, Conception d’IHM, HTML, MySQL, C, frameworks, SGBD, Interactions homme-machine, Science informatique, PhpMyAdmin, JavaScript, Optimisation, Réseaux informatiques, PHP, Java, C++, Docker, Python, MongoDB, Programmation orientée objet, CSS."
+              details: {
+                level: "BAC +3",
+                skills: [
+                  "C#", "UML", "Conception d’IHM", "HTML", "MySQL", "C", "Frameworks", "SGBD",
+                  "Interactions homme-machine", "Science informatique", "PhpMyAdmin", "JavaScript",
+                  "Optimisation", "Réseaux informatiques", "PHP", "Java", "C++", "Docker",
+                  "Python", "MongoDB", "Programmation orientée objet", "CSS"
+                ]
+              }
             },
             {
               title: "Réorientation",
               school: "Polytech Nice Sophia",
               duration: "2020 - 2021",
-              description: "Compétences : Optique, Mécanique, Programmation orientée objet (POO), Programmation, Modélisation 3D, Mathématiques, Python."
+              details: {
+                level: "N/A", // Assuming no specific degree level for reorientation
+                skills: [
+                  "Optique", "Mécanique", "Programmation orientée objet (POO)",
+                  "Programmation", "Modélisation 3D", "Mathématiques", "Python"
+                ]
+              }
             },
             {
               title: "Baccalauréat, Scientifique",
               school: "Lycée Pierre Marie Théas",
               duration: "juil. 2020",
-              description: "Niveau : Mention très bien. Compétences : Sciences de la vie, Science informatique, Mathématiques, Physique."
+              details: {
+                level: "Mention très bien",
+                skills: [
+                  "Sciences de la vie", "Science informatique", "Mathématiques", "Physique"
+                ]
+              }
             }
           ];
 
@@ -491,7 +607,10 @@
             title: "Nom de votre Diplôme/Formation", // Le titre de votre diplôme ou de la formation
             school: "Nom de l'École/Université", // Le nom de l'établissement
             duration: "Mois Année Début - Mois Année Fin", // La durée de la formation
-            description: "Décrivez brièvement les points forts de votre formation, les spécialisations ou les projets majeurs réalisés.", // Description de la formation
+            details: { // Nouvelle structure pour les détails
+              level: "Niveau du diplôme (ex: BAC +5)",
+              skills: ["Compétence 1", "Compétence 2", "Compétence 3"] // Liste des compétences clés
+            }
           },
           // ---------------------------------------------------
           */
@@ -558,6 +677,8 @@
                   <NavLink section="about" label="À Propos" scrollToSection={scrollToSection} currentSection={currentSection} />
                   <NavLink section="projects" label="Projets" scrollToSection={scrollToSection} currentSection={currentSection} />
                   <NavLink section="frometons" label="Jouer" scrollToSection={scrollToSection} currentSection={currentSection} /> {/* New NavLink for Frometons */}
+                  {/* New JDR NavLink */}
+                  <NavLink href="https://ros4go.github.io/marius.piris/pages/JDR.html" label="JDR" />
                   <NavLink section="contact" label="Contact" scrollToSection={scrollToSection} currentSection={currentSection} />
                 </div>
               </div>
@@ -565,15 +686,30 @@
           );
 
           // NavLink component for cleaner Navbar
-          const NavLink = ({ section, label, scrollToSection, currentSection }) => (
-            <button
-              onClick={() => scrollToSection(section)}
-              className={`relative py-1 group ${currentSection === section ? 'text-purple-300' : 'text-gray-300 hover:text-purple-300'} transition duration-300 ease-in-out`}
-            >
-              {label}
-              <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform transition-transform duration-300 ease-out ${currentSection === section ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
-            </button>
-          );
+          const NavLink = ({ section, label, scrollToSection, currentSection, href }) => {
+            if (href) {
+              return (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative py-1 group text-gray-300 hover:text-purple-300 transition duration-300 ease-in-out"
+                >
+                  {label}
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"></span>
+                </a>
+              );
+            }
+            return (
+              <button
+                onClick={() => scrollToSection(section)}
+                className={`relative py-1 group ${currentSection === section ? 'text-purple-300' : 'text-gray-300 hover:text-purple-300'} transition duration-300 ease-in-out`}
+              >
+                {label}
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform transition-transform duration-300 ease-out ${currentSection === section ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+              </button>
+            );
+          };
 
           // Hero Section Component
           const Hero = () => {
@@ -647,7 +783,7 @@
 
               return () => {
                 if (cardRef.current) {
-                  observer.unobserve(cardRef.current);
+                  observer.unobserve(card.current);
                 }
               };
             }, []);
@@ -698,9 +834,24 @@
                 className={`bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 transition-all duration-500 ease-in-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
               >
                 <h4 className="font-bold text-white text-2xl">{formation.title}</h4>
-                <p className="text-purple-300">{formation.school}</p>
-                <p className="text-gray-400">{formation.duration}</p>
-                <p className="text-gray-300 text-base mt-2">{formation.description}</p>
+                <p className="text-lg mb-2">
+                  <span className="animate-school-gradient" style={{ backgroundImage: 'linear-gradient(90deg, #8B5CF6, #EC4899, #3B82F6, #8B5CF6)' }}>
+                    {formation.school}
+                  </span>
+                  <span className="text-gray-400 text-base"> ({formation.duration})</span>
+                </p>
+                {formation.details && (
+                  <>
+                    <p className="text-gray-300 text-base mt-2">
+                      Niveau : <strong className="text-white">{formation.details.level}</strong>
+                    </p>
+                    {formation.details.skills && formation.details.skills.length > 0 && (
+                      <p className="text-gray-300 text-base mt-1">
+                        Compétences : <strong className="text-white">{formation.details.skills.join(', ')}</strong>
+                      </p>
+                    )}
+                  </>
+                )}
               </li>
             );
           };
@@ -741,25 +892,54 @@
                 title: "RNCP7, Game Programming",
                 school: "ISART DIGITAL Paris",
                 duration: "sept. 2024 - juil. 2026",
-                description: "Niveau : BAC +5. Compétences : Unity, Unreal Engine, Godot, Développement de logiciels et de jeux, Programmation de jeux vidéo (C#, C++, C, HLSL, Shaders), Réseaux informatiques (UDP, TCP), Programmation orientée objet (POO), Interface homme-machine (IHM)."
+                details: {
+                  level: "BAC +5",
+                  skills: [
+                    "Unity", "Unreal Engine", "Godot",
+                    "Développement de logiciels et de jeux",
+                    "Programmation de jeux vidéo (C#, C++, C, HLSL, Shaders)",
+                    "Réseaux informatiques (UDP, TCP)",
+                    "Programmation orientée objet (POO)",
+                    "Interface homme-machine (IHM)"
+                  ]
+                }
               },
               {
                 title: "BUT informatique, Informatique",
                 school: "IUT d'Orsay",
                 duration: "2021 - 2024",
-                description: "Niveau : BAC +3. Compétences : C#, UML, Conception d’IHM, HTML, MySQL, C, frameworks, SGBD, Interactions homme-machine, Science informatique, PhpMyAdmin, JavaScript, Optimisation, Réseaux informatiques, PHP, Java, C++, Docker, Python, MongoDB, Programmation orientée objet, CSS."
+                details: {
+                  level: "BAC +3",
+                  skills: [
+                    "C#", "UML", "Conception d’IHM", "HTML", "MySQL", "C", "Frameworks", "SGBD",
+                    "Interactions homme-machine", "Science informatique", "PhpMyAdmin", "JavaScript",
+                    "Optimisation", "Réseaux informatiques", "PHP", "Java", "C++", "Docker",
+                    "Python", "MongoDB", "Programmation orientée objet", "CSS"
+                  ]
+                }
               },
               {
                 title: "Réorientation",
                 school: "Polytech Nice Sophia",
                 duration: "2020 - 2021",
-                description: "Compétences : Optique, Mécanique, Programmation orientée objet (POO), Programmation, Modélisation 3D, Mathématiques, Python."
+                details: {
+                  level: "N/A", // Assuming no specific degree level for reorientation
+                  skills: [
+                    "Optique", "Mécanique", "Programmation orientée objet (POO)",
+                    "Programmation", "Modélisation 3D", "Mathématiques", "Python"
+                  ]
+                }
               },
               {
                 title: "Baccalauréat, Scientifique",
                 school: "Lycée Pierre Marie Théas",
                 duration: "juil. 2020",
-                description: "Niveau : Mention très bien. Compétences : Sciences de la vie, Science informatique, Mathématiques, Physique."
+                details: {
+                  level: "Mention très bien",
+                  skills: [
+                    "Sciences de la vie", "Science informatique", "Mathématiques", "Physique"
+                  ]
+                }
               }
             ];
 
@@ -776,7 +956,8 @@
                       <img
                         src="https://ros4go.github.io/marius.piris/assets/images/marius_profile.png"
                         alt="Votre Photo de Profil"
-                        className="rounded-full w-48 h-48 object-cover object-center border-4 border-purple-500 shadow-lg animate-pulse-border"
+                        className="rounded-full w-48 h-48 object-cover border-4 border-purple-500 shadow-lg animate-pulse-border"
+                        style={{ objectPosition: '30% 0%' }} /* Adjusted object-position to lower the image */
                       />
                     </div>
                     <div className="flex-grow space-y-6">
@@ -789,6 +970,20 @@
                       <p>
                         Mon parcours m'a permis d'explorer divers aspects du développement, de la <strong className="font-bold text-teal-300">génération procédurale</strong> à l'<strong className="font-bold text-teal-300">intelligence artificielle</strong> (Flocking AI, Behavior Trees), en passant par le <strong className="font-bold text-teal-300">développement multijoueur</strong>. Mon objectif est de fusionner l'art et la technologie pour créer des expériences mémorables et immersives.
                       </p>
+                      {/* CV Download Button */}
+                      <div className="text-center mt-8">
+                        <a
+                          href="https://ros4go.github.io/marius.piris/assets/CV_PIRIS_Marius_GP3.pdf"
+                          download="CV_PIRIS_Marius_GP3.pdf"
+                          className="inline-flex items-center justify-center px-10 py-4 bg-gradient-to-r from-blue-600 to-teal-600 text-white text-xl font-semibold rounded-full shadow-lg hover:from-blue-700 hover:to-teal-700 transform hover:scale-105 transition duration-500 ease-in-out group relative overflow-hidden"
+                        >
+                          <svg className="w-7 h-7 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                          </svg>
+                          <span className="relative z-10">Télécharger mon CV</span>
+                          <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"></span>
+                        </a>
+                      </div>
                     </div>
                   </div>
 
@@ -948,7 +1143,8 @@
                 />
                 <div className="p-7">
                   <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 mb-3">{project.title}</h3>
-                  <p className="text-gray-300 text-base mb-5 line-clamp-4">{project.description}</p>
+                  {/* Render project.description as HTML */}
+                  <p className="text-gray-300 text-base mb-5 line-clamp-4" dangerouslySetInnerHTML={{ __html: project.description }}></p>
                   {/* Removed direct link button, now opens modal */}
                 </div>
               </div>
@@ -1026,17 +1222,35 @@
           // Frometons Clicker Game Component
           const FrometonsGame = ({ setShowConfirmModal, setConfirmAction, setConfirmMessage }) => {
             const frometonsImage = "https://ros4go.github.io/marius.piris/assets/images/Fromecoin.png"; // URL for the uploaded image
-            const consoleRef = React.useRef(null); // Ref for the console scroll
+            // Removed consoleRef from here, it will be managed internally by ConsoleAndStatsPanel
             const [isFrometonsSectionVisible, setIsFrometonsSectionVisible] = React.useState(false);
-            const [maxConsoleMessages, setMaxConsoleMessages] = React.useState(30); // Default for desktop
+            const [maxConsoleMessages, setMaxConsoleMessages] = React.useState(10); // Default for desktop: 10 messages
             const isMobileRef = React.useRef(window.innerWidth < 768); // Tailwind's 'md' breakpoint
             const [floatingTexts, setFloatingTexts] = React.useState([]); // State for floating click texts
             const clickButtonRef = React.useRef(null); // Ref for the click button
+            const [activeTab, setActiveTab] = React.useState('journal'); // 'journal' or 'stats'
+            const [isMobileConsoleOpen, setIsMobileConsoleOpen] = React.useState(false); // New state for mobile console
+
+            // Utility for number formatting
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('fr-FR').format(Math.floor(num));
+            };
+
+            // Utility for time formatting
+            const formatTime = (milliseconds) => {
+                if (milliseconds === null) return 'N/A';
+                const totalSeconds = Math.floor(milliseconds / 1000);
+                const hours = Math.floor((totalSeconds / 3600) % 24); // Ensure hours don't exceed 24
+                const minutes = Math.floor((totalSeconds / 60) % 60);
+                const seconds = totalSeconds % 60;
+                return `${hours}h ${minutes}m ${seconds}s`; // Changed to show all units for clarity
+            };
+
 
             React.useEffect(() => {
                 const handleResize = () => {
                     isMobileRef.current = window.innerWidth < 768;
-                    setMaxConsoleMessages(isMobileRef.current ? 3 : 30); // 3 for mobile, 30 for desktop
+                    setMaxConsoleMessages(isMobileRef.current ? 3 : 10); // 3 for mobile, 10 for desktop
                 };
 
                 window.addEventListener('resize', handleResize);
@@ -1057,14 +1271,19 @@
                 Camembert: 0,
                 Roquefort: 0,
                 Gruyere: 0,
+                Emmental: 0, // Nouveau fromage
+                Reblochon: 0, // Nouveau fromage
               },
-              cheesePrices: { // Base prices, will fluctuate
-                Comte: 1, // Was 10, now 1
-                SaintFelicien: 2, // Was 15, now 2
-                Camembert: 5, // Was 20, now 5
-                Roquefort: 10, // Was 25, now 10
-                Gruyere: 20, // Was 30, now 20
+              cheesePrices: { // Base prices, currentMarketPrice will be derived from weights
+                Comte: { basePrice: 1.0, frometonMultiplier: 1.0 },
+                SaintFelicien: { basePrice: 2.5, frometonMultiplier: 1.5 }, // Increased multiplier
+                Camembert: { basePrice: 5.0, frometonMultiplier: 2.0 }, // Increased multiplier
+                Roquefort: { basePrice: 7.5, frometonMultiplier: 2.5 }, // Increased multiplier
+                Gruyere: { basePrice: 10.0, frometonMultiplier: 3.0 }, // Increased multiplier
+                Emmental: { basePrice: 20.0, frometonMultiplier: 4.0 }, // Increased multiplier
+                Reblochon: { basePrice: 30.0, frometonMultiplier: 5.0 }, // Increased multiplier
               },
+              cheeseWeights: {}, // Will be initialized dynamically
               unlockedCheeses: ['Comte'], // Start with Compté unlocked
               selectedFarmingCheese: 'Comte', // Default farming cheese
               upgrades: {
@@ -1079,18 +1298,62 @@
                 ]
               },
               buildings: [ // Buildings now produce specific cheese types
-                { name: "Petite Roue de Fromage", cost: 100, effect: 5, currentCount: 0, baseCost: 100, description: "Génère 5 unités du fromage sélectionné par seconde." }, // Increased effect, increased baseCost (money)
-                { name: "Cave d'Affinement de Fromage", cost: 1000, effect: 25, currentCount: 0, baseCost: 1000, description: "Génère 25 unités du fromage sélectionné par seconde." }, // Increased effect, increased baseCost (money)
-                { name: "Usine Automatisée de Frometons", cost: 10000, effect: 100, currentCount: 0, baseCost: 10000, description: "Génère 100 unités du fromage sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+                { name: "Petite Roue de Fromage", cost: 500, effect: 5, currentCount: 0, baseCost: 500, selectedProduction: 'frometons', description: "Génère 5 unités du type sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+                { name: "Cave d'Affinement de Fromage", cost: 5000, effect: 25, currentCount: 0, baseCost: 5000, selectedProduction: 'frometons', description: "Génère 25 unités du type sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+                { name: "Usine Automatisée de Frometons", cost: 50000, effect: 100, currentCount: 0, baseCost: 50000, selectedProduction: 'frometons', description: "Génère 100 unités du type sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+                { name: "Complexe Industriel Fromager", cost: 500000, effect: 500, currentCount: 0, baseCost: 500000, selectedProduction: 'frometons', description: "Génère 500 unités du type sélectionné par seconde." },
+                { name: "Mégapole du Fromage", cost: 5000000, effect: 2500, currentCount: 0, baseCost: 5000000, selectedProduction: 'frometons', description: "Génère 2500 unités du type sélectionné par seconde." },
+                { name: "Empire Galactique du Fromage", cost: 50000000, effect: 10000, currentCount: 0, baseCost: 50000000, selectedProduction: 'frometons', description: "Génère 10000 unités du type sélectionné par seconde." },
               ],
               cheeseUnlockCosts: { // Costs to unlock new cheese types
-                SaintFelicien: { money: 5000, frometons: 10000 },
-                Camembert: { money: 50000, frometons: 100000 },
-                Roquefort: { money: 500000, frometons: 1000000 },
-                Gruyere: { money: 5000000, frometons: 10000000 },
+                SaintFelicien: { money: 10000, frometons: 20000 },
+                Camembert: { money: 100000, frometons: 200000 },
+                Roquefort: { money: 1000000, frometons: 2000000 },
+                Gruyere: { money: 10000000, frometons: 20000000 },
+                Emmental: { money: 50000000, frometons: 100000000 }, // Nouveau fromage
+                Reblochon: { money: 100000000, frometons: 200000000 }, // Nouveau fromage
               },
               currentHappenings: null, // { type: 'bonus'/'malus', duration: seconds, message: string, effect: number }
+              // Statistics
+              totalClicks: 0,
+              totalFrometonsEarned: 0,
+              totalMoneyEarned: 0,
+              totalCheeseProduced: { Comte: 0, SaintFelicien: 0, Camembert: 0, Roquefort: 0, Gruyere: 0, Emmental: 0, Reblochon: 0 }, // Nouveau fromage
+              gameStartTime: null,
+              milestones: {
+                '100': null, '1000': null, '10000': null, '100000': null,
+                '1000000': null, '10000000': null, '100000000': null, '1000000000': null
+              },
+              cheeseUnlockTimestamps: {
+                Comte: null, SaintFelicien: null, Camembert: null, Roquefort: null, Gruyere: null, Emmental: null, Reblochon: null
+              },
             };
+
+            // Helper function to normalize cheese weights
+            const normalizeCheeseWeights = (weights, unlockedCheeses) => {
+                const activeWeights = {};
+                let totalWeight = 0;
+                unlockedCheeses.forEach(cheeseType => {
+                    // Ensure a minimum weight to prevent a cheese from having 0 influence
+                    activeWeights[cheeseType] = Math.max(0.01, weights[cheeseType] || 0); // Minimum weight of 0.01
+                    totalWeight += activeWeights[cheeseType];
+                });
+
+                if (totalWeight === 0) { // Should not happen if unlockedCheeses is not empty
+                    const equalWeight = 100 / unlockedCheeses.length;
+                    unlockedCheeses.forEach(cheeseType => {
+                        activeWeights[cheeseType] = equalWeight;
+                    });
+                    return activeWeights;
+                }
+
+                const normalizedWeights = {};
+                unlockedCheeses.forEach(cheeseType => {
+                    normalizedWeights[cheeseType] = (activeWeights[cheeseType] / totalWeight) * 100;
+                });
+                return normalizedWeights;
+            };
+
 
             const [gameState, setGameState] = React.useState(() => {
               try {
@@ -1124,10 +1387,55 @@
                     if (typeof mergedState.cheeseInventory[cheeseType] === 'undefined') {
                       mergedState.cheeseInventory[cheeseType] = initialGameState.cheeseInventory[cheeseType];
                     }
-                    if (typeof mergedState.cheesePrices[cheeseType] === 'undefined') {
-                      mergedState.cheesePrices[cheeseType] = initialGameState.cheesePrices[cheeseType];
+                    // Ensure cheesePrices structure is updated for old saves, but remove old market price/supply factor
+                    if (typeof mergedState.cheesePrices[cheeseType] === 'number') { // Old format
+                        mergedState.cheesePrices[cheeseType] = {
+                            basePrice: mergedState.cheesePrices[cheeseType],
+                            frometonMultiplier: initialGameState.cheesePrices[cheeseType].frometonMultiplier
+                        };
+                    } else if (typeof mergedState.cheesePrices[cheeseType] === 'undefined') {
+                        mergedState.cheesePrices[cheeseType] = initialGameState.cheesePrices[cheeseType];
                     }
+                    // Remove old currentMarketPrice and supplyFactor if they exist from old saves
+                    if (mergedState.cheesePrices[cheeseType].currentMarketPrice !== undefined) delete mergedState.cheesePrices[cheeseType].currentMarketPrice;
+                    if (mergedState.cheesePrices[cheeseType].supplyFactor !== undefined) delete mergedState.cheesePrices[cheeseType].supplyFactor;
                   });
+
+                  // Initialize cheeseWeights if missing or re-normalize if present
+                  if (!mergedState.cheeseWeights || Object.keys(mergedState.cheeseWeights).length === 0 || !mergedState.unlockedCheeses.every(c => mergedState.cheeseWeights[c] !== undefined)) {
+                      const numUnlocked = mergedState.unlockedCheeses.length;
+                      if (numUnlocked > 0) {
+                          const initialEqualWeight = 100 / numUnlocked;
+                          mergedState.cheeseWeights = {};
+                          mergedState.unlockedCheeses.forEach(cheeseType => {
+                              newCheeseWeights[cheeseType] = initialEqualWeight;
+                          });
+                      }
+                  } else {
+                      // If weights exist, ensure they are normalized (e.g., if new cheeses were unlocked or structure changed)
+                      mergedState.cheeseWeights = normalizeCheeseWeights(mergedState.cheeseWeights, mergedState.unlockedCheeses);
+                  }
+
+                  // Calculate currentMarketPrice for all cheeses based on initial/loaded weights
+                  const numUnlockedCheeses = mergedState.unlockedCheeses.length;
+                  const idealWeight = numUnlockedCheeses > 0 ? 100 / numUnlockedCheeses : 0;
+                  const priceSensitivity = 0.02; // This is no longer directly used in the same way, but kept for context
+
+                  mergedState.unlockedCheeses.forEach(cheeseType => {
+                      const basePrice = initialGameState.cheesePrices[cheeseType].basePrice;
+                      const currentWeight = mergedState.cheeseWeights[cheeseType];
+                      // New price calculation: directly proportional to weight percentage
+                      let calculatedPrice = basePrice * (currentWeight / 100);
+                      // Ensure price stays within reasonable bounds (e.g., 1% to 150% of base price)
+                      const minPrice = basePrice * 0.01; // Minimum 1% of base price
+                      const maxPrice = basePrice * 1.5;
+                      calculatedPrice = Math.max(minPrice, Math.min(maxPrice, calculatedPrice));
+                      mergedState.cheesePrices[cheeseType] = {
+                          ...mergedState.cheesePrices[cheeseType],
+                          currentMarketPrice: calculatedPrice
+                      };
+                  });
+
 
                   // Ensure unlock costs are correctly structured (for old saves)
                   Object.keys(initialGameState.cheeseUnlockCosts).forEach(cheeseType => {
@@ -1141,6 +1449,34 @@
                     }
                   });
 
+                  // Ensure buildings have selectedProduction
+                  mergedState.buildings = initialGameState.buildings.map((initialBuilding, index) => {
+                      const savedBuilding = mergedState.buildings[index];
+                      return {
+                          ...initialBuilding, // Start with default structure
+                          ...(savedBuilding || {}), // Overlay saved data if exists
+                          selectedProduction: savedBuilding?.selectedProduction || initialBuilding.selectedProduction
+                      };
+                  });
+
+
+                  // Initialize statistics if not present (for old saves)
+                  if (mergedState.totalClicks === undefined) mergedState.totalClicks = 0;
+                  if (mergedState.totalFrometonsEarned === undefined) mergedState.totalFrometonsEarned = 0;
+                  if (mergedState.totalMoneyEarned === undefined) mergedState.totalMoneyEarned = 0;
+                  if (mergedState.totalCheeseProduced === undefined) mergedState.totalCheeseProduced = initialGameState.totalCheeseProduced;
+                  if (mergedState.gameStartTime === undefined) mergedState.gameStartTime = null;
+                  if (mergedState.milestones === undefined) mergedState.milestones = initialGameState.milestones;
+                  if (mergedState.cheeseUnlockTimestamps === undefined) mergedState.cheeseUnlockTimestamps = initialGameState.cheeseUnlockTimestamps;
+
+
+                  // Set gameStartTime if it's null and frometons > 0 (implies existing game)
+                  if (mergedState.gameStartTime === null && mergedState.frometons > 0) {
+                      mergedState.gameStartTime = Date.now(); // Set to current time if loaded from old save without start time
+                  } else if (mergedState.gameStartTime === null) {
+                      // If starting a brand new game, set it on first click
+                  }
+
 
                   // Reset happenings on load
                   mergedState.currentHappenings = null;
@@ -1150,7 +1486,28 @@
               } catch (error) {
                 console.error("Failed to load game state from localStorage:", error);
               }
-              return initialGameState;
+              // If no saved state or error, initialize with default values including cheeseWeights
+              const initialWeights = {};
+              const numInitialUnlocked = initialGameState.unlockedCheeses.length;
+              if (numInitialUnlocked > 0) {
+                  const equalWeight = 100 / numInitialUnlocked;
+                  initialGameState.unlockedCheeses.forEach(cheeseType => {
+                      initialWeights[cheeseType] = equalWeight;
+                  });
+              }
+              const initialPricesWithMarket = { ...initialGameState.cheesePrices };
+              initialGameState.unlockedCheeses.forEach(cheeseType => {
+                  initialPricesWithMarket[cheeseType] = {
+                      ...initialPricesWithMarket[cheeseType],
+                      currentMarketPrice: initialPricesWithMarket[cheeseType].basePrice // Set initial market price to base price
+                  };
+              });
+
+              return {
+                  ...initialGameState,
+                  cheeseWeights: initialWeights,
+                  cheesePrices: initialPricesWithMarket
+              };
             });
 
             const [consoleMessages, setConsoleMessages] = React.useState([]);
@@ -1184,12 +1541,6 @@
                 });
             }, [maxConsoleMessages]); // Dependency on maxConsoleMessages
 
-            // Scroll console to bottom on new message
-            React.useEffect(() => {
-                if (consoleRef.current) {
-                    consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
-                }
-            }, [consoleMessages]);
 
             // Save game state to localStorage whenever it changes (debounced)
             React.useEffect(() => {
@@ -1204,52 +1555,137 @@
               return () => clearTimeout(saveTimer);
             }, [gameState]);
 
-            // Calculate total passive income (frometons per second for the selected cheese)
-            const totalPassiveCheesePerSecond = React.useMemo(() => {
-              return gameState.buildings.reduce((sum, building) => sum + (building.effect * building.currentCount), 0);
-            }, [gameState.buildings]);
+            // Calculate total passive income for each type
+            const totalPassiveProduction = React.useMemo(() => {
+                const production = { frometons: 0 };
+                Object.keys(gameState.cheeseInventory).forEach(cheeseType => {
+                    production[cheeseType] = 0;
+                });
+
+                gameState.buildings.forEach(building => {
+                    if (building.currentCount > 0) {
+                        production[building.selectedProduction] += building.effect * building.currentCount;
+                    }
+                });
+                return production;
+            }, [gameState.buildings, gameState.cheeseInventory]);
 
 
-            // Auto-gain interval (now for specific cheese units)
+            // Auto-gain interval (now for specific cheese units and frometons)
             React.useEffect(() => {
               const interval = setInterval(() => {
                 setGameState((prev) => {
                   const newCheeseInventory = { ...prev.cheeseInventory };
-                  let gain = totalPassiveCheesePerSecond;
+                  const newTotalCheeseProduced = { ...prev.totalCheeseProduced };
+                  let newFrometons = prev.frometons;
+                  let newTotalFrometonsEarned = prev.totalFrometonsEarned;
 
-                  if (prev.currentHappenings && prev.currentHappenings.type === 'bonus') {
-                    gain *= prev.currentHappenings.effect;
-                  } else if (prev.currentHappenings && prev.currentHappenings.type === 'malus') {
-                    gain /= prev.currentHappenings.effect;
+                  for (const type in totalPassiveProduction) {
+                    let gain = totalPassiveProduction[type];
+
+                    if (prev.currentHappenings && prev.currentHappenings.type === 'bonus') {
+                      gain *= prev.currentHappenings.effect;
+                    } else if (prev.currentHappenings && prev.currentHappenings.type === 'malus') {
+                      gain /= prev.currentHappenings.effect;
+                    }
+
+                    if (type === 'frometons') {
+                        // Apply selected farming cheese multiplier to general frometons gain
+                        const frometonMultiplier = prev.cheesePrices[prev.selectedFarmingCheese]?.frometonMultiplier || 1.0;
+                        const actualFrometonGain = gain * frometonMultiplier;
+                        newFrometons += actualFrometonGain;
+                        newTotalFrometonsEarned += actualFrometonGain;
+                    } else {
+                        newCheeseInventory[type] = (newCheeseInventory[type] || 0) + gain;
+                        newTotalCheeseProduced[type] = (newTotalCheeseProduced[type] || 0) + gain;
+                    }
                   }
 
-                  newCheeseInventory[prev.selectedFarmingCheese] = (newCheeseInventory[prev.selectedFarmingCheese] || 0) + gain;
+                  // Check milestones for totalFrometonsEarned
+                  const now = Date.now();
+                  const currentPlayTime = prev.gameStartTime ? now - prev.gameStartTime : 0;
+                  for (const milestoneValueStr in prev.milestones) {
+                      const milestoneValue = parseInt(milestoneValueStr);
+                      if (newTotalFrometonsEarned >= milestoneValue && prev.milestones[milestoneValueStr] === null) {
+                          prev.milestones[milestoneValueStr] = {
+                              timestamp: now,
+                              timePlayed: currentPlayTime
+                          };
+                          addConsoleMessage(`Félicitations ! Vous avez atteint ${formatNumber(milestoneValue)} Frometons !`, 'text-yellow-400');
+                      }
+                  }
+
 
                   return {
                     ...prev,
+                    frometons: newFrometons,
+                    totalFrometonsEarned: newTotalFrometonsEarned,
                     cheeseInventory: newCheeseInventory,
+                    totalCheeseProduced: newTotalCheeseProduced,
                   };
                 });
               }, 1000); // Every second
               return () => clearInterval(interval);
-            }, [totalPassiveCheesePerSecond, gameState.selectedFarmingCheese, gameState.currentHappenings]);
+            }, [totalPassiveProduction, gameState.selectedFarmingCheese, gameState.currentHappenings, addConsoleMessage]);
 
-            // Cheese price fluctuation interval
+            // Market Rebalance Interval (now based on weights)
             React.useEffect(() => {
-              const priceInterval = setInterval(() => {
-                setGameState(prev => {
-                  const newCheesePrices = { ...prev.cheesePrices };
-                  for (const cheeseType in newCheesePrices) {
-                    // Fluctuate price by +/- 10% of base price
-                    const basePrice = initialGameState.cheesePrices[cheeseType];
-                    const fluctuation = (Math.random() * 0.2 - 0.1); // -0.1 to +0.1
-                    newCheesePrices[cheeseType] = Math.max(basePrice * 0.5, basePrice * (1 + fluctuation)); // Ensure price doesn't go below 50% of base
-                  }
-                  return { ...prev, cheesePrices: newCheesePrices };
-                });
-              }, 30000); // Update prices every 30 seconds
-              return () => clearInterval(priceInterval);
-            }, []);
+                const marketRebalanceInterval = setInterval(() => {
+                    setGameState(prev => {
+                        const newCheeseWeights = { ...prev.cheeseWeights };
+                        const newCheesePrices = { ...prev.cheesePrices };
+                        const unlockedCheeses = prev.unlockedCheeses;
+                        const numUnlockedCheeses = unlockedCheeses.length;
+
+                        if (numUnlockedCheeses === 0) return prev;
+
+                        const idealWeight = 100 / numUnlockedCheeses;
+                        const rebalanceRate = 0.0005; // Even more subtle rebalance: 0.05% of the difference per 10 seconds
+
+                        // Step 1: Nudge weights towards ideal and apply a small random fluctuation
+                        unlockedCheeses.forEach(cheeseType => {
+                            let currentWeight = newCheeseWeights[cheeseType] || 0;
+                            // Nudge towards ideal
+                            currentWeight += (idealWeight - currentWeight) * rebalanceRate;
+
+                            // Add a very small random fluctuation to prevent complete stagnation
+                            currentWeight += (Math.random() - 0.5) * 0.02; // +/- 0.01 weight points
+
+                            newCheeseWeights[cheeseType] = currentWeight;
+                        });
+
+                        // Step 2: Normalize weights to ensure they sum to 100
+                        const normalizedWeights = normalizeCheeseWeights(newCheeseWeights, unlockedCheeses);
+
+                        // Step 3: Calculate currentMarketPrice based on normalized weights
+                        unlockedCheeses.forEach(cheeseType => {
+                            const basePrice = initialGameState.cheesePrices[cheeseType].basePrice;
+                            const currentWeight = normalizedWeights[cheeseType];
+
+                            // New price calculation: directly proportional to weight percentage
+                            let calculatedPrice = basePrice * (currentWeight / 100);
+
+                            // Ensure price stays within reasonable bounds (e.g., 1% to 150% of base price)
+                            const minPrice = basePrice * 0.01; // Minimum 1% of base price
+                            const maxPrice = basePrice * 1.5;
+                            calculatedPrice = Math.max(minPrice, Math.min(maxPrice, calculatedPrice));
+
+                            newCheesePrices[cheeseType] = {
+                                ...newCheesePrices[cheeseType], // Keep frometonMultiplier etc.
+                                currentMarketPrice: calculatedPrice
+                            };
+                        });
+
+                        return {
+                            ...prev,
+                            cheeseWeights: normalizedWeights,
+                            cheesePrices: newCheesePrices
+                        };
+                    });
+                }, 10000); // Every 10 seconds
+                return () => clearInterval(marketRebalanceInterval);
+            }, [addConsoleMessage, gameState.unlockedCheeses]);
+
 
             // Happenings interval
             React.useEffect(() => {
@@ -1300,30 +1736,66 @@
 
 
             const clickFrometon = () => {
-              let actualClickPower = gameState.clickPower;
+              // Calculate click power and critical status first
+              let currentClickPower = gameState.clickPower; // Get current clickPower from state
               let isCritical = false;
 
-              if (Math.random() < gameState.criticalClickChance) {
-                actualClickPower *= gameState.criticalClickMultiplier;
+              if (Math.random() < gameState.criticalClickChance) { // Use current criticalChance from state
+                currentClickPower *= gameState.criticalClickMultiplier; // Use current criticalMultiplier from state
                 isCritical = true;
               }
 
+              // Calculate the actual frometon gain *before* updating state, so it can be used for display
+              const frometonMultiplier = gameState.cheesePrices[gameState.selectedFarmingCheese]?.frometonMultiplier || 1.0;
+              const actualFrometonGain = currentClickPower * frometonMultiplier; // This is the value we want to display
+
+
               setGameState((prev) => {
+                // Set game start time on first click if not already set
+                if (prev.gameStartTime === null) {
+                    prev = { ...prev, gameStartTime: Date.now() };
+                }
+
                 const newCheeseInventory = { ...prev.cheeseInventory };
-                newCheeseInventory[prev.selectedFarmingCheese] = (newCheeseInventory[prev.selectedFarmingCheese] || 0) + actualClickPower;
+                // Still add base click power to cheese inventory
+                newCheeseInventory[prev.selectedFarmingCheese] = (newCheeseInventory[prev.selectedFarmingCheese] || 0) + currentClickPower;
+
+                const newTotalFrometonsEarned = prev.totalFrometonsEarned + actualFrometonGain; // Use actualFrometonGain here
+                const newTotalClicks = prev.totalClicks + 1;
+                // Still add base click power to total cheese produced
+                const newTotalCheeseProduced = { ...prev.totalCheeseProduced, [prev.selectedFarmingCheese]: (prev.totalCheeseProduced[prev.selectedFarmingCheese] || 0) + currentClickPower };
+
+                // Check milestones for totalFrometonsEarned
+                const now = Date.now();
+                const currentPlayTime = prev.gameStartTime ? now - prev.gameStartTime : 0;
+                for (const milestoneValueStr in prev.milestones) {
+                    const milestoneValue = parseInt(milestoneValueStr);
+                    if (newTotalFrometonsEarned >= milestoneValue && prev.milestones[milestoneValueStr] === null) {
+                        prev.milestones[milestoneValueStr] = {
+                            timestamp: now,
+                            timePlayed: currentPlayTime
+                        };
+                        addConsoleMessage(`Félicitations ! Vous avez atteint ${formatNumber(milestoneValue)} Frometons !`, 'text-yellow-400');
+                    }
+                }
+
+
                 return {
                   ...prev,
-                  frometons: prev.frometons + actualClickPower, // General frometon points still increase
+                  frometons: prev.frometons + actualFrometonGain, // Use actualFrometonGain here
+                  totalFrometonsEarned: newTotalFrometonsEarned,
+                  totalClicks: newTotalClicks,
                   cheeseInventory: newCheeseInventory,
+                  totalCheeseProduced: newTotalCheeseProduced,
                 };
               });
 
-              // Add floating text feedback
+              // Add floating text feedback using actualFrometonGain
               setFloatingTexts(prev => [
                   ...prev,
                   {
                       id: Date.now(),
-                      value: actualClickPower,
+                      value: actualFrometonGain, // Use actualFrometonGain for floating text
                       isCritical: isCritical,
                       x: Math.random() * 40 - 20, // Random horizontal offset
                       y: Math.random() * 40 - 20, // Random vertical offset
@@ -1338,10 +1810,10 @@
                 }, { once: true });
               }
 
-
+              // Use actualFrometonGain for console message
               const clickMessage = isCritical
-                    ? `CRITIQUE ! +${actualClickPower.toFixed(1)} ${gameState.selectedFarmingCheese} & Frometons !`
-                    : `+${actualClickPower.toFixed(1)} ${gameState.selectedFarmingCheese} & Frometons.`;
+                    ? `CRITIQUE ! +${actualFrometonGain.toFixed(1)} ${gameState.selectedFarmingCheese} & Frometons !`
+                    : `+${actualFrometonGain.toFixed(1)} ${gameState.selectedFarmingCheese} & Frometons.`;
               addConsoleMessage(clickMessage, isCritical ? 'text-yellow-300' : 'text-gray-300');
             };
 
@@ -1433,7 +1905,7 @@
                   const newCount = building.currentCount + 1;
                   const newCost = Math.round(building.baseCost * Math.pow(2.0, newCount)); // Increased exponential cost for buildings
 
-                  addConsoleMessage(`Achat: ${building.name} (x${newCount}). Production +${building.effect.toFixed(1)} ${prev.selectedFarmingCheese}/s.`, 'text-green-300');
+                  addConsoleMessage(`Achat: ${building.name} (x${newCount}). Production +${building.effect.toFixed(1)} ${building.selectedProduction}/s.`, 'text-green-300');
 
                   return {
                     ...prev,
@@ -1451,26 +1923,74 @@
             const sellCheese = (cheeseType) => {
                 setGameState(prev => {
                     const currentCheeseAmount = prev.cheeseInventory[cheeseType] || 0;
-                    const currentPrice = prev.cheesePrices[cheeseType] || 0;
-                    const priceReductionFactor = 0.00001; // Even smaller reduction per unit sold
-                    const basePriceForCheese = initialGameState.cheesePrices[cheeseType]; // Get original base price
-                    const minPrice = basePriceForCheese * 0.5; // Minimum price is 50% of its base price
+                    const currentPriceData = prev.cheesePrices[cheeseType];
+                    const currentMarketPrice = currentPriceData?.currentMarketPrice || 0;
 
-                    if (currentCheeseAmount > 0 && currentPrice > 0) {
-                        const moneyGained = currentCheeseAmount * currentPrice;
+                    if (currentCheeseAmount > 0 && currentMarketPrice > 0) {
+                        const moneyGained = currentCheeseAmount * currentMarketPrice;
                         const newCheeseInventory = { ...prev.cheeseInventory, [cheeseType]: 0 };
 
-                        // Calculate new price based on amount sold
-                        const priceDecrease = currentCheeseAmount * priceReductionFactor * currentPrice;
-                        const newPrice = Math.max(minPrice, currentPrice - priceDecrease);
-                        const newCheesePrices = { ...prev.cheesePrices, [cheeseType]: newPrice };
+                        const newCheeseWeights = { ...prev.cheeseWeights };
+                        const weightImpactFactor = 0.000005; // Reduced sensitivity: 0.0005% decrease per unit sold)
+                        const weightReduction = currentCheeseAmount * weightImpactFactor;
 
-                        addConsoleMessage(`Vente de ${currentCheeseAmount.toFixed(1)} ${cheeseType} pour ${moneyGained.toFixed(2)} Argent. Nouveau prix: ${newPrice.toFixed(2)}€/unité.`, 'text-yellow-300');
+                        // Decrease weight of the sold cheese
+                        newCheeseWeights[cheeseType] = Math.max(0.01, (newCheeseWeights[cheeseType] || 0) - weightReduction); // Ensure min weight of 0.01
+
+                        // Distribute the reduced weight to other unlocked cheeses
+                        const otherUnlockedCheeses = prev.unlockedCheeses.filter(c => c !== cheeseType);
+                        if (otherUnlockedCheeses.length > 0) {
+                            let totalWeightOfOthers = 0;
+                            otherUnlockedCheeses.forEach(c => {
+                                totalWeightOfOthers += newCheeseWeights[c] || 0;
+                            });
+
+                            // Distribute proportionally to their current weights
+                            otherUnlockedCheeses.forEach(c => {
+                                if (totalWeightOfOthers > 0) {
+                                    const share = (newCheeseWeights[c] / totalWeightOfOthers) * weightReduction;
+                                    newCheeseWeights[c] = (newCheeseWeights[c] || 0) + share;
+                                } else {
+                                    // If all other weights are zero, distribute evenly
+                                    newCheeseWeights[c] = (newCheeseWeights[c] || 0) + (weightReduction / otherUnlockedCheeses.length);
+                                }
+                            });
+                        }
+
+                        // Re-normalize all weights after distribution
+                        const normalizedWeights = normalizeCheeseWeights(newCheeseWeights, prev.unlockedCheeses);
+
+                        // Recalculate prices immediately after selling to reflect new weights
+                        const updatedCheesePrices = { ...prev.cheesePrices };
+                        const numUnlockedCheeses = prev.unlockedCheeses.length;
+                        const idealWeight = numUnlockedCheeses > 0 ? 100 / numUnlockedCheeses : 0;
+
+                        prev.unlockedCheeses.forEach(c => {
+                            const basePrice = initialGameState.cheesePrices[c].basePrice;
+                            const currentWeight = normalizedWeights[c];
+                            // New price calculation: directly proportional to weight percentage
+                            let calculatedPrice = basePrice * (currentWeight / 100);
+                            // Ensure price stays within reasonable bounds (e.g., 1% to 150% of base price)
+                            const minPrice = basePrice * 0.01; // Minimum 1% of base price
+                            const maxPrice = basePrice * 1.5;
+                            calculatedPrice = Math.max(minPrice, Math.min(maxPrice, calculatedPrice));
+                            updatedCheesePrices[c] = {
+                                ...updatedCheesePrices[c],
+                                currentMarketPrice: calculatedPrice
+                            };
+                        });
+
+
+                        const newTotalMoneyEarned = prev.totalMoneyEarned + moneyGained;
+
+                        addConsoleMessage(`Vente de ${formatNumber(currentCheeseAmount)} ${cheeseType} pour ${moneyGained.toFixed(2)} Argent.`, 'text-yellow-300');
                         return {
                             ...prev,
                             money: prev.money + moneyGained,
+                            totalMoneyEarned: newTotalMoneyEarned,
                             cheeseInventory: newCheeseInventory,
-                            cheesePrices: newCheesePrices, // Update the price
+                            cheeseWeights: normalizedWeights, // Update weights in state
+                            cheesePrices: updatedCheesePrices, // Update prices in state
                         };
                     } else {
                         addConsoleMessage(`Pas de ${cheeseType} à vendre ou prix nul.`, 'text-red-500');
@@ -1492,24 +2012,76 @@
                         return prev;
                     }
                     if (prev.money >= unlockCost.money && prev.frometons >= unlockCost.frometons) {
+                        const now = Date.now();
+                        const currentPlayTime = prev.gameStartTime ? now - prev.gameStartTime : 0;
+
+                        // Add new cheese to unlocked list
+                        const newUnlockedCheeses = [...prev.unlockedCheeses, cheeseType];
+
+                        // Re-initialize/normalize weights for all unlocked cheeses
+                        const numNewUnlocked = newUnlockedCheeses.length;
+                        const newEqualWeight = 100 / numNewUnlocked;
+                        const newCheeseWeights = {};
+                        newUnlockedCheeses.forEach(cheese => {
+                            newCheeseWeights[cheese] = newEqualWeight;
+                        });
+
+                        // Recalculate prices for all cheeses based on new weights
+                        const updatedCheesePrices = { ...prev.cheesePrices };
+                        newUnlockedCheeses.forEach(cheese => {
+                            const basePrice = initialGameState.cheesePrices[cheese].basePrice;
+                            const currentWeight = newCheeseWeights[cheese];
+                            // New price calculation: directly proportional to weight percentage
+                            let calculatedPrice = basePrice * (currentWeight / 100);
+                            // Ensure price stays within reasonable bounds (e.g., 1% to 150% of base price)
+                            const minPrice = basePrice * 0.01; // Minimum 1% of base price
+                            const maxPrice = basePrice * 1.5;
+                            calculatedPrice = Math.max(minPrice, Math.min(maxPrice, calculatedPrice));
+                            updatedCheesePrices[cheese] = {
+                                ...updatedCheesePrices[cheese],
+                                currentMarketPrice: calculatedPrice
+                            };
+                        });
+
+
                         addConsoleMessage(`Vous avez débloqué le ${cheeseType} !`, 'text-purple-400');
                         return {
                             ...prev,
                             money: prev.money - unlockCost.money,
                             frometons: prev.frometons - unlockCost.frometons, // Deduct frometons
-                            unlockedCheeses: [...prev.unlockedCheeses, cheeseType],
+                            unlockedCheeses: newUnlockedCheeses,
+                            cheeseWeights: newCheeseWeights, // Update weights
+                            cheesePrices: updatedCheesePrices, // Update prices
+                            cheeseUnlockTimestamps: {
+                                ...prev.cheeseUnlockTimestamps,
+                                [cheeseType]: {
+                                    timestamp: now,
+                                    timePlayed: currentPlayTime
+                                }
+                            }
                         };
                     } else {
                         let message = `Pas assez de ressources pour débloquer ${cheeseType}.`;
                         if (prev.money < unlockCost.money) {
-                            message += ` Manque ${ (unlockCost.money - prev.money).toFixed(2) }€`;
+                            message += ` Manque ${ formatNumber(unlockCost.money - prev.money) }€`;
                         }
                         if (prev.frometons < unlockCost.frometons) {
-                            message += ` Manque ${ (unlockCost.frometons - prev.frometons).toFixed(0) } Frometons`;
+                            message += ` Manque ${ formatNumber(unlockCost.frometons - prev.frometons) } Frometons`;
                         }
                         addConsoleMessage(message, 'text-red-500');
                     }
                     return prev;
+                });
+            };
+
+            const setBuildingProduction = (buildingIndex, productionType) => {
+                setGameState(prev => {
+                    const newBuildings = [...prev.buildings];
+                    newBuildings[buildingIndex] = {
+                        ...newBuildings[buildingIndex],
+                        selectedProduction: productionType
+                    };
+                    return { ...prev, buildings: newBuildings };
                 });
             };
 
@@ -1569,7 +2141,44 @@
                       if (typeof mergedImportedState.cheesePrices[cheeseType] === 'undefined') {
                         mergedImportedState.cheesePrices[cheeseType] = initialGameState.cheesePrices[cheeseType];
                       }
+                      // Remove old currentMarketPrice and supplyFactor if they exist from old saves
+                      if (mergedImportedState.cheesePrices[cheeseType].currentMarketPrice !== undefined) delete mergedImportedState.cheesePrices[cheeseType].currentMarketPrice;
+                      if (mergedImportedState.cheesePrices[cheeseType].supplyFactor !== undefined) delete mergedImportedState.cheesePrices[cheeseType].supplyFactor;
                     });
+
+                    // Initialize cheeseWeights if missing or re-normalize if present
+                    if (!mergedImportedState.cheeseWeights || Object.keys(mergedImportedState.cheeseWeights).length === 0 || !mergedImportedState.unlockedCheeses.every(c => mergedImportedState.cheeseWeights[c] !== undefined)) {
+                        const numUnlocked = mergedImportedState.unlockedCheeses.length;
+                        if (numUnlocked > 0) {
+                            const initialEqualWeight = 100 / numUnlocked;
+                            mergedImportedState.cheeseWeights = {};
+                            mergedImportedState.unlockedCheeses.forEach(cheeseType => {
+                                mergedImportedState.cheeseWeights[cheeseType] = initialEqualWeight;
+                            });
+                        }
+                    } else {
+                        mergedImportedState.cheeseWeights = normalizeCheeseWeights(mergedImportedState.cheeseWeights, mergedImportedState.unlockedCheeses);
+                    }
+
+                    // Calculate currentMarketPrice for all cheeses based on initial/loaded weights
+                    const numUnlockedCheeses = mergedImportedState.unlockedCheeses.length;
+                    const idealWeight = numUnlockedCheeses > 0 ? 100 / numUnlockedCheeses : 0;
+
+                    mergedImportedState.unlockedCheeses.forEach(cheeseType => {
+                        const basePrice = initialGameState.cheesePrices[cheeseType].basePrice;
+                        const currentWeight = mergedImportedState.cheeseWeights[cheeseType];
+                        // New price calculation: directly proportional to weight percentage
+                        let calculatedPrice = basePrice * (currentWeight / 100);
+                        // Ensure price stays within reasonable bounds (e.g., 1% to 150% of base price)
+                        const minPrice = basePrice * 0.01; // Minimum 1% of base price
+                        const maxPrice = basePrice * 1.5;
+                        calculatedPrice = Math.max(minPrice, Math.min(maxPrice, calculatedPrice));
+                        mergedImportedState.cheesePrices[cheeseType] = {
+                            ...mergedImportedState.cheesePrices[cheeseType],
+                            currentMarketPrice: calculatedPrice
+                        };
+                    });
+
 
                     mergedImportedState.currentHappenings = null; // Reset happenings on load
 
@@ -1585,6 +2194,86 @@
               fileReader.readAsText(event.target.files[0]);
             };
 
+            // New component for Console and Stats Panel (memoized)
+            const ConsoleAndStatsPanel = React.memo(({
+                gameState,
+                consoleMessages,
+                activeTab,
+                setActiveTab,
+                formatNumber,
+                formatTime,
+                totalPassiveProduction,
+                addConsoleMessage,
+                showFixedButton = false, // Prop to control fixed button visibility
+                clickFrometon, // Pass clickFrometon for the fixed button
+                clickButtonRef // Pass clickButtonRef for the fixed button
+            }) => {
+                const internalConsoleRef = React.useRef(null); // Internal ref for the console scroll
+
+                return (
+                    <div className="flex flex-col h-full"> {/* This div should now be flexible within its parent */}
+                        <div className="flex flex-shrink-0 justify-around mb-4"> {/* Added flex-shrink-0 */}
+                            <button
+                                onClick={() => setActiveTab('journal')}
+                                className={`px-4 py-2 rounded-md font-semibold ${activeTab === 'journal' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                            >
+                                Journal des événements
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('stats')}
+                                className={`px-4 py-2 rounded-md font-semibold ${activeTab === 'stats' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                            >
+                                Statistiques
+                            </button>
+                        </div>
+
+                        {/* Main content area - this needs to be scrollable and take available space */}
+                        <div className="flex-grow overflow-y-auto pr-2">
+                            {activeTab === 'journal' && (
+                                <div className="flex flex-col space-y-2 text-left text-sm">
+                                    {consoleMessages.map((msg) => (
+                                        <p key={msg.id} className={`${msg.color}`}>
+                                            <span className="text-gray-500 text-xs">[{new Date(msg.id).toLocaleTimeString()}] </span>
+                                            {msg.text}
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'stats' && (
+                                <div className="flex flex-col space-y-2 text-left text-sm stats-scrollbar-container">
+                                    <p className="text-lg text-white">Temps de jeu: <span className="text-yellow-300">{formatTime(gameState.gameStartTime ? Date.now() - gameState.gameStartTime : 0)}</span></p>
+                                    <p className="text-lg text-white">Début de partie: <span className="text-yellow-300">{gameState.gameStartTime ? new Date(gameState.gameStartTime).toLocaleString('fr-FR') : 'N/A'}</span></p>
+                                    <p className="text-lg text-white">Total Clics: <span className="text-yellow-300">{formatNumber(gameState.totalClicks)}</span></p>
+                                    <p className="text-lg text-white">Frometons Totaux Gagnés: <span className="text-yellow-300">{formatNumber(gameState.totalFrometonsEarned)}</span></p>
+                                    <p className="text-lg text-white">Argent Total Gagné: <span className="text-green-400">{formatNumber(gameState.totalMoneyEarned)}€</span></p>
+
+                                    <h4 className="text-xl font-semibold text-purple-300 mt-4 mb-2">Production Totale par Fromage:</h4>
+                                    {Object.keys(gameState.totalCheeseProduced).map(cheeseType => (
+                                        <p key={cheeseType} className="text-md text-gray-300 ml-4">{cheeseType}: <span className="text-blue-300">{formatNumber(gameState.totalCheeseProduced[cheeseType])}</span> unités</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {showFixedButton && (
+                            <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-700 text-center">
+                                <p className="text-xl font-bold mb-2">Frometons: <span className="text-yellow-300">{formatNumber(gameState.frometons)}</span></p>
+                                <p className="text-xl font-bold mb-4">Argent: <span className="text-green-400">{formatNumber(gameState.money)}€</span></p>
+                                <button
+                                    onClick={clickFrometon}
+                                    ref={clickButtonRef}
+                                    className="w-fit mx-auto px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-md font-semibold rounded-full shadow-lg transition-all duration-200 transform hover:scale-105"
+                                >
+                                    Click Frometon
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            });
+
+
             return (
               <section id="frometons" ref={sectionRefs.frometons} className="min-h-screen bg-gray-900 text-gray-200 py-24 px-4 flex items-center justify-center">
                 <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-start justify-center gap-8">
@@ -1594,8 +2283,8 @@
                     </h2>
 
                     <div className="flex flex-col items-center mb-10">
-                      <p className="text-4xl font-bold mb-4">Frometons: <span className="text-yellow-300">{Math.floor(gameState.frometons)}</span></p>
-                      <p className="text-4xl font-bold mb-4">Argent: <span className="text-green-400">{gameState.money.toFixed(2)}€</span></p> {/* Display Money */}
+                      <p className="text-4xl font-bold mb-4">Frometons: <span className="text-yellow-300">{formatNumber(gameState.frometons)}</span></p>
+                      <p className="text-4xl font-bold mb-4">Argent: <span className="text-green-400">{formatNumber(gameState.money)}€</span></p> {/* Display Money */}
 
                       <button
                         ref={clickButtonRef}
@@ -1617,9 +2306,11 @@
                         ))}
                       </button>
                       <p className="text-xl mt-4">Puissance de clic: <span className="text-teal-300">{gameState.clickPower.toFixed(1)}</span></p>
-                      <p className="text-xl">Production fromages/seconde: <span className="text-blue-300">{totalPassiveCheesePerSecond.toFixed(1)}</span></p>
+                      <p className="text-xl">Production fromages/seconde: <span className="text-blue-300">{formatNumber(totalPassiveProduction[gameState.selectedFarmingCheese] || 0)}</span></p>
                       <p className="text-xl">Chance critique: <span className="text-red-300">{(gameState.criticalClickChance * 100).toFixed(0)}%</span></p>
                       <p className="text-xl">Multiplicateur critique: <span className="text-red-300">{gameState.criticalClickMultiplier.toFixed(1)}x</span></p>
+                      <p className="text-xl">Multiplicateur Frometon (actuel): <span className="text-yellow-300">{gameState.cheesePrices[gameState.selectedFarmingCheese]?.frometonMultiplier.toFixed(1) || 1.0}x</span></p>
+
 
                       {/* Select Farming Cheese */}
                       <div className="mt-6">
@@ -1654,7 +2345,7 @@
                                 }`}
                               >
                                 <p className="font-bold text-xl">{upgrade.name} (Niveau {upgrade.currentLevel})</p>
-                                <p className="text-sm">Coût: {Math.floor(upgrade.cost)} Frometons</p>
+                                <p className="text-sm">Coût: {formatNumber(upgrade.cost)} Frometons</p>
                                 <p className="text-sm">Augmente le clic de: {upgrade.effect}</p>
                               </button>
                             </Tooltip>
@@ -1678,7 +2369,7 @@
                                 }`}
                               >
                                 <p className="font-bold text-xl">{upgrade.name} (Niveau {upgrade.currentLevel})</p>
-                                <p className="text-sm">Coût: {Math.floor(upgrade.frometonCost)} Frometons, {Math.floor(upgrade.moneyCost)}€</p>
+                                <p className="text-sm">Coût: {formatNumber(upgrade.frometonCost)} Frometons, {formatNumber(upgrade.moneyCost)}€</p>
                                 <p className="text-sm">
                                     {upgrade.type === 'chance' ? `Chance +${(upgrade.effect * 100).toFixed(0)}%` : `Multiplicateur +${upgrade.effect.toFixed(1)}x`}
                                 </p>
@@ -1694,19 +2385,32 @@
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Grid for buildings */}
                           {gameState.buildings.map((building, index) => (
                             <Tooltip key={index} content={building.description}>
-                              <button
-                                onClick={() => buyBuilding(index)}
-                                disabled={gameState.money < building.cost}
-                                className={`w-full p-4 rounded-xl shadow-md transition-all duration-200 min-h-[120px] flex flex-col justify-center items-center text-center ${
-                                  gameState.money >= building.cost
-                                    ? 'bg-orange-600 hover:bg-orange-700 text-white transform hover:scale-105'
-                                    : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                }`}
-                              >
-                                <p className="font-bold text-xl">{building.name} (x{building.currentCount})</p>
-                                <p className="text-sm">Coût: {Math.floor(building.cost)}€</p>
-                                <p className="text-sm">Production: {building.effect.toFixed(1)} {gameState.selectedFarmingCheese}/s</p>
-                              </button>
+                              <div className="bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 flex flex-col justify-between min-h-[150px]">
+                                <p className="font-bold text-xl text-white">{building.name} (x{building.currentCount})</p>
+                                <p className="text-sm text-gray-300 mb-2">Coût: {formatNumber(building.cost)}€</p>
+                                <p className="text-sm text-gray-300 mb-2">Production: {building.effect.toFixed(1)} {building.selectedProduction}/s</p>
+                                <select
+                                    value={building.selectedProduction}
+                                    onChange={(e) => setBuildingProduction(index, e.target.value)}
+                                    className="p-1 rounded-md bg-gray-600 text-white text-sm border border-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-500 mb-2"
+                                >
+                                    <option value="frometons">Frometons</option>
+                                    {gameState.unlockedCheeses.map(cheese => (
+                                        <option key={cheese} value={cheese}>{cheese}</option>
+                                    ))}
+                                </select>
+                                <button
+                                  onClick={() => buyBuilding(index)}
+                                  disabled={gameState.money < building.cost}
+                                  className={`w-full px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${
+                                    gameState.money >= building.cost
+                                      ? 'bg-orange-600 hover:bg-orange-700 text-white transform hover:scale-105'
+                                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                  }`}
+                                >
+                                  Acheter
+                                </button>
+                              </div>
                             </Tooltip>
                           ))}
                         </div>
@@ -1718,22 +2422,26 @@
                       <h3 className="text-3xl font-semibold text-yellow-300 mb-6">Marché des Fromages</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {Object.keys(gameState.cheeseInventory).map(cheeseType => (
-                          <div key={cheeseType} className="bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 text-left">
-                            <p className="font-bold text-xl text-white">{cheeseType}</p>
-                            <p className="text-lg text-gray-300">En stock: <span className="text-blue-300">{gameState.cheeseInventory[cheeseType].toFixed(1)}</span> unités</p>
-                            <p className="text-lg text-gray-300">Prix actuel: <span className="text-green-300">{gameState.cheesePrices[cheeseType].toFixed(2)}€</span>/unité</p>
-                            <button
-                              onClick={() => sellCheese(cheeseType)}
-                              disabled={gameState.cheeseInventory[cheeseType] <= 0}
-                              className={`mt-3 w-full px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${
-                                gameState.cheeseInventory[cheeseType] > 0
-                                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                          // Only show unlocked cheeses in the market
+                          gameState.unlockedCheeses.includes(cheeseType) && (
+                            <div key={cheeseType} className="bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 text-left">
+                              <p className="font-bold text-xl text-white">{cheeseType}</p>
+                              <p className="text-lg text-gray-300">En stock: <span className="text-blue-300">{formatNumber(gameState.cheeseInventory[cheeseType])}</span> unités</p>
+                              <p className="text-lg text-gray-300">Prix actuel: <span className="text-green-300">{gameState.cheesePrices[cheeseType]?.currentMarketPrice.toFixed(2)}€</span>/unité</p>
+                              <p className="text-lg text-gray-300">Poids marché: <span className="text-purple-300">{gameState.cheeseWeights[cheeseType]?.toFixed(2)}%</span></p>
+                              <button
+                                onClick={() => sellCheese(cheeseType)}
+                                disabled={gameState.cheeseInventory[cheeseType] <= 0}
+                                className={`mt-3 w-full px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${
+                                  gameState.cheeseInventory[cheeseType] > 0
+                                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                               }`}
-                            >
-                              Vendre tout
-                            </button>
-                          </div>
+                              >
+                                Vendre tout
+                              </button>
+                            </div>
+                          )
                         ))}
                       </div>
                     </div>
@@ -1746,7 +2454,7 @@
                           !gameState.unlockedCheeses.includes(cheeseType) && (
                             <div key={cheeseType} className="bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 text-left">
                               <p className="font-bold text-xl text-white">{cheeseType}</p>
-                              <p className="text-lg text-gray-300">Coût: <span className="text-red-300">{gameState.cheeseUnlockCosts[cheeseType].money}€</span>, <span className="text-yellow-300">{gameState.cheeseUnlockCosts[cheeseType].frometons} Frometons</span></p>
+                              <p className="text-lg text-gray-300">Coût: <span className="text-red-300">{formatNumber(gameState.cheeseUnlockCosts[cheeseType].money)}€</span>, <span className="text-yellow-300">{formatNumber(gameState.cheeseUnlockCosts[cheeseType].frometons)} Frometons</span></p>
                               <button
                                 onClick={() => unlockCheese(cheeseType)}
                                 disabled={gameState.money < gameState.cheeseUnlockCosts[cheeseType].money || gameState.frometons < gameState.cheeseUnlockCosts[cheeseType].frometons}
@@ -1780,20 +2488,63 @@
                     </div>
                   </div>
 
-                  {/* Console Section */}
-                  <div className={`w-full max-w-md bg-gray-800 p-6 rounded-t-3xl md:rounded-3xl shadow-2xl border border-gray-700 flex flex-col justify-end
-                                  ${isFrometonsSectionVisible ? 'fixed bottom-0 inset-x-4 max-h-[40vh] z-40' : 'hidden'}
-                                  md:relative md:sticky md:top-24 md:h-auto md:max-h-[400px] md:w-1/3`}> {/* Changed to sticky on desktop */}
-                      <h3 className="text-2xl font-semibold text-white mb-4 text-center">Journal des événements</h3>
-                      <div ref={consoleRef} className="flex flex-col space-y-2 text-left text-sm flex-grow overflow-y-auto pr-2">
-                          {consoleMessages.map((msg) => (
-                              <p key={msg.id} className={`${msg.color} animate-console-entry`}>
-                                  <span className="text-gray-500 text-xs">[{new Date(msg.id).toLocaleTimeString()}] </span>
-                                  {msg.text}
-                              </p>
-                          ))}
-                      </div>
+                  {/* Desktop Console Section (Sticky) */}
+                  <div className="hidden md:flex md:flex-col md:w-1/3 md:sticky md:top-24 md:h-[calc(100vh-10rem)] md:max-h-[800px] bg-gray-800 p-6 rounded-3xl shadow-2xl border border-gray-700">
+                      <ConsoleAndStatsPanel
+                          gameState={gameState}
+                          consoleMessages={consoleMessages}
+                          activeTab={activeTab}
+                          setActiveTab={setActiveTab}
+                          formatNumber={formatNumber}
+                          formatTime={formatTime}
+                          totalPassiveProduction={totalPassiveProduction}
+                          addConsoleMessage={addConsoleMessage}
+                          showFixedButton={true}
+                          clickFrometon={clickFrometon} // Pass clickFrometon to the console button
+                          clickButtonRef={null} // This button doesn't need the ref for animation
+                      />
                   </div>
+
+                  {/* Mobile Console Section (Fixed at bottom) */}
+                  {isFrometonsSectionVisible && (
+                      <div className={`md:hidden fixed bottom-0 inset-x-4 z-40 bg-gray-800 p-6 rounded-t-3xl shadow-2xl border border-gray-700 flex flex-col justify-end transition-all duration-300 ease-in-out ${isMobileConsoleOpen ? 'max-h-[50vh] h-[50vh]' : 'max-h-16 h-16'}`}> {/* Changed height to 50vh */}
+                          {/* Mobile Console Header/Toggle */}
+                          <div
+                              className="flex flex-shrink-0 items-center justify-between cursor-pointer pb-2"
+                              onClick={() => setIsMobileConsoleOpen(!isMobileConsoleOpen)}
+                          >
+                              <h3 className="text-xl font-semibold text-white">
+                                  {isMobileConsoleOpen ? 'Console' : 'Console (Tap to open)'}
+                              </h3>
+                              <svg
+                                  className={`w-6 h-6 text-gray-300 transition-transform duration-300 ${isMobileConsoleOpen ? 'rotate-180' : ''}`}
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                              >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                              </svg>
+                          </div>
+
+                          {/* Render ConsoleAndStatsPanel only if open */}
+                          {isMobileConsoleOpen && (
+                              <ConsoleAndStatsPanel
+                                  gameState={gameState}
+                                  consoleMessages={consoleMessages}
+                                  activeTab={activeTab}
+                                  setActiveTab={setActiveTab}
+                                  formatNumber={formatNumber}
+                                  formatTime={formatTime}
+                                  totalPassiveProduction={totalPassiveProduction}
+                                  addConsoleMessage={addConsoleMessage}
+                                  showFixedButton={true} // Show fixed button when open
+                                  clickFrometon={clickFrometon}
+                                  clickButtonRef={null} // This button doesn't need the ref for animation
+                              />
+                          )}
+                      </div>
+                  )}
                 </div>
               </section>
             );
@@ -1850,9 +2601,6 @@
                       <span className="relative z-10">Mon Profil LinkedIn</span>
                       <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"></span>
                     </a>
-                    <p className="text-xl text-gray-300 mt-6">
-                      Email: <span className="font-semibold text-teal-400">marius.piris@isartdigital.com</span>
-                    </p>
                   </div>
                 </div>
               </section>
@@ -1897,6 +2645,7 @@
                     ) : (
                       videoUrl && (
                         <div className="relative w-full aspect-video rounded-xl shadow-lg border border-gray-600 mb-4 overflow-hidden">
+                          {/* Changed from channelName to title */}
                           <iframe
                             src={videoUrl}
                             title={title}
@@ -1925,15 +2674,14 @@
                                 <path d="M4 4h16v16H4z" /> {/* Square icon (for "show image") */}
                             </svg>
                           )}
-                          <span className="absolute text-xs bottom-2 relative z-10">{showVideo ? 'Image' : 'Vidéo'}</span>
+                          <span className="absolute text-xs bottom-2 relative z-10">{showVideo ? '' : ''}</span>
                         </button>
                       </div>
                     )}
                   </div>
 
-                  <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                    {description}
-                  </p>
+                  {/* Render description as HTML */}
+                  <p className="text-gray-300 text-lg leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: description }}></p>
 
                   {skills && skills.length > 0 && (
                     <div className="mb-6">
@@ -2084,7 +2832,7 @@
                       {/* Conditional styling: if chat is hidden, flex-grow to fill available space, otherwise maintain 16:9 aspect ratio */}
                       <div className={`relative w-full ${!showChat ? 'flex-grow' : ''}`} style={showChat ? { paddingBottom: '56.25%' } : {}}>
                         <iframe
-                          src={`https://player.twitch.tv/?channel=${channelName}&parent=localhost&autoplay=true&muted=false`}
+                          src={`https://player.twitch.tv/?channel=ros4go&parent=localhost&autoplay=true&muted=false`}
                           allowFullScreen
                           className="absolute top-0 left-0 w-full h-full"
                           title={`${channelName} Twitch Stream`}
@@ -2103,7 +2851,7 @@
                       {showChat && (
                         <div className="flex-grow w-full">
                           <iframe
-                            src={`https://www.twitch.tv/embed/${channelName}/chat?parent=localhost`}
+                            src={`https://www.twitch.tv/embed/ros4go/chat?parent=localhost`}
                             className="w-full h-full"
                             title={`${channelName} Twitch Chat`}
                           ></iframe>
@@ -2139,7 +2887,7 @@
 
 
           return (
-            <div className="font-inter antialiased bg-gray-900 min-h-screen"> {/* Changed body background to bg-gray-900 */}
+            <div className="font-inter antialiased bg-gray-900 min-h-screen"> 
               {isLoading && <LoadingScreen />} {/* Render LoadingScreen conditionally */}
 
               <Navbar />
@@ -2171,7 +2919,7 @@
               )}
 
               {/* Twitch Stream Integration */}
-              <TwitchStream channelName="shisheyu" />
+              <TwitchStream channelName="ros4go" />
             </div>
           );
         };
