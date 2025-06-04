@@ -1,15 +1,2183 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page de Chargement</title>
-  <link rel="stylesheet" href="style/index.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIRIS Marius</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- React and ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for in-browser JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Custom CSS for animations and global styles -->
+    <style>
+        {/*
+        This style block contains all the custom CSS animations and global styles
+        that were previously inline in the React App component.
+        */}
+        html, body {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden; /* Prevent horizontal scroll */
+          background-color: #111827; /* Updated global background color to match sections (bg-gray-900) */
+          background-attachment: fixed; /* Keep background fixed during scroll */
+        }
+        body {
+          font-family: 'Inter', sans-serif;
+          scroll-behavior: smooth;
+          /* background-color is now set via html,body rule above */
+        }
+        /* Section backgrounds for a unified look */
+        section {
+            background-color: #111827; /* Darker gray for sections (bg-gray-900) */
+        }
+
+        .animate-blob {
+          animation: blob 10s infinite cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        .animation-delay-6000 { animation-delay: 6s; }
+
+        @keyframes blob {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          25% { transform: translate(50px, -70px) scale(1.2); }
+          50% { transform: translate(-30px, 60px) scale(0.9); }
+          75% { transform: translate(70px, -20px) scale(1.1); }
+        }
+
+        /* Fixed animation for Hero text */
+        .animate-slide-in-top {
+          animation: slideInTop 1s ease-out forwards;
+        }
+        @keyframes slideInTop {
+          from { opacity: 0; transform: translateY(-50px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-in-bottom {
+          animation: slideInBottom 1s ease-out forwards;
+        }
+        @keyframes slideInBottom {
+          from { opacity: 0; transform: translateY(50px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animation-delay-500 { animation-delay: 0.5s; }
+
+        /* Animation for sections appearing on scroll */
+        .animate-fade-in-up {
+          animation: fadeInUp 1s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animation-delay-300 { animation-delay: 0.3s; }
+        .animation-delay-600 { animation-delay: 0.6s; }
+
+        .animate-pulse-border {
+          animation: pulseBorder 2s infinite ease-in-out;
+        }
+        @keyframes pulseBorder {
+          0% { border-color: #A78BFA; box-shadow: 0 0 15px rgba(167, 139, 250, 0.7); }
+          50% { border-color: #EC4899; box-shadow: 0 0 25px rgba(236, 72, 153, 0.9); }
+          100% { border-color: #A78BFA; box-shadow: 0 0 15px rgba(167, 139, 250, 0.7); }
+        }
+
+        .animate-pulse-border-video {
+          animation: pulseVideoBorder 2s infinite ease-in-out;
+        }
+        @keyframes pulseVideoBorder {
+          0% { border: 4px solid #A78BFA; box-shadow: 0 0 15px rgba(167, 139, 250, 0.7); }
+          50% { border: 4px solid #EC4899; box-shadow: 0 0 25px rgba(236, 72, 153, 0.9); }
+          100% { border: 4px solid #A78BFA; box-shadow: 0 0 15px rgba(167, 139, 250, 0.7); }
+        }
+
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-4 {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Custom scrollbar for a sleek look */
+        ::-webkit-scrollbar {
+          width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+          background: #1a202c; /* Dark background for the track */
+          border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          background-color: #6B21A8; /* Purple thumb */
+          border-radius: 10px;
+          border: 3px solid #1a202c; /* Padding around thumb */
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #8B5CF6; /* Lighter purple on hover */
+        }
+
+        /* Modal specific animations */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease-out forwards;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Frometons button animation */
+        .frometon-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Floating text animation for Frometons */
+        @keyframes floatUpFadeOut {
+            0% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--x)), calc(-150% + var(--y))); opacity: 0; } /* Float higher */
+        }
+        .floating-text {
+            animation: floatUpFadeOut 1s ease-out forwards;
+            /* Use CSS variables for dynamic positioning */
+            --x: 0px;
+            --y: 0px;
+        }
+        .text-shadow-lg {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .animate-fade-in-out {
+            animation: fadeInOut 5s ease-in-out forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Tooltip animation */
+        @keyframes fadeInTooltip {
+            from { opacity: 0; transform: translate(-50%, -80%); }
+            to { opacity: 1; transform: translate(-50%, -100%); }
+        }
+        .animate-fade-in-tooltip {
+            animation: fadeInTooltip 0.2s ease-out forwards;
+        }
+
+        /* Console entry animation */
+        @keyframes consoleEntry {
+            from { opacity: 0; transform: translateX(-40px); } /* Start from left, more pronounced */
+            to { opacity: 1; transform: translateX(0); } /* End at original position */
+        }
+        .animate-console-entry {
+            animation: consoleEntry 0.4s ease-out forwards; /* Slightly longer duration */
+        }
+
+        /* Loading Screen Animations */
+        .animate-loading-fade-out {
+            animation: loadingFadeOut 0.5s ease-out 3s forwards; /* Starts fading out after 3s, lasts 0.5s */
+        }
+        @keyframes loadingFadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        .animate-text-reveal {
+            animation: textReveal 1.5s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            display: inline-block; /* Required for clip-path */
+            padding-right: 0.1em; /* To prevent clipping of last character */
+        }
+
+        @keyframes textReveal {
+            0% { clip-path: inset(0 100% 0 0); }
+            100% { clip-path: inset(0 0% 0 0); }
+        }
+
+        .animate-text-glow {
+            animation: textGlow 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes textGlow {
+            0% { transform: scale(1); opacity: 0.2; }
+            100% { transform: scale(1.05); opacity: 0.4; }
+        }
+
+        .animate-progress-bar {
+            animation: progressBar 3s ease-out forwards; /* Changed to 3s */
+            width: 0%;
+        }
+
+        @keyframes progressBar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* New animation for button click feedback */
+        @keyframes clickPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .animate-click-pop {
+            animation: clickPop 0.2s ease-out;
+        }
+    </style>
 </head>
-<body>
-  <div class="center">
-    <div class="loader"></div>
-  </div>
-  <script src="script/index.js"></script>
+<body class="font-inter antialiased bg-gray-900 min-h-screen"> {/* Changed body background to bg-gray-900 */}
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // All React components and logic go here
+        // Main App component
+        const App = () => {
+          // State to manage loading screen visibility
+          const [isLoading, setIsLoading] = React.useState(true);
+
+          // Set the document title dynamically
+          React.useEffect(() => {
+            document.title = "PIRIS Marius";
+          }, []);
+
+          // Simulate loading time for the animation
+          React.useEffect(() => {
+            console.log('App useEffect: Setting isLoading to false after 3 seconds');
+            const timer = setTimeout(() => {
+              setIsLoading(false);
+            }, 3000); // Simulate a 3 second loading time for the animation
+            return () => clearTimeout(timer);
+          }, []);
+
+          // State to manage the current section view (for active link highlighting in Navbar)
+          const [currentSection, setCurrentSection] = React.useState('hero');
+          // State for project modal
+          const [isProjectModalOpen, setIsProjectModalOpen] = React.useState(false);
+          const [selectedProject, setSelectedProject] = React.useState(null);
+          // State for experience modal
+          const [isExperienceModalOpen, setIsExperienceModal] = React.useState(false);
+          const [selectedExperience, setSelectedExperience] = React.useState(null);
+
+          // States for custom Confirm Modal (lifted to App component)
+          const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+          const [confirmAction, setConfirmAction] = React.useState(null);
+          const [confirmMessage, setConfirmMessage] = React.useState('');
+
+          // States for Twitch stream persistence (lifted to App component and saved to localStorage)
+          const [isTwitchStreamOpen, setIsTwitchStreamOpen] = React.useState(() => {
+            try {
+              const saved = localStorage.getItem('isTwitchStreamOpen');
+              return saved ? JSON.parse(saved) : false;
+            } catch (error) {
+              console.error("Failed to load isTwitchStreamOpen from localStorage:", error);
+              return false;
+            }
+          });
+          const [showTwitchChat, setShowTwitchChat] = React.useState(() => {
+            try {
+              const saved = localStorage.getItem('showTwitchChat');
+              return saved ? JSON.parse(saved) : false;
+            } catch (error) {
+              console.error("Failed to load showTwitchChat from localStorage:", error);
+              return false;
+            }
+          });
+
+          // Save Twitch stream states to localStorage whenever they change
+          React.useEffect(() => {
+            localStorage.setItem('isTwitchStreamOpen', JSON.stringify(isTwitchStreamOpen));
+          }, [isTwitchStreamOpen]);
+
+          React.useEffect(() => {
+            localStorage.setItem('showTwitchChat', JSON.stringify(showTwitchChat));
+          }, [showTwitchChat]);
+
+
+          // Project data (hardcoded based on browsing results and placeholders)
+          const projects = [
+            {
+              title: "Sirius Project",
+              description: "Le 'Sirius Project' est une démonstration technique de pointe développée sous Unreal Engine 5, axée sur la génération procédurale de sorts et d'environnements. Ce projet de recherche et développement en Tech-Art, réalisé à Isart Digital Paris en 2025, présente un système robuste de création de sorts dynamiques. J'ai contribué à la mise en place du projet, au contrôleur du joueur, et à l'architecture des systèmes de fabrication et de génération de sorts. Le projet intègre également la fusion automatisée de shaders, l'ajout de VFX en temps réel, la création d'un environnement de jeu entièrement procédural, et la gestion des impacts de sorts sur l'environnement (cratères, propagation du feu, zones de glace). Il inclut même la pousse de plantes procédurales en temps réel, offrant une expérience visuelle riche et interactive.",
+              link: "https://ros4go.github.io/marius.piris/pages/home.html", // Link to the home page for now, as no specific project link provided
+              images: [
+                "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt0.png",
+                "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt1.png",
+                "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt2.png",
+                "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt3.png",
+                "https://ros4go.github.io/marius.piris/assets/images/Sirius_TechArt4.png"
+              ],
+              videoUrl: "https://www.youtube.com/embed/5", // Corrected YouTube embed URL
+              skills: ["Unreal Engine 5", "C++", "Tech-Art", "Procedural Generation", "Shaders", "VFX", "Game Design", "Teamwork"]
+            },
+            {
+              title: "Mytho Logie",
+              description: "Plongez dans 'Mytho Logie', un jeu de puzzle déjanté avec une narration à choix multiples, développé lors de la Game Jam GameWeek d'Isart Digital Paris en 2025. Votre mission : placer des stickers sur des affiches pour satisfaire les caprices des dieux et débloquer de nouveaux éléments. Chaque décision compte, vous poussant à choisir entre obéir aux divinités ou suivre vos propres principes. En tant que membre clé de l'équipe, j'ai été responsable du développement des affiches et des stickers, du contrôleur du joueur, de l'implémentation d'un système de score basé sur une base de données CSV, et de l'enchaînement fluide des phases de jeu. Ce projet fut un défi technique stimulant, réalisé en quelques jours, démontrant ma capacité à livrer des solutions créatives sous pression.",
+              link: "https://ros4go.github.io/marius.piris/pages/home.html", // Link to the home page for now
+              images: [
+                "https://ros4go.github.io/marius.piris/assets/images/MythoLogie1.png",
+                "https://ros4go.github.io/marius.piris/assets/images/MythoLogie4.png",
+                "https://ros4go.github.io/marius.piris/assets/images/MythoLogie2.png",
+                "https://ros4go.github.io/marius.piris/assets/images/MythoLogie3.png",
+                "https://ros4go.github.io/marius.piris/assets/images/Mytho_Logie_Poster.png"
+              ],
+              videoUrl: "https://www.youtube.com/embed/6", // Corrected YouTube embed URL
+              skills: ["Unity", "C#", "Puzzle Game", "2D", "Game Jam", "Narrative", "CSV Database"]
+            },
+            {
+              title: "Super Sushi Speed",
+              description: "'Super Sushi Speed' est un jeu de rythme intense où vous incarnez un sushi mutant en quête de liberté, développé lors de la Game Jam ScoreSpaceJam en 2024. Les niveaux, générés semi-procéduralement, augmentent progressivement en difficulté, vous poussant à maîtriser l'alternance gauche/droite en rythme pour avancer, sauter et dasher. Collectez du wasabi pour muter, gagner en vitesse et débloquer de nouvelles capacités comme le double saut. J'ai activement participé à la mise en place du projet, au développement du contrôleur du joueur, à la synchronisation précise des inputs avec le rythme, à la création de niveaux procéduraux infinis, à l'intégration des animations et au processus de build. Ce fut une expérience palpitante de donner vie à ce sushi lancé à pleine vitesse !",
+              link: "https://shazalsadepts.itch.io/super-sushi-speed",
+              images: [
+                "https://img.itch.zone/aW1nLzE0ODU5MzI4LnBuZw==/original/t8kUEc.png",
+                "https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzU5MS5wbmc=/original/SxiYq9.png",
+                "https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzU5My5wbmc=/original/BDTE%2BX.png",
+                "https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzYxNC5wbmc=/original/xyolUF.png",
+                "https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzU5MC5wbmc=/original/2hunOg.png"
+              ],
+              videoUrl: "https://www.youtube.com/embed/12", // Corrected YouTube embed URL
+              skills: ["Godot", "GDScript", "Rhythm Game", "3D", "Procedural Generation", "Game Jam", "Animations"]
+            },
+            {
+              title: "Pot Of Greed",
+              description: "'Pot of Greed' est un mini Rogue-Lite captivant, conçu pour les amateurs de speedrun et de défis, offrant plus de 300 combinaisons de jeu uniques grâce à sa génération procédurale. Incarnez un jeune alchimiste en formation, explorez une forêt mystérieuse, collectez des ingrédients rares, affrontez des monstres redoutables et préparez-vous pour un combat épique contre Goru, le légendaire Pot de la Convoitise. Développé en solo par Marius Piris dans le cadre d'un projet à l'IUT d'Orsay, Paris Saclay en 2024, j'ai géré l'intégralité du développement : mise en place du projet, contrôleur du joueur, système de combinaison procédurale d'objets, gestion de l'inventaire à 3 slots, animations des personnages et des ennemis, et le build final. Ce jeu a servi de prototype fondateur pour le futur système de combinaison runique d'Archipelago-JDR.",
+              link: "https://shazalsadepts.itch.io/pot-of-greed",
+              images: [
+                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8yMDY1ODI2NS5wbmc=/original/4xn%2Bh4.png",
+                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5My5wbmc=/original/EGuHFu.png",
+                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5NC4wbmc=/original/1gXAal.png",
+                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5NS5wbmc=/original/0knbmU.png",
+                "https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8xNjY2MzM5Ni5wbmc=/original/UgI%2Bej.png"
+              ],
+              videoUrl: "https://www.youtube.com/embed/13", // Corrected YouTube embed URL
+              skills: ["Unity", "C#", "Rogue-Lite", "2D", "Procedural Generation", "Speedrun", "Game Design"]
+            },
+            {
+              title: "Space Squad",
+              description: "'Space Squad' est un projet de jeu axé sur l'exploration avancée de l'intelligence artificielle, notamment les <strong>Behavior Trees</strong> et l'algorithme de <strong>Flocking</strong>. Votre mission est de détruire des tourelles ennemies en dirigeant une escouade de soldats fidèles, qui obéissent à vos ordres au clic. Réalisé à Isart Digital en 2025, ce projet a été une opportunité d'apprentissage approfondie sur le fonctionnement des IA dans les jeux. En tant que membre de l'équipe, j'ai été responsable de la mise en place générale du projet, du développement du contrôleur du joueur, de la création de l'environnement de jeu, et de l'architecture complexe du Behavior Tree qui régit le comportement de vos soldats.",
+              link: "https://rosago.itch.io/space-squad",
+              images: [
+                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIyNy5wbmc=/original/roTlwF.png",
+                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxNC5wbmc=/original/Goef2R.png",
+                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxMy5wbmc=/original/50F7Vs.png",
+                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIyNy5wbmc=/original/roTlwF.png",
+                "https://img.itch.zone/aW1hZ2UvMzA2MTE1NS8xODMwNzIxMy5wbmc=/original/50F7Vs.png"
+              ],
+              videoUrl: "https://www.youtube.com/embed/14", // Corrected YouTube embed URL
+              skills: ["Unity", "C#", "AI", "Behavior Tree", "Flocking", "3D", "Teamwork"]
+            }
+          ];
+
+          /*
+          // --- EXEMPLE POUR AJOUTER UN NOUVEAU PROJET ---
+          // Copiez et collez cet objet dans le tableau 'projects' ci-dessus.
+          // Assurez-vous d'ajouter une virgule après l'objet précédent si ce n'est pas le dernier.
+          {
+            title: "Nom de votre nouveau projet", // Titre du projet
+            description: "Une description détaillée de ce que votre projet implique, ses objectifs, et les défis relevés. Soyez précis et engageant !", // Description du projet
+            link: "https://votre-lien-vers-le-projet.com", // Lien externe vers le projet (itch.io, GitHub Pages, site live, etc.)
+            images: [
+              "https://placehold.co/600x400/ABCDEF/000000?text=Image+Projet+1", // URL de la première image du projet (utilisée pour la carte et le carrousel)
+              "https://placehold.co/600x400/ABCDEF/000000?text=Image+Projet+2"  // URL d'une deuxième image (optionnel, pour le carrousel)
+              // Ajoutez autant d'URLs d'images que nécessaire pour le carrousel
+            ],
+            videoUrl: "https://www.youtube.com/embed/3", // URL d'intégration YouTube (optionnel, remplacez 'votre_id_youtube')
+            skills: ["Unity", "C#", "Game Design", "Procedural Generation", "Puzzle"]
+          },
+          // ------------------------------------------------
+          */
+
+          // Placeholder experience data - User to replace with actual data
+          const experiences = [
+            {
+              title: "Développeur Unity 3D",
+              company: "STUDIO ORACLE",
+              duration: "févr. 2025 - mars 2025 · 2 mois",
+              description: "Développement de jeux 3D avec Unity, axé sur la conception de mécaniques de jeu et l'optimisation. Utilisation de C# et C pour la programmation, et Python pour les outils de production. J'ai également contribué à l'expérience utilisateur et à la production globale des jeux.",
+              skills: ["Unity", "C#", "C", "Conception de jeux", "Production de jeux vidéos", "Python", "Expérience utilisateur (UX)", "Arduino", "PHP", "JavaScript", "React.js"]
+            },
+            {
+              title: "Développeur web",
+              company: "Bijoux Factory Paris",
+              duration: "juil. 2024 - août 2024 · 2 mois",
+              description: "Développement d'un système de B2B personnalisé sur Shopify, incluant la création de logiciels Python pour le traitement de données en gros (fiches produits et fiches clients). J'ai travaillé sur la conception d'interfaces homme-machine (IHM) et l'expérience utilisateur pour optimiser les flux e-commerce.",
+              skills: ["HTML", "CSS", "Liquid", "Shopify", "Python", "Conception d’IHM", "UI", "JavaScript", "Design d’interface utilisateur", "Business-to-Business (BtoB)", "Expérience utilisateur (UX)", "E-commerce", "PHP", "Big data", "Analyses Big Data"]
+            },
+            {
+              title: "Développeur Full Stack",
+              company: "CEA",
+              duration: "avr. 2023 - juil. 2023 · 4 mois",
+              description: "Développement d'un programme Python pour le traitement des données de mesures AQUASPEC (dispositif de mesure pour la spectrométrie neutronique). Création d’une interface graphique avec tkinter, et de graphiques avec seaborn et matplotlib. Gestion de grandes quantités de données avec numpy et pandas, en optimisant les calculs et en utilisant des expressions régulières.",
+              skills: ["Python", "NumPy", "Pandas", "Programmation orientée objet (POO)", "Programmation d’interfaces homme-machine (IHM)", "Expressions régulières", "Optimisation"]
+            },
+            {
+              title: "Responsable de salle",
+              company: "Matipi",
+              duration: "juin 2020 - août 2020 · 3 mois",
+              description: "Gestion et accueil de la clientèle, organisation complète de la salle et du bar. J'étais en charge de la gestion des réservations individuelles et de groupe, ainsi que du service en salle et au bar, en assurant une excellente relation client.",
+              skills: ["Gestion de la relation client (CRM)", "Gestion de restaurant", "Service clientèle"]
+            }
+          ];
+
+          /*
+          // --- EXEMPLE POUR AJOUTER UNE NOUVELLE EXPÉRIENCE PROFESSIONNELLE ---
+          // Copiez et collez cet objet dans le tableau 'experiences' ci-dessus.
+          // Assurez-vous d'ajouter une virgule après l'objet précédent si ce n'est pas le dernier.
+          {
+            title: "Votre Titre de Poste", // Le titre de votre poste (ex: "Développeur Senior", "Chef de Projet")
+            company: "Nom de l'Entreprise", // Le nom de l'entreprise
+            duration: "Mois Année Début - Mois Année Fin (ou Présent)", // La durée de votre emploi
+            description: "Décrivez vos responsabilités, vos réalisations clés et les compétences que vous avez développées ou utilisées durant cette expérience. Soyez concis mais informatif.", // Description de l'expérience
+            images: [
+              "https://placehold.co/600x400/FF5733/FFFFFF?text=Image+Exp+1", // Image représentative (optionnel)
+            ],
+            videoUrl: "https://www.youtube.com/embed/3", // URL d'intégration YouTube (optionnel)
+            skills: ["Compétence A", "Compétence B", "Compétence C"] // Compétences spécifiques à cette expérience
+          },
+          // ------------------------------------------------------------------
+          */
+
+          // Formation data
+          const formations = [
+            {
+              title: "RNCP7, Game Programming",
+              school: "ISART DIGITAL Paris",
+              duration: "sept. 2024 - juil. 2026",
+              description: "Niveau : BAC +5. Compétences : Unity, Unreal Engine, Godot, Développement de logiciels et de jeux, Programmation de jeux vidéo (C#, C++, C, HLSL, Shaders), Réseaux informatiques (UDP, TCP), Programmation orientée objet (POO), Interface homme-machine (IHM)."
+            },
+            {
+              title: "BUT informatique, Informatique",
+              school: "IUT d'Orsay",
+              duration: "2021 - 2024",
+              description: "Niveau : BAC +3. Compétences : C#, UML, Conception d’IHM, HTML, MySQL, C, frameworks, SGBD, Interactions homme-machine, Science informatique, PhpMyAdmin, JavaScript, Optimisation, Réseaux informatiques, PHP, Java, C++, Docker, Python, MongoDB, Programmation orientée objet, CSS."
+            },
+            {
+              title: "Réorientation",
+              school: "Polytech Nice Sophia",
+              duration: "2020 - 2021",
+              description: "Compétences : Optique, Mécanique, Programmation orientée objet (POO), Programmation, Modélisation 3D, Mathématiques, Python."
+            },
+            {
+              title: "Baccalauréat, Scientifique",
+              school: "Lycée Pierre Marie Théas",
+              duration: "juil. 2020",
+              description: "Niveau : Mention très bien. Compétences : Sciences de la vie, Science informatique, Mathématiques, Physique."
+            }
+          ];
+
+          /*
+          // --- EXEMPLE POUR AJOUTER UNE NOUVELLE FORMATION ---
+          // Copiez et collez cet objet dans le tableau 'formations' ci-dessus.
+          // Assurez-vous d'ajouter une virgule après l'objet précédent si ce n'est pas le dernier.
+          {
+            title: "Nom de votre Diplôme/Formation", // Le titre de votre diplôme ou de la formation
+            school: "Nom de l'École/Université", // Le nom de l'établissement
+            duration: "Mois Année Début - Mois Année Fin", // La durée de la formation
+            description: "Décrivez brièvement les points forts de votre formation, les spécialisations ou les projets majeurs réalisés.", // Description de la formation
+          },
+          // ---------------------------------------------------
+          */
+
+          // Refs for each section to be observed by IntersectionObserver
+          const sectionRefs = {
+            hero: React.useRef(null),
+            about: React.useRef(null),
+            projects: React.useRef(null),
+            frometons: React.useRef(null),
+            contact: React.useRef(null),
+          };
+
+          // Intersection Observer to update active section in Navbar on scroll
+          React.useEffect(() => {
+            const observerOptions = {
+              root: null, // Use the viewport as the root
+              rootMargin: '-50% 0px -50% 0px', // When the middle of the section crosses the middle of the viewport
+              threshold: 0, // Trigger as soon as any part of the target enters the rootMargin
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  // Set the current section to the one whose middle is closest to the viewport's middle
+                  setCurrentSection(entry.target.id);
+                }
+              });
+            }, observerOptions);
+
+            // Observe all section refs
+            Object.values(sectionRefs).forEach(ref => {
+              if (ref.current) {
+                observer.observe(ref.current);
+              }
+            });
+
+            // Cleanup observer on component unmount
+            return () => {
+              observer.disconnect();
+            };
+          }, []);
+
+
+          // Function to smoothly scroll to a section
+          const scrollToSection = React.useCallback((sectionId) => {
+            const section = document.getElementById(sectionId);
+            if (section) {
+              section.scrollIntoView({ behavior: 'smooth' });
+              // Update currentSection state to highlight active link in Navbar
+              setCurrentSection(sectionId);
+            }
+          }, []);
+
+          // Navbar component
+          const Navbar = () => (
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-950 bg-opacity-90 backdrop-blur-md shadow-xl p-4 transition-all duration-300 ease-in-out">
+              <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+                <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2 md:mb-0">
+                  Marius Piris
+                </h1>
+                <div className="flex flex-wrap justify-center space-x-4 md:space-x-8 text-lg">
+                  <NavLink section="hero" label="Accueil" scrollToSection={scrollToSection} currentSection={currentSection} />
+                  <NavLink section="about" label="À Propos" scrollToSection={scrollToSection} currentSection={currentSection} />
+                  <NavLink section="projects" label="Projets" scrollToSection={scrollToSection} currentSection={currentSection} />
+                  <NavLink section="frometons" label="Jouer" scrollToSection={scrollToSection} currentSection={currentSection} /> {/* New NavLink for Frometons */}
+                  <NavLink section="contact" label="Contact" scrollToSection={scrollToSection} currentSection={currentSection} />
+                </div>
+              </div>
+            </nav>
+          );
+
+          // NavLink component for cleaner Navbar
+          const NavLink = ({ section, label, scrollToSection, currentSection }) => (
+            <button
+              onClick={() => scrollToSection(section)}
+              className={`relative py-1 group ${currentSection === section ? 'text-purple-300' : 'text-gray-300 hover:text-purple-300'} transition duration-300 ease-in-out`}
+            >
+              {label}
+              <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform transition-transform duration-300 ease-out ${currentSection === section ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></span>
+            </button>
+          );
+
+          // Hero Section Component
+          const Hero = () => {
+            const heroRef = React.useRef(null);
+
+            // Parallax effect for background blobs
+            React.useEffect(() => {
+              const handleScroll = () => {
+                if (heroRef.current) {
+                  const scrollY = window.scrollY;
+                  const blobs = heroRef.current.querySelectorAll('.parallax-blob');
+                  blobs.forEach((blob, index) => {
+                    const speed = (index + 1) * 0.05; // Different speeds for different blobs
+                    blob.style.transform = `translateY(${scrollY * speed}px)`;
+                  });
+                }
+              };
+
+              window.addEventListener('scroll', handleScroll);
+              return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+              <section id="hero" ref={heroRef} className="relative h-screen flex items-center justify-center bg-gray-900 text-white overflow-hidden">
+                {/* Background artistic elements (more complex and animated) */}
+                <div className="absolute inset-0 z-0 opacity-30">
+                  <div className="absolute w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-blob top-1/4 left-1/4 parallax-blob"></div>
+                  <div className="absolute w-80 h-80 bg-pink-600 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-blob animation-delay-2000 bottom-1/3 right-1/4 parallax-blob"></div>
+                  <div className="absolute w-64 h-64 bg-teal-600 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-blob animation-delay-4000 top-1/2 left-1/3 parallax-blob"></div>
+                  <div className="absolute w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-blob animation-delay-6000 bottom-1/4 left-1/2 parallax-blob"></div>
+                </div>
+
+                <div className="relative z-10 text-center p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-700">
+                  <h2 className="text-7xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-6 leading-tight opacity-0 animate-slide-in-top">
+                    Marius Piris
+                  </h2>
+                  <p className="text-3xl md:text-4xl text-gray-200 font-light tracking-wide mb-8 opacity-0 animate-slide-in-bottom animation-delay-500">
+                    Développeur de Jeux & Créateur Multimédia
+                  </p>
+                  <button
+                    onClick={() => scrollToSection('projects')}
+                    className="px-10 py-4 bg-gradient-to-r from-purple-700 to-pink-700 text-white text-xl font-semibold rounded-full shadow-lg hover:from-purple-800 hover:to-pink-800 transform hover:scale-105 transition duration-500 ease-in-out group relative overflow-hidden"
+                  >
+                    <span className="relative z-10">Découvrir mes Projets</span>
+                    <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"></span>
+                  </button>
+                </div>
+              </section>
+            );
+          };
+
+          // Experience Card Component
+          const ExperienceCard = ({ experience, onClick }) => {
+            const cardRef = React.useRef(null);
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+              const observer = new IntersectionObserver(
+                ([entry]) => {
+                  if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                  }
+                },
+                { threshold: 0.1 }
+              );
+
+              if (cardRef.current) {
+                observer.observe(cardRef.current);
+              }
+
+              return () => {
+                if (cardRef.current) {
+                  observer.unobserve(cardRef.current);
+                }
+              };
+            }, []);
+
+            return (
+              <li
+                ref={cardRef}
+                className={`bg-gray-700 p-6 rounded-xl shadow-md border border-gray-600 transform hover:translate-y-[-5px] transition-all duration-500 ease-in-out cursor-pointer ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                onClick={() => onClick(experience)}
+              >
+                <h4 className="font-bold text-white text-2xl mb-1">{experience.title}</h4>
+                <p className="text-purple-300 text-lg mb-2">{experience.company} <span className="text-gray-400 text-base">({experience.duration})</span></p>
+                <p className="text-gray-300 text-base line-clamp-3">{experience.description}</p>
+              </li>
+            );
+          };
+
+          // Formation Card Component
+          const FormationCard = ({ formation }) => {
+            const cardRef = React.useRef(null);
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+              const observer = new IntersectionObserver(
+                ([entry]) => {
+                  if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                  }
+                },
+                { threshold: 0.1 }
+              );
+
+              if (cardRef.current) {
+                observer.observe(cardRef.current);
+              }
+
+              return () => {
+                if (cardRef.current) {
+                  observer.unobserve(cardRef.current);
+                }
+              };
+            }, []);
+
+            return (
+              <li
+                ref={cardRef}
+                className={`bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 transition-all duration-500 ease-in-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+              >
+                <h4 className="font-bold text-white text-2xl">{formation.title}</h4>
+                <p className="text-purple-300">{formation.school}</p>
+                <p className="text-gray-400">{formation.duration}</p>
+                <p className="text-gray-300 text-base mt-2">{formation.description}</p>
+              </li>
+            );
+          };
+
+          // About Section Component
+          const About = () => {
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+              const observer = new IntersectionObserver(
+                ([entry]) => {
+                  if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target); // Stop observing once visible
+                  }
+                },
+                { threshold: 0.1 } // Trigger when 10% of the element is visible
+              );
+
+              if (sectionRefs.about.current) { // Use the shared ref
+                observer.observe(sectionRefs.about.current);
+              }
+
+              return () => {
+                if (sectionRefs.about.current) {
+                  observer.unobserve(sectionRefs.about.current);
+                }
+              };
+            }, []);
+
+            const openExperienceModal = (exp) => {
+              setSelectedExperience(exp);
+              setIsExperienceModal(true);
+            };
+
+            const formations = [
+              {
+                title: "RNCP7, Game Programming",
+                school: "ISART DIGITAL Paris",
+                duration: "sept. 2024 - juil. 2026",
+                description: "Niveau : BAC +5. Compétences : Unity, Unreal Engine, Godot, Développement de logiciels et de jeux, Programmation de jeux vidéo (C#, C++, C, HLSL, Shaders), Réseaux informatiques (UDP, TCP), Programmation orientée objet (POO), Interface homme-machine (IHM)."
+              },
+              {
+                title: "BUT informatique, Informatique",
+                school: "IUT d'Orsay",
+                duration: "2021 - 2024",
+                description: "Niveau : BAC +3. Compétences : C#, UML, Conception d’IHM, HTML, MySQL, C, frameworks, SGBD, Interactions homme-machine, Science informatique, PhpMyAdmin, JavaScript, Optimisation, Réseaux informatiques, PHP, Java, C++, Docker, Python, MongoDB, Programmation orientée objet, CSS."
+              },
+              {
+                title: "Réorientation",
+                school: "Polytech Nice Sophia",
+                duration: "2020 - 2021",
+                description: "Compétences : Optique, Mécanique, Programmation orientée objet (POO), Programmation, Modélisation 3D, Mathématiques, Python."
+              },
+              {
+                title: "Baccalauréat, Scientifique",
+                school: "Lycée Pierre Marie Théas",
+                duration: "juil. 2020",
+                description: "Niveau : Mention très bien. Compétences : Sciences de la vie, Science informatique, Mathématiques, Physique."
+              }
+            ];
+
+            return (
+              <section id="about" ref={sectionRefs.about} className={`min-h-screen bg-gray-900 text-gray-200 py-24 px-4 flex items-center justify-center`}>
+                <div
+                  className={`container mx-auto max-w-5xl p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-700 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                >
+                  <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400 mb-10 text-center">
+                    À Propos de Moi
+                  </h2>
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12 text-lg leading-relaxed">
+                    <div className="flex-shrink-0">
+                      <img
+                        src="https://ros4go.github.io/marius.piris/assets/images/marius_profile.png"
+                        alt="Votre Photo de Profil"
+                        className="rounded-full w-48 h-48 object-cover object-center border-4 border-purple-500 shadow-lg animate-pulse-border"
+                      />
+                    </div>
+                    <div className="flex-grow space-y-6">
+                      <p>
+                        Je m'appelle Marius Piris, étudiant en 3ème année de Game Programming à Isart Digital Paris. Je suis passionné par le développement de jeux vidéo, la création et la conception. Je possède de solides compétences en programmation, notamment en <strong className="font-bold text-teal-300">C++, C, C#, Python et Java</strong>.
+                      </p>
+                      <p>
+                        Mon expertise s'étend aux moteurs de jeu tels que <strong className="font-bold text-teal-300">Unreal Engine 5, Unity et Godot</strong>, où j'ai développé des mécaniques de jeu innovantes et optimisé les performances. J'ai également une bonne compréhension des <strong className="font-bold text-teal-300">bases de données</strong> et de la modélisation <strong className="font-bold text-teal-300">UML</strong>, ce qui me permet de concevoir des architectures logicielles robustes.
+                      </p>
+                      <p>
+                        Mon parcours m'a permis d'explorer divers aspects du développement, de la <strong className="font-bold text-teal-300">génération procédurale</strong> à l'<strong className="font-bold text-teal-300">intelligence artificielle</strong> (Flocking AI, Behavior Trees), en passant par le <strong className="font-bold text-teal-300">développement multijoueur</strong>. Mon objectif est de fusionner l'art et la technologie pour créer des expériences mémorables et immersives.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Experience Section */}
+                  <h3 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 mt-16 mb-8 text-center">
+                    Expérience
+                  </h3>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {experiences.map((exp, index) => (
+                      <ExperienceCard key={index} experience={exp} onClick={openExperienceModal} />
+                    ))}
+                  </ul>
+
+                  {/* Formation Section */}
+                  <h3 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-teal-300 mt-16 mb-8 text-center">
+                    Formation
+                  </h3>
+                  <ul className="space-y-4 text-lg">
+                    {formations.map((formation, index) => (
+                      <FormationCard key={index} formation={formation} />
+                    ))}
+                  </ul>
+
+                  {/* Skills Section */}
+                  <h3 className="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-teal-300 mt-16 mb-8 text-center">
+                    Compétences
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center">
+                    <SkillPill text="Unity" />
+                    <SkillPill text="Unreal Engine 5" />
+                    <SkillPill text="Godot" />
+                    <SkillPill text="C++" />
+                    <SkillPill text="C#" />
+                    <SkillPill text="Python" />
+                    <SkillPill text="Java" />
+                    <SkillPill text="Conception de Jeux" />
+                    <SkillPill text="Modélisation 3D (basique)" />
+                    <SkillPill text="Gestion de Projet" />
+                    <SkillPill text="AI Flocking" />
+                    <SkillPill text="Behavior Trees" />
+                    <SkillPill text="Bases de Données" />
+                    <SkillPill text="UML" />
+                    <SkillPill text="Développement Multijoueur" />
+                    <SkillPill text="Optimisation de Performance" />
+                    <SkillPill text="Génération Procédurale" />
+                    <SkillPill text="Débogage" />
+                  </div>
+                </div>
+              </section>
+            );
+          };
+
+          // Skill Pill Component
+          const SkillPill = ({ text }) => (
+            <span className="bg-gray-700 text-white px-5 py-2 rounded-full shadow-md border border-gray-600 transform hover:scale-105 transition-transform duration-200 ease-in-out text-lg">
+              {text}
+            </span>
+          );
+
+          // Image Carousel Component
+          const ImageCarousel = ({ images, interval = 3000 }) => {
+            const [currentIndex, setCurrentIndex] = React.useState(0);
+
+            React.useEffect(() => {
+              if (images.length <= 1) return; // No need for carousel if 0 or 1 image
+              const timer = setInterval(() => {
+                setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+              }, interval);
+              return () => clearInterval(timer);
+            }, [images, interval]);
+
+            const goToImage = (index) => {
+              setCurrentIndex(index);
+            };
+
+            if (!images || images.length === 0) {
+              return <img src="https://placehold.co/800x450/6B7280/FFFFFF?text=Image+non+disponible" alt="Placeholder" className="w-full h-auto max-h-96 object-contain rounded-xl shadow-lg border border-gray-600 mb-4" />;
+            }
+
+            return (
+              <div className="relative w-full aspect-video overflow-hidden rounded-xl shadow-lg border border-gray-600 mb-4">
+                <img
+                  src={images[currentIndex]}
+                  alt={`Image ${currentIndex + 1}`}
+                  className="w-full h-full object-contain transition-opacity duration-500 ease-in-out"
+                  onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/600x400/6B7280/FFFFFF?text=Image+non+disponible"; }}
+                />
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+                    {images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => goToImage(index)}
+                        className={`w-3 h-3 rounded-full ${currentIndex === index ? 'bg-purple-400' : 'bg-gray-400'} hover:bg-purple-300 transition-colors duration-200`}
+                        aria-label={`Go to image ${index + 1}`}
+                      ></button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          // Project Card Component with enhanced styling
+          const ProjectCard = ({ project, onClick }) => {
+            const cardRef = React.useRef(null);
+
+            // Add a subtle 3D tilt effect on hover and shine effect
+            React.useEffect(() => {
+              const card = cardRef.current;
+              if (!card) return;
+
+              const handleMouseMove = (e) => {
+                const { left, top, width, height } = card.getBoundingClientRect();
+                const x = e.clientX - (left + width / 2);
+                const y = e.clientY - (top + height / 2);
+                const sensitivity = 15; // Adjust for more/less tilt
+                const rotateX = (y / height) * -sensitivity;
+                const rotateY = (x / width) * sensitivity;
+
+                // Calculate shine effect position
+                const shineX = ((e.clientX - left) / width) * 100;
+                const shineY = ((e.clientY - top) / height) * 100;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                card.style.boxShadow = `0 20px 40px rgba(0, 0, 0, 0.5), ${x / 10}px ${y / 10}px 20px rgba(0, 0, 0, 0.3)`;
+                card.style.background = `radial-gradient(circle at ${shineX}% ${shineY}%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%), var(--tw-gradient-stops)`;
+              };
+
+              const handleMouseLeave = () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+                card.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.4)';
+                card.style.background = 'var(--tw-gradient-stops)'; // Reset background
+              };
+
+              card.addEventListener('mousemove', handleMouseMove);
+              card.addEventListener('mouseleave', handleMouseLeave);
+
+              return () => {
+                card.removeEventListener('mousemove', handleMouseMove);
+                card.removeEventListener('mouseleave', handleMouseLeave);
+              };
+            }, []);
+
+            return (
+              <div
+                ref={cardRef}
+                className="bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-700 transition-all duration-300 ease-out will-change-transform group cursor-pointer"
+                style={{ transformStyle: 'preserve-3d', '--tw-gradient-stops': 'linear-gradient(to bottom right, #1f2937, #111827)' }} // Initial background for shine effect
+                onClick={() => onClick(project)}
+              >
+                <img
+                  src={project.images[0] || "https://placehold.co/600x400/6B7280/FFFFFF?text=Image+non+disponible"} // Use first image for card preview
+                  alt={project.title}
+                  className="w-full h-64 object-cover object-center transform group-hover:scale-105 transition-transform duration-300 ease-in-out"
+                  onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/600x400/6B7280/FFFFFF?text=Image+non+disponible"; }}
+                />
+                <div className="p-7">
+                  <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 mb-3">{project.title}</h3>
+                  <p className="text-gray-300 text-base mb-5 line-clamp-4">{project.description}</p>
+                  {/* Removed direct link button, now opens modal */}
+                </div>
+              </div>
+            );
+          };
+
+          // Projects Section Component
+          const Projects = () => {
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+              const observer = new IntersectionObserver(
+                ([entry]) => {
+                  if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                  }
+                },
+                { threshold: 0.1 }
+              );
+
+              if (sectionRefs.projects.current) { // Use the shared ref
+                observer.observe(sectionRefs.projects.current);
+              }
+
+              return () => {
+                if (sectionRefs.projects.current) {
+                  observer.unobserve(sectionRefs.projects.current);
+                }
+              };
+            }, []);
+
+            const openProjectModal = (proj) => {
+              setSelectedProject(proj);
+              setIsProjectModalOpen(true);
+            };
+
+            return (
+              <section id="projects" ref={sectionRefs.projects} className={`min-h-screen bg-gray-900 text-gray-200 py-24 px-4`}>
+                <div
+                  className={`container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                >
+                  {projects.map((project, index) => (
+                    <ProjectCard key={index} project={project} onClick={openProjectModal} />
+                  ))}
+                </div>
+              </section>
+            );
+          };
+
+          // FloatingText Component for clicker game feedback
+          const FloatingText = ({ id, value, isCritical, x, y, onAnimationEnd }) => {
+              React.useEffect(() => {
+                  const timer = setTimeout(() => {
+                      onAnimationEnd(id);
+                  }, 1000); // Matches CSS animation duration
+                  return () => clearTimeout(timer);
+              }, [id, onAnimationEnd]);
+
+              return (
+                  <div
+                      style={{
+                          left: '50%',
+                          top: '50%',
+                          '--x': `${x}px`, // Pass x as CSS variable
+                          '--y': `${y}px`, // Pass y as CSS variable
+                      }}
+                      className={`absolute text-2xl font-bold whitespace-nowrap floating-text ${isCritical ? 'text-yellow-300 text-shadow-lg' : 'text-gray-200'}`}
+                  >
+                      +{value.toFixed(1)}
+                  </div>
+              );
+          };
+
+          // Frometons Clicker Game Component
+          const FrometonsGame = ({ setShowConfirmModal, setConfirmAction, setConfirmMessage }) => {
+            const frometonsImage = "https://ros4go.github.io/marius.piris/assets/images/Fromecoin.png"; // URL for the uploaded image
+            const consoleRef = React.useRef(null); // Ref for the console scroll
+            const [isFrometonsSectionVisible, setIsFrometonsSectionVisible] = React.useState(false);
+            const [maxConsoleMessages, setMaxConsoleMessages] = React.useState(30); // Default for desktop
+            const isMobileRef = React.useRef(window.innerWidth < 768); // Tailwind's 'md' breakpoint
+            const [floatingTexts, setFloatingTexts] = React.useState([]); // State for floating click texts
+            const clickButtonRef = React.useRef(null); // Ref for the click button
+
+            React.useEffect(() => {
+                const handleResize = () => {
+                    isMobileRef.current = window.innerWidth < 768;
+                    setMaxConsoleMessages(isMobileRef.current ? 3 : 30); // 3 for mobile, 30 for desktop
+                };
+
+                window.addEventListener('resize', handleResize);
+                handleResize(); // Set initial value
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+
+            const initialGameState = {
+              frometons: 0, // General frometon points
+              money: 0, // New currency
+              clickPower: 1,
+              criticalClickChance: 0.05, // 5% chance
+              criticalClickMultiplier: 2, // 2x normal click
+              cheeseInventory: { // Inventory for each cheese type
+                Comte: 0,
+                SaintFelicien: 0,
+                Camembert: 0,
+                Roquefort: 0,
+                Gruyere: 0,
+              },
+              cheesePrices: { // Base prices, will fluctuate
+                Comte: 1, // Was 10, now 1
+                SaintFelicien: 2, // Was 15, now 2
+                Camembert: 5, // Was 20, now 5
+                Roquefort: 10, // Was 25, now 10
+                Gruyere: 20, // Was 30, now 20
+              },
+              unlockedCheeses: ['Comte'], // Start with Compté unlocked
+              selectedFarmingCheese: 'Comte', // Default farming cheese
+              upgrades: {
+                clickPower: [
+                  { name: "Souris Agile", cost: 50, effect: 1, currentLevel: 0, baseCost: 50, description: "Augmente la puissance de votre clic de 1." }, // Increased baseCost
+                  { name: "Main de Fromager", cost: 500, effect: 10, currentLevel: 0, baseCost: 500, description: "Augmente la puissance de votre clic de 10." }, // Increased baseCost
+                  { name: "Force du Fromage", cost: 5000, effect: 100, currentLevel: 0, baseCost: 5000, description: "Augmente la puissance de votre clic de 100." }, // Increased baseCost
+                ],
+                critical: [
+                  { name: "Aiguiseur de Fromage", frometonCost: 500, moneyCost: 100, effect: 0.01, currentLevel: 0, baseFrometonCost: 500, baseMoneyCost: 100, type: 'chance', description: "Augmente votre chance de clic critique de 1%." }, // Increased baseFrometonCost, baseMoneyCost
+                  { name: "Double Fois Plus", frometonCost: 2500, moneyCost: 500, effect: 0.5, currentLevel: 0, baseFrometonCost: 2500, baseMoneyCost: 500, type: 'multiplier', description: "Augmente le multiplicateur de vos clics critiques de 0.5x." }, // Increased baseFrometonCost, baseMoneyCost
+                ]
+              },
+              buildings: [ // Buildings now produce specific cheese types
+                { name: "Petite Roue de Fromage", cost: 100, effect: 5, currentCount: 0, baseCost: 100, description: "Génère 5 unités du fromage sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+                { name: "Cave d'Affinement de Fromage", cost: 1000, effect: 25, currentCount: 0, baseCost: 1000, description: "Génère 25 unités du fromage sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+                { name: "Usine Automatisée de Frometons", cost: 10000, effect: 100, currentCount: 0, baseCost: 10000, description: "Génère 100 unités du fromage sélectionné par seconde." }, // Increased effect, increased baseCost (money)
+              ],
+              cheeseUnlockCosts: { // Costs to unlock new cheese types
+                SaintFelicien: { money: 5000, frometons: 10000 },
+                Camembert: { money: 50000, frometons: 100000 },
+                Roquefort: { money: 500000, frometons: 1000000 },
+                Gruyere: { money: 5000000, frometons: 10000000 },
+              },
+              currentHappenings: null, // { type: 'bonus'/'malus', duration: seconds, message: string, effect: number }
+            };
+
+            const [gameState, setGameState] = React.useState(() => {
+              try {
+                const savedState = localStorage.getItem('frometonsGame');
+                if (savedState) {
+                  const parsedState = JSON.parse(savedState);
+
+                  // Deep merge function to handle nested objects and arrays
+                  const deepMerge = (target, source) => {
+                    const output = { ...target }; // Start with a shallow copy of target
+
+                    if (target && typeof target === 'object' && source && typeof source === 'object') {
+                      Object.keys(source).forEach(key => {
+                        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+                          // If both are objects (and not arrays), deep merge
+                          output[key] = deepMerge(target[key], source[key]);
+                        } else {
+                          // Otherwise, directly assign (this handles primitives, arrays, and new properties)
+                          output[key] = source[key];
+                        }
+                      });
+                    }
+                    return output;
+                  };
+
+                  // Start with initial state and then deep merge parsed state
+                  const mergedState = deepMerge(initialGameState, parsedState);
+
+                  // Ensure all cheese types are present in inventory and prices, even if not in old save
+                  Object.keys(initialGameState.cheeseInventory).forEach(cheeseType => {
+                    if (typeof mergedState.cheeseInventory[cheeseType] === 'undefined') {
+                      mergedState.cheeseInventory[cheeseType] = initialGameState.cheeseInventory[cheeseType];
+                    }
+                    if (typeof mergedState.cheesePrices[cheeseType] === 'undefined') {
+                      mergedState.cheesePrices[cheeseType] = initialGameState.cheesePrices[cheeseType];
+                    }
+                  });
+
+                  // Ensure unlock costs are correctly structured (for old saves)
+                  Object.keys(initialGameState.cheeseUnlockCosts).forEach(cheeseType => {
+                    if (typeof mergedState.cheeseUnlockCosts[cheeseType] === 'number') { // Old format was just a number (money)
+                        mergedState.cheeseUnlockCosts[cheeseType] = {
+                            money: mergedState.cheeseUnlockCosts[cheeseType],
+                            frometons: initialGameState.cheeseUnlockCosts[cheeseType].frometons // Use initial frometons cost
+                        };
+                    } else if (typeof mergedState.cheeseUnlockCosts[cheeseType] === 'undefined') {
+                        mergedState.cheeseUnlockCosts[cheeseType] = initialGameState.cheeseUnlockCosts[cheeseType];
+                    }
+                  });
+
+
+                  // Reset happenings on load
+                  mergedState.currentHappenings = null;
+
+                  return mergedState;
+                }
+              } catch (error) {
+                console.error("Failed to load game state from localStorage:", error);
+              }
+              return initialGameState;
+            });
+
+            const [consoleMessages, setConsoleMessages] = React.useState([]);
+
+            // Intersection Observer for Frometons section visibility
+            React.useEffect(() => {
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        setIsFrometonsSectionVisible(entry.isIntersecting);
+                    },
+                    { threshold: 0.1 } // Trigger when 10% of the section is visible
+                );
+
+                if (sectionRefs.frometons.current) {
+                    observer.observe(sectionRefs.frometons.current);
+                }
+
+                return () => {
+                    if (sectionRefs.frometons.current) {
+                        observer.unobserve(sectionRefs.frometons.current);
+                    }
+                };
+            }, []);
+
+            // Helper to add messages to the console
+            const addConsoleMessage = React.useCallback((text, color = 'text-gray-300') => {
+                setConsoleMessages(prev => {
+                    const newMessages = [...prev, { id: Date.now(), text, color }];
+                    // Limit console history based on maxConsoleMessages state
+                    return newMessages.slice(Math.max(newMessages.length - maxConsoleMessages, 0));
+                });
+            }, [maxConsoleMessages]); // Dependency on maxConsoleMessages
+
+            // Scroll console to bottom on new message
+            React.useEffect(() => {
+                if (consoleRef.current) {
+                    consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+                }
+            }, [consoleMessages]);
+
+            // Save game state to localStorage whenever it changes (debounced)
+            React.useEffect(() => {
+              const saveTimer = setTimeout(() => {
+                try {
+                  const stateToSave = JSON.parse(JSON.stringify(gameState)); // Ensure deep copy for saving
+                  localStorage.setItem('frometonsGame', JSON.stringify(stateToSave));
+                } catch (error) {
+                  console.error("Failed to save game state to localStorage:", error);
+                }
+              }, 100); // Debounce save by 100ms
+              return () => clearTimeout(saveTimer);
+            }, [gameState]);
+
+            // Calculate total passive income (frometons per second for the selected cheese)
+            const totalPassiveCheesePerSecond = React.useMemo(() => {
+              return gameState.buildings.reduce((sum, building) => sum + (building.effect * building.currentCount), 0);
+            }, [gameState.buildings]);
+
+
+            // Auto-gain interval (now for specific cheese units)
+            React.useEffect(() => {
+              const interval = setInterval(() => {
+                setGameState((prev) => {
+                  const newCheeseInventory = { ...prev.cheeseInventory };
+                  let gain = totalPassiveCheesePerSecond;
+
+                  if (prev.currentHappenings && prev.currentHappenings.type === 'bonus') {
+                    gain *= prev.currentHappenings.effect;
+                  } else if (prev.currentHappenings && prev.currentHappenings.type === 'malus') {
+                    gain /= prev.currentHappenings.effect;
+                  }
+
+                  newCheeseInventory[prev.selectedFarmingCheese] = (newCheeseInventory[prev.selectedFarmingCheese] || 0) + gain;
+
+                  return {
+                    ...prev,
+                    cheeseInventory: newCheeseInventory,
+                  };
+                });
+              }, 1000); // Every second
+              return () => clearInterval(interval);
+            }, [totalPassiveCheesePerSecond, gameState.selectedFarmingCheese, gameState.currentHappenings]);
+
+            // Cheese price fluctuation interval
+            React.useEffect(() => {
+              const priceInterval = setInterval(() => {
+                setGameState(prev => {
+                  const newCheesePrices = { ...prev.cheesePrices };
+                  for (const cheeseType in newCheesePrices) {
+                    // Fluctuate price by +/- 10% of base price
+                    const basePrice = initialGameState.cheesePrices[cheeseType];
+                    const fluctuation = (Math.random() * 0.2 - 0.1); // -0.1 to +0.1
+                    newCheesePrices[cheeseType] = Math.max(basePrice * 0.5, basePrice * (1 + fluctuation)); // Ensure price doesn't go below 50% of base
+                  }
+                  return { ...prev, cheesePrices: newCheesePrices };
+                });
+              }, 30000); // Update prices every 30 seconds
+              return () => clearInterval(priceInterval);
+            }, []);
+
+            // Happenings interval
+            React.useEffect(() => {
+              let happeningTimeout;
+              const happeningInterval = setInterval(() => {
+                const random = Math.random();
+                if (random < 0.7) { // Increased chance to 70% to make them more frequent
+                  const eventType = Math.random() < 0.7 ? 'bonus' : 'malus'; // 70% bonus, 30% malus
+                  const duration = Math.floor(Math.random() * 15) + 10; // 10-25 seconds
+                  let eventMessage = '';
+                  let effect = 1;
+                  let messageColor = '';
+
+                  if (eventType === 'bonus') {
+                    effect = Math.random() * 0.5 + 1.2; // 1.2x to 1.7x bonus
+                    eventMessage = `BONUS ! Production x${effect.toFixed(1)} pendant ${duration}s !`;
+                    messageColor = 'text-green-400';
+                  } else {
+                    effect = Math.random() * 0.5 + 1.5; // 1.5x to 2x malus (division)
+                    eventMessage = `MALUS ! Production divisée par ${effect.toFixed(1)} pendant ${duration}s !`;
+                    messageColor = 'text-red-400';
+                  }
+
+                  setGameState(prev => ({
+                    ...prev,
+                    currentHappenings: { type: eventType, duration, message: eventMessage, effect }
+                  }));
+                  addConsoleMessage(eventMessage, messageColor);
+
+                  if (happeningTimeout) { // Clear previous timeout if a new event starts
+                    clearTimeout(happeningTimeout);
+                  }
+                  happeningTimeout = setTimeout(() => {
+                    addConsoleMessage(`L'événement "${eventMessage.split('!')[0].trim()}" est terminé.`, 'text-gray-500');
+                    setGameState(prev => ({ ...prev, currentHappenings: null }));
+                  }, duration * 1000);
+
+                }
+              }, 15000); // Check every 15 seconds for a happening
+
+              return () => {
+                clearInterval(happeningInterval);
+                if (happeningTimeout) {
+                  clearTimeout(happeningTimeout);
+                }
+              };
+            }, [addConsoleMessage]);
+
+
+            const clickFrometon = () => {
+              let actualClickPower = gameState.clickPower;
+              let isCritical = false;
+
+              if (Math.random() < gameState.criticalClickChance) {
+                actualClickPower *= gameState.criticalClickMultiplier;
+                isCritical = true;
+              }
+
+              setGameState((prev) => {
+                const newCheeseInventory = { ...prev.cheeseInventory };
+                newCheeseInventory[prev.selectedFarmingCheese] = (newCheeseInventory[prev.selectedFarmingCheese] || 0) + actualClickPower;
+                return {
+                  ...prev,
+                  frometons: prev.frometons + actualClickPower, // General frometon points still increase
+                  cheeseInventory: newCheeseInventory,
+                };
+              });
+
+              // Add floating text feedback
+              setFloatingTexts(prev => [
+                  ...prev,
+                  {
+                      id: Date.now(),
+                      value: actualClickPower,
+                      isCritical: isCritical,
+                      x: Math.random() * 40 - 20, // Random horizontal offset
+                      y: Math.random() * 40 - 20, // Random vertical offset
+                  }
+              ]);
+
+              // Add click pop animation class
+              if (clickButtonRef.current) {
+                clickButtonRef.current.classList.add('animate-click-pop');
+                clickButtonRef.current.addEventListener('animationend', () => {
+                  clickButtonRef.current.classList.remove('animate-click-pop');
+                }, { once: true });
+              }
+
+
+              const clickMessage = isCritical
+                    ? `CRITIQUE ! +${actualClickPower.toFixed(1)} ${gameState.selectedFarmingCheese} & Frometons !`
+                    : `+${actualClickPower.toFixed(1)} ${gameState.selectedFarmingCheese} & Frometons.`;
+              addConsoleMessage(clickMessage, isCritical ? 'text-yellow-300' : 'text-gray-300');
+            };
+
+            // Function to remove floating text after animation
+            const handleFloatingTextAnimationEnd = React.useCallback((id) => {
+                setFloatingTexts(prev => prev.filter(text => text.id !== id));
+            }, []);
+
+            const buyUpgrade = (type, index) => {
+              setGameState((prev) => {
+                const newUpgrades = { ...prev.upgrades };
+                const upgrade = newUpgrades[type][index];
+
+                if (type === 'clickPower') {
+                    if (prev.frometons >= upgrade.cost) {
+                        const newFrometons = prev.frometons - upgrade.cost;
+                        const newLevel = upgrade.currentLevel + 1;
+                        const newCost = Math.round(upgrade.baseCost * Math.pow(1.5, newLevel)); // Increased exponential cost
+
+                        addConsoleMessage(`Achat: ${upgrade.name} (Niveau ${newLevel}). Clic +${upgrade.effect.toFixed(1)}.`, 'text-blue-300');
+
+                        return {
+                            ...prev,
+                            frometons: newFrometons,
+                            clickPower: prev.clickPower + upgrade.effect,
+                            upgrades: {
+                                ...newUpgrades,
+                                clickPower: newUpgrades.clickPower.map((upg, i) =>
+                                    i === index ? { ...upg, cost: newCost, currentLevel: newLevel } : upg
+                                ),
+                            },
+                        };
+                    } else {
+                        addConsoleMessage(`Pas assez de Frometons pour acheter ${upgrade.name}.`, 'text-red-500');
+                    }
+                } else if (type === 'critical') {
+                    if (prev.frometons >= upgrade.frometonCost && prev.money >= upgrade.moneyCost) {
+                        const newFrometons = prev.frometons - upgrade.frometonCost;
+                        const newMoney = prev.money - upgrade.moneyCost;
+                        const newLevel = upgrade.currentLevel + 1;
+                        const newFrometonCost = Math.round(upgrade.baseFrometonCost * Math.pow(1.8, newLevel)); // Increased exponential cost
+                        const newMoneyCost = Math.round(upgrade.baseMoneyCost * Math.pow(1.8, newLevel)); // Increased exponential cost
+
+                        let messageText = '';
+                        if (upgrade.type === 'chance') {
+                          messageText = `Achat: ${upgrade.name} (Niveau ${newLevel}). Chance critique +${(upgrade.effect * 100).toFixed(0)}%.`;
+                        } else if (upgrade.type === 'multiplier') {
+                          messageText = `Achat: ${upgrade.name} (Niveau ${newLevel}). Multiplicateur critique +${upgrade.effect.toFixed(1)}x.`;
+                        }
+                        addConsoleMessage(messageText, 'text-blue-300');
+
+                        let newCriticalClickChance = prev.criticalClickChance;
+                        let newCriticalClickMultiplier = prev.criticalClickMultiplier;
+
+                        if (upgrade.type === 'chance') {
+                          newCriticalClickChance = Math.min(1, prev.criticalClickChance + upgrade.effect); // Cap chance at 100%
+                        } else if (upgrade.type === 'multiplier') {
+                          newCriticalClickMultiplier = prev.criticalClickMultiplier + upgrade.effect;
+                        }
+
+                        return {
+                            ...prev,
+                            frometons: newFrometons,
+                            money: newMoney,
+                            criticalClickChance: newCriticalClickChance,
+                            criticalClickMultiplier: newCriticalClickMultiplier,
+                            upgrades: {
+                                ...newUpgrades,
+                                critical: newUpgrades.critical.map((upg, i) =>
+                                    i === index ? { ...upg, frometonCost: newFrometonCost, moneyCost: newMoneyCost, currentLevel: newLevel } : upg
+                                ),
+                            },
+                        };
+                    } else {
+                        addConsoleMessage(`Pas assez de Frometons ou d'Argent pour acheter ${upgrade.name}.`, 'text-red-500');
+                    }
+                }
+                return prev;
+              });
+            };
+
+            const buyBuilding = (index) => {
+              setGameState((prev) => {
+                const newBuildings = [...prev.buildings];
+                const building = newBuildings[index];
+
+                if (prev.money >= building.cost) {
+                  const newMoney = prev.money - building.cost;
+                  const newCount = building.currentCount + 1;
+                  const newCost = Math.round(building.baseCost * Math.pow(2.0, newCount)); // Increased exponential cost for buildings
+
+                  addConsoleMessage(`Achat: ${building.name} (x${newCount}). Production +${building.effect.toFixed(1)} ${prev.selectedFarmingCheese}/s.`, 'text-green-300');
+
+                  return {
+                    ...prev,
+                    money: newMoney,
+                    buildings: newBuildings.map((bld, i) =>
+                      i === index ? { ...bld, cost: newCost, currentCount: newCount } : bld
+                    ),
+                  };
+                }
+                addConsoleMessage(`Pas assez d'Argent pour acheter ${building.name}.`, 'text-red-500');
+                return prev;
+              });
+            };
+
+            const sellCheese = (cheeseType) => {
+                setGameState(prev => {
+                    const currentCheeseAmount = prev.cheeseInventory[cheeseType] || 0;
+                    const currentPrice = prev.cheesePrices[cheeseType] || 0;
+                    const priceReductionFactor = 0.00001; // Even smaller reduction per unit sold
+                    const basePriceForCheese = initialGameState.cheesePrices[cheeseType]; // Get original base price
+                    const minPrice = basePriceForCheese * 0.5; // Minimum price is 50% of its base price
+
+                    if (currentCheeseAmount > 0 && currentPrice > 0) {
+                        const moneyGained = currentCheeseAmount * currentPrice;
+                        const newCheeseInventory = { ...prev.cheeseInventory, [cheeseType]: 0 };
+
+                        // Calculate new price based on amount sold
+                        const priceDecrease = currentCheeseAmount * priceReductionFactor * currentPrice;
+                        const newPrice = Math.max(minPrice, currentPrice - priceDecrease);
+                        const newCheesePrices = { ...prev.cheesePrices, [cheeseType]: newPrice };
+
+                        addConsoleMessage(`Vente de ${currentCheeseAmount.toFixed(1)} ${cheeseType} pour ${moneyGained.toFixed(2)} Argent. Nouveau prix: ${newPrice.toFixed(2)}€/unité.`, 'text-yellow-300');
+                        return {
+                            ...prev,
+                            money: prev.money + moneyGained,
+                            cheeseInventory: newCheeseInventory,
+                            cheesePrices: newCheesePrices, // Update the price
+                        };
+                    } else {
+                        addConsoleMessage(`Pas de ${cheeseType} à vendre ou prix nul.`, 'text-red-500');
+                    }
+                    return prev;
+                });
+            };
+
+            const unlockCheese = (cheeseType) => {
+                setGameState(prev => {
+                    const unlockCost = prev.cheeseUnlockCosts[cheeseType]; // Now an object {money, frometons}
+                    if (!unlockCost) { // Safety check if cheeseType is not defined in costs
+                        addConsoleMessage(`Coût de déblocage pour ${cheeseType} non défini.`, 'text-red-500');
+                        return prev;
+                    }
+
+                    if (prev.unlockedCheeses.includes(cheeseType)) {
+                        addConsoleMessage(`${cheeseType} est déjà débloqué.`, 'text-gray-500');
+                        return prev;
+                    }
+                    if (prev.money >= unlockCost.money && prev.frometons >= unlockCost.frometons) {
+                        addConsoleMessage(`Vous avez débloqué le ${cheeseType} !`, 'text-purple-400');
+                        return {
+                            ...prev,
+                            money: prev.money - unlockCost.money,
+                            frometons: prev.frometons - unlockCost.frometons, // Deduct frometons
+                            unlockedCheeses: [...prev.unlockedCheeses, cheeseType],
+                        };
+                    } else {
+                        let message = `Pas assez de ressources pour débloquer ${cheeseType}.`;
+                        if (prev.money < unlockCost.money) {
+                            message += ` Manque ${ (unlockCost.money - prev.money).toFixed(2) }€`;
+                        }
+                        if (prev.frometons < unlockCost.frometons) {
+                            message += ` Manque ${ (unlockCost.frometons - prev.frometons).toFixed(0) } Frometons`;
+                        }
+                        addConsoleMessage(message, 'text-red-500');
+                    }
+                    return prev;
+                });
+            };
+
+            const exportSave = () => {
+              const dataStr = JSON.stringify(gameState);
+              const downloadLink = document.createElement('a');
+              downloadLink.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(dataStr);
+              downloadLink.download = 'frometons_save.json';
+              document.body.appendChild(downloadLink);
+              downloadLink.click();
+              document.body.removeChild(downloadLink);
+              addConsoleMessage('Sauvegarde exportée !', 'text-gray-400');
+            };
+
+            const importSave = (event) => {
+              const fileReader = new FileReader();
+              fileReader.onload = (e) => {
+                try {
+                  const importedState = JSON.parse(e.target.result);
+                  // Basic validation to ensure it's a valid game state
+                  if (
+                    typeof importedState.frometons === 'number' &&
+                    typeof importedState.money === 'number' && // Check for money
+                    typeof importedState.clickPower === 'number' &&
+                    importedState.upgrades &&
+                    Array.isArray(importedState.upgrades.clickPower) &&
+                    Array.isArray(importedState.upgrades.critical) &&
+                    Array.isArray(importedState.buildings) &&
+                    typeof importedState.cheeseInventory === 'object' && // Check for inventory
+                    typeof importedState.cheesePrices === 'object' && // Check for prices
+                    Array.isArray(importedState.unlockedCheeses) // Check for unlocked cheeses
+                  ) {
+                    // Deep merge function
+                    const deepMerge = (target, source) => {
+                      const output = { ...target };
+                      if (target && typeof target === 'object' && source && typeof source === 'object') {
+                        Object.keys(source).forEach(key => {
+                          if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+                            output[key] = deepMerge(target[key], source[key]);
+                          } else if (Array.isArray(source[key]) && Array.isArray(target[key])) {
+                            output[key] = source[key];
+                          } else {
+                            output[key] = source[key];
+                          }
+                        });
+                      }
+                      return output;
+                    };
+
+                    const mergedImportedState = deepMerge(initialGameState, importedState);
+
+                    // Ensure all cheese types are present in inventory and prices, even if not in old save
+                    Object.keys(initialGameState.cheeseInventory).forEach(cheeseType => {
+                      if (typeof mergedImportedState.cheeseInventory[cheeseType] === 'undefined') {
+                        mergedImportedState.cheeseInventory[cheeseType] = initialGameState.cheeseInventory[cheeseType];
+                      }
+                      if (typeof mergedImportedState.cheesePrices[cheeseType] === 'undefined') {
+                        mergedImportedState.cheesePrices[cheeseType] = initialGameState.cheesePrices[cheeseType];
+                      }
+                    });
+
+                    mergedImportedState.currentHappenings = null; // Reset happenings on load
+
+                    setGameState(mergedImportedState);
+                    addConsoleMessage('Sauvegarde importée avec succès !', 'text-green-500');
+                  } else {
+                    addConsoleMessage('Fichier de sauvegarde invalide.', 'text-red-500');
+                  }
+                } catch (error) {
+                  addConsoleMessage('Erreur lors de l\'importation de la sauvegarde : ' + error.message, 'text-red-500');
+                }
+              };
+              fileReader.readAsText(event.target.files[0]);
+            };
+
+            return (
+              <section id="frometons" ref={sectionRefs.frometons} className="min-h-screen bg-gray-900 text-gray-200 py-24 px-4 flex items-center justify-center">
+                <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-start justify-center gap-8">
+                  <div className="w-full md:w-2/3 p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-700 animate-fade-in-up text-center relative"> {/* Added relative for floating texts */}
+                    <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400 mb-10">
+                      Frometons Clicker
+                    </h2>
+
+                    <div className="flex flex-col items-center mb-10">
+                      <p className="text-4xl font-bold mb-4">Frometons: <span className="text-yellow-300">{Math.floor(gameState.frometons)}</span></p>
+                      <p className="text-4xl font-bold mb-4">Argent: <span className="text-green-400">{gameState.money.toFixed(2)}€</span></p> {/* Display Money */}
+
+                      <button
+                        ref={clickButtonRef}
+                        onClick={clickFrometon}
+                        className="relative w-48 h-48 md:w-64 md:h-64 rounded-full flex items-center justify-center bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 transform hover:scale-105 shadow-xl frometon-button overflow-hidden"
+                      >
+                        <img src={frometonsImage} alt="Frometon" className="w-3/4 h-3/4 object-contain animate-frometon-pop" />
+                        <span className="absolute bottom-4 text-white text-lg font-semibold">Click me!</span>
+                        {floatingTexts.map(text => (
+                            <FloatingText
+                                key={text.id}
+                                id={text.id}
+                                value={text.value}
+                                isCritical={text.isCritical}
+                                x={text.x}
+                                y={text.y}
+                                onAnimationEnd={handleFloatingTextAnimationEnd}
+                            />
+                        ))}
+                      </button>
+                      <p className="text-xl mt-4">Puissance de clic: <span className="text-teal-300">{gameState.clickPower.toFixed(1)}</span></p>
+                      <p className="text-xl">Production fromages/seconde: <span className="text-blue-300">{totalPassiveCheesePerSecond.toFixed(1)}</span></p>
+                      <p className="text-xl">Chance critique: <span className="text-red-300">{(gameState.criticalClickChance * 100).toFixed(0)}%</span></p>
+                      <p className="text-xl">Multiplicateur critique: <span className="text-red-300">{gameState.criticalClickMultiplier.toFixed(1)}x</span></p>
+
+                      {/* Select Farming Cheese */}
+                      <div className="mt-6">
+                          <label htmlFor="cheese-select" className="text-xl font-semibold mr-2">Produire du :</label>
+                          <select
+                              id="cheese-select"
+                              value={gameState.selectedFarmingCheese}
+                              onChange={(e) => setGameState(prev => ({ ...prev, selectedFarmingCheese: e.target.value }))}
+                              className="p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          >
+                              {gameState.unlockedCheeses.map(cheese => (
+                                  <option key={cheese} value={cheese}>{cheese}</option>
+                              ))}
+                          </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                      {/* Click Power Upgrades */}
+                      <div>
+                        <h3 className="text-3xl font-semibold text-purple-300 mb-6">Améliorations de clic</h3>
+                        <div className="space-y-4">
+                          {gameState.upgrades.clickPower.map((upgrade, index) => (
+                            <Tooltip key={index} content={upgrade.description}>
+                              <button
+                                onClick={() => buyUpgrade('clickPower', index)}
+                                disabled={gameState.frometons < upgrade.cost}
+                                className={`w-full p-4 rounded-xl shadow-md transition-all duration-200 min-h-[120px] flex flex-col justify-center items-center text-center ${
+                                  gameState.frometons >= upgrade.cost
+                                    ? 'bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-105'
+                                    : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                }`}
+                              >
+                                <p className="font-bold text-xl">{upgrade.name} (Niveau {upgrade.currentLevel})</p>
+                                <p className="text-sm">Coût: {Math.floor(upgrade.cost)} Frometons</p>
+                                <p className="text-sm">Augmente le clic de: {upgrade.effect}</p>
+                              </button>
+                            </Tooltip>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Critical Upgrades */}
+                      <div>
+                        <h3 className="text-3xl font-semibold text-red-300 mb-6">Améliorations Critiques</h3>
+                        <div className="space-y-4">
+                          {gameState.upgrades.critical.map((upgrade, index) => (
+                            <Tooltip key={index} content={upgrade.description}>
+                              <button
+                                onClick={() => buyUpgrade('critical', index)}
+                                disabled={gameState.frometons < upgrade.frometonCost || gameState.money < upgrade.moneyCost}
+                                className={`w-full p-4 rounded-xl shadow-md transition-all duration-200 min-h-[120px] flex flex-col justify-center items-center text-center ${
+                                  gameState.frometons >= upgrade.frometonCost && gameState.money >= upgrade.moneyCost
+                                    ? 'bg-red-600 hover:bg-red-700 text-white transform hover:scale-105'
+                                    : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                }`}
+                              >
+                                <p className="font-bold text-xl">{upgrade.name} (Niveau {upgrade.currentLevel})</p>
+                                <p className="text-sm">Coût: {Math.floor(upgrade.frometonCost)} Frometons, {Math.floor(upgrade.moneyCost)}€</p>
+                                <p className="text-sm">
+                                    {upgrade.type === 'chance' ? `Chance +${(upgrade.effect * 100).toFixed(0)}%` : `Multiplicateur +${upgrade.effect.toFixed(1)}x`}
+                                </p>
+                              </button>
+                            </Tooltip>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Buildings */}
+                      <div className="md:col-span-2"> {/* Make buildings span two columns for better layout */}
+                        <h3 className="text-3xl font-semibold text-green-300 mb-6">Bâtiments de Fromagerie</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Grid for buildings */}
+                          {gameState.buildings.map((building, index) => (
+                            <Tooltip key={index} content={building.description}>
+                              <button
+                                onClick={() => buyBuilding(index)}
+                                disabled={gameState.money < building.cost}
+                                className={`w-full p-4 rounded-xl shadow-md transition-all duration-200 min-h-[120px] flex flex-col justify-center items-center text-center ${
+                                  gameState.money >= building.cost
+                                    ? 'bg-orange-600 hover:bg-orange-700 text-white transform hover:scale-105'
+                                    : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                }`}
+                              >
+                                <p className="font-bold text-xl">{building.name} (x{building.currentCount})</p>
+                                <p className="text-sm">Coût: {Math.floor(building.cost)}€</p>
+                                <p className="text-sm">Production: {building.effect.toFixed(1)} {gameState.selectedFarmingCheese}/s</p>
+                              </button>
+                            </Tooltip>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cheese Market and Inventory */}
+                    <div className="mt-10">
+                      <h3 className="text-3xl font-semibold text-yellow-300 mb-6">Marché des Fromages</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Object.keys(gameState.cheeseInventory).map(cheeseType => (
+                          <div key={cheeseType} className="bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 text-left">
+                            <p className="font-bold text-xl text-white">{cheeseType}</p>
+                            <p className="text-lg text-gray-300">En stock: <span className="text-blue-300">{gameState.cheeseInventory[cheeseType].toFixed(1)}</span> unités</p>
+                            <p className="text-lg text-gray-300">Prix actuel: <span className="text-green-300">{gameState.cheesePrices[cheeseType].toFixed(2)}€</span>/unité</p>
+                            <button
+                              onClick={() => sellCheese(cheeseType)}
+                              disabled={gameState.cheeseInventory[cheeseType] <= 0}
+                              className={`mt-3 w-full px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${
+                                gameState.cheeseInventory[cheeseType] > 0
+                                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                              }`}
+                            >
+                              Vendre tout
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Unlock New Cheeses */}
+                    <div className="mt-10">
+                      <h3 className="text-3xl font-semibold text-teal-300 mb-6">Débloquer de Nouveaux Fromages</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {Object.keys(initialGameState.cheeseUnlockCosts).map(cheeseType => (
+                          !gameState.unlockedCheeses.includes(cheeseType) && (
+                            <div key={cheeseType} className="bg-gray-700 p-4 rounded-xl shadow-md border border-gray-600 text-left">
+                              <p className="font-bold text-xl text-white">{cheeseType}</p>
+                              <p className="text-lg text-gray-300">Coût: <span className="text-red-300">{gameState.cheeseUnlockCosts[cheeseType].money}€</span>, <span className="text-yellow-300">{gameState.cheeseUnlockCosts[cheeseType].frometons} Frometons</span></p>
+                              <button
+                                onClick={() => unlockCheese(cheeseType)}
+                                disabled={gameState.money < gameState.cheeseUnlockCosts[cheeseType].money || gameState.frometons < gameState.cheeseUnlockCosts[cheeseType].frometons}
+                                className={`mt-3 w-full px-4 py-2 rounded-full font-semibold transition-colors duration-200 ${
+                                  gameState.money >= gameState.cheeseUnlockCosts[cheeseType].money && gameState.frometons >= gameState.cheeseUnlockCosts[cheeseType].frometons
+                                    ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                              }`}
+                              >
+                                Débloquer
+                              </button>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+
+
+                    {/* Save/Load Buttons */}
+                    <div className="flex flex-col md:flex-row justify-center gap-4 mt-8">
+                      <button
+                        onClick={exportSave}
+                        className="px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-lg font-semibold rounded-full shadow-lg hover:from-gray-700 hover:to-gray-800 transition duration-300 ease-in-out"
+                      >
+                        Exporter la sauvegarde
+                      </button>
+                      <label className="px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-lg font-semibold rounded-full shadow-lg hover:from-gray-700 hover:to-gray-800 transition duration-300 ease-in-out cursor-pointer">
+                        Importer la sauvegarde
+                        <input type="file" accept=".json" className="hidden" onChange={importSave} />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Console Section */}
+                  <div className={`w-full max-w-md bg-gray-800 p-6 rounded-t-3xl md:rounded-3xl shadow-2xl border border-gray-700 flex flex-col justify-end
+                                  ${isFrometonsSectionVisible ? 'fixed bottom-0 inset-x-4 max-h-[40vh] z-40' : 'hidden'}
+                                  md:relative md:sticky md:top-24 md:h-auto md:max-h-[400px] md:w-1/3`}> {/* Changed to sticky on desktop */}
+                      <h3 className="text-2xl font-semibold text-white mb-4 text-center">Journal des événements</h3>
+                      <div ref={consoleRef} className="flex flex-col space-y-2 text-left text-sm flex-grow overflow-y-auto pr-2">
+                          {consoleMessages.map((msg) => (
+                              <p key={msg.id} className={`${msg.color} animate-console-entry`}>
+                                  <span className="text-gray-500 text-xs">[{new Date(msg.id).toLocaleTimeString()}] </span>
+                                  {msg.text}
+                              </p>
+                          ))}
+                      </div>
+                  </div>
+                </div>
+              </section>
+            );
+          };
+
+
+          // Contact Section Component
+          const Contact = () => {
+            const [isVisible, setIsVisible] = React.useState(false);
+
+            React.useEffect(() => {
+              const observer = new IntersectionObserver(
+                ([entry]) => {
+                  if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                  }
+                },
+                { threshold: 0.1 }
+              );
+
+              if (sectionRefs.contact.current) { // Use the shared ref
+                observer.observe(sectionRefs.contact.current);
+              }
+
+              return () => {
+                if (sectionRefs.contact.current) {
+                  observer.unobserve(sectionRefs.contact.current);
+                }
+              };
+            }, []);
+
+            return (
+              <section id="contact" ref={sectionRefs.contact} className={`min-h-screen bg-gray-900 text-gray-200 py-24 px-4 flex items-center justify-center`}>
+                <div
+                  className={`container mx-auto max-w-3xl p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-700 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                >
+                  <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-10">
+                    Contactez-Moi
+                  </h2>
+                  <p className="text-xl mb-8">
+                    N'hésitez pas à me contacter pour toute collaboration, opportunité ou simplement pour discuter !
+                  </p>
+                  <div className="space-y-6">
+                    <a
+                      href="https://www.linkedin.com/in/marius-piris/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-full md:w-auto px-10 py-4 bg-blue-700 hover:bg-blue-800 text-white text-xl font-semibold rounded-full shadow-lg transform hover:scale-105 transition duration-300 ease-in-out group relative overflow-hidden"
+                    >
+                      <svg className="w-7 h-7 mr-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.395-2.535 7-2.765 7 2.535v6.7z" />
+                      </svg>
+                      <span className="relative z-10">Mon Profil LinkedIn</span>
+                      <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500"></span>
+                    </a>
+                    <p className="text-xl text-gray-300 mt-6">
+                      Email: <span className="font-semibold text-teal-400">marius.piris@isartdigital.com</span>
+                    </p>
+                  </div>
+                </div>
+              </section>
+            );
+          };
+
+          // Generic Modal Component for Projects and Experiences
+          const GenericModal = ({ item, onClose, type }) => {
+            const [showVideo, setShowVideo] = React.useState(false);
+
+            if (!item) return null;
+
+            // Determine content based on type (project or experience)
+            const title = type === 'project' ? item.title : `${item.title} chez ${item.company}`;
+            const description = item.description;
+            const images = item.images;
+            const videoUrl = item.videoUrl;
+            const skills = item.skills;
+            const externalLink = type === 'project' ? item.link : null; // Experiences might not have external links
+
+            // Determine the thumbnail for the video button
+            const videoButtonThumbnail = images && images.length > 0 ? images[0] : "https://placehold.co/100x100/6B7280/FFFFFF?text=Vidéo";
+
+            return (
+              <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-4 animate-fade-in">
+                <div className="relative bg-gray-800 rounded-3xl shadow-2xl border border-gray-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 md:p-10 transform scale-95 animate-scale-in">
+                  <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors duration-200"
+                    aria-label="Fermer"
+                  >
+                    ×
+                  </button>
+
+                  <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-6 text-center">
+                    {title}
+                  </h2>
+
+                  <div className="mb-6">
+                    {!showVideo && images && images.length > 0 ? (
+                      <ImageCarousel images={images} interval={4000} />
+                    ) : (
+                      videoUrl && (
+                        <div className="relative w-full aspect-video rounded-xl shadow-lg border border-gray-600 mb-4 overflow-hidden">
+                          <iframe
+                            src={videoUrl}
+                            title={title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="absolute top-0 left-0 w-full h-full"
+                          ></iframe>
+                        </div>
+                      )
+                    )}
+                    {videoUrl && (
+                      <div className="flex justify-center mt-4">
+                        <button
+                          onClick={() => setShowVideo(!showVideo)}
+                          className="relative w-24 h-24 rounded-full flex items-center justify-center text-white text-lg font-semibold shadow-lg transform hover:scale-105 transition duration-300 ease-in-out animate-pulse-border-video overflow-hidden"
+                          style={{ backgroundImage: `url(${videoButtonThumbnail})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                        >
+                          <div className="absolute inset-0 bg-black opacity-50 rounded-full"></div> {/* Overlay for better icon visibility */}
+                          {showVideo ? (
+                            <svg className="w-10 h-10 relative z-10" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 21V3l15 9-15 9z" /> {/* Play icon */}
+                            </svg>
+                          ) : (
+                            <svg className="w-10 h-10 relative z-10" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 4h16v16H4z" /> {/* Square icon (for "show image") */}
+                            </svg>
+                          )}
+                          <span className="absolute text-xs bottom-2 relative z-10">{showVideo ? 'Image' : 'Vidéo'}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                    {description}
+                  </p>
+
+                  {skills && skills.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-2xl font-bold text-purple-300 mb-4">Compétences Clés :</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {skills.map((skill, index) => (
+                          <span key={index} className="bg-gray-700 text-white px-4 py-2 rounded-full text-md shadow-sm">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {externalLink && (
+                    <div className="text-center mt-8">
+                      <a
+                        href={externalLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block bg-gradient-to-r from-pink-600 to-red-600 text-white px-8 py-3 rounded-full text-xl font-semibold shadow-lg hover:from-pink-700 hover:to-red-700 transform hover:scale-105 transition duration-300 ease-in-out"
+                      >
+                        Visiter le site {type === 'project' ? 'du projet' : 'de l\'entreprise'}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+          // Tooltip Component
+          const Tooltip = ({ children, content }) => {
+            const [show, setShow] = React.useState(false);
+            const timeoutRef = React.useRef(null);
+
+            const handleMouseEnter = () => {
+              timeoutRef.current = setTimeout(() => {
+                setShow(true);
+              }, 500); // Delay before showing tooltip
+            };
+
+            const handleMouseLeave = () => {
+              clearTimeout(timeoutRef.current);
+              setShow(false);
+            };
+
+            return (
+              <div className="relative block w-full" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+                {children}
+                {show && (
+                  <div className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-700 rounded-md shadow-lg -top-2 left-1/2 -translate-x-1/2 transform -translate-y-full whitespace-nowrap opacity-0 animate-fade-in-tooltip">
+                    {content}
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-gray-700 translate-y-full"></div>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          // Custom Confirm Modal Component
+          const ConfirmModal = ({ message, onConfirm, onCancel }) => {
+            return (
+              <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[101] animate-fade-in">
+                <div className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 text-center transform scale-95 animate-scale-in max-w-md w-full">
+                  <p className="text-xl text-gray-200 mb-8">{message}</p>
+                  <div className="flex justify-center gap-4">
+                    <button
+                      onClick={onConfirm}
+                      className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-md transition-colors duration-200"
+                    >
+                      Confirmer
+                    </button>
+                    <button
+                      onClick={onCancel}
+                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full shadow-md transition-colors duration-200"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          // Twitch Stream and Chat Component
+          const TwitchStream = ({ channelName }) => {
+            // Simulate live status for demonstration purposes
+            // In a real application, you would use the Twitch API to check live status.
+            // This typically involves a server-side component to handle OAuth and API calls,
+            // as direct client-side calls are limited by CORS and require client secrets.
+            const [isLive, setIsLive] = React.useState(false);
+            const [isOpen, setIsOpen] = React.useState(false);
+            const [showChat, setShowChat] = React.useState(true);
+
+            React.useEffect(() => {
+              // Simulate checking live status after a short delay
+              const checkLiveStatus = setTimeout(() => {
+                const simulatedLive = Math.random() > 0.5; // 50% chance to be live for demo
+                setIsLive(simulatedLive);
+                // Removed automatic opening logic
+              }, 1000); // Simulate API call delay
+
+              return () => clearTimeout(checkLiveStatus);
+            }, []);
+
+            const toggleOpen = () => {
+              setIsOpen(!isOpen);
+            };
+
+            const toggleChat = () => {
+              setShowChat(!showChat);
+            };
+
+            return (
+              <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+                {/* Toggle Button */}
+                <button
+                  onClick={toggleOpen}
+                  className="bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-4 md:px-6 rounded-full shadow-lg mb-4 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
+                >
+                  {isOpen ? (
+                    <>
+                      <svg className="w-6 h-6 md:mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                      </svg>
+                      <span className="hidden md:inline">Fermer le Stream</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-6 h-6 md:mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+                      </svg>
+                      <span className="hidden md:inline">{isLive ? 'Voir le Stream (Live !)' : 'Voir le Stream'}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Stream and Chat Container */}
+                {/* Adjusted height to 450px */}
+                <div
+                  className={`bg-gray-900 rounded-lg shadow-xl border border-gray-700 overflow-hidden transition-all duration-500 ease-in-out
+                    ${isOpen ? 'w-full md:w-[400px] h-[450px] opacity-100' : 'w-0 h-0 opacity-0 pointer-events-none'}`}
+                >
+                  {isOpen && (
+                    <div className="flex flex-col h-full">
+                      {/* Stream Embed */}
+                      {/* Conditional styling: if chat is hidden, flex-grow to fill available space, otherwise maintain 16:9 aspect ratio */}
+                      <div className={`relative w-full ${!showChat ? 'flex-grow' : ''}`} style={showChat ? { paddingBottom: '56.25%' } : {}}>
+                        <iframe
+                          src={`https://player.twitch.tv/?channel=${channelName}&parent=localhost&autoplay=true&muted=false`}
+                          allowFullScreen
+                          className="absolute top-0 left-0 w-full h-full"
+                          title={`${channelName} Twitch Stream`}
+                        ></iframe>
+                      </div>
+
+                      {/* Chat Toggle Button */}
+                      <button
+                        onClick={toggleChat}
+                        className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md mx-auto my-2 transition-colors duration-200"
+                      >
+                        {showChat ? 'Masquer le Chat' : 'Afficher le Chat'}
+                      </button>
+
+                      {/* Chat Embed */}
+                      {showChat && (
+                        <div className="flex-grow w-full">
+                          <iframe
+                            src={`https://www.twitch.tv/embed/${channelName}/chat?parent=localhost`}
+                            className="w-full h-full"
+                            title={`${channelName} Twitch Chat`}
+                          ></iframe>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+          // Loading Screen Component
+          const LoadingScreen = () => {
+            React.useEffect(() => {
+                console.log('LoadingScreen mounted');
+            }, []);
+            return (
+              <div className="fixed inset-0 bg-gray-950 flex flex-col items-center justify-center z-[200] animate-loading-fade-out">
+                <div className="relative">
+                  <h1 className="text-7xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-6 leading-tight animate-text-reveal">
+                    PIRIS Marius
+                  </h1>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-20 blur-xl animate-text-glow"></div>
+                </div>
+                <p className="text-xl text-gray-300 mt-4 animate-fade-in animation-delay-1500">Chargement...</p>
+                <div className="w-64 h-2 bg-gray-700 rounded-full mt-8 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 animate-progress-bar"></div>
+                </div>
+              </div>
+            );
+          };
+
+
+          return (
+            <div className="font-inter antialiased bg-gray-900 min-h-screen"> {/* Changed body background to bg-gray-900 */}
+              {isLoading && <LoadingScreen />} {/* Render LoadingScreen conditionally */}
+
+              <Navbar />
+              <main className="pt-20 md:pt-24"> {/* Adjusted padding-top for fixed navbar */}
+                <Hero />
+                <About />
+                <Projects />
+                <FrometonsGame setShowConfirmModal={setShowConfirmModal} setConfirmAction={setConfirmAction} setConfirmMessage={setConfirmMessage} /> {/* Pass state setters as props */}
+                <Contact />
+              </main>
+
+              {/* Project Modal */}
+              {isProjectModalOpen && selectedProject && (
+                <GenericModal item={selectedProject} onClose={() => setIsProjectModalOpen(false)} type="project" />
+              )}
+
+              {/* Experience Modal */}
+              {isExperienceModalOpen && selectedExperience && (
+                <GenericModal item={selectedExperience} onClose={() => setIsExperienceModal(false)} type="experience" />
+              )}
+
+              {/* Custom Confirm Modal */}
+              {showConfirmModal && (
+                <ConfirmModal
+                  message={confirmMessage}
+                  onConfirm={confirmAction}
+                  onCancel={() => setShowConfirmModal(false)}
+                />
+              )}
+
+              {/* Twitch Stream Integration */}
+              <TwitchStream channelName="shisheyu" />
+            </div>
+          );
+        };
+
+        // Render the App component into the root div
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
 </body>
 </html>
