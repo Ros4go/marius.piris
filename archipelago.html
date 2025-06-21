@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki - JDR Archipelago</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=MedievalSharp&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #111827;
+            --bg-light: #1f2937;
+            --border-color: #374151;
+            --accent-color: #8b5cf6;
+            --accent-hover: #a78bfa;
+            --text-main: #d1d5db;
+            --text-light: #9ca3af;
+            --text-header: #f9fafb;
+            --sidebar-width: 18rem; /* Tailwind w-72 */
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden; /* Prevent horizontal scroll due to magic circle blur */
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-header);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        .font-title {
+             font-family: 'MedievalSharp', cursive;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Magic Circle Background */
+        #magic-circle {
+            position: fixed; /* Stays in place when scrolling */
+            top: 50%;
+            left: 50%;
+            width: 800px; /* Adjust size */
+            height: 800px; /* Adjust size */
+            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3) 0%, rgba(139, 92, 246, 0.1) 40%, rgba(139, 92, 246, 0) 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) rotate(0deg); /* Center and initial rotation */
+            animation: rotateCircle 60s linear infinite; /* Slow, infinite rotation */
+            filter: blur(50px); /* Heavy blur */
+            z-index: 0; /* Ensure it's in the background */
+            pointer-events: none; /* Allows clicks to pass through */
+            display: flex; /* For centering inner elements */
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes rotateCircle {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes rotateCircleReverse {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+        @keyframes pulseStar {
+            0% { transform: scale(1) translateY(0); opacity: 0.8; }
+            50% { transform: scale(1.05) translateY(-5px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 0.8; }
+        }
+
+        .magic-circle-layer {
+            position: absolute;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .layer-1 {
+            width: 90%; height: 90%;
+            border: 2px solid rgba(139, 92, 246, 0.4);
+            animation: rotateCircleReverse 70s linear infinite;
+        }
+        .layer-2 {
+            width: 70%; height: 70%;
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            animation: rotateCircle 50s linear infinite;
+        }
+        .layer-3 { /* Inner dashed circle for runes effect */
+            width: 50%; height: 50%;
+            border: 1px dashed rgba(139, 92, 246, 0.6);
+            animation: rotateCircleReverse 35s linear infinite;
+        }
+        .layer-4 { /* Even smaller inner dashed circle */
+            width: 30%; height: 30%;
+            border: 0.5px dashed rgba(139, 92, 246, 0.7);
+            animation: rotateCircle 25s linear infinite;
+        }
+
+        .magic-star {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent; /* Larger star */
+            border-right: 25px solid transparent;
+            border-bottom: 50px solid rgba(255, 255, 255, 0.8);
+            transform: translateY(-25px); /* Adjust position */
+            z-index: 1;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+            animation: pulseStar 4s ease-in-out infinite alternate;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+            padding: 0 1rem;
+        }
+        .accordion-item.open .accordion-content {
+            max-height: 1000px; /* Ajuster au besoin, s'assurer que c'est suffisamment grand */
+            padding: 1rem;
+        }
+        .accordion-header .icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-item.open .accordion-header .icon {
+            transform: rotate(90deg);
+        }
+
+        /* Styles spécifiques à la barre latérale */
+        .sidebar {
+            width: var(--sidebar-width);
+            transition: transform 0.3s ease-in-out;
+            overflow-y: auto; /* Activer le défilement pour la barre latérale */
+            z-index: 40; /* S'assurer qu'elle est au-dessus du contenu principal */
+            position: fixed; /* Toujours fixe pour superposer le contenu */
+            transform: translateX(calc(-1 * var(--sidebar-width))); /* Cachée par default */
+            flex-direction: column;
+            display: flex; /* Toujours flex-col */
+            height: 100vh; /* Hauteur de la fenêtre d'affichage complète */
+            top: 0;
+            left: 0;
+        }
+        .sidebar-open {
+            transform: translateX(0) !important; /* Forcer l'état ouvert */
+        }
+
+        /* Le contenu principal prend toujours toute la largeur */
+        .main-content-area {
+            flex-grow: 1; /* Permettre au contenu principal de prendre l'espace disponible */
+            width: 100%; /* S'assurer qu'il remplit toujours la largeur */
+            padding-top: 4rem; /* Plus d'espace pour le bouton burger */
+            position: relative; /* Ensure it respects z-index for children */
+            z-index: 10; /* Ensure main content is above magic circle */
+        }
+
+        /* Superposition pour quand la barre latérale est ouverte sur tous les écrans (facultatif, mais bon pour la concentration) */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 30;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .overlay-active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Bouton de bascule de la barre latérale */
+        .sidebar-toggle-button {
+            position: fixed;
+            top: 1rem; /* Ajusté pour être plus haut */
+            left: 1.5rem; /* Toujours fixe à cette position */
+            z-index: 50; /* Au-dessus de la barre latérale et du contenu */
+            border-radius: 0.375rem; /* rounded-md */
+            background-color: transparent; /* Pas de fond par défaut */
+            color: var(--text-main);
+            padding: 0.5rem;
+            border: none; /* Supprimer la bordure par défaut du bouton */
+            cursor: pointer;
+            transition: left 0.3s ease-in-out; /* Ajout d'une transition pour le déplacement */
+        }
+        .sidebar-toggle-button:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Nouveaux styles de menu */
+        .nav-item-main {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem; /* espace-y-3 */
+            overflow: hidden; /* Pour le contenu du menu déroulant */
+        }
+        .nav-item-main .main-link-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 500; /* font-medium */
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-item-main .main-link-area:hover,
+        .nav-item-main.active > .main-link-area {
+            background-color: var(--accent-color);
+            color: var(--text-header);
+        }
+        .nav-item-main .main-link-area .text-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* space-x-3 */
+            flex-grow: 1;
+        }
+        .nav-item-main .icon-chevron {
+            transition: transform 0.3s ease-in-out;
+            padding: 0.5rem; /* Agrandir la zone cliquable pour l'icône */
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        .nav-item-main .icon-chevron:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .nav-item-main.open .icon-chevron {
+            transform: rotate(90deg);
+        }
+
+        .nav-item-main .submenu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            background-color: rgba(0,0,0,0.2); /* Fond plus sombre pour le sous-menu */
+            padding: 0 1rem; /* Ajuster car le padding est appliqué à l'ouverture */
+        }
+        .nav-item-main.open .submenu-content {
+            max-height: 500px; /* Hauteur suffisante */
+            padding: 0.5rem 1rem 1rem 1rem; /* Padding à l'ouverture */
+        }
+        .nav-item-main .submenu-content a {
+            display: block;
+            padding: 0.5rem 1.5rem; /* Indenter les sous-éléments */
+            font-size: 0.875rem; /* text-sm */
+            border-radius: 0.375rem;
+            color: var(--text-light); /* Couleur par défaut pour les sous-éléments */
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-item-main .submenu-content a:hover,
+        .nav-item-main .submenu-content a.active {
+            background-color: var(--accent-hover);
+            color: var(--text-header);
+        }
+
+
+        /* Styles de la grille de classes et de la vue détaillée */
+        .class-card {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            transform: rotateX(0deg) rotateY(0deg) scale(1); /* Initial 3D state */
+            transition: transform 0.1s ease-out, box-shadow 0.2s ease-in-out;
+            transform-style: preserve-3d; /* Enable 3D transforms for children */
+            perspective: 1000px; /* Define perspective for 3D effect on the card itself */
+            position: relative; /* Necessary for absolute positioning of overlays */
+            height: 350px; /* Fixed height for consistent card size */
+        }
+        .class-card:hover {
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.4), 0 5px 10px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        .class-card-inner {
+            height: 100%;
+            transform-style: preserve-3d;
+            position: relative; /* For z-indexing of its children */
+            display: flex; /* Helps ensure height consistency */
+            flex-direction: column; /* Stacks children vertically if needed */
+        }
+
+        .class-card-background {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            filter: brightness(0.8);
+            transform: translateZ(-20px); /* Pushed back in Z-space */
+            transition: filter 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .class-card:hover .class-card-background {
+            filter: blur(5px) brightness(0.5); /* More blur and darker */
+            transform: translateZ(0px); /* Bring forward slightly */
+        }
+
+        .class-card-main-info-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%; /* Initially take full height but only show part */
+            padding: 1rem;
+            box-sizing: border-box;
+            z-index: 10;
+            transform: translateZ(10px);
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%); /* Gradient at bottom */
+            transition: background 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Align title to top part of the visible gradient */
+            align-items: center; /* Center items horizontally */
+            pointer-events: none; /* Allows button clicks to pass through initially */
+        }
+
+        .class-card-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--text-header);
+            margin: 0; /* Reset margins */
+            padding-top: 100px; /* Push title down from top, adjust for card size */
+            opacity: 1;
+            transform: translateZ(1px);
+            transition: opacity 0.3s ease-in-out, padding-top 0.3s ease-in-out;
+            text-align: center;
+        }
+
+        .class-card-description-preview {
+            color: var(--text-light);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            opacity: 0; /* Hidden by default */
+            max-height: 0;
+            padding-top: 0;
+            transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out, padding-top 0.3s ease-in-out;
+            transform: translateZ(1px);
+            text-align: center;
+        }
+
+        .class-card-button-container {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            z-index: 20; /* Always above main-info-area */
+            transform: translateZ(25px); /* Furthest forward for clicks */
+        }
+
+        /* Hover effects */
+        .class-card:hover .class-card-main-info-area {
+            background: rgba(0,0,0,0.9); /* Solid dark on hover */
+            pointer-events: auto; /* Enable pointer events on hover for this area */
+            justify-content: center; /* Center content vertically for description */
+        }
+
+        .class-card:hover .class-card-title {
+            opacity: 0; /* Hide title on hover */
+            padding-top: 0; /* Reset padding */
+        }
+
+        .class-card:hover .class-card-description-preview {
+            opacity: 1; /* Show description on hover */
+            max-height: 200px; /* Expand to show description */
+            padding-top: 1rem; /* Space from top of hover area */
+        }
+        
+        .class-card-description-full {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.95); /* Even darker for full overlay */
+            padding: 1.5rem;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            overflow-y: auto;
+            display: flex; flex-direction: column; justify-content: center;
+            transform: translateZ(30px); /* Bring furthest forward on click */
+            z-index: 25; /* Higher z-index for click overlay */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Magic Circle Background -->
+    <div id="magic-circle">
+        <div class="magic-circle-layer layer-1"></div>
+        <div class="magic-circle-layer layer-2"></div>
+        <div class="magic-circle-layer layer-3"></div>
+        <div class="magic-circle-layer layer-4"></div>
+        <div class="magic-star"></div>
+    </div>
+
+    <!-- Overlay to close sidebar by clicking outside -->
+    <div id="sidebar-overlay" class="overlay"></div>
+
+    <div class="flex min-h-screen relative">
+        <!-- Sidebar toggle button -->
+        <button id="sidebar-toggle" class="sidebar-toggle-button">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+
+        <!-- Sidebar navigation -->
+        <aside id="sidebar" class="sidebar bg-gray-900/50 backdrop-blur-sm text-white p-6 h-full shadow-2xl border-r border-gray-800">
+            <h1 class="font-title text-5xl font-bold mb-10 text-center text-violet-300 cursor-pointer" id="sidebar-title-area">Archipelago</h1>
+            <nav id="navigation" class="space-y-3 flex-grow overflow-y-auto">
+                <!-- Règles de base -->
+                <div class="nav-item-main" data-section-id="rules-section">
+                    <div class="main-link-area">
+                        <div class="text-content">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path></svg>
+                            <span>Règles de base</span>
+                        </div>
+                        <svg class="icon-chevron w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <ul class="submenu-content space-y-1">
+                        <!-- Rule sub-items will be injected here -->
+                    </ul>
+                </div>
+
+                <!-- Les Runes -->
+                <div class="nav-item-main" data-section-id="runes-section">
+                    <div class="main-link-area">
+                        <div class="text-content">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h8a2 2 0 002-2V9a2 2 0 00-2-2h-4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span>Les Runes</span>
+                        </div>
+                        <svg class="icon-chevron w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <ul class="submenu-content space-y-1">
+                        <li><a href="#" data-sub-type="forme">Runes de Forme</a></li>
+                        <li><a href="#" data-sub-type="elementaire">Runes Élémentaires</a></li>
+                    </ul>
+                </div>
+
+                <!-- Classes -->
+                <div class="nav-item-main" data-section-id="classes-section">
+                    <div class="main-link-area">
+                        <div class="text-content">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 0 00-7-7z"></path></svg>
+                            <span>Classes</span>
+                        </div>
+                        <svg class="icon-chevron w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <ul class="submenu-content space-y-1">
+                        <!-- Affiliations/class names will be injected here -->
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main id="main-content-area" class="main-content-area p-10 w-full">
+            <div id="main-content-container">
+                <!-- Sections will be injected here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Templates for sections -->
+    <template id="rules-template">
+        <section id="rules-section" class="content-section space-y-8">
+            <h2 class="text-5xl font-bold mb-8 text-violet-400">Règles de Base</h2>
+            <div id="rules-container" class="space-y-8"></div>
+        </section>
+    </template>
+
+    <template id="runes-template">
+        <section id="runes-section" class="content-section">
+            <h2 class="text-5xl font-bold mb-4 text-violet-400">Explorateur de Runes</h2>
+            <p class="mb-8 text-lg text-gray-400">Cliquez sur une rune majeure pour voir ses runes intermédiaires, puis sur une intermédiaire pour découvrir ses runes mineures.</p>
+            
+            <div class="mb-6 border-b border-gray-700">
+                <nav class="flex space-x-4" id="rune-tabs">
+                    <button data-rune-type="forme" class="rune-tab-button py-3 px-5 text-lg font-medium text-white border-b-2 border-violet-500">Runes de Forme</button>
+                    <button data-rune-type="elementaire" class="rune-tab-button py-3 px-5 text-lg font-medium text-gray-400 border-b-2 border-transparent hover:border-gray-500">Runes Élémentaires</button>
+                </nav>
+            </div>
+
+            <div id="rune-display-forme" class="rune-display-container">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-800/50 p-5 rounded-lg shadow-inner"><h3 class="text-3xl mb-4 text-violet-300">Majeures</h3><div id="forme-majeures-col" class="space-y-2"></div></div>
+                    <div class="bg-gray-800/50 p-5 rounded-lg shadow-inner"><h3 class="text-3xl mb-4 text-violet-300">Intermédiaires</h3><div id="forme-intermediaires-col" class="space-y-2"></div></div>
+                    <div class="bg-gray-800/50 p-5 rounded-lg shadow-inner"><h3 class="text-3xl mb-4 text-violet-300">Mineures</h3><div id="forme-mineures-col" class="space-y-2"></div></div>
+                </div>
+            </div>
+            
+            <div id="rune-display-elementaire" class="rune-display-container hidden">
+                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-800/50 p-5 rounded-lg shadow-inner"><h3 class="text-3xl mb-4 text-violet-300">Majeures</h3><div id="elementaire-majeures-col" class="space-y-2"></div></div>
+                    <div class="bg-gray-800/50 p-5 rounded-lg shadow-inner"><h3 class="text-3xl mb-4 text-violet-300">Intermédiaires</h3><div id="elementaire-intermediaires-col" class="space-y-2"></div></div>
+                    <div class="bg-gray-800/50 p-5 rounded-lg shadow-inner"><h3 class="text-3xl mb-4 text-violet-300">Mineures</h3><div id="elementaire-mineures-col" class="space-y-2"></div></div>
+                </div>
+            </div>
+        </section>
+    </template>
+    
+    <template id="classes-template">
+        <section id="classes-section" class="content-section">
+            <h2 class="text-5xl font-bold mb-8 text-violet-400">Les Classes et leurs Rituels</h2>
+            <!-- The common rituals intro has been moved into individual class details -->
+            
+            <!-- Class grid view -->
+            <div id="classes-grid-view">
+                <!-- Classes will be grouped by affiliation here -->
+            </div>
+
+            <!-- Class detail view -->
+            <div id="class-detail-view" class="class-detail-view">
+                <button id="back-to-classes" class="mb-6 p-3 bg-violet-600 hover:bg-violet-700 text-white rounded-md flex items-center space-x-2 transition duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span>Retour aux classes</span>
+                </button>
+                <div id="class-detail-content">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+    <script>
+    //============== JDR DATA ==============
+    const donneesRegles = [
+        { nom: "Cool", description: "Tant qu'une action, situation, description ou autre est cool et raisonable, alors elle peut être mise en place.", groupe: "Philosophie" },
+        { nom: "D100", description: "Le système de jeu de Archipelago utilise des dés à 100 faces (d100). Ce système est dérivé du \"Basic Role-Playing System\" de Chaosium. L'objectif sera toujours de faire autant ou moins qu’un nombre donné par le Maître du Jeu. Le MJ peut imposer un bonus/malus de X% ou un avantage/désavantage (lancer 2 dés et garder le meilleur/pire). Souvent, ce nombre correspondra à l’une des statistiques écrite sur la fiche du personnage.", exemple: "Pour un jet de \"forcer\" à 75%, si le résultat est inférieur ou égal à 75, c’est réussi.", groupe: "Système de jeu" },
+        { nom: "Caractéristiques", description: "Liste des 6 Caractéristiques : Intelligence (INT), Charisme (CHA), Endurance (END), Force (FOR), Dextérité (DEX), Sagesse (SAG). A la création, répartir 300 points avec un maximum de 80 et un minimum de 20 par caractéristique.", groupe: "Personnage" },
+        { nom: "Statistiques", description: "Les statistiques sont des compétences calculées comme la moyenne de deux caractéristiques. Exemples : Convaincre (INT+CHA), Manier (INT+END), Démolir (INT+FOR), Fouiller (INT+DEX), Médecine (INT+SAG), Intimider (CHA+END), Exiger (CHA+FOR), Voler (CHA+DEX), Représentation (CHA+SAG), Forcer (END+FOR), Acrobaties (END+DEX), Psychologie (END+SAG), Jeter (FOR+DEX), Immobiliser (FOR+SAG), Réflexes (DEX+SAG), Analyse (INT), Séduire (CHA), Résister (END), Athlétisme (FOR), Discrétion (DEX), Perception (SAG).", groupe: "Personnage" },
+        { nom: "Points de Vie (PV)", description: "Lorsque les PV d'un personnage tombent à 0, il devient inconscient. Il redevient conscient après un tour de jeu s'il regagne des PV. Les PV initiaux sont égaux à (Endurance / 10).", groupe: "Combat et Survie" },
+        { nom: "Points d'Énergie (PE)", description: "Les PE représentent la force interne d'un personnage. Ils sont utilisés pour les sorts et compétences spéciales. Les PE initiaux sont égaux à (Intelligence / 10).", groupe: "Combat et Survie" },
+        { nom: "Énergie Vitale", description: "Les points de vie peuvent être convertis en points d'énergie avec un ratio de 5 PV pour 1 PE.", groupe: "Combat et Survie" },
+        { nom: "Méditation", description: "Pour regagner des PV et des PE, un personnage peut méditer dans un lieu calme et sécurisé pendant 1 à 10 heures. Chaque heure de méditation restaure 10% des PV max et 10% des PE max.", groupe: "Combat et Survie" },
+        { nom: "Blessures", description: "Un personnage gagne un point de blessure lorsqu'il tombe à 0 PV, ou suite à un traumatisme psychologique intense. Ces blessures sont des traumatismes durables (cicatrice, membre diminué...). Pour les soigner, il faut un remède spécial. Un personnage meurt s'il accumule 5 points de blessure.", exemple: "Un échec critique avec une potion explosive peut laisser la main du personnage brûlée et inutilisable (1 point de blessure). La remplacer par une prothèse magique soignerait cette blessure.", groupe: "Combat et Survie" },
+        { nom: "Initiative", description: "Le combat se déroule en phases. Phase Joueur (les joueurs agissent dans l'ordre de leurs idées), Phase Alliée, Phase Ennemie, Phase Hostile (autres créatures hostiles).", groupe: "Combat et Survie" },
+        { nom: "Protection", description: "Il existe 2 types de protection. Points de Protection (PP) : fournis par l'armure, ils réduisent les dégâts subis. Points de Protection Temporaires (PPT) : fournis par des sorts, ils sont consommés avant les PV.", exemple: "Une attaque de 10 dégâts sur une cible avec 2 PP et 5 PPT. Les PP réduisent les dégâts à 8. La cible perd 5 PPT puis 3 PV.", groupe: "Combat et Survie" },
+        { nom: "Actions d'Esquive", description: "Face à une attaque, un joueur peut tenter une action d'esquive (parade, etc.). Résultat parfait (jet ≤ stat/2) : 100% des dégâts annulés. Réussite (jet ≤ stat) : 50% des dégâts subis, avec un contrecoup (déséquilibre...). Échec (jet > stat) : 100% des dégâts subis.", groupe: "Combat et Survie" },
+        { nom: "Classes", description: "Les classes permettent d'apprendre des compétences spécialisées. Elles ont des niveaux (rangs 0 à 9) et parfois des spécialisations offrant des choix de compétences.", groupe: "Progression" },
+        { nom: "Magie Runique", description: "Pour lancer un sort, il faut combiner une rune de Forme et une rune Élémentaire. Le niveau du sort (la chance de le réussir) est la moyenne de l'affinité élémentaire et de la science de forme associées.", groupe: "Magie" },
+        { nom: "Degré Runique", description: "Le 'degré' d'un sort détermine sa puissance (dégâts, soins...). Le lanceur dépense des PE pour acheter un dé (ex: 6 PE pour un d6). Le degré est calculé ainsi : PE dépensés + (Y * résultat du dé), où Y dépend du rang des runes. Si le dé fait son résultat max, il est relancé et ajouté au total.", groupe: "Magie" },
+        { nom: "Affinités et Sciences", description: "Les personnages ont des pourcentages dans diverses affinités élémentaires (Feu, Eau...) et sciences (Projection, Invocation...). À la création, un personnage choisit au moins 2 affinités et 2 sciences, et y répartit des points.", groupe: "Magie" },
+    ];
+    const runesDeForme = {
+        majeures: { "Projection": ["Jet", "Rayon", "Vague", "Explosion", "Cascade", "Souffle"], "Zone": ["Cercle", "Sphère", "Cône", "Rectangle", "Ligne", "Grille", "Aura"], "Défense": ["Bouclier", "Mur", "Dôme", "Barrière", "Enceinte"], "Invocation": ["Créature", "Objet", "Phénomène", "Esprit", "Illusion", "Relique"], "Animation": ["Objet Animé", "Structure Animée", "Nature Animée", "Marionnette", "Automate", "Élément Animé"], "Enchantement": ["Renforcement", "Piège", "Amélioration", "Sceaux", "Aura"], "Transformation": ["Mutation", "Evolution", "Recomposition", "Elementalisation"], "Déplacement": ["Portail", "Mouvement", "Véhicule"] },
+        intermediaires: { "Jet": ["Flèche Simple", "Petite Orbe", "Jet Continu"], "Rayon": ["Rayon Tranchant", "Rayon Repoussant", "Rayon Perforant"], "Vague": ["Arc Horizontal", "Arc Vertical", "Petite Vague"], "Explosion": ["Explosion Déclenchable", "Explosion Incontrôlable", "Explosion Dirigée"], "Cascade": ["Cascade Légère", "Cascade Continue", "Cascade Enveloppante"], "Souffle": ["Souffle Large", "Souffle Long", "Souffle Terrifiant"], "Cercle": ["Cercle Petit", "Cercle Plein", "Cercle Mobile"], "Sphère": ["Petite Sphère", "Sphère Rebondissante", "Sphère Expansive"], "Cône": ["Cône Long Étroit", "Cône Large Court", "Petit Cône Mobile"], "Rectangle": ["Rectangle Étroit Long", "Rectangle Large Court", "Petit Rectangle Mobile"], "Ligne": ["Ligne Droite", "Ligne Arquée", "Ligne Mobile"], "Grille": ["Petite Grille Mobile", "Large Grille", "Petite Grille Tridimensionnel"], "Aura": ["Aura - Illusion", "Aura - Physique", "Aura Simple - Alliés Uniquement", "Aura Simple - Ennemis Uniquement"], "Bouclier": ["Bouclier Rond Rebondissant", "Bouclier Carré Redirigeant", "Bouclier Triangulaire Absorbant"], "Mur": ["Mur Haut Fin", "Mur Épais Bas", "Petit Mur Transparent"], "Dôme": ["Dôme Rebondissant", "Dôme Absorbant", "Petit Dôme Mobile"], "Barrière": ["Barrière De Détection", "Barrière De Répulsion", "Barrière D'Absorption"], "Enceinte": ["Petite Enceinte Mobile", "Enceinte Absorbante", "Enceinte Répulsive"], "Créature": ["Créature Discrète / Agile", "Créature Forte / C-a-c", "Créature Intelligente / Distance"], "Objet": ["Objet Lourd", "Objet Léger", "Objet Mobile"], "Phénomène": ["Phénomène Naturel", "Phénomène Divin", "Phénomène Technologique"], "Esprit": ["Esprit Guide", "Esprit Gardien", "Esprit Farceur", "Esprit Combattant"], "Illusion": ["Illusion Animée", "Illusion Inanimée", "Illusion Interactive"], "Relique": ["Réveil D'Émotions Passés", "Appel Des Ancêtres", "Relique Terrifiante"], "Objet Animé": ["Lévitation - Attraction", "Lévitation - Répulsion", "Animation - Interaction"], "Structure Animée": ["Déplacer Structure", "Déformer Structure", "Renforcer Structure"], "Nature Animée": ["Nature Calme", "Nature Discrète", "Nature Dangereuse"], "Marionnette": ["Marionnette existante - Contrôle : Force", "Marionnette existante - Contrôle : Agilité", "Marionnette existante - Contrôle : Intelligence", "Marionnette - Transformation"], "Automate": ["Automate - Amélioration", "Automate Multitâche Non Autonome", "Automate Autonome Monotache"], "Élément Animé": ["Golem - Monotâche : Forcer", "Golem - Monotâche : Jeter", "Golem - Monotâche : Piloter", "Golem - Monotâche : Magie - Flèche Simple"], "Renforcement": ["Renforcement - Interne - Monocible", "Renforcement - Externe - Monocible", "Renforcement Divisé - Double Cible"], "Piège": ["Retardateur - Explosion / Flèche", "Déclencheur - Vague / Cône", "Déclencheur - Immobilisant"], "Amélioration": ["Mono-Effet Supplémentaire", "Amélioration - Musculaire", "Amélioration - Sens"], "Sceaux": ["Immobilisation - 2 tours", "Apprivoiser", "Accumulation"], "Mutation": ["Organe Supplémentaire - Physique", "Organe Supplémentaire - Magique"], "Evolution": ["Adaptation", "Discrétion", "Charisme"], "Recomposition": ["Peau", "Mono - Membre", "Duo - Membre : Partiel"], "Elementalisation": ["Solide", "Liquide", "Énergétique"], "Portail": ["Tunnel", "Lien"], "Mouvement": ["Saut", "Vol", "Marche", "Glissade", "Nage"], "Véhicule": ["Voler", "Rouler", "Flotter", "Marcher"] }
+    };
+    const runesElementaires = {
+        majeures: { "Métal": ["Fer", "Argent", "Or", "Plomb", "Bronze", "Acier"], "Plante": ["Fleur", "Racine", "Feuille", "Graine", "Écorce", "Sève"], "Eau": ["Vague", "Brume", "Torrent", "Goutte", "Marais"], "Feu": ["Incendie", "Chaleur", "Cendre", "Fumée"], "Terre": ["Montagne", "Roc", "Sable", "Argile", "Cristal", "Gravité"], "Vent": ["Ouragan", "Souffle", "Tornade", "Musique"], "Glace": ["Froid", "Givre", "Congélation", "Permafrost"], "Poison": ["Toxine", "Venin", "Corrosion", "Paralysie"], "Foudre": ["Étincelle", "Tonnerre", "Éclair", "Arc électrique"], "Ténèbres": ["Ombre", "Nuit", "Abysses", "Voile"], "Lumière": ["Lueur", "Laser", "Éclat"], "Psychique": [], "Sang": [] },
+        intermediaires: { "Fer": ["Lame", "Cuirasse", "Clou", "Enclume", "Chaîne", "Marteau", "Epée"], "Argent": ["Miroir", "Monnaie", "Bijou", "Amulette", "Dague"], "Or": ["Couronne", "Sceptre", "Médaille", "Lance"], "Plomb": ["Poids", "Protection", "Masse"], "Bronze": ["Artisanat", "Résistance", "Bouclier"], "Acier": ["Tranchant", "Solidité", "Hallebarde"], "Fleur": ["Pétale", "Parfum", "Pollen", "Bouton", "Corolle", "Nectar"], "Racine": ["Tubercule", "Rhizome", "Tige", "Rameau"], "Feuille": ["Bourgeon", "Chlorophylle", "Végétation", "Lianes"], "Graine": ["Germination", "Croissance", "Fertilité"], "Écorce": ["Protection", "Résilience", "Cicatrisation"], "Sève": ["Vitalité", "Adhérence", "Transmission"], "Vague": ["Marée", "Écume", "Cascade"], "Brume": ["Nuage", "Rosée", "Brouillard"], "Torrent": ["Rapide", "Courant", "Flot"], "Goutte": ["Pureté", "Infiltration", "Petitesse"], "Marais": ["Stagnation", "Décomposition", "Refuge"], "Incendie": ["Flamme", "Braise", "Lueur", "Fournaise", "Torche"], "Chaleur": ["Brûlure", "Foyer", "Canicule", "Étouffement", "Sauna"], "Cendre": ["Suie", "Décombres", "Étincelle"], "Fumée": ["Étouffement", "Occultation", "Signal", "Poussière"], "Montagne": ["Fissure", "Minerai", "Bloc", "Roche"], "Argile": ["Poterie", "Sculpture", "Boue", "Brique", "Moulage"], "Cristal": ["Reflet", "Scintillant", "Solidité"], "Gravité": ["Attraction", "Répulsion", "Poids"], "Ouragan": ["Rafale", "Bourrasque", "Tempête", "Typhon"], "Souffle": ["Murmure", "Haleine", "Expiration"], "Tornade": ["Tourbillon", "Vol", "Trombe"], "Musique": ["Bruit", "Mélodie", "Rythme", "Résonance", "Écho", "Ultrasonore"], "Froid": ["Neige", "Verglas", "Gelée", "Grêle"], "Givre": ["Stalactite", "Gel", "Engelure", "Flocon"], "Congélation": ["Glaçon", "Avalanche", "Cryoconservation", "Glacier"], "Permafrost": ["Conservation", "Banquise", "Iceberg"], "Toxine": ["Hallucinogène", "Infection", "Sédatif", "Pesticide", "Virus"], "Venin": ["Neurotoxique", "Antidote", "Anesthésique"], "Corrosion": ["Acide", "Érosion", "Rouille", "Oxydation", "Usure"], "Paralysie": ["Immobilisation", "Engourdissement", "Contrôle"], "Étincelle": ["Scintillement", "Flash", "Conduction"], "Tonnerre": ["Grondement", "Décharge", "Brûlure"], "Éclair": ["Décharge", "Choc", "Illumination"], "Arc électrique": ["Connexion", "Plasma", "Rapidité"], "Ombre": ["Camouflage", "Voile", "Silhouette"], "Nuit": ["Crépuscule", "Eclipse", "Sombre", "Lunaire"], "Abysses": ["Profondeur", "Vide", "Inconnu"], "Voile": ["Mystère", "Illusion", "Protection"], "Lueur": ["Halo", "Radiance", "Clarté", "Auréole", "Phare"], "Laser": ["Prisme", "Couleur", "Rayon", "Reflet", "Luminescence"], "Éclat": ["Brillance", "Scintillement", "Miroitement", "Étincelle"] }
+    };
+
+    const donneesClasses = [
+        {
+            affiliation: "Magus", nom: "Technomancien",
+            description: "Les Technomanciens sont passés maître dans la création et l’utilisation d'artefacts magiques. Ils pilotent d’énormes armures mécaniques et vendent de puissantes forteresses volantes à prix d’or.",
+            elements: "Métal", competenceDeClasse: "À chaque rang, le technomancien peut équiper un artefact supplémentaire.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Armes", competences: [
+                        { rang: 0, nom: "Répare (A) (70%)", description: "Graver des runes, identifier, réparer, assembler des machines…" },
+                        { rang: 1, nom: "Incapaciter (P)", description: "Si votre sort canalisé avec arme blesse l’ennemi, jusqu’à votre prochain tour, le prochain sort ou attaque de cet ennemi a le désavantage." },
+                        { rang: 2, nom: "Mécanomancie (P)", description: "Quand vous utilisez une action pour utiliser un artefact, vous pouvez en utiliser Rang supplémentaire. Si une utilisation échoue, la compétence s’arrête." },
+                        { rang: 4, nom: "Synergie (P)", description: "Votre premier sort canalisé avec un artefact de type arme chaque tour a l'avantage." }
+                    ]
+                },
+                {
+                    nom: "Armures", competences: [
+                        { rang: 1, nom: "Armure Imposante (P)", description: "Les dégâts de vos sorts monocibles sont augmentés à la hauteur de vos PP." },
+                        { rang: 4, nom: "Parasort (R) (Élément au choix)", description: "Si une créature de Rang inférieur ou égal dans votre domaine lance un sort monocible sur une autre créature, vous pouvez faire que le sort vous cible à la place." }
+                    ]
+                },
+                {
+                    nom: "Robots", competences: [
+                        { rang: 1, nom: "Autodestruction (P)", description: "Quand l’un de vos robots est détruit, il inflige ses dégâts à toutes les créatures se situant à 1 mètre de lui." },
+                        { rang: 4, nom: "Écho (R)", description: "Quand l’un de vos robots réussit une attaque sur une créature, vous pouvez lancer un sort monocible offensif qui cible cette créature." }
+                    ]
+                },
+                {
+                    nom: "Utilitaires", competences: [
+                        { rang: 1, nom: "Charge (P)", description: "Après avoir utilisé un artefact de type déplacement, votre prochaine attaque pendant votre tour a l'avantage." },
+                        { rang: 4, nom: "Domaine Énergétique (P)", description: "Le terrain dans votre domaine n’est pas considéré comme un terrain difficile pour vous et est considéré comme un terrain difficile pour les ennemis." }
+                    ]
+                }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Élémentaire",
+            description: "Les Élémentaires sont passés maître dans la manipulation des éléments, souvent surnommés “canon de verre”. Ils infligent de lourds dégâts tout en infligeant des effets de statuts divers et variés. Probablement les Magus les plus polyvalents.",
+            elements: "Au choix", competenceDeClasse: "Au début de chaque tour (coûte 1 R), l'élémentaire peut faire un jet à 10*Rang%. En cas de réussite, il se transforme en élémentaire de l'affinité de son choix jusqu'au prochain tour. Quand il est transformé, l'élémentaire est immunisé contre l'élément choisi, il peut utiliser ses AB et ses R à n’importe quel moment, et ses P sont toujours actifs.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Manipulation", competences: [
+                        { rang: 0, nom: "Cœur des Éléments (A) (70%)", description: "Détection, manipulation au contact direct..." },
+                        { rang: 1, nom: "Boost élémentaire (P)", description: "Vos sorts élémentaires ont l'avantage sur les cibles ayant un effet de status provenant de ce même élément." },
+                        { rang: 2, nom: "Absorption élémentaire (A) (% Élément)", description: "Vous pouvez absorber des particules élémentaires de l'une de vos affinités. Si transformé, vous gagnez 10 PE. Sinon, vous gagnez 5 PE." },
+                        { rang: 4, nom: "Domaine Énergétique (P)", description: "Le terrain dans votre domaine n’est pas considéré comme un terrain difficile pour vous et est considéré comme un terrain difficile pour les ennemis." },
+                        { rang: 6, nom: "Ouvrir portail plan élémentaire", description: "" }
+                    ]
+                },
+                {
+                    nom: "Transformation", competences: [
+                        { rang: 1, nom: "Téléportation élémentaire AB (% de la rune)", description: "Se TP vers un élément visible (max double du domaine)." },
+                        { rang: 4, nom: "Élémentalisation", description: "Si transformé: Augmenter le ratio de conversion pv pe à 1/1. Sinon: Augmenter le ratio de conversion pv pe à 3/1." }
+                    ]
+                }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Invocateur",
+            description: "Les Invocateurs sont passés maître dans l’invocation de créatures ou l’animation de golems. Ce sont des armées d’un seul homme capable de changer le cours d’une guerre par eux même.",
+            elements: "Psychique", competenceDeClasse: "À chaque rang, l'invocateur peut sceller dans son âme l'âme d'une créature morte/amicale supplémentaire. Ces créatures peuvent être invoquées/contrôlées. À chaque rang, une créature scellée au choix gagne aussi un rang.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Quantité d'invocations non scellées", competences: [
+                        { rang: 0, nom: "Affinité avec les Âmes (A) (70%)", description: "Détecter, comprendre, calmer les âmes pures, récolter les matériaux..." },
+                        { rang: 1, nom: "Bonus en fonction du nb invoc", description: "" },
+                        { rang: 2, nom: "Réduction cout de maintenance", description: "" },
+                        { rang: 4, nom: "nb invoc += 1", description: "" }
+                    ]
+                },
+                {
+                    nom: "Qualité des invocations", competences: []
+                }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Chevalier-Sorcier",
+            description: "Les Chevaliers-Sorciers sont passés maître dans l’art du combat. Ils renforcent leurs corps et leurs armes tout en aidant leurs alliés et en anticipant leurs ennemis.",
+            elements: "Métal ou Lumière", competenceDeClasse: "Votre corps est recouvert d'une armure magique ayant 5*Rang PP.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Déplacement", competences: [
+                        { rang: 0, nom: "Sixième Sens (A) (70%)", description: "Réflexes au combat, odorat, pistage, instinct…" },
+                        { rang: 1, nom: "Pas Fantôme (R)", description: "Lorsqu’un ennemi attaque, vous pouvez lancer un sort de déplacement pour vous approcher de celui-ci." },
+                        { rang: 2, nom: "Résistance Élémentaire (AB) (Rune)", description: "Votre armure magique se charge de particules élémentaires. Accorde la résistance contre l’élément de la rune." },
+                        { rang: 4, nom: "Célérité (P)", description: "Double la portée gratuite de vos sorts de déplacement. Des petites ailes apparaissent sur les bottes de l'armure magique." },
+                        { rang: 5, nom: "Invoc monture", description: "" }
+                    ]
+                },
+                {
+                    nom: "Protection", competences: [
+                        { rang: 1, nom: "Armure Scénaristique (R)", description: "Lorsqu’un allié est attaqué, vous pouvez lancer un sort de protection monocible sur cet allié." },
+                        { rang: 4, nom: "Miracle (R)", description: "Si vous ou un allié dans votre domaine deviez subir un coup fatal, vous pouvez faire que vous ou cet allié survivez avec 1 PV restant. Vous ou cet allié ne prenez pas de point de blessure. (1 fois par méditation)" }
+                    ]
+                },
+                {
+                    nom: "Attaque", competences: [
+                        { rang: 1, nom: "Épée de Damoclès (R)", description: "Lorsqu’un ennemi dans votre domaine attaque, vous pouvez lancer un sort monocible offensif qui cible cet ennemi." },
+                        { rang: 4, nom: "Opportuniste (P)", description: "Vos sorts monocibles offensifs ont l'avantage sur les ennemis qui ne possèdent plus d’AB." }
+                    ]
+                },
+                {
+                    nom: "Enchantement", competences: [
+                        { rang: 1, nom: "Vivacité d’Esprit (R)", description: "Lorsqu’un allié attaque, vous pouvez lancer un sort de buff sur cet allié, ou un sort de debuff sur la cible de votre allié." },
+                        { rang: 4, nom: "Maître-d’Armes (P)", description: "A chaque phase, votre première attaque avec un artefact enchanté a l'avantage." }
+                    ]
+                }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Psionique",
+            description: "Les Psioniques sont des maîtres de l’esprit. Ils utilisent les pouvoirs de leurs intellect pour manipuler la réalité et la faire se plier aux moindres de leurs souhaits.",
+            elements: "Psychique", competenceDeClasse: "A chaque rang, les sorts psychiques monocibles lancés par le psionique peuvent affecter une cible supplémentaire.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Manipulation des gens", competences: [
+                        { rang: 0, nom: "Détection Psychique (A) (70%)", description: "Rang, invisible, illusions, émotions…" },
+                        { rang: 1, nom: "Graine Psychique (A) (Élément Psychique)", description: "Insérez une graine psychique dans l’esprit d’une créature dans votre domaine. Il est possible de déclencher à n’importe quel moment cette graine (sans action) pour imposer une action à la cible (n’importe quoi qui ne lui est pas dommageable). En cas d’échec, la cible ne peut pas être de nouveau ciblée par cette capacité jusqu’à la prochaine méditation." },
+                        { rang: 2, nom: "Lévitation (R)", description: "Lorsque vous lancez un sort psychique, vous pouvez vous déplacer d’autant de mètres que votre initiative." },
+                        { rang: 4, nom: "Télépathie (A) (Élément Psychique)", description: "Vous pouvez parler par télépathie à une créature présente dans votre domaine. La créature recevant un message peut répondre avec un message de maximum Rang * 2 mots." },
+                        { rang: 5, nom: "Transcendance (A)", description: "Vous pouvez méditer pour vous soigner après un effort physique ou mental. Vous pouvez le faire de 2 manières : Xd8 PV ou Xd8 PE. Vous pouvez le faire X fois entre chaque repos long. X = Rang + 1." },
+                        { rang: 6, nom: "Portes de l’esprit (A) (Élément Psychique)", description: "Votre esprit entre dans celui d’une créature de rang inférieur ou égal dans votre domaine et accède aux trois portes: Vérité, Mensonge, Doute. Vous pouvez modifier un élément précis du souvenir vu." }
+                    ]
+                },
+                {
+                    nom: "Manipulation de la matière", competences: [
+                        { rang: 1, nom: "Télékinésie Simple (A) (Élément Psychique)", description: "Dans les limites de votre domaine, vous pouvez déplacer un objet ou une créature (si elle est de rang inférieur ou égal) d’un poids maximum de Rang*50Kg." },
+                        { rang: 4, nom: "Maître des Déguisements (A) (Élément Psychique)", description: "Vous pouvez modifier / transformer la voix et l’apparence de vous ou d’une créature consentante dans votre domaine. Les changements peuvent donner un avantage ou un désavantage aux jets sociaux et résistent à l’inspection physique." }
+                    ]
+                }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Druide",
+            description: "Les Druides sont liés aux forces de la nature, ils entendent les échos des montagnes, les murmures du monde. Leur lien avec les esprits de la nature leur permet de se transformer, d'apprivoiser les bêtes et plantes ou de communiquer avec les esprits.",
+            elements: "Plante", competenceDeClasse: "A chaque rang : Rang * 10 % (détails à venir).",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Transformation", competences: [
+                        { rang: 0, nom: "Communiquer avec la Nature (A) (70%)", description: "Parler aux animaux, plantes, dressage, esprits..." }
+                    ]
+                },
+                { nom: "Manipulation des plantes", competences: [] },
+                { nom: "Manipulation des animaux", competences: [] }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Éveillé",
+            description: "Les Éveillés préfèrent la discrétion, l’ombre de la nuit, le camouflage et la tromperie. Ils se mêlent dans les ombres, se meuvent dans l’espace et font disparaître leurs ennemis aussi discrètement que possible. De plus, ils entrent dans les rêves des gens.",
+            elements: "Ténèbres, Psychique ou Lumière", competenceDeClasse: "À la fin de chaque tour (coûte 1 R), l'éveillé peut faire un jet à 10*Rang%. En cas de réussite, il est téléporté dans le plan des rêves jusqu'au début de son prochain tour. Il réapparaît où il le souhaite dans son domaine. Dans le plan des rêves, l'éveillé peut utiliser ses AB et ses R à n’importe quel moment, et ses P sont toujours actifs.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                {
+                    nom: "Discrétion", competences: [
+                        { rang: 0, nom: "Survie (A) (70%)", description: "Repérage, pistage, identification plantes, préparation de poison..." },
+                        { rang: 1, nom: "Camouflage Spectral (A) (Rune)", description: "Utilisez une rune élémentaire pour vous fondre dans l'environnement. Vous redevenez visible si vous faites une autre action." },
+                        { rang: 2, nom: "Attrape-Rêve (AB) (Élément Ténèbres, Psychique ou Lumière)", description: "Draine Rang d8 PE à une cible." },
+                        { rang: 4, nom: "Brume Aveuglante (P)", description: "Lorsque vous entrez dans le plan des rêves, votre domaine est rempli d’une brume de ténèbres magique qui aveugle les créatures (sauf les Éveillés)." }
+                    ]
+                },
+                {
+                    nom: "Terreur", competences: [
+                        { rang: 1, nom: "Terreur Nocturne (P)", description: "Lorsque votre sort offensif monocible réussit, la cible (si de rang inférieur ou égal) doit réussir un jet de psychologie ou être effrayée jusqu’à votre prochain tour." },
+                        { rang: 4, nom: "Aura de Cauchemar (P)", description: "Lorsque vous entrez dans le plan des rêves, votre domaine est rempli d’une aura de peur. Les créatures (si de rang inférieur ou égal) doivent réussir un jet de psychologie ou être effrayées." }
+                    ]
+                },
+                {
+                    nom: "Illusions", competences: [
+                        { rang: 1, nom: "Illusion Mineure (P)", description: "Vos sorts d'illusions monocibles peuvent affecter une cible supplémentaire." },
+                        { rang: 4, nom: "Image Rémanente (P)", description: "Lorsque vous entrez dans le plan des rêves, une illusion de vous-même se forme à l’endroit exact où you have disappeared. Elle disparaît à la fin de votre prochain tour." }
+                    ]
+                }
+            ]
+        },
+        {
+            affiliation: "Magus", nom: "Démoniste",
+            description: "Les Démonistes ne sont plus totalement ce qu’ils étaient, leur sang se mêle à celui d’une créature qui les dépassent. L’accès à ces pouvoirs vient avec une contrepartie : des émotions bestiales.",
+            elements: "Aucun", competenceDeClasse: "A chaque rang, le démoniste augmente la pureté de sa lignée.",
+            image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg",
+            specialisations: [
+                { nom: "Ajout", competences: [{ rang: 0, nom: "Alchimiste (A) (70%)", description: "Identifie les matériaux, fabrique des potions, peut remplacer un matériel par son sang (via les traits)..." }] },
+                { nom: "Renforcement", competences: [] }
+            ]
+        },
+        { affiliation: "Magus", nom: "Arcaniste", description: "TODO mais pas tout de suite hihi", image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc2734d3af48405dc273429d9bb45c3c6aa.jpg" },
+        { affiliation: "Magus", nom: "Symbiote", description: "TODO mais pas tout de suite hihi", elements: "Plante ou Psychique", image: "https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" }
+    ];
+
+    const donneesRituelsIntro = [
+        // La philosophie des rituels supprimée comme demandé
+        { title: "Conditions Communes à toutes les classes", rangs: [
+            { rang: 0, desc: "Apprendre 2 runes (une élémentaire et une de forme). Obtenir une classe. Connaître un sort et le lancer pour la première fois." },
+            { rang: 1, desc: "Avoir un sort à 55%. Réaliser le rituel de classe et boire de l'eau de Grin au dernier moment." },
+            { rang: 2, desc: "Avoir un sort à 60%. Connaître au moins 6 runes." },
+            { rang: 3, desc: "Avoir un sort à 65%. Absorber 1000 cristaux magiques au dernier moment." },
+            { rang: 4, desc: "Avoir un sort à 70%. (TODO)" },
+            { rang: 5, desc: "Avoir un sort à 75%. (TODO)" },
+            { rang: 6, desc: "Avoir un sort à 80%. (TODO)" },
+            { rang: 7, desc: "Avoir un sort à 85%. (TODO)" },
+            { rang: 8, desc: "Avoir un sort à 90%. (TODO)" },
+        ]}
+    ];
+    // Store common ritual data for easy access
+    const commonRitualConditions = donneesRituelsIntro[0];
+
+
+    const donneesRituels = [
+        { affiliation: "Magus", nom: "Technomancien", rituelsByRang: { 1: "Avoir forgé au moins 3 artefacts. S'en greffer un (en remplaçant un membre ou non).", 2: "Créer un artefact de la spécialité choisie doté d'une intelligence de base et lui apprendre quelque chose qui tient à coeur au personnage.", 3: "Créer un contenant capable de stocker au moins 50 PE et y avoir accès à distance."}},
+        { affiliation: "Magus", nom: "Élémentaire", rituelsByRang: { 1: "Créer trois lieux où la concentration en particules élémentaires correspondant à l'une des affinités du Magus est plus élevée que la normale. Et au centre des 3 lieux, boire l'eau de Grin.", 2: "Lancer un sort de zone et le maintenir le plus longtemps possible (au moins 5 tours) en consommant tout ses PE et PV (les PE et PV devaient être au max) et prendre volontairement un point de blessure. Ce point de blessure disparaît au passage au rang 2.", 3: "Se transformer en élémentaire (compétence de classe), affronter un phénomène naturel de grande ampleur, vider tout ses PE pour se maintenir en vie puis utiliser sa compétence 2 pour regagner tout ses PE et enfin fusionner avec le phénomène naturel."}},
+        { affiliation: "Magus", nom: "Invocateur", rituelsByRang: { 1: "Sceller dans son âme, l'âme d'une créature de rang 0 qui a, lorsqu'elle était en vie, bu l'eau de Grin."}},
+        { affiliation: "Magus", nom: "Chevalier-Sorcier", rituelsByRang: { 1: "Vaincre 3 êtres de rang 0 seul sans aide au cours d'un même combat.", 2: "Rédiger un code d'honneur de 3 règles. Jurer de suivre ces 3 règles. Et en suivant l'one d'elle, être reconnu par un guerrier honorable de rang supérieur.", 3: "Former trois apprentis chevalier sorcier, les faire passer au rang 1 puis un au rang 2 en le reconnaissant (rituel)."}},
+        { affiliation: "Magus", nom: "Psionique", rituelsByRang: { 1: "Décrypter un livre ancien et révéler le secret qu'il renferme à un être de rang supérieur sans lui dire directement. Et quand cet être comprend le secret, boire l'eau de Grin."}},
+        { affiliation: "Magus", nom: "Druide", rituelsByRang: {}},
+        { affiliation: "Magus", nom: "Éveillé", rituelsByRang: { 1: "Avoir fabriqué au moins 3 poisons. Aller pour la première fois dans le plan des Esprits par ses propres moyens (Fabriquer un poison à base d'eau de Grin et le boire).", 2: "Accéder au plan des esprits en pénétrant le rêve de quelqu'un de proche et vaincre un double de soi-même seul.", 3: "Créer des cauchemars dans les rêves de 5 rang 2 et absorber leurs cauchemars pour faire passer leurs PE à 0."}},
+        { affiliation: "Magus", nom: "Démoniste", rituelsByRang: {}},
+        { affiliation: "Magus", nom: "Arcaniste", rituelsByRang: {}},
+        { affiliation: "Magus", nom: "Symbiote", rituelsByRang: {}},
+    ];
+
+    // Merge donneesRituels into donneesClasses
+    donneesClasses.forEach(classe => {
+        const ritualData = donneesRituels.find(r => r.nom === classe.nom);
+        if (ritualData) {
+            classe.rituels = ritualData.rituelsByRang;
+        } else {
+            classe.rituels = {}; // Ensure all classes have this property
+        }
+    });
+
+    // Declare global variables for DOM elements
+    let sidebar, sidebarOverlay, sidebarToggleBtn;
+
+    // --- Sidebar toggle functionality ---
+    // This function is now global
+    const toggleSidebar = () => {
+        const isOpen = sidebar.classList.contains('sidebar-open');
+
+        // Manage sidebar and overlay open/close state
+        if (isOpen) {
+            sidebar.classList.remove('sidebar-open');
+            sidebarOverlay.classList.remove('overlay-active');
+            sidebarToggleBtn.style.left = '1.5rem'; // Base button position
+        } else {
+            sidebar.classList.add('sidebar-open');
+            sidebarOverlay.classList.add('overlay-active');
+            sidebarToggleBtn.style.left = `calc(1.5rem + ${sidebar.offsetWidth}px)`; // Button position when menu is open
+        }
+    };
+
+    //============== CONTENT GENERATION FUNCTIONS (GLOBAL) ==============
+
+    function showSection(sectionId, subFilter = null) {
+        const mainContentContainer = document.getElementById('main-content-container');
+        const templates = {
+            'rules-section': document.getElementById('rules-template'),
+            'runes-section': document.getElementById('runes-template'),
+            'classes-section': document.getElementById('classes-template'),
+        };
+
+        mainContentContainer.innerHTML = '';
+        const template = templates[sectionId];
+        if (template) {
+            const clone = template.content.cloneNode(true);
+            mainContentContainer.appendChild(clone);
+            
+            const sectionElement = mainContentContainer.querySelector('.content-section');
+            if (sectionElement) {
+                setTimeout(() => {
+                    sectionElement.classList.add('active');
+                    // Call render function passing the newly added section element as context
+                    switch (sectionId) {
+                        case 'rules-section': 
+                            renderRules(sectionElement); 
+                            break;
+                        case 'runes-section': 
+                            populateRunes('forme', sectionElement);
+                            populateRunes('elementaire', sectionElement);
+                            setupRuneTabs(sectionElement); 
+                            break;
+                        case 'classes-section': 
+                            renderClasses(sectionElement); 
+                            // Common rituals intro was moved into individual class details
+                            break;
+                    }
+
+                    // Scroll to specific element if sub-filter is present
+                    if (subFilter) {
+                        let targetElement = null;
+                        if (sectionId === 'rules-section') {
+                            targetElement = sectionElement.querySelector(`#rules-group-${subFilter.replace(/\s+/g, '-')}`);
+                        } else if (sectionId === 'classes-section') {
+                            // For classes, we need to show the detailed view if a specific class is filtered
+                            const classesGridView = sectionElement.querySelector('#classes-grid-view');
+                            const classDetailView = sectionElement.querySelector('#class-detail-view');
+                            const classData = donneesClasses.find(c => c.nom === subFilter);
+                            if (classData) {
+                                renderClassDetail(classData, classDetailView.querySelector('#class-detail-content'));
+                                classesGridView.style.display = 'none';
+                                classDetailView.style.display = 'block';
+                                targetElement = classDetailView; // Scroll to detailed view
+                            } else {
+                                // If sub-filter is not a specific class name, but maybe an affiliation, just scroll to class section
+                                targetElement = sectionElement;
+                            }
+                        } else if (sectionId === 'runes-section') {
+                            const tabButton = sectionElement.querySelector(`.rune-tab-button[data-rune-type="${subFilter}"]`);
+                            if (tabButton) {
+                                tabButton.click(); // Simulate click to activate tab
+                                targetElement = tabButton; // Scroll to the tab button itself
+                            }
+                        }
+
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }, 50); // Small delay to allow DOM update
+            }
+        }
+        // Menu no longer auto-closes after navigation to maintain persistence
+    }
+    
+    function renderRules(contextElement) { 
+        const container = contextElement.querySelector('#rules-container'); 
+        if (!container) return;
+        const grouped = donneesRegles.reduce((acc, rule) => {
+            const group = rule.groupe || 'Divers';
+            if (!acc[group]) acc[group] = [];
+            acc[group].push(rule);
+            return acc;
+        }, {});
+        container.innerHTML = Object.entries(grouped).map(([groupName, rules]) => `
+            <div id="rules-group-${groupName.replace(/\s+/g, '-')}" class="p-6 bg-gray-800/50 rounded-lg border border-gray-700">
+                <h3 class="text-3xl font-bold mb-6 text-violet-300">${groupName}</h3>
+                <div class="space-y-6">
+                ${rules.map(rule => `
+                    <div class="border-l-4 border-violet-800 pl-4">
+                        <h4 class="text-2xl font-semibold text-gray-100">${rule.nom}</h4>
+                        <p class="mt-2 text-gray-300 leading-relaxed">${rule.description.replace(/\n/g, '<br>')}</p>
+                        ${rule.exemple ? `<p class="mt-3 p-3 bg-gray-900/70 border border-gray-700 text-gray-400 rounded-lg italic text-sm"><strong>Exemple :</strong> ${rule.exemple}</p>` : ''}
+                    </div>
+                `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderClasses(contextElement) {
+        const classesGridView = contextElement.querySelector('#classes-grid-view');
+        const classDetailView = contextElement.querySelector('#class-detail-view');
+        const classDetailContent = classDetailView.querySelector('#class-detail-content');
+        const backToClassesButton = classDetailView.querySelector('#back-to-classes');
+
+        // Hide detailed view by default and show grid view
+        classesGridView.style.display = 'block';
+        classDetailView.style.display = 'none';
+
+        const grouped = donneesClasses.reduce((acc, classe) => {
+            const group = classe.affiliation || 'Sans affiliation';
+            if (!acc[group]) acc[group] = [];
+            acc[group].push(classe);
+            return acc;
+        }, {});
+
+        classesGridView.innerHTML = Object.entries(grouped).map(([groupName, classes]) => `
+            <div>
+                <h3 class="text-4xl font-bold mb-6 text-violet-300">${groupName}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                ${classes.map(classe => `
+                    <div class="class-card p-0" data-class-name="${classe.nom}">
+                        <div class="class-card-inner">
+                            <div class="class-card-background" style="background-image: url('${classe.image}');"></div>
+                            
+                            <!-- Main content area, dynamic on hover -->
+                            <div class="class-card-main-info-area">
+                                <h4 class="class-card-title">${classe.nom}</h4>
+                                <p class="class-card-description-preview">${classe.description}</p>
+                            </div>
+
+                            <!-- Button container always at the bottom, high z-index -->
+                            <div class="class-card-button-container">
+                                <button class="w-full px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-md text-sm transition duration-200">Voir détails</button>
+                            </div>
+
+                            <!-- Full description for click, highest z-index -->
+                            <div class="class-card-description-full">
+                                <p>${classe.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners to class cards
+        classesGridView.querySelectorAll('.class-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; // x position within the element
+                const y = e.clientY - rect.top;  // y position within the element
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                // Calculate rotation based on mouse position relative to card center
+                // Invert Y-axis rotation for natural feel (move up, rotate up)
+                // Invert X-axis rotation (move left, rotate left)
+                const rotateX = ((centerY - y) / centerY) * 10; // Max 10deg rotation
+                const rotateY = ((x - centerX) / centerX) * -10; // Max 10deg rotation, inverted
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+            });
+
+
+            card.addEventListener('click', () => {
+                const className = card.dataset.className;
+                const selectedClass = donneesClasses.find(c => c.nom === className);
+                if (selectedClass) {
+                    renderClassDetail(selectedClass, classDetailContent);
+                    classesGridView.style.display = 'none';
+                    classDetailView.style.display = 'block';
+                    // Scroll to top of detailed view
+                    classDetailView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        backToClassesButton.addEventListener('click', () => {
+            classesGridView.style.display = 'block';
+            classDetailView.style.display = 'none';
+            // Scroll to top of class grid
+            classesGridView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Configure accordions in the newly rendered class detail view when populated
+        // (This call will be made from renderClassDetail)
+    }
+
+    function renderClassDetail(classe, container) {
+        let combinedRitualsHtml = '';
+        for (let i = 0; i <= 8; i++) { // Iterate through ranks 0 to 8
+            const commonDesc = commonRitualConditions.rangs.find(r => r.rang === i)?.desc;
+            const classSpecificDesc = classe.rituels[i];
+
+            if (commonDesc || classSpecificDesc) {
+                combinedRitualsHtml += `
+                    <li class="border-l-2 border-purple-700 pl-3">
+                        <strong class="text-gray-200">Rang ${i} :</strong>
+                        <p class="text-gray-400 text-sm">
+                            ${commonDesc ? `<span class="font-bold">Conditions Communes:</span> ${commonDesc}` : ''}
+                            ${commonDesc && classSpecificDesc ? '<br>' : ''}
+                            ${classSpecificDesc ? `<span class="font-bold">Spécifique à la classe:</span> ${classSpecificDesc}` : ''}
+                        </p>
+                    </li>
+                `;
+            }
+        }
+
+        container.innerHTML = `
+            <h3 class="text-4xl font-bold mb-6 text-violet-400">${classe.nom}</h3>
+            <div class="flex flex-col md:flex-row gap-8 mb-8">
+                <div class="md:w-1/3">
+                    <img src="${classe.image}" alt="[Image de ${classe.nom}]" class="w-full h-auto rounded-lg shadow-lg">
+                </div>
+                <div class="md:w-2/3 space-y-4">
+                    <p class="text-gray-300 italic text-lg">${classe.description}</p>
+                    <div class="text-base space-y-2">
+                        <p><strong class="text-violet-300">Éléments de prédilection :</strong> ${classe.elements || 'N/A'}</p>
+                        <p><strong class="text-violet-300">Compétence de classe :</strong> ${classe.competenceDeClasse || 'N/A'}</p>
+                    </div>
+                </div>
+            </div>
+
+            ${(classe.specialisations && classe.specialisations.length > 0) ? `
+                <div class="space-y-3 mt-8">
+                    <h4 class="text-3xl font-bold text-violet-300 pl-4 border-l-4 border-violet-600">Spécialisations :</h4>
+                ${classe.specialisations.map(spec => `
+                    <div class="accordion-item bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                        <div class="accordion-header p-4 cursor-pointer flex justify-between items-center hover:bg-gray-800/50">
+                            <h5 class="text-xl font-semibold text-violet-200">${spec.nom}</h5>
+                            <svg class="icon w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                        <div class="accordion-content" style="max-height:0; overflow:hidden; transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; padding: 0 1rem;">
+                            ${spec.competences.length > 0 ? `
+                            <ul class="space-y-3 p-4 pt-0">
+                                ${spec.competences.map(comp => `
+                                    <li class="border-l-2 border-violet-700 pl-3">
+                                        <strong class="text-gray-200">Rang ${comp.rang} : ${comp.nom}</strong>
+                                        <p class="text-gray-400 text-sm">${comp.description}</p>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            ` : '<p class="p-4 pt-0 text-gray-500">Aucune compétence pour cette spécialisation.</p>'}
+                        </div>
+                    </div>
+                `).join('')}
+                </div>
+            ` : ''}
+
+            ${(combinedRitualsHtml) ? `
+                <div class="space-y-3 mt-8">
+                    <h4 class="text-3xl font-bold text-violet-300 pl-4 border-l-4 border-violet-600">Rituels de Passage :</h4>
+                    <ul class="space-y-3 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                        ${combinedRitualsHtml}
+                    </ul>
+                </div>
+            ` : '<p class="p-4 mt-8 text-gray-500">Aucun rituel de passage pour cette classe.</p>'}
+        `;
+        setupAccordions(container); // Configure accordions for newly loaded detailed content
+    }
+    
+    function setupAccordions(scopeElement) { 
+        scopeElement.querySelectorAll('.accordion-header, .accordion-header-inner').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.closest('.accordion-item') || header.closest('.accordion-item-inner');
+                item.classList.toggle('open');
+                
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('.icon'); // Get icon within this header
+                if (item.classList.contains('open')) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    if(item.classList.contains('accordion-item-inner')) {
+                         content.style.padding = '0 1rem 1rem 1rem';
+                    }
+                    if (icon) icon.style.transform = 'rotate(90deg)';
+                } else {
+                    content.style.maxHeight = '0';
+                    content.style.padding = '0 1rem';
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+    }
+
+    function createRuneItem(name, onClick) {
+        const item = document.createElement('div');
+        item.textContent = name;
+        item.className = 'p-3 bg-gray-700/50 rounded-md cursor-pointer transition hover:bg-violet-600 hover:text-white shadow-md border border-transparent hover:border-violet-400';
+        item.addEventListener('click', () => onClick(item));
+        return item;
+    }
+    
+    function populateRunes(type, contextElement) { 
+        const data = type === 'forme' ? runesDeForme : runesElementaires;
+        const majeuresCol = contextElement.querySelector(`#${type}-majeures-col`); 
+        const intermediairesCol = contextElement.querySelector(`#${type}-intermediaires-col`); 
+        const mineuresCol = contextElement.querySelector(`#${type}-mineures-col`); 
+        if (!majeuresCol) return;
+        
+        // Clear columns before populating
+        majeuresCol.innerHTML = '';
+        intermediairesCol.innerHTML = '';
+        mineuresCol.innerHTML = '';
+
+        Object.keys(data.majeures).forEach(majorRune => {
+            const item = createRuneItem(majorRune, (clickedItem) => {
+                majeuresCol.querySelectorAll('div').forEach(el => el.classList.remove('bg-violet-500', 'text-white'));
+                clickedItem.classList.add('bg-violet-500', 'text-white');
+                intermediairesCol.innerHTML = '';
+                mineuresCol.innerHTML = '';
+                const intermediateRunes = data.majeures[majorRune];
+                if(intermediateRunes && intermediateRunes.length > 0) {
+                    intermediateRunes.forEach(interRune => {
+                        const interItem = createRuneItem(interRune, (clickedInterItem) => {
+                            intermediairesCol.querySelectorAll('div').forEach(el => el.classList.remove('bg-violet-500', 'text-white'));
+                            clickedInterItem.classList.add('bg-violet-500', 'text-white');
+                            mineuresCol.innerHTML = '';
+                            const minorRunes = data.intermediaires[interRune];
+                            if (minorRunes && minorRunes.length > 0) {
+                                minorRunes.forEach(minorRune => {
+                                    const minorItem = createRuneItem(minorRune, (clickedMinorItem) => {
+                                         mineuresCol.querySelectorAll('div').forEach(el => el.classList.remove('bg-violet-500', 'text-white'));
+                                         clickedMinorItem.classList.add('bg-violet-500', 'text-white');
+                                    });
+                                    mineuresCol.appendChild(minorItem);
+                                });
+                            } else {
+                                mineuresCol.innerHTML = '<p class="text-gray-500 p-3">Aucune rune mineure.</p>';
+                            }
+                        });
+                        intermediairesCol.appendChild(interItem);
+                    });
+                } else {
+                    intermediairesCol.innerHTML = '<p class="text-gray-500 p-3">Aucune rune intermédiaire.</p>';
+                }
+            });
+            majeuresCol.appendChild(item);
+        });
+    }
+
+    function setupRuneTabs(contextElement) { 
+        const runeTabButtons = contextElement.querySelectorAll('.rune-tab-button'); 
+        const runeDisplayContainers = contextElement.querySelectorAll('.rune-display-container'); 
+        runeTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const type = button.dataset.runeType;
+                runeTabButtons.forEach(btn => {
+                    btn.classList.remove('text-white', 'border-violet-500');
+                    btn.classList.add('text-gray-400', 'border-transparent');
+                });
+                button.classList.add('text-white', 'border-violet-500');
+                button.classList.remove('text-gray-400', 'border-transparent');
+                runeDisplayContainers.forEach(container => container.classList.add('hidden'));
+                const activeContainer = contextElement.querySelector(`#rune-display-${type}`); 
+                activeContainer.classList.remove('hidden');
+                activeContainer.classList.add('active');
+            });
+        });
+    }
+
+
+    //============== PAGE LOGIC (IN DOMContentLoaded) ==============
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize global DOM element variables
+        sidebar = document.getElementById('sidebar');
+        sidebarOverlay = document.getElementById('sidebar-overlay');
+        sidebarToggleBtn = document.getElementById('sidebar-toggle');
+        
+        const sidebarTitleArea = document.getElementById('sidebar-title-area');
+        const navItemMains = document.querySelectorAll('.nav-item-main'); 
+
+        // Event listeners for toggle button
+        sidebarToggleBtn.addEventListener('click', toggleSidebar);
+        
+        // Event listener for sidebar title area (to close sidebar if open)
+        sidebarTitleArea.addEventListener('click', () => {
+            // A click on the sidebar title closes the sidebar on mobile, but not on desktop if it's open
+            if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open')) {
+                toggleSidebar();
+            }
+        });
+
+        // Event listener for overlay (to close sidebar)
+        sidebarOverlay.addEventListener('click', () => {
+            if (sidebar.classList.contains('sidebar-open')) {
+                toggleSidebar();
+            }
+        });
+
+
+        // Initial setup based on screen size
+        const setInitialSidebarState = () => {
+            // For large screens, keep sidebar open and adjust button
+            if (window.innerWidth >= 768) {
+                sidebar.classList.add('sidebar-open');
+                sidebarOverlay.classList.remove('overlay-active'); // Ensure overlay is deactivated
+                sidebarToggleBtn.style.left = `calc(1.5rem + ${sidebar.offsetWidth}px)`;
+            } else { // For small screens, ensure it's closed by default
+                sidebar.classList.remove('sidebar-open');
+                sidebarOverlay.classList.remove('overlay-active');
+                sidebarToggleBtn.style.left = '1.5rem';
+            }
+        };
+
+        // Call once on load
+        setInitialSidebarState();
+        // Adjust on resize for responsiveness
+        window.addEventListener('resize', setInitialSidebarState);
+
+
+        // --- Populate dynamic navigation menus ---
+        function populateNavMenus() {
+            // Populate rules submenu
+            const rulesSubmenuContent = document.querySelector('div[data-section-id="rules-section"] .submenu-content');
+            const uniqueRuleGroups = [...new Set(donneesRegles.map(rule => rule.groupe || 'Divers'))];
+            rulesSubmenuContent.innerHTML = uniqueRuleGroups.map(group => `
+                <li><a href="#" data-sub-filter="${group}">${group}</a></li>
+            `).join('');
+
+            // Populate classes submenu
+            const classesSubmenuContent = document.querySelector('div[data-section-id="classes-section"] .submenu-content');
+            const uniqueClassAffiliations = [...new Set(donneesClasses.map(classe => classe.affiliation || 'Sans affiliation'))];
+            
+            let classSubMenuHtml = '';
+            uniqueClassAffiliations.forEach(affiliation => {
+                classSubMenuHtml += `
+                    <li>
+                        <div class="py-2 pl-6 pr-4 text-xs font-semibold text-violet-200">${affiliation}</div>
+                        <ul class="space-y-1">
+                            ${donneesClasses.filter(c => (c.affiliation || 'Sans affiliation') === affiliation).map(classe => `
+                                <li><a href="#" data-sub-filter="${classe.nom}" class="block pl-10 pr-4 text-xs">${classe.nom}</a></li>
+                            `).join('')}
+                        </ul>
+                    </li>
+                `;
+            });
+            classesSubmenuContent.innerHTML = classSubMenuHtml;
+        }
+
+        populateNavMenus();
+
+
+        // --- Navigation logic for the new menu structure ---
+        navItemMains.forEach(item => {
+            const mainLinkArea = item.querySelector('.main-link-area');
+            const textContent = item.querySelector('.main-link-area .text-content'); // Direct navigation part
+            const iconChevron = item.querySelector('.icon-chevron'); // Dropdown toggle icon
+            const submenuContent = item.querySelector('.submenu-content');
+
+            // Click listener for main text area (direct navigation)
+            if (textContent) {
+                textContent.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const sectionId = item.dataset.sectionId;
+
+                    // Close all other submenus and remove active class from all main items
+                    navItemMains.forEach(navItem => {
+                        if (navItem !== item) { // Do not close the current item's submenu
+                            navItem.classList.remove('active', 'open');
+                            const sub = navItem.querySelector('.submenu-content');
+                            const currentNavIcon = navItem.querySelector('.icon-chevron'); // Corrected: Renamed 'icon' to 'currentNavIcon'
+                            if (sub) sub.style.maxHeight = '0';
+                            if (currentNavIcon) currentNavIcon.style.transform = 'rotate(0deg)'; // Corrected: Used 'currentNavIcon'
+                        }
+                    });
+
+                    // Set active class for the clicked item
+                    item.classList.add('active');
+
+                    // Open the submenu of the clicked item (if it has one)
+                    // It should always open its own submenu when main link is clicked
+                    item.classList.add('open');
+                    if (submenuContent) submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px';
+                    if (iconChevron) iconChevron.style.transform = 'rotate(90deg)';
+
+                    showSection(sectionId); // Load the content
+                });
+            }
+
+            // Click listener for chevron icon (submenu toggle)
+            if (iconChevron && submenuContent) {
+                iconChevron.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // Prevent click on main text from also triggering this
+                    
+                    // Toggle current submenu
+                    item.classList.toggle('open');
+                    if (item.classList.contains('open')) {
+                        submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px';
+                        iconChevron.style.transform = 'rotate(90deg)';
+                    } else {
+                        submenuContent.style.maxHeight = '0';
+                        iconChevron.style.transform = 'rotate(0deg)';
+                    }
+                });
+            }
+
+            // Click listener for submenu links
+            if (submenuContent) {
+                submenuContent.addEventListener('click', (e) => {
+                    const subLink = e.target.closest('a');
+                    if (subLink) {
+                        e.preventDefault();
+                        const sectionId = item.dataset.sectionId;
+                        const subFilter = subLink.dataset.subType || subLink.dataset.subFilter;
+
+                        // Close all other main submenus
+                        navItemMains.forEach(navItem => {
+                            if (navItem !== item) { // Do not close the current item's submenu
+                                navItem.classList.remove('active', 'open');
+                                const sub = navItem.querySelector('.submenu-content');
+                                const currentNavIcon = navItem.querySelector('.icon-chevron'); // Corrected: Renamed 'icon' to 'currentNavIcon'
+                                if (sub) sub.style.maxHeight = '0';
+                                if (currentNavIcon) currentNavIcon.style.transform = 'rotate(0deg)'; // Corrected: Used 'currentNavIcon'
+                            }
+                        });
+
+                        // Set active class for the current main item and keep its submenu open
+                        navItemMains.forEach(navItem => navItem.classList.remove('active')); // remove all active
+                        item.classList.add('active', 'open'); // Add active and ensure current main is open
+                        if (submenuContent) submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px'; // Re-open if somehow closed
+                        if (iconChevron) iconChevron.style.transform = 'rotate(90deg)';
+
+
+                        // Handle active state for sub-links
+                        document.querySelectorAll('.submenu-content a').forEach(a => a.classList.remove('active'));
+                        subLink.classList.add('active');
+
+                        showSection(sectionId, subFilter);
+
+                        // Close sidebar on mobile after navigation (if open)
+                        if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open')) {
+                            toggleSidebar();
+                        }
+                    }
+                });
+            }
+        });
+
+
+        // Initial load
+        showSection('rules-section'); // Load default section (Basic Rules)
+        // Set initial active state for "Basic Rules" and open its submenu
+        const initialMainItem = document.querySelector('div[data-section-id="rules-section"]');
+        if (initialMainItem) {
+            initialMainItem.classList.add('active', 'open');
+            const initialSubmenu = initialMainItem.querySelector('.submenu-content');
+            const initialChevron = initialMainItem.querySelector('.icon-chevron');
+            // Ensure submenu opens correctly on load
+            if (initialSubmenu) initialSubmenu.style.maxHeight = initialSubmenu.scrollHeight + 'px';
+            if (initialChevron) initialChevron.style.transform = 'rotate(90deg)';
+
+            // Highlight the first item in the rules submenu if present
+            const firstRuleSubLink = initialSubmenu.querySelector('a');
+            if (firstRuleSubLink) {
+                firstRuleSubLink.classList.add('active');
+            }
+        }
+    });
+    </script>
+</body>
+</html>
