@@ -131,7 +131,7 @@
             padding: 0 1rem;
         }
         .accordion-item.open .accordion-content {
-            max-height: 1000px; /* Ajuster au besoin, s'assurer que c'est suffisamment grand */
+            max-height: 1000px; /* Adjust as needed, ensure it's large enough */
             padding: 1rem;
         }
         .accordion-header .icon {
@@ -141,36 +141,36 @@
             transform: rotate(90deg);
         }
 
-        /* Styles spécifiques à la barre latérale */
+        /* Specific sidebar styles */
         .sidebar {
             width: var(--sidebar-width);
             transition: transform 0.3s ease-in-out;
-            overflow-y: auto; /* Activer le défilement pour la barre latérale */
-            z-index: 40; /* S'assurer qu'elle est au-dessus du contenu principal */
-            position: fixed; /* Toujours fixe pour superposer le contenu */
-            transform: translateX(calc(-1 * var(--sidebar-width))); /* Cachée par default */
+            overflow-y: auto; /* Enable scrolling for the sidebar */
+            z-index: 40; /* Ensure it is above the main content */
+            position: fixed; /* Always fixed to overlay content */
+            transform: translateX(calc(-1 * var(--sidebar-width))); /* Hidden by default */
             flex-direction: column;
-            display: flex; /* Toujours flex-col */
-            height: 100vh; /* Hauteur de la fenêtre d'affichage complète */
+            display: flex; /* Always flex-col */
+            height: 100vh; /* Full viewport height */
             top: 0;
             left: 0;
         }
         .sidebar-open {
-            transform: translateX(0) !important; /* Forcer l'état ouvert */
+            transform: translateX(0) !important; /* Force open state */
         }
 
-        /* Le contenu principal prend toujours toute la largeur */
+        /* Main content always takes full width */
         .main-content-area {
-            flex-grow: 1; /* Permettre au contenu principal de prendre l'espace disponible */
-            width: 100%; /* S'assurer qu'il remplit toujours la largeur */
-            padding-top: 4rem; /* Plus d'espace pour le bouton burger */
+            flex-grow: 1; /* Allow main content to take available space */
+            width: 100%; /* Ensure it always fills the width */
+            padding-top: 4rem; /* More space for the burger button */
             position: relative; /* Ensure it respects z-index for children */
             z-index: 10; /* Ensure main content is above magic circle */
             max-width: 1200px; /* Added: Max width for wide screens */
             margin: 0 auto; /* Added: Center the content horizontally */
         }
 
-        /* Superposition pour quand la barre latérale est ouverte sur tous les écrans (facultatif, mais bon pour la concentration) */
+        /* Overlay when sidebar is open on all screens (optional, but good for focus) */
         .overlay {
             position: fixed;
             top: 0;
@@ -188,31 +188,31 @@
             visibility: visible;
         }
 
-        /* Bouton de bascule de la barre latérale */
+        /* Sidebar toggle button */
         .sidebar-toggle-button {
             position: fixed;
-            top: 1rem; /* Ajusté pour être plus haut */
-            left: 1.5rem; /* Toujours fixe à cette position */
-            z-index: 50; /* Au-dessus de la barre latérale et du contenu */
+            top: 1rem; /* Adjusted to be higher */
+            left: 1.5rem; /* Always fixed at this position */
             border-radius: 0.375rem; /* rounded-md */
-            background-color: transparent; /* Pas de fond par défaut */
+            background-color: transparent; /* No default background */
             color: var(--text-main);
             padding: 0.5rem;
-            border: none; /* Supprimer la bordure par défaut du bouton */
+            border: none; /* Remove default button border */
             cursor: pointer;
-            transition: left 0.3s ease-in-out; /* Ajout d'une transition pour le déplacement */
+            transition: left 0.3s ease-in-out; /* Added transition for movement */
+            z-index: 50; /* Above sidebar and content */
         }
         .sidebar-toggle-button:hover {
             background-color: rgba(255,255,255,0.1);
         }
 
-        /* Nouveaux styles de menu */
+        /* New menu styles */
         .nav-item-main {
             background-color: var(--bg-light);
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
-            margin-bottom: 0.75rem; /* espace-y-3 */
-            overflow: hidden; /* Pour le contenu du menu déroulant */
+            margin-bottom: 0.75rem; /* space-y-3 */
+            overflow: hidden; /* For dropdown menu content */
         }
         .nav-item-main .main-link-area {
             display: flex;
@@ -237,7 +237,7 @@
         }
         .nav-item-main .icon-chevron {
             transition: transform 0.3s ease-in-out;
-            padding: 0.5rem; /* Agrandir la zone cliquable pour l'icône */
+            padding: 0.5rem; /* Enlarge clickable area for the icon */
             border-radius: 0.375rem;
             transition: background-color 0.2s;
         }
@@ -252,19 +252,19 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-in-out;
-            background-color: rgba(0,0,0,0.2); /* Fond plus sombre pour le sous-menu */
-            padding: 0 1rem; /* Ajuster car le padding est appliqué à l'ouverture */
+            background-color: rgba(0,0,0,0.2); /* Darker background for submenu */
+            padding: 0 1rem; /* Adjust padding when opening */
         }
         .nav-item-main.open .submenu-content {
-            max-height: 500px; /* Hauteur suffisante */
-            padding: 0.5rem 1rem 1rem 1rem; /* Padding à l'ouverture */
+            max-height: 500px; /* Sufficient height */
+            padding: 0.5rem 1rem 1rem 1rem; /* Padding when opening */
         }
         .nav-item-main .submenu-content a {
             display: block;
-            padding: 0.5rem 1.5rem; /* Indenter les sous-éléments */
+            padding: 0.5rem 1.5rem; /* Indent sub-items */
             font-size: 0.875rem; /* text-sm */
             border-radius: 0.375rem;
-            color: var(--text-light); /* Couleur par default pour les sous-éléments */
+            color: var(--text-light); /* Default color for sub-items */
             transition: background-color 0.2s, color 0.2s;
         }
         .nav-item-main .submenu-content a:hover,
@@ -274,7 +274,7 @@
         }
 
 
-        /* Styles de la grille de classes et de la vue détaillée */
+        /* Class grid and detail view styles */
         .class-card {
             background-color: var(--bg-light);
             border: 1px solid var(--border-color);
@@ -475,6 +475,81 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0,0,0,0.2);
         }
+
+        /* Rune item animations */
+        .rune-item {
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s, opacity 0.3s ease-out, transform 0.3s ease-out;
+            transform: translateY(10px); /* Initial state for animation */
+            opacity: 0;
+            /* removed display: flex; align-items: center; as emojis are gone */
+        }
+        .rune-item.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Selected rune item glow/border */
+        .rune-item.selected {
+            background-color: var(--accent-color);
+            color: var(--text-header);
+            border-color: var(--accent-hover);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.9), inset 0 0 10px rgba(139, 92, 246, 0.5); /* Stronger glow + inner shadow */
+            transform: scale(1.03); /* Slightly enlarge selected item */
+        }
+
+        /* Removed .rune-emoji styling as emojis are gone */
+
+        /* Enhanced hover for rune items */
+        .rune-item:hover {
+            transform: translateY(-2px) scale(1.02); /* Slight lift on hover */
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5); /* Subtle glow on hover */
+        }
+
+        /* Rune display container active glow (on tab selection) */
+        .rune-display-container {
+            transition: box-shadow 0.5s ease-in-out;
+            border-radius: 0.75rem; /* Apply to rounded corners of inner elements */
+            padding: 0.5rem; /* Small padding so glow is visible */
+            position: relative; /* For pseudo-elements or inner glows */
+        }
+        .rune-display-container.active-tab-glow {
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.7), inset 0 0 20px rgba(139, 92, 246, 0.3); /* Even stronger glow for active tab */
+        }
+
+        /* Column background subtle animation/design */
+        .rune-display-container .bg-gray-800\/50 {
+            background: linear-gradient(145deg, #1f2937, #111827); /* Subtle gradient */
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        /* Add a pulsating border effect to active columns */
+        .rune-display-container.active-tab-glow .bg-gray-800\/50 {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); /* Inner glow when active */
+        }
+
+        #rune-tabs button {
+            transition: color 0.2s, border-color 0.2s, transform 0.2s;
+        }
+        #rune-tabs button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Keyframe for tab underline slide (if implemented separately) */
+        @keyframes slide-in-underline {
+            from { width: 0%; left: 50%; }
+            to { width: 100%; left: 0%; }
+        }
+
+        /* For inner columns, a slight border change on click of parent rune */
+        .rune-display-container .bg-gray-800\/50 h3 {
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3); /* Subtle separator */
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
     </style>
 </head>
 <body class="antialiased">
@@ -576,7 +651,7 @@
                 
                 <div class="animate-on-scroll slide-left">
                     <h3 class="text-3xl font-bold mt-8 mb-4 text-violet-300">Un Monde de Mystères et de Conquêtes</h3>
-                    <img src="https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" alt="[Image d'îles flottantes autour du noyau de la planète]" class="float-right w-full md:w-1/2 lg:w-2/5 ml-6 mb-4 rounded-lg shadow-xl border border-gray-700 transition-all duration-300 hover:scale-105">
+                    <img src="https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" alt="Image d'îles flottantes autour du noyau de la planète" class="float-right w-full md:w-1/2 lg:w-2/5 ml-6 mb-4 rounded-lg shadow-xl border border-gray-700 transition-all duration-300 hover:scale-105">
                     <p>Archipelago n'est pas un simple archipel ; c'est un royaume fracturé, où chaque île est un écosystème unique, un fragment d'histoire préservé ou un mystère à élucider. Des cités oubliées gisent sous des brumes éthérées, des jungles luxuriantes abritent des créatures inimaginables, et des déserts de cristal recèlent des vestiges d'une ère révolue.</p>
                     <div class="clearfix"></div>
                 </div>
@@ -601,7 +676,7 @@
                 
                 <div class="animate-on-scroll slide-left">
                     <h3 class="text-3xl font-bold mt-8 mb-4 text-violet-300">Devenez une Légende</h3>
-                    <img src="https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" alt="[Image de mages étudiant des runes]" class="float-left w-full md:w-1/2 lg:w-2/5 mr-6 mb-4 rounded-lg shadow-xl border border-gray-700 transition-all duration-300 hover:scale-105">
+                    <img src="https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" alt="Image de mages étudiant des runes" class="float-left w-full md:w-1/2 lg:w-2/5 mr-6 mb-4 rounded-lg shadow-xl border border-gray-700 transition-all duration-300 hover:scale-105">
                     <p>Dans ce monde, vous incarnez un <strong class="animated-text-highlight">Magus</strong>, un individu doté d'une affinité naturelle pour l'arcane, prêt à embrasser une voie unique parmi les <strong class="animated-text-highlight">Classes</strong> existantes. Que vous soyez un Technomancien forgeant des merveilles mécaniques, un Élémentaire maniant les forces pures de la nature, un Psionique tordant la réalité par la pensée, ou un Chevalier-Sorcier alliant la puissance du corps à celle de l'esprit, votre parcours sera semé d'épreuves et de découvertes.</p>
                     <div class="clearfix"></div>
                 </div>
@@ -850,7 +925,7 @@
                 },
                 {
                     nom: "Manipulation de la matière", competences: [
-                        { rang: 1, nom: "Télékinésie Simple (A) (Élément Psychique)", description: "Dans les limites de votre domaine, vous pouvez déplacer un objet ou une créature (si elle est de rang inférieur ou égal) d’un poids maximum de Rang*50Kg." },
+                        { rang: 1, nom: "Télékinésie Simple (A) (Élément Psychique)", description: "Dans les limites de votre domaine, vous pouvez déplacer un objet ou une créature (si elle est de rang inférieur ou égal) d'un poids maximum de Rang*50Kg." },
                         { rang: 4, nom: "Maître des Déguisements (A) (Élément Psychique)", description: "Vous pouvez modifier / transformer la voix et l’apparence de vous ou d’une créature consentante dans votre domaine. Les changements peuvent donner un avantage ou un désavantage aux jets sociaux et résistent à l’inspection physique." }
                     ]
                 }
@@ -914,7 +989,7 @@
     ];
 
     const donneesRituelsIntro = [
-        // La philosophie des rituels supprimée comme demandé
+        // The philosophy of rituals removed as requested
         { title: "Conditions Communes à toutes les classes", rangs: [
             { rang: 0, desc: "Apprendre 2 runes (une élémentaire et une de forme). Obtenir une classe. Connaître un sort et le lancer pour la première fois." },
             { rang: 1, desc: "Avoir un sort à 55%. Réaliser le rituel de classe et boire de l'eau de Grin au dernier moment." },
@@ -1055,9 +1130,10 @@
                             renderRules(sectionElement); 
                             break;
                         case 'runes-section': 
-                            populateRunes('forme', sectionElement);
-                            populateRunes('elementaire', sectionElement);
-                            setupRuneTabs(sectionElement); 
+                            // Populate runes and set up tabs
+                            // Populate initially for 'forme'
+                            populateRunes('forme', sectionElement); 
+                            setupRuneTabs(sectionElement); // Set up tabs, which will trigger populate for the active tab again
                             break;
                         case 'classes-section': 
                             renderClasses(sectionElement); 
@@ -1244,10 +1320,10 @@
 
         // Refactored specializations display
         let specialisationsHtml = '';
-        if (classe.specialisations && classe.specialisations.length > 0) {
+        if (classe.specializations && classe.specializations.length > 0) {
             const competencesGroupedByRank = {};
 
-            classe.specialisations.forEach(spec => {
+            classe.specializations.forEach(spec => {
                 spec.competences.forEach(comp => {
                     if (!competencesGroupedByRank[comp.rang]) {
                         competencesGroupedByRank[comp.rang] = [];
@@ -1337,7 +1413,7 @@
             <h3 class="text-4xl font-bold mb-6 text-violet-400">${classe.nom}</h3>
             <div class="flex flex-col md:flex-row gap-8 mb-8">
                 <div class="md:w-1/3">
-                    <img src="${classe.image}" alt="[Image de ${classe.nom}]" class="w-full h-auto rounded-lg shadow-lg">
+                    <img src="${classe.image}" alt="Image de ${classe.nom}" class="w-full h-auto rounded-lg shadow-lg">
                 </div>
                 <div class="md:w-2/3 space-y-4">
                     <p class="text-gray-300 italic text-lg">${classe.description}</p>
@@ -1386,10 +1462,15 @@
         });
     }
 
-    function createRuneItem(name, onClick) {
+    // Emojis for runes (defined globally for reusability)
+    // Removed all emojis as per user's request.
+    const runeEmojis = {};
+
+    function createRuneItem(name, emoji, onClick) {
         const item = document.createElement('div');
-        item.textContent = name;
-        item.className = 'p-3 bg-gray-700/50 rounded-md cursor-pointer transition hover:bg-violet-600 hover:text-white shadow-md border border-transparent hover:border-violet-400';
+        item.className = 'rune-item p-3 bg-gray-700/50 rounded-md cursor-pointer transition hover:bg-violet-600 hover:text-white shadow-md border border-transparent hover:border-violet-400 opacity-0 transform translate-y-2'; // Added animation classes
+        // Removed emoji span
+        item.textContent = name; // Only text content
         item.addEventListener('click', () => onClick(item));
         return item;
     }
@@ -1399,46 +1480,60 @@
         const majeuresCol = contextElement.querySelector(`#${type}-majeures-col`); 
         const intermediairesCol = contextElement.querySelector(`#${type}-intermediaires-col`); 
         const mineuresCol = contextElement.querySelector(`#${type}-mineures-col`); 
-        if (!majeuresCol) return;
-        
+        const activeContainer = contextElement.querySelector(`#rune-display-${type}`);
+
+        if (!majeuresCol || activeContainer.classList.contains('hidden')) {
+            // Only populate if columns exist and the container is currently visible
+            return;
+        }
+
         // Clear columns before populating
         majeuresCol.innerHTML = '';
         intermediairesCol.innerHTML = '';
         mineuresCol.innerHTML = '';
 
-        Object.keys(data.majeures).forEach(majorRune => {
-            const item = createRuneItem(majorRune, (clickedItem) => {
-                majeuresCol.querySelectorAll('div').forEach(el => el.classList.remove('bg-violet-500', 'text-white'));
-                clickedItem.classList.add('bg-violet-500', 'text-white');
+        Object.keys(data.majeures).forEach((majorRune, index) => {
+            // No emoji passed to createRuneItem
+            const item = createRuneItem(majorRune, '', (clickedItem) => {
+                majeuresCol.querySelectorAll('.rune-item').forEach(el => el.classList.remove('selected'));
+                clickedItem.classList.add('selected');
                 intermediairesCol.innerHTML = '';
                 mineuresCol.innerHTML = '';
                 const intermediateRunes = data.majeures[majorRune];
                 if(intermediateRunes && intermediateRunes.length > 0) {
-                    intermediateRunes.forEach(interRune => {
-                        const interItem = createRuneItem(interRune, (clickedInterItem) => {
-                            intermediairesCol.querySelectorAll('div').forEach(el => el.classList.remove('bg-violet-500', 'text-white'));
-                            clickedInterItem.classList.add('bg-violet-500', 'text-white');
+                    intermediateRunes.forEach((interRune, interIndex) => {
+                        // No emoji passed to createRuneItem
+                        const interItem = createRuneItem(interRune, '', (clickedInterItem) => {
+                            intermediairesCol.querySelectorAll('.rune-item').forEach(el => el.classList.remove('selected'));
+                            clickedInterItem.classList.add('selected');
                             mineuresCol.innerHTML = '';
                             const minorRunes = data.intermediaires[interRune];
                             if (minorRunes && minorRunes.length > 0) {
-                                minorRunes.forEach(minorRune => {
-                                    const minorItem = createRuneItem(minorRune, (clickedMinorItem) => {
-                                         mineuresCol.querySelectorAll('div').forEach(el => el.classList.remove('bg-violet-500', 'text-white'));
-                                         clickedMinorItem.classList.add('bg-violet-500', 'text-white');
+                                minorRunes.forEach((minorRune, minorIndex) => {
+                                    // No emoji passed to createRuneItem
+                                    const minorItem = createRuneItem(minorRune, '', (clickedMinorItem) => {
+                                         mineuresCol.querySelectorAll('.rune-item').forEach(el => el.classList.remove('selected'));
+                                         clickedMinorItem.classList.add('selected');
                                     });
                                     mineuresCol.appendChild(minorItem);
+                                    // Staggered animation for appearance
+                                    setTimeout(() => minorItem.classList.add('in-view'), minorIndex * 70); // Adjusted delay
                                 });
                             } else {
                                 mineuresCol.innerHTML = '<p class="text-gray-500 p-3">Aucune rune mineure.</p>';
                             }
                         });
                         intermediairesCol.appendChild(interItem);
+                        // Staggered animation for appearance
+                        setTimeout(() => interItem.classList.add('in-view'), interIndex * 70); // Adjusted delay
                     });
                 } else {
                     intermediairesCol.innerHTML = '<p class="text-gray-500 p-3">Aucune rune intermédiaire.</p>';
                 }
             });
             majeuresCol.appendChild(item);
+            // Staggered animation for appearance
+            setTimeout(() => item.classList.add('in-view'), index * 70); // Adjusted delay
         });
     }
 
@@ -1454,12 +1549,24 @@
                 });
                 button.classList.add('text-white', 'border-violet-500');
                 button.classList.remove('text-gray-400', 'border-transparent');
-                runeDisplayContainers.forEach(container => container.classList.add('hidden'));
+                runeDisplayContainers.forEach(container => {
+                    container.classList.add('hidden');
+                    container.classList.remove('active-tab-glow');
+                });
                 const activeContainer = contextElement.querySelector(`#rune-display-${type}`); 
                 activeContainer.classList.remove('hidden');
                 activeContainer.classList.add('active');
+                activeContainer.classList.add('active-tab-glow');
+
+                // Repopulate runes for the newly active tab to ensure animations trigger
+                populateRunes(type, contextElement);
             });
         });
+
+        // Automatically click the first tab on load to set initial state and glow
+        if (runeTabButtons.length > 0) {
+            runeTabButtons[0].click();
+        }
     }
 
 
