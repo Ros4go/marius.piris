@@ -166,6 +166,8 @@
             padding-top: 4rem; /* Plus d'espace pour le bouton burger */
             position: relative; /* Ensure it respects z-index for children */
             z-index: 10; /* Ensure main content is above magic circle */
+            max-width: 1200px; /* Added: Max width for wide screens */
+            margin: 0 auto; /* Added: Center the content horizontally */
         }
 
         /* Superposition pour quand la barre latérale est ouverte sur tous les écrans (facultatif, mais bon pour la concentration) */
@@ -262,7 +264,7 @@
             padding: 0.5rem 1.5rem; /* Indenter les sous-éléments */
             font-size: 0.875rem; /* text-sm */
             border-radius: 0.375rem;
-            color: var(--text-light); /* Couleur par défaut pour les sous-éléments */
+            color: var(--text-light); /* Couleur par default pour les sous-éléments */
             transition: background-color 0.2s, color 0.2s;
         }
         .nav-item-main .submenu-content a:hover,
@@ -400,6 +402,79 @@
             transform: translateZ(30px); /* Bring furthest forward on click */
             z-index: 25; /* Higher z-index for click overlay */
         }
+
+        /* Custom styles for home page */
+        @keyframes color-change-glow {
+            0% { color: var(--accent-color); text-shadow: 0 0 5px rgba(139, 92, 246, 0.5); transform: scale(1); }
+            50% { color: #d8b4fe; text-shadow: 0 0 15px rgba(216, 180, 254, 0.8); transform: scale(1.03); }
+            100% { color: var(--accent-color); text-shadow: 0 0 5px rgba(139, 92, 246, 0.5); transform: scale(1); }
+        }
+
+        .animated-text-highlight {
+            animation: color-change-glow 5s infinite alternate ease-in-out; 
+            font-weight: bold;
+            display: inline-block; /* Needed for transform on inline elements */
+        }
+
+        /* Clearfix utility for floats */
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .prose img, .prose iframe {
+            border-radius: 0.75rem; /* rounded-lg */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        /* Added hover effect to images/videos for a bit more life */
+        .prose img:hover, .prose iframe:hover {
+            transform: scale(1.02);
+        }
+
+        /* Scroll-triggered animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .animate-on-scroll.in-viewport {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .animate-on-scroll.slide-left {
+            transform: translateX(-50px);
+        }
+        .animate-on-scroll.slide-left.in-viewport {
+            transform: translateX(0);
+        }
+        .animate-on-scroll.slide-right {
+            transform: translateX(50px);
+        }
+        .animate-on-scroll.slide-right.in-viewport {
+            transform: translateX(0);
+        }
+        
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .cta-button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -426,6 +501,17 @@
         <aside id="sidebar" class="sidebar bg-gray-900/50 backdrop-blur-sm text-white p-6 h-full shadow-2xl border-r border-gray-800">
             <h1 class="font-title text-5xl font-bold mb-10 text-center text-violet-300 cursor-pointer" id="sidebar-title-area">Archipelago</h1>
             <nav id="navigation" class="space-y-3 flex-grow overflow-y-auto">
+                <!-- Accueil -->
+                <div class="nav-item-main" data-section-id="home-section">
+                    <div class="main-link-area">
+                        <div class="text-content">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m0 0l-7 7m7-7v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                            <span>Accueil</span>
+                        </div>
+                        <!-- No chevron for home page -->
+                    </div>
+                </div>
+
                 <!-- Règles de base -->
                 <div class="nav-item-main" data-section-id="rules-section">
                     <div class="main-link-area">
@@ -480,6 +566,70 @@
     </div>
 
     <!-- Templates for sections -->
+    <template id="home-template">
+        <section id="home-section" class="content-section space-y-8">
+            <h2 class="text-5xl font-bold mb-8 text-violet-400">Bienvenue sur Archipelago</h2>
+            <div class="prose prose-invert max-w-none text-lg leading-relaxed text-gray-300 space-y-6">
+                <div class="animate-on-scroll">
+                    <p>Bienvenue, voyageur, sur les rives fragmentées d'<strong class="animated-text-highlight">Archipelago</strong>, un monde où la réalité elle-même est un canevas tissé de magie ancienne et de mystères inexplorés. Ici, des îles volantes dérivent dans un ciel sans fin, tournant autour d'une boule de feu céleste – l'ancien noyau d'une planète qui a explosé lors d'une guerre cataclysmique. C'est le berceau des mages, un lieu où la quête de puissance et de savoir transcende les frontières du réel.</p>
+                </div>
+                
+                <div class="animate-on-scroll slide-left">
+                    <h3 class="text-3xl font-bold mt-8 mb-4 text-violet-300">Un Monde de Mystères et de Conquêtes</h3>
+                    <img src="https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" alt="[Image d'îles flottantes autour du noyau de la planète]" class="float-right w-full md:w-1/2 lg:w-2/5 ml-6 mb-4 rounded-lg shadow-xl border border-gray-700 transition-all duration-300 hover:scale-105">
+                    <p>Archipelago n'est pas un simple archipel ; c'est un royaume fracturé, où chaque île est un écosystème unique, un fragment d'histoire préservé ou un mystère à élucider. Des cités oubliées gisent sous des brumes éthérées, des jungles luxuriantes abritent des créatures inimaginables, et des déserts de cristal recèlent des vestiges d'une ère révolue.</p>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="animate-on-scroll slide-right">
+                    <p>Les mages d'Archipelago ne sont pas de simples érudits ; ce sont des <strong class="animated-text-highlight">conquérants</strong>. Motivés par une insatiable soif de connaissance et de ressources, ils voyagent entre les mondes, pillant les secrets anciens, soumettant les civilisations inférieures et étudiant tout ce qui peut être étudié. Leur but n'est pas la gloire individuelle de quelques héros, mais la <strong class="animated-text-highlight">restauration de leur propre civilisation</strong>, autrefois au bord de l'extinction, vers une nouvelle ère de grandeur.</p>
+                </div>
+
+                <div class="animate-on-scroll">
+                    <h3 class="text-3xl font-bold mt-8 mb-4 text-violet-300">La Magie, Langage de l'Univers</h3>
+                    <div class="w-full md:w-4/5 lg:w-3/4 mx-auto aspect-video my-6 rounded-lg shadow-xl overflow-hidden border border-gray-700 transition-all duration-300 hover:scale-[1.02]">
+                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/mtI52xh58Fc?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <p>Au cœur d'Archipelago réside la <strong class="animated-text-highlight">Magie Runique</strong>, la véritable langue de la création et de la destruction. Ce n'est pas une simple force brute, mais un art complexe qui demande compréhension et maîtrise. Chaque sort est une combinaison harmonieuse de <strong>Runes de Forme</strong>, qui définissent l'expression spatiale du pouvoir (jet, zone, défense), et de <strong>Runes Élémentaires</strong>, qui lui confèrent sa nature primordiale (feu, eau, métal, psychique). Les Sages et les Érudits étudient ces runes, débloquant des secrets qui peuvent altérer la réalité elle-même. La maîtrise de ces symboles anciens est la clé pour libérer des pouvoirs au-delà de l'entendement commun.</p>
+                    <div class="text-center mt-8">
+                        <button class="cta-button" onclick="showSection('runes-section')">
+                            Explorer les Runes
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="animate-on-scroll slide-left">
+                    <h3 class="text-3xl font-bold mt-8 mb-4 text-violet-300">Devenez une Légende</h3>
+                    <img src="https://i.pinimg.com/736x/38/4d/3a/384d3af48405dc273429d9bb45c3c6aa.jpg" alt="[Image de mages étudiant des runes]" class="float-left w-full md:w-1/2 lg:w-2/5 mr-6 mb-4 rounded-lg shadow-xl border border-gray-700 transition-all duration-300 hover:scale-105">
+                    <p>Dans ce monde, vous incarnez un <strong class="animated-text-highlight">Magus</strong>, un individu doté d'une affinité naturelle pour l'arcane, prêt à embrasser une voie unique parmi les <strong class="animated-text-highlight">Classes</strong> existantes. Que vous soyez un Technomancien forgeant des merveilles mécaniques, un Élémentaire maniant les forces pures de la nature, un Psionique tordant la réalité par la pensée, ou un Chevalier-Sorcier alliant la puissance du corps à celle de l'esprit, votre parcours sera semé d'épreuves et de découvertes.</p>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="animate-on-scroll">
+                    <div class="w-full md:w-4/5 lg:w-3/4 mx-auto aspect-video my-6 rounded-lg shadow-xl overflow-hidden border border-gray-700 transition-all duration-300 hover:scale-[1.02]">
+                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/xcu_K-OJ0nw?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <p>Chaque rang acquis débloquera de nouvelles <strong class="animated-text-highlight">Compétences</strong> et vous rapprochera de la véritable maîtrise. Des <strong class="animated-text-highlight">Rituels de Passage</strong> attendent ceux qui sont dignes, des épreuves uniques qui forgent l'âme et débloquent un potentiel insoupçonné. Votre chemin sera unique, défini par vos choix et votre volonté de plonger dans les profondeurs de l'arcane et de l'aventure.</p>
+                    <div class="text-center mt-8">
+                        <button class="cta-button" onclick="showSection('classes-section')">
+                            Découvrir les Classes
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="animate-on-scroll slide-right">
+                    <h3 class="text-3xl font-bold mt-8 mb-4 text-violet-300">Votre Aventure Commence</h3>
+                    <p>Archipelago vous appelle. Que vous cherchiez la gloire, le savoir, la puissance, ou simplement la survie, ce monde vous offre une toile infinie pour votre histoire. Préparez-vous à explorer, à apprendre, à combattre, et à façonner votre destinée dans un univers où la magie est le souffle même de l'existence. La survie et la grandeur de la civilisation des mages dépendent de vous et de vos choix.</p>
+                    <div class="w-full md:w-4/5 lg:w-3/4 mx-auto aspect-video my-6 rounded-lg shadow-xl overflow-hidden border border-gray-700 transition-all duration-300 hover:scale-[1.02]">
+                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/pvaUpqrLR-M?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
     <template id="rules-template">
         <section id="rules-section" class="content-section space-y-8">
             <h2 class="text-5xl font-bold mb-8 text-violet-400">Règles de Base</h2>
@@ -806,29 +956,73 @@
 
     // Declare global variables for DOM elements
     let sidebar, sidebarOverlay, sidebarToggleBtn;
+    let isSidebarOpen = false; // Track the actual open state
 
-    // --- Sidebar toggle functionality ---
-    // This function is now global
-    const toggleSidebar = () => {
-        const isOpen = sidebar.classList.contains('sidebar-open');
+    // Function to manage sidebar open/close state and associated UI
+    const toggleSidebar = (forceState = null) => {
+        const targetState = forceState !== null ? forceState : !isSidebarOpen;
 
-        // Manage sidebar and overlay open/close state
-        if (isOpen) {
-            sidebar.classList.remove('sidebar-open');
-            sidebarOverlay.classList.remove('overlay-active');
-            sidebarToggleBtn.style.left = '1.5rem'; // Base button position
-        } else {
+        if (targetState) { // Attempting to open
             sidebar.classList.add('sidebar-open');
+            sidebarToggleBtn.style.left = `calc(1.5rem + ${sidebar.offsetWidth}px)`;
+            // Overlay should always be active when sidebar is open
             sidebarOverlay.classList.add('overlay-active');
-            sidebarToggleBtn.style.left = `calc(1.5rem + ${sidebar.offsetWidth}px)`; // Button position when menu is open
+            isSidebarOpen = true;
+        } else { // Attempting to close
+            sidebar.classList.remove('sidebar-open');
+            sidebarToggleBtn.style.left = '1.5rem';
+            sidebarOverlay.classList.remove('overlay-active'); // Always remove overlay when closing
+            isSidebarOpen = false;
+        }
+    };
+
+    // Function for initial setup and resize
+    const adjustSidebarForScreenSize = () => {
+        if (window.innerWidth >= 768) {
+            // Desktop: Sidebar should always be open, and overlay present for click-to-close
+            if (!isSidebarOpen) {
+                toggleSidebar(true); // Open if not open
+            } else {
+                // If already open, ensure overlay and button position are correct
+                sidebarOverlay.classList.add('overlay-active'); // Ensure overlay is on for desktop too
+                sidebarToggleBtn.style.left = `calc(1.5rem + ${sidebar.offsetWidth}px)`;
+            }
+        } else {
+            // Mobile: Sidebar should generally be closed initially, overlay only if explicitly opened
+            if (isSidebarOpen) {
+                toggleSidebar(false); // Close if open
+            } else {
+                // Ensure correct state if already closed
+                sidebar.classList.remove('sidebar-open');
+                sidebarOverlay.classList.remove('overlay-active');
+                sidebarToggleBtn.style.left = '1.5rem';
+            }
         }
     };
 
     //============== CONTENT GENERATION FUNCTIONS (GLOBAL) ==============
+    
+    // Observer for scroll animations
+    const observerOptions = {
+        root: null, // relative to document viewport
+        rootMargin: '0px', // margin around root. Values are similar to css margin property (top, right, bottom, left)
+        threshold: 0.2 // Percentage of the target element which is visible in the viewport
+    };
+
+    const animateOnScrollObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-viewport');
+                observer.unobserve(entry.target); // Stop observing once animated
+            }
+        });
+    }, observerOptions);
+
 
     function showSection(sectionId, subFilter = null) {
         const mainContentContainer = document.getElementById('main-content-container');
         const templates = {
+            'home-section': document.getElementById('home-template'),
             'rules-section': document.getElementById('rules-template'),
             'runes-section': document.getElementById('runes-template'),
             'classes-section': document.getElementById('classes-template'),
@@ -844,8 +1038,19 @@
             if (sectionElement) {
                 setTimeout(() => {
                     sectionElement.classList.add('active');
+
+                    // Observe elements for scroll animations only for the home section
+                    if (sectionId === 'home-section') {
+                        sectionElement.querySelectorAll('.animate-on-scroll').forEach(el => {
+                            animateOnScrollObserver.observe(el);
+                        });
+                    }
+
                     // Call render function passing the newly added section element as context
                     switch (sectionId) {
+                        case 'home-section':
+                            // No specific render function needed for a static home page for now
+                            break;
                         case 'rules-section': 
                             renderRules(sectionElement); 
                             break;
@@ -894,7 +1099,6 @@
                 }, 50); // Small delay to allow DOM update
             }
         }
-        // Menu no longer auto-closes after navigation to maintain persistence
     }
     
     function renderRules(contextElement) { 
@@ -1038,6 +1242,97 @@
             }
         }
 
+        // Refactored specializations display
+        let specialisationsHtml = '';
+        if (classe.specialisations && classe.specialisations.length > 0) {
+            const competencesGroupedByRank = {};
+
+            classe.specialisations.forEach(spec => {
+                spec.competences.forEach(comp => {
+                    if (!competencesGroupedByRank[comp.rang]) {
+                        competencesGroupedByRank[comp.rang] = [];
+                    }
+                    competencesGroupedByRank[comp.rang].push({
+                        specialisationNom: spec.nom,
+                        competence: comp
+                    });
+                });
+            });
+
+            // Iterate through ranks 0 to 9 to ensure all ranks are considered, even if no competencies are defined for them
+            const allPossibleRanks = Array.from({length: 10}, (_, i) => i); // Ranks 0-9
+
+            specialisationsHtml = `
+                <div class="space-y-3 mt-8">
+                    <h4 class="text-3xl font-bold text-violet-300 pl-4 border-l-4 border-violet-600">Compétences par Rang :</h4>
+                    ${allPossibleRanks.map(rank => {
+                        const compsAtThisRank = competencesGroupedByRank[rank] || [];
+                        let rankContent = '';
+
+                        if (compsAtThisRank.length === 0) {
+                            return ''; // Don't show an accordion if no competencies for this rank
+                        }
+
+                        // Sort competencies for consistent display within a rank
+                        compsAtThisRank.sort((a, b) => a.specialisationNom.localeCompare(b.specialisationNom));
+
+                        // Determine if it's a single mandatory competence or a choice from multiple
+                        // If it's a single competence (regardless of specialization count, as it's the only option), or if all found comps belong to the same specialization and there's only one such distinct specialization (still mandatory).
+                        const distinctSpecializationsCount = new Set(compsAtThisRank.map(c => c.specialisationNom)).size;
+                        const isMandatory = compsAtThisRank.length === 1 || (compsAtThisRank.length > 1 && distinctSpecializationsCount === 1);
+
+
+                        if (isMandatory) {
+                            const comp = compsAtThisRank[0]; // Take the first one, as they are all mandatory/same
+                            rankContent += `
+                                <li class="border-l-2 border-violet-700 pl-3">
+                                    <strong class="text-gray-200">Compétence acquise automatiquement :</strong><br>
+                                    <p class="text-gray-400 text-sm">${comp.competence.nom}</p>
+                                    <p class="ml-4 italic text-xs">${comp.competence.description}</p>
+                                </li>
+                            `;
+                        } else { // Multiple choices from different specializations (choice)
+                            rankContent += `
+                                <li class="border-l-2 border-violet-700 pl-3">
+                                    <strong class="text-gray-200">Choisissez une compétence parmi :</strong><br>
+                                    <ul class="space-y-2 pt-2">
+                                        ${compsAtThisRank.map((comp, index) => `
+                                            <li class="text-gray-400 text-sm">
+                                                - <span class="font-bold">${comp.specialisationNom} :</span> ${comp.competence.nom}
+                                                <p class="ml-4 italic text-xs">${comp.competence.description}</p>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </li>
+                            `;
+                        }
+
+                        return `
+                            <div class="accordion-item bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                                <div class="accordion-header p-4 cursor-pointer flex justify-between items-center hover:bg-gray-800/50">
+                                    <h5 class="text-xl font-semibold text-violet-200">Rang ${rank}</h5>
+                                    <svg class="icon w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                                <div class="accordion-content">
+                                    <ul class="space-y-3 p-4 pt-0">
+                                        ${rankContent}
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Add specialization display under "Éléments de prédilection"
+        let classSpecializationsList = '';
+        if (classe.specializations && classe.specializations.length > 0) {
+            const specNames = classe.specializations.map(s => s.nom).join(', ');
+            classSpecializationsList = `<p><strong class="text-violet-300">Spécialisations :</strong> ${specNames}</p>`;
+        }
+
+
         container.innerHTML = `
             <h3 class="text-4xl font-bold mb-6 text-violet-400">${classe.nom}</h3>
             <div class="flex flex-col md:flex-row gap-8 mb-8">
@@ -1048,36 +1343,13 @@
                     <p class="text-gray-300 italic text-lg">${classe.description}</p>
                     <div class="text-base space-y-2">
                         <p><strong class="text-violet-300">Éléments de prédilection :</strong> ${classe.elements || 'N/A'}</p>
+                        ${classSpecializationsList}
                         <p><strong class="text-violet-300">Compétence de classe :</strong> ${classe.competenceDeClasse || 'N/A'}</p>
                     </div>
                 </div>
             </div>
 
-            ${(classe.specialisations && classe.specialisations.length > 0) ? `
-                <div class="space-y-3 mt-8">
-                    <h4 class="text-3xl font-bold text-violet-300 pl-4 border-l-4 border-violet-600">Spécialisations :</h4>
-                ${classe.specialisations.map(spec => `
-                    <div class="accordion-item bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
-                        <div class="accordion-header p-4 cursor-pointer flex justify-between items-center hover:bg-gray-800/50">
-                            <h5 class="text-xl font-semibold text-violet-200">${spec.nom}</h5>
-                            <svg class="icon w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </div>
-                        <div class="accordion-content" style="max-height:0; overflow:hidden; transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; padding: 0 1rem;">
-                            ${spec.competences.length > 0 ? `
-                            <ul class="space-y-3 p-4 pt-0">
-                                ${spec.competences.map(comp => `
-                                    <li class="border-l-2 border-violet-700 pl-3">
-                                        <strong class="text-gray-200">Rang ${comp.rang} : ${comp.nom}</strong>
-                                        <p class="text-gray-400 text-sm">${comp.description}</p>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                            ` : '<p class="p-4 pt-0 text-gray-500">Aucune compétence pour cette spécialisation.</p>'}
-                        </div>
-                    </div>
-                `).join('')}
-                </div>
-            ` : ''}
+            ${specialisationsHtml}
 
             ${(combinedRitualsHtml) ? `
                 <div class="space-y-3 mt-8">
@@ -1201,43 +1473,22 @@
         const sidebarTitleArea = document.getElementById('sidebar-title-area');
         const navItemMains = document.querySelectorAll('.nav-item-main'); 
 
-        // Event listeners for toggle button
-        sidebarToggleBtn.addEventListener('click', toggleSidebar);
-        
-        // Event listener for sidebar title area (to close sidebar if open)
-        sidebarTitleArea.addEventListener('click', () => {
-            // A click on the sidebar title closes the sidebar on mobile, but not on desktop if it's open
-            if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open')) {
-                toggleSidebar();
-            }
-        });
-
-        // Event listener for overlay (to close sidebar)
-        sidebarOverlay.addEventListener('click', () => {
-            if (sidebar.classList.contains('sidebar-open')) {
-                toggleSidebar();
-            }
-        });
-
-
         // Initial setup based on screen size
-        const setInitialSidebarState = () => {
-            // For large screens, keep sidebar open and adjust button
-            if (window.innerWidth >= 768) {
-                sidebar.classList.add('sidebar-open');
-                sidebarOverlay.classList.remove('overlay-active'); // Ensure overlay is deactivated
-                sidebarToggleBtn.style.left = `calc(1.5rem + ${sidebar.offsetWidth}px)`;
-            } else { // For small screens, ensure it's closed by default
-                sidebar.classList.remove('sidebar-open');
-                sidebarOverlay.classList.remove('overlay-active');
-                sidebarToggleBtn.style.left = '1.5rem';
-            }
-        };
+        adjustSidebarForScreenSize();
 
-        // Call once on load
-        setInitialSidebarState();
-        // Adjust on resize for responsiveness
-        window.addEventListener('resize', setInitialSidebarState);
+        // Attach event listeners
+        window.addEventListener('resize', adjustSidebarForScreenSize);
+        sidebarToggleBtn.addEventListener('click', () => toggleSidebar());
+        sidebarOverlay.addEventListener('click', () => {
+            if (isSidebarOpen) { // If sidebar is open, clicking overlay should close it regardless of screen size
+                toggleSidebar(false);
+            }
+        });
+        sidebarTitleArea.addEventListener('click', () => { // Only close sidebar on mobile if title clicked
+            if (window.innerWidth < 768 && isSidebarOpen) { 
+                toggleSidebar(false);
+            }
+        });
 
 
         // --- Populate dynamic navigation menus ---
@@ -1282,36 +1533,42 @@
             // Click listener for main text area (direct navigation)
             if (textContent) {
                 textContent.addEventListener('click', (e) => {
+                    // Prevent main link click from causing sidebar to open/close
+                    // This listener is primarily for activating the section and highlighting the main menu item
                     e.preventDefault();
                     e.stopPropagation();
 
                     const sectionId = item.dataset.sectionId;
 
-                    // Close all other submenus and remove active class from all main items
+                    // Deactivate all other main nav items' active state and close their submenus
                     navItemMains.forEach(navItem => {
-                        if (navItem !== item) { // Do not close the current item's submenu
-                            navItem.classList.remove('active', 'open');
-                            const sub = navItem.querySelector('.submenu-content');
-                            const currentNavIcon = navItem.querySelector('.icon-chevron'); // Corrected: Renamed 'icon' to 'currentNavIcon'
-                            if (sub) sub.style.maxHeight = '0';
-                            if (currentNavIcon) currentNavIcon.style.transform = 'rotate(0deg)'; // Corrected: Used 'currentNavIcon'
-                        }
+                        navItem.classList.remove('active', 'open');
+                        const sub = navItem.querySelector('.submenu-content');
+                        const currentNavIcon = navItem.querySelector('.icon-chevron');
+                        if (sub) sub.style.maxHeight = '0';
+                        if (currentNavIcon) currentNavIcon.style.transform = 'rotate(0deg)';
                     });
 
-                    // Set active class for the clicked item
+                    // Activate the clicked main item
                     item.classList.add('active');
 
-                    // Open the submenu of the clicked item (if it has one)
-                    // It should always open its own submenu when main link is clicked
-                    item.classList.add('open');
-                    if (submenuContent) submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px';
-                    if (iconChevron) iconChevron.style.transform = 'rotate(90deg)';
+                    // Open the submenu if it's not already open (e.g., if clicked directly)
+                    // This ensures submenu is open when main section is selected, unless it's the home section
+                    if (sectionId !== 'home-section' && !item.classList.contains('open') && submenuContent) {
+                        item.classList.add('open');
+                        submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px';
+                        if (iconChevron) iconChevron.style.transform = 'rotate(90deg)';
+                    }
+
 
                     showSection(sectionId); // Load the content
+
+                    // Do NOT close sidebar on mobile here. It should only be closed via burger or overlay.
                 });
             }
 
             // Click listener for chevron icon (submenu toggle)
+            // Only attach if iconChevron and submenuContent exist (i.e., not for the Home section)
             if (iconChevron && submenuContent) {
                 iconChevron.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1335,24 +1592,23 @@
                     const subLink = e.target.closest('a');
                     if (subLink) {
                         e.preventDefault();
+                        e.stopPropagation(); // Stop propagation to prevent parent mainLinkArea listener from firing
+
                         const sectionId = item.dataset.sectionId;
                         const subFilter = subLink.dataset.subType || subLink.dataset.subFilter;
 
                         // Close all other main submenus
                         navItemMains.forEach(navItem => {
-                            if (navItem !== item) { // Do not close the current item's submenu
-                                navItem.classList.remove('active', 'open');
-                                const sub = navItem.querySelector('.submenu-content');
-                                const currentNavIcon = navItem.querySelector('.icon-chevron'); // Corrected: Renamed 'icon' to 'currentNavIcon'
-                                if (sub) sub.style.maxHeight = '0';
-                                if (currentNavIcon) currentNavIcon.style.transform = 'rotate(0deg)'; // Corrected: Used 'currentNavIcon'
-                            }
+                            navItem.classList.remove('active', 'open');
+                            const sub = navItem.querySelector('.submenu-content');
+                            const currentNavIcon = navItem.querySelector('.icon-chevron');
+                            if (sub) sub.style.maxHeight = '0';
+                            if (currentNavIcon) currentNavIcon.style.transform = 'rotate(0deg)';
                         });
 
                         // Set active class for the current main item and keep its submenu open
-                        navItemMains.forEach(navItem => navItem.classList.remove('active')); // remove all active
-                        item.classList.add('active', 'open'); // Add active and ensure current main is open
-                        if (submenuContent) submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px'; // Re-open if somehow closed
+                        item.classList.add('active', 'open');
+                        if (submenuContent) submenuContent.style.maxHeight = submenuContent.scrollHeight + 'px';
                         if (iconChevron) iconChevron.style.transform = 'rotate(90deg)';
 
 
@@ -1362,9 +1618,9 @@
 
                         showSection(sectionId, subFilter);
 
-                        // Close sidebar on mobile after navigation (if open)
-                        if (window.innerWidth < 768 && sidebar.classList.contains('sidebar-open')) {
-                            toggleSidebar();
+                        // Close sidebar on mobile after navigation
+                        if (window.innerWidth < 768 && isSidebarOpen) {
+                            toggleSidebar(false);
                         }
                     }
                 });
@@ -1373,22 +1629,12 @@
 
 
         // Initial load
-        showSection('rules-section'); // Load default section (Basic Rules)
-        // Set initial active state for "Basic Rules" and open its submenu
-        const initialMainItem = document.querySelector('div[data-section-id="rules-section"]');
+        showSection('home-section'); // Load default section (Accueil)
+        // Set initial active state for "Accueil"
+        const initialMainItem = document.querySelector('div[data-section-id="home-section"]');
         if (initialMainItem) {
-            initialMainItem.classList.add('active', 'open');
-            const initialSubmenu = initialMainItem.querySelector('.submenu-content');
-            const initialChevron = initialMainItem.querySelector('.icon-chevron');
-            // Ensure submenu opens correctly on load
-            if (initialSubmenu) initialSubmenu.style.maxHeight = initialSubmenu.scrollHeight + 'px';
-            if (initialChevron) initialChevron.style.transform = 'rotate(90deg)';
-
-            // Highlight the first item in the rules submenu if present
-            const firstRuleSubLink = initialSubmenu.querySelector('a');
-            if (firstRuleSubLink) {
-                firstRuleSubLink.classList.add('active');
-            }
+            initialMainItem.classList.add('active'); // No 'open' for accueil as it has no submenu
+            // No submenu or chevron to manage for Accueil
         }
     });
     </script>
