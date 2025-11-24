@@ -1,17 +1,19 @@
  class Tile {
-  constructor(x, y, imageName, collision, settings = {}) {
-    this.x = x; // Variable X
-    this.y = y; // Variable Y    
-    this.height = settings.height || 16; // Hauteur
-    this.width = 16; // Largeur
-    this.image = this.loadImage(imageName); // Permet de récuperer une image 
+  constructor(x, y, image, collision, settings = {}) {
+    this.x = x;
+    this.y = y;
+    this.height = settings.height || 16;
+    this.width = 16;
+    this.image = image; // Permet de récuperer une image 
     this.collision = collision;
     
     // CERCLE
     this.cX = settings.cX || 0; // Pour déterminer le centre du cercle
     this.cY = settings.cY || 0; // Pour déterminer le centre du cercle
     this.rayon = settings.rayon || 5 * 16;
-    this.positionCercle = settings.positionCercle || 0;
+    this.positionCercle = settings.positionCercle || 0;// Pour déterminer le numéro du cercle car certains toune dans un sens et l'autre de l'autre sens
+
+    this.changeLvl = settings.changeLvl || "";
     
     this.distanceX = settings.distanceX || 0; // Permet de choisir la distance qu'on veux passer en paramètre pour la distance de déplacement
     this.distanceY = settings.distanceY || 0;
@@ -24,15 +26,17 @@
     this.positionX = this.x; // Récupère la position de X au départ
     this.positionY = this.y; // Récupère la position de y au départ
 
-    this.Thwomp = settings.Thwomp || false;
+    this.Thwomp = settings.Thwomp || false; // Pour indiquer le type de plateforme
 
-    this.doorO = settings.doorO || false;
+    this.doorO = settings.doorO || false; // Pour indiquer le type de plateforme
+
+    this.canTravers = settings.canTravers || false;
     
   }
-  
+   
   mouvePlateformX() { // Plateform bougeant sur l'axe des X
     let distance = this.distanceX * this.width;
-    
+    // On met plusieurs conditions pour pas que ca crée des incohérence avec les autres plateformes.
     if (this.distanceX != 0 && this.distanceY == 0 && !this.Thwomp) {
       this.movingDirection = "X";
       
@@ -42,7 +46,7 @@
       else if (this.direction == -1) {
         this.x -= this.speed;
       }
-      
+      // Des qu'elle atteind une position, elle change de direction
       if (this.x <= this.positionX || this.x >= this.positionX + distance) {
         this.direction *= -1;
       }
@@ -51,7 +55,7 @@
   
   mouvePlateformY(){ // Plateform bougeant sur l'axe des Y
     let distance = this.distanceY * this.height;
-    
+    // On met plusieurs conditions pour pas que ca crée des incohérence avec les autres plateformes.
     if (this.distanceY != 0 && this.distanceX == 0 && !this.Thwomp) { // J'ai jouté le == 0 ici et depuis la plateforme vibre -_(0.0)_-
       this.movingDirection = "Y";
       
@@ -61,7 +65,7 @@
       else if (this.direction == -1) {
         this.y += this.speed;
       }
-      
+      // Des qu'elle atteind une position, elle change de direction
       if (this.y >= this.positionY || this.y <= this.positionY - distance) {
         this.direction *= -1;
       }
@@ -70,7 +74,7 @@
   
   mouvePlateformXY(){
     let distance = this.distanceX * this.height;
-    
+    // On met plusieurs conditions pour pas que ca crée des incohérence avec les autres plateformes.
     if (this.distanceY != 0 && this.distanceX != 0 && !this.Thwomp) {
       this.movingDirection = "X";
       
@@ -80,26 +84,27 @@
       } 
       else if (this.direction == -1) {
         this.y++;
-        this.x--;
+        this.x--;  
       }
-      
-      if (this.y >= this.positionY || this.y <= this.positionY - distance /*&& this.x >= this.positionX || this.x <= this.positionX + distance */) {
+      // Des qu'elle atteind une position, elle change de direction
+      if (this.y >= this.positionY || this.y <= this.positionY - distance) {
         this.direction *= -1;
       }
     }
   }
   
   mouvePlateformCercle(){    
+    // On met plusieurs conditions pour pas que ca crée des incohérence avec les autres plateformes.
     if (this.cY != 0 && this.cX != 0 /*&& this.distanceX == 0 && this.distanceY == 0*/ && !this.Thwomp &&  this.positionCercle == 1) {
       this.movingDirection = "XY";
       let rayon = this.rayon; 
-      let angle = Math.atan2(this.y - this.cY, this.x - this.cX); //permet de calculer l'angle
+      let angle = Math.atan2(this.y - this.cY, this.x - this.cX); // Permet de calculer l'angle
       let tempX = this.x;
       let tempY = this.y;
         
       // Boucle de déplacement en cercle
       for (let i = 0; i < 360; i += 1) {
-        //// Calcul des nouvelles coordonnées
+        // Calcul des nouvelles coordonnées
         angle += 0.00001 * this.speed;
         tempX = this.cX +  rayon * Math.cos(angle);
         tempY = this.cY +  rayon * Math.sin(angle);    
@@ -111,18 +116,19 @@
     }
   }
   
-  mouvePlateformCercleDeux(){
-      if (this.cY != 0 && this.cX != 0 /*&& this.distanceX == 0 && this.distanceY == 0*/ && !this.Thwomp &&  this.positionCercle == 2) {
+  mouvePlateformCercleInverse(){
+    // On met plusieurs conditions pour pas que ca crée des incohérence avec les autres plateformes.
+    if (this.cY != 0 && this.cX != 0 /*&& this.distanceX == 0 && this.distanceY == 0*/ && !this.Thwomp &&  this.positionCercle == 2) {
       this.movingDirection = "XY";
       let rayon = this.rayon; 
-      let angle = Math.atan2(this.y - this.cY, this.x - this.cX); //permet de calculer l'angle
+      let angle = Math.atan2(this.y - this.cY, this.x - this.cX); // Permet de calculer l'angle
       let tempX = this.x;
       let tempY = this.y;
         
       // Boucle de déplacement en cercle
       for (let i = 0; i < 360; i += 1) {
         //// Calcul des nouvelles coordonnées
-        angle += 0.00001 * this.speed;
+        angle -= 0.00001 * this.speed;
         tempX = this.cX +  rayon * Math.cos(angle);
         tempY = this.cY+  rayon * Math.sin(angle);    
         
@@ -133,20 +139,9 @@
     }
   }
   
-  plateformGosht(){
-    // En faite cette plateforme c'est plus facile de la faire a partir du joueur, fais en une autre maintenant et je te montrerais en cours de projet comment faire celle ci, la fazit celle qui tombe vite et remonte 
-    // mais le temps ok mais c'est surtout pour la faire disparaitre 
-    //oué oué...    -_(0.0)_-
-    if (this.gosht == true ){
-      if (/*mettre quand le personnage est dessus*/ true) {
-                  
-      }      
-    }
-  }
-
-  plateformThwomp(){ // ceux qui ont la ref :) et ceux qui n'ont pas la ref tempi
+  plateformThwomp(){ // Ceux qui ont la ref :) et ceux qui n'ont pas la ref tempi
     let distance = this.distanceY * this.height;
-    
+    // On met plusieurs conditions pour pas que ca crée des incohérence avec les autres plateformes.
     if (this.distanceY != 0 && this.distanceX == 0 && this.Thwomp) {
       if (this.direction == 1) {
         this.y += this.speed;
@@ -154,7 +149,7 @@
       else if (this.direction == -1) {
         this.y--;
       }
-      
+      // Des qu'elle atteind une position, elle change de direction
       if (this.y - this.height >= this.positionY + distance || this.y <= this.positionY) {
         this.direction *= -1;
       }
@@ -162,30 +157,30 @@
   }
   
   door(){
-    let stop = true;
-    if (this.y <= this.positionY - 2 *16){
-      stop = false;
-    }
-    if (this.doorO == true){
-      if (stop == true){
-        this.y--; 
+    // Normalement elle ne devrait pas s'activer toute seul mais seulement quand le joueur a la clé
+      let stop = true;
+      // Des qu'elle atteind une position, elle s'arrête
+      if (this.y <= this.positionY - 2 *16){
+        stop = false;
       }
-      if (stop == false ){
-       this.y; 
+      if (this.doorO == true){
+        if (stop == true){
+          this.y--; 
+        }
+        if (stop == false ){
+         this.y; 
+        }
       }
-    }
    } 
-
-  loadImage(imageName) {
+  
+  loadImage(imageName) { // On récupère l'image de la tile
     var img = new Image();
-    imageName = 'images/' + imageName;
+    imageName = 'images/tileSet/' + imageName + '.png';
     img.src = imageName;
     return img;
   }
-
-  render(ctx) {
-    // On indique ou l'on veut placer l'image donc canvas
-    // Et on apelle drawimage avec l'image, le point x et le point y pour la placer.
+  
+  render(ctx) { // Affichage
     ctx.drawImage(this.image, this.x, this.y);
   }
   
@@ -194,7 +189,7 @@
     this.mouvePlateformY();
     this.mouvePlateformXY();
     this.mouvePlateformCercle(); 
-    this.mouvePlateformCercleDeux();
+    this.mouvePlateformCercleInverse();
     this.plateformThwomp();
     this.door();
   }
