@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="user-scalable=no,width=device-width">
+  <title>La neuvième vie</title>
+  <link rel="icon" href="imageLogo/Cat.png" type="image/png" /> 
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      align-content: center;
+      align-items: space-around;
+      background-color: #202830;
+      display: grid;
+      justify-items: center;
+      height: 100%;
+      width: 100%;
+    }
+
+    canvas {
+      margin: 5%;
+      transform: scale(4);
+      image-rendering: pixelated;
+      display: block;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <script src="js/classes/Engine.js"></script>
+  <script src="js/classes/Game.js"></script>
+  <script src="js/classes/Player.js"></script>
+  <script src="js/classes/Tile.js"></script>
+  <script src="js/classes/Camera.js"></script>
+  <script src="index.js"></script>
+</body>
+
+</html>
