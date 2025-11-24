@@ -1,0 +1,27 @@
+introduction :
+- le *corps du* chat est découvert par son maitre sur la route. * le joueur est transporté dans le monde des pyramides*
+
+act_1 :
+- (niveau_1.cinématique)
+- le chat dort sous la pluie
+- le propriétaire donne de la mauvaise nouriture au chat ( que le chat n'aime pas, et ça le rend malheureux )
+- (niveau_4.cinématique)
+
+act_mediant :
+- la chat est jeté dehors par son maitre. s'éloignant de chez lui, le chat est écraser par une voiture. c'est donc parce que le maitre a jeté son chat dehors qu'il a trouvé sa fin
+
+act_2 :
+- (niveau_6.cinématique)
+- il dépose un gamelle à l'intérieur de la maison
+- le propriétaire apporte de la bonne nouriture au chat ( qu'il aurait aimé, peut être )
+- (niveau_9.cinématique)
+
+act_3 :
+- arrivé en haut de la pyramide, le maitre ne trouve pas le fantôme du chat, mais son corps, qui illuminé par une lumière, reprend vie. dès lors il vivent une vie heureuse
+
+élément à définir :
+- quand es qu'une cinématique est déclanché ?
+- doit on implémanté des élément de la cinématique au niveau ?
+- doit on implémanté des élément de la cinématique, à l'endroit du niveau où le joueur vera la cinématique ?
+- doit-on faire les deux ?
+- doit-on enregistrer des cinématique avec un logiciel d'annimation, ou doit-on faire ça avec le moteur du jeu ( d'un coté implémenter une balise <video></video> de l'autre, on doit coder une fonction qui enchaineront des "poses" des personnages )
