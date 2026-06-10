@@ -1,0 +1,154 @@
+/* =====================================================================
+   LEGACY UTILITY CLASSES
+   Animation / utility classes that the migrated Tailwind components
+   (GenericModal, ConfirmModal, Tooltip, FloatingText, Frometons clicker)
+   still reference. Ported as-is from the old single-file app so those
+   components keep working without rewriting their class names.
+   ===================================================================== */
+
+/* Modal fade / scale */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+/* Pulsing border for the modal video button */
+@keyframes pulseVideoBorder {
+  0% {
+    border: 4px solid #a78bfa;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.7);
+  }
+  50% {
+    border: 4px solid #ec4899;
+    box-shadow: 0 0 25px rgba(236, 72, 153, 0.9);
+  }
+  100% {
+    border: 4px solid #a78bfa;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.7);
+  }
+}
+.animate-pulse-border-video {
+  animation: pulseVideoBorder 2s infinite ease-in-out;
+}
+
+/* Line clamping */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Floating click feedback (Frometons) */
+@keyframes floatUpFadeOut {
+  0% {
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--x)), calc(-150% + var(--y)));
+    opacity: 0;
+  }
+}
+.floating-text {
+  animation: floatUpFadeOut 1s ease-out forwards;
+  --x: 0px;
+  --y: 0px;
+}
+.text-shadow-lg {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Console event banner fade */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animate-fade-in-out {
+  animation: fadeInOut 5s ease-in-out forwards;
+}
+
+/* Tooltip */
+@keyframes fadeInTooltip {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -80%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+  }
+}
+.animate-fade-in-tooltip {
+  animation: fadeInTooltip 0.2s ease-out forwards;
+}
+
+/* Button click pop */
+@keyframes clickPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-click-pop {
+  animation: clickPop 0.2s ease-out;
+}
+
+/* Stats panel scrollbar (Frometons) */
+.stats-scrollbar-container::-webkit-scrollbar {
+  width: 8px;
+}
+.stats-scrollbar-container::-webkit-scrollbar-track {
+  background: #2d3748;
+  border-radius: 4px;
+}
+.stats-scrollbar-container::-webkit-scrollbar-thumb {
+  background-color: #8b5cf6;
+  border-radius: 4px;
+  border: 2px solid #2d3748;
+}
+.stats-scrollbar-container {
+  scrollbar-width: thin;
+  scrollbar-color: #8b5cf6 #2d3748;
+}
