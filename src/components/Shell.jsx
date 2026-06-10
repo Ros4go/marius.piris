@@ -1,4 +1,3 @@
-import { sfx } from '../core/audio.js'
 import { navigate } from '../core/router.js'
 
 // Route chrome: a thin topbar (brand + back-to-menu) over a full-height
@@ -9,9 +8,7 @@ export default function Shell({ children }) {
       <header className="topbar">
         <button
           className="topbar-btn"
-          onMouseEnter={sfx.blip}
           onClick={() => {
-            sfx.back()
             navigate('/')
           }}
         >

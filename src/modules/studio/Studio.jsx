@@ -1,4 +1,3 @@
-import { sfx } from '../../core/audio.js'
 import { useRoute, navigate, segments } from '../../core/router.js'
 import FrometonsGame from '../games/frometons/FrometonsGame.jsx'
 
@@ -55,7 +54,7 @@ const CATALOG = [
   {
     id: 'guitare',
     cat: 'outil',
-    title: "L'atelier Manche",
+    title: 'MarousFive',
     tagline: 'Manche & modes, accords + doigtés, jeu de notes et métronome.',
     icon: '🎸',
     kind: 'external',
@@ -64,50 +63,53 @@ const CATALOG = [
   },
 ]
 
-function Card({ item, num }) {
+function Strip({ item, num }) {
   const external = item.kind === 'external'
   const open = () => {
-    sfx.select()
     if (external) window.open(item.href, '_blank', 'noopener,noreferrer')
     else navigate(item.path)
   }
   return (
-    <button className="gcard" onMouseEnter={sfx.blip} onClick={open}>
-      <span className="gcard-num">{num}</span>
-      <div className="gcard-media">
+    <button
+      className="gstrip"
+      style={{ animationDelay: `${(parseInt(num, 10) - 1) * 0.07}s` }}
+      onClick={open}
+    >
+      <div className="gstrip-halftone" />
+
+      <div className="gstrip-content">
+        <span className="gstrip-num" aria-hidden="true">{num}</span>
+        <div className="gstrip-main">
+          <div className="gstrip-title">{item.title}</div>
+          <p className="gstrip-tagline">{item.tagline}</p>
+        </div>
+        <div className="gstrip-right">
+          <div className="gstrip-chips">
+            {item.tags.slice(0, 3).map((t) => (
+              <span key={t} className="chip">{t}</span>
+            ))}
+          </div>
+          <span className="gstrip-cta">
+            <span>{external ? 'Ouvrir' : 'Jouer'}</span>
+            <span className="gstrip-arrow">{external ? '↗' : '▶'}</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="gstrip-band">
         {item.image ? (
           <img
             src={item.image}
-            alt={item.title}
-            className={item.fit === 'contain' ? 'contain' : 'cover'}
+            alt=""
+            aria-hidden="true"
             loading="lazy"
             decoding="async"
-            onError={(e) => {
-              e.target.onerror = null
-              e.target.src = 'https://placehold.co/600x400/6B7280/FFFFFF?text=Image+non+disponible'
-            }}
+            onError={(e) => { e.target.style.display = 'none' }}
           />
         ) : (
-          <span className="gcard-icon">{item.icon || '▣'}</span>
+          <span className="gstrip-band-icon">{item.icon || '▣'}</span>
         )}
-        <div className="gcard-halftone" />
-      </div>
-      <div className="gcard-body">
-        <h3 className="gcard-title">
-          <span>{item.title}</span>
-        </h3>
-        <p className="gcard-tag">{item.tagline}</p>
-        <div className="gcard-chips">
-          {item.tags.map((t) => (
-            <span key={t} className="chip">
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="gcard-cta">
-        <span>{external ? 'Ouvrir' : 'Jouer'}</span>
-        <span className="ico">{external ? '↗' : '▶'}</span>
+        <div className="gstrip-band-halftone" />
       </div>
     </button>
   )
@@ -119,9 +121,9 @@ function Section({ label, items }) {
       <span className="module-sub" style={{ display: 'block', marginBottom: 16 }}>
         {label}
       </span>
-      <div className="studio-grid">
+      <div className="studio-strips">
         {items.map((it, i) => (
-          <Card key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
+          <Strip key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
         ))}
       </div>
     </div>
@@ -137,9 +139,7 @@ export default function Studio() {
       <div>
         <button
           className="btn ghost mb-6"
-          onMouseEnter={sfx.blip}
           onClick={() => {
-            sfx.back()
             navigate('/studio')
           }}
         >

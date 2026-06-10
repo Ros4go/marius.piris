@@ -1,4 +1,3 @@
-import { sfx } from '../../core/audio.js'
 
 const LINKS = [
   { label: 'LinkedIn', en: 'PROFIL PRO', href: 'https://www.linkedin.com/in/marius-piris/' },
@@ -27,8 +26,6 @@ export default function Contact() {
             target="_blank"
             rel="noopener noreferrer"
             className="mi show"
-            onMouseEnter={sfx.blip}
-            onClick={sfx.select}
             style={{ textDecoration: 'none' }}
           >
             <span className="num">↗</span>

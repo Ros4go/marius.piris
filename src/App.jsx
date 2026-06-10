@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRoute, navigate } from './core/router.js'
 import { modules, moduleForPath } from './core/modules.js'
-import { sfx } from './core/audio.js'
 import Menu from './components/Menu.jsx'
 import Splash from './components/Splash.jsx'
 import Shell from './components/Shell.jsx'
@@ -14,7 +13,6 @@ export default function App() {
   useEffect(() => () => clearTimeout(splashTimer.current), [])
 
   const selectModule = (m) => {
-    sfx.select()
     setSplash({ label: m.label, aoa: m.aoa })
     splashTimer.current = setTimeout(() => {
       setSplash(null)
