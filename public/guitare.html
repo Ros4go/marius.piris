@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>L'atelier Manche</title>
+<title>MarousFive</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Spline+Sans+Mono:wght@400;500;600&display=swap');
   :root{
@@ -121,6 +121,7 @@
   .mcard{text-align:left;background:var(--board);border:1px solid var(--line);border-radius:11px;padding:12px 13px;cursor:pointer;font-family:inherit;color:var(--text);transition:.15s;}
   .mcard:hover{border-color:var(--wire);transform:translateY(-2px);} .mcard.active{border-color:var(--tonic);box-shadow:0 0 0 1px var(--tonic);}
   .mcard b{font-size:13px;} .mcard small{display:block;color:var(--muted);font-size:11px;margin-top:5px;line-height:1.35;}
+  .mgrid-sep{grid-column:1/-1;border-top:1px solid var(--line);padding-top:10px;margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);}
 
   /* métronome */
   .metro-wrap{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;}
@@ -146,7 +147,7 @@
 <body>
 <header>
   <div class="bar">
-    <div class="brand" id="brand">L'atelier <em>Manche</em></div>
+    <div class="brand" id="brand">Marous<em>Five</em></div>
     <div class="ctxbar" id="ctxbar">
       <div class="field"><label>Tonique</label><select id="root"></select></div>
       <div class="field"><label>Mode</label><select id="mode"></select></div>
@@ -159,7 +160,7 @@
 
   <!-- HOME -->
   <section class="home show" id="home">
-    <div class="hero"><h1>Choisis ton <em>atelier</em></h1>
+    <div class="hero"><h1>Marous<em>Five</em></h1>
       <p>Six outils pour réviser, visualiser et jouer. Tonique, mode et accordage se règlent en haut et sont partagés entre les ateliers.</p></div>
     <div class="cards" id="cards"></div>
   </section>
@@ -245,7 +246,14 @@ const MODES={
   mixolydien:{name:'Mixolydien',i:[0,2,4,5,7,9,10],d:['1','2','3','4','5','6','♭7'],mood:'Majeur mais bluesy, rock’n’roll',genres:['Blues','Rock','Jam','Folk'],tip:'Majeur avec ♭7 : ça swingue et ça groove. Le mode du riff.'},
   eolien:{name:'Éolien – mineur',i:[0,2,3,5,7,8,10],d:['1','2','♭3','4','5','♭6','♭7'],mood:'Triste, mélancolique, épique',genres:['Rock','Metal','Ballades'],tip:'Le mineur « classique ». Sérieux et émotionnel.'},
   locrien:{name:'Locrien',i:[0,1,3,5,6,8,10],d:['1','♭2','♭3','4','♭5','♭6','♭7'],mood:'Instable, dissonant, anxieux',genres:['Metal','Jazz expé'],tip:'La ♭5 le rend bancal. Rare tel quel.'},
+  penta_maj:{name:'Pentatonique majeure',i:[0,2,4,7,9],d:['1','2','3','5','6'],mood:'Lumineux, ouvert, universel',genres:['Rock','Country','Pop','Blues'],tip:'5 notes sans aucun demi-ton. Polyvalent sur toute tonalité majeure — sonne bien pratiquement partout.',penta:true},
+  penta_min:{name:'Pentatonique mineure',i:[0,3,5,7,10],d:['1','♭3','4','5','♭7'],mood:'Bluesy, sombre, incisif',genres:['Blues','Rock','Metal','Jazz'],tip:'La base du blues et du rock. 5 notes qui sonnent partout sur une progression mineure.',penta:true},
+  blues:{name:'Blues',i:[0,3,5,6,7,10],d:['1','♭3','4','♭5','5','♭7'],mood:'Expressif, tendu, soul',genres:['Blues','Rock','Jazz','Soul'],tip:'Pentatonique mineure + la blue note (♭5). Cette note crée la tension caractéristique du blues.',penta:true},
 };
+const MODE_GROUPS=[
+  {label:'Modes',keys:['ionien','dorien','phrygien','lydien','mixolydien','eolien','locrien']},
+  {label:'Pentatoniques & Blues',keys:['penta_maj','penta_min','blues']},
+];
 const TUNINGS={
   standard:{name:'Standard (Mi)',m:[40,45,50,55,59,64]},
   dropd:{name:'Drop D',m:[38,45,50,55,59,64]},
@@ -256,20 +264,20 @@ const TUNINGS={
 };
 // formes d'accords mobiles (accordage standard), corde 0=Mi grave -> 5=mi aigu
 const SHAPES={
-  maj:{label:'Majeur',E:{root:0,off:[0,2,2,1,0,0],fing:[null,3,4,2,null,null]},A:{root:1,off:['x',0,2,2,2,0],fing:[null,null,2,3,4,null]}},
-  min:{label:'mineur',E:{root:0,off:[0,2,2,0,0,0],fing:[null,3,4,null,null,null]},A:{root:1,off:['x',0,2,2,1,0],fing:[null,null,3,4,2,null]}},
-  dom7:{label:'7 (dominante)',E:{root:0,off:[0,2,0,1,0,0],fing:[null,3,null,2,null,null]},A:{root:1,off:['x',0,2,0,2,0],fing:[null,null,2,null,3,null]}},
-  m7:{label:'m7',E:{root:0,off:[0,2,0,0,0,0],fing:[null,3,null,null,null,null]},A:{root:1,off:['x',0,2,0,1,0],fing:[null,null,3,null,2,null]}},
-  maj7:{label:'Maj7',E:{root:0,off:[0,2,1,1,0,0],fing:[null,4,2,3,null,null]},A:{root:1,off:['x',0,2,1,2,0],fing:[null,null,3,2,4,null]}},
+  maj:{label:'Majeur',E:{root:0,off:[0,2,2,1,0,0],fing:[null,3,4,2,null,null],fingO:[null,2,3,1,null,null]},A:{root:1,off:['x',0,2,2,2,0],fing:[null,null,2,3,4,null],fingO:[null,null,1,2,3,null]}},
+  min:{label:'mineur',E:{root:0,off:[0,2,2,0,0,0],fing:[null,3,4,null,null,null],fingO:[null,2,3,null,null,null]},A:{root:1,off:['x',0,2,2,1,0],fing:[null,null,3,4,2,null],fingO:[null,null,2,3,1,null]}},
+  dom7:{label:'7 (dominante)',E:{root:0,off:[0,2,0,1,0,0],fing:[null,3,null,2,null,null],fingO:[null,2,null,1,null,null]},A:{root:1,off:['x',0,2,0,2,0],fing:[null,null,2,null,3,null],fingO:[null,null,2,null,3,null]}},
+  m7:{label:'m7',E:{root:0,off:[0,2,0,0,0,0],fing:[null,3,null,null,null,null],fingO:[null,2,null,null,null,null]},A:{root:1,off:['x',0,2,0,1,0],fing:[null,null,3,null,2,null],fingO:[null,null,2,null,1,null]}},
+  maj7:{label:'Maj7',E:{root:0,off:[0,2,1,1,0,0],fing:[null,4,2,3,null,null],fingO:[null,3,2,1,null,null]},A:{root:1,off:['x',0,2,1,2,0],fing:[null,null,3,2,4,null],fingO:[null,null,2,1,3,null]}},
 };
 
 let display='notes';
 Object.entries(TUNINGS).forEach(([k,v])=>$('tuning').add(new Option(v.name,k)));
 CHROMA.forEach(n=>$('root').add(new Option(FR[n],n)));
-Object.entries(MODES).forEach(([k,v])=>$('mode').add(new Option(v.name,k)));
+MODE_GROUPS.forEach(g=>{const og=document.createElement('optgroup');og.label=g.label;g.keys.forEach(k=>og.appendChild(new Option(MODES[k].name,k)));$('mode').appendChild(og);});
 CHROMA.forEach(n=>$('droot').add(new Option(FR[n],n)));
 Object.entries(SHAPES).forEach(([k,v])=>$('dtype').add(new Option(v.label,k)));
-$('root').value='E';$('mode').value='ionien';$('droot').value='C';$('dtype').value='maj';
+$('root').value='C';$('mode').value='ionien';$('droot').value='C';$('dtype').value='maj';
 
 /* ---------- NAVIGATION ---------- */
 const VIEWS=['v-manche','v-accords','v-jeu','v-guide','v-metro'];
@@ -331,8 +339,11 @@ const DRUM={off:null,kick,snare,hihat,click};
 
 /* ---------- VISUALISEUR ---------- */
 const mgrid=$('mgrid');
-Object.entries(MODES).forEach(([k,v])=>{const b=document.createElement('button');b.className='mcard';b.dataset.k=k;
-  b.innerHTML=`<b></b><small>${v.mood}</small>`;b.onclick=()=>{$('mode').value=k;render();};mgrid.appendChild(b);});
+MODE_GROUPS.forEach((g,gi)=>{
+  if(gi>0){const sep=document.createElement('div');sep.className='mgrid-sep';sep.textContent=g.label;mgrid.appendChild(sep);}
+  g.keys.forEach(k=>{const v=MODES[k];const b=document.createElement('button');b.className='mcard';b.dataset.k=k;
+    b.innerHTML=`<b></b><small>${v.mood}</small>`;b.onclick=()=>{$('mode').value=k;render();};mgrid.appendChild(b);});
+});
 
 function render(){
   const tun=TUNINGS[$('tuning').value].m;
@@ -343,7 +354,8 @@ function render(){
   $('visname').textContent=`Tu visualises : ${rn}-${mn}`;
 
   const fbox=$('formula');fbox.innerHTML='<span>Formule :</span>';
-  for(let k=0;k<7;k++){const step=((mode.i[(k+1)%7]-mode.i[k])+12)%12,half=step===1;
+  const n=mode.i.length;
+  for(let k=0;k<n;k++){const step=((mode.i[(k+1)%n]-mode.i[k])+12)%12,half=step===1;
     const c=document.createElement('span');c.className='chip'+(half?' half':'');c.textContent=half?'½':'T';fbox.appendChild(c);}
 
   const cols=FRETS+1;
@@ -372,13 +384,15 @@ function render(){
   buildChords(rootIdx,mode);
   $('feature').innerHTML=`<div class="ftitle">${rn}-${mn}</div><div class="fmood">${mode.mood}</div>
     <div class="ftip">${mode.tip}</div><div class="fgenres">${mode.genres.map(g=>`<span>${g}</span>`).join('')}</div>`;
-  [...mgrid.children].forEach(c=>{c.classList.toggle('active',c.dataset.k===key);
+  [...mgrid.children].forEach(c=>{if(!c.dataset.k)return;c.classList.toggle('active',c.dataset.k===key);
     c.querySelector('b').textContent=`${rn}-${MODES[c.dataset.k].name.split(' – ')[0]}`;});
 }
 
 function buildChords(rootIdx,mode){
+  const box=$('chords');
+  if(mode.penta){box.innerHTML='<div style="color:var(--muted);font-size:13px;max-width:52ch;line-height:1.6">Les gammes pentatoniques et blues servent à improviser — elles ne génèrent pas d\'accords triadiques. Sélectionne un mode diatonique pour voir les accords de la tonalité.</div>';return;}
   const sc=mode.i.map(iv=>(rootIdx+iv)%12);const ROM=['I','II','III','IV','V','VI','VII'];
-  const box=$('chords');box.innerHTML='';
+  box.innerHTML='';
   for(let deg=0;deg<7;deg++){
     const r=sc[deg],th=sc[(deg+2)%7],fi=sc[(deg+4)%7];const t=(th-r+12)%12,f=(fi-r+12)%12;
     let suf='',rom=ROM[deg],q,dtype='';
@@ -417,7 +431,8 @@ function chordData(tpl,rootPc){
   const open=bf===0;
   const minF=fretted.length?Math.min(...fretted):1;
   const ws=open?1:minF;
-  const fingers=abs.map((x,i)=>{if(x===-1)return 'x';if(x===0)return 'o';if(tpl.off[i]===0)return 1;return tpl.fing[i]||1;});
+  const fingering=open&&tpl.fingO?tpl.fingO:tpl.fing;
+  const fingers=abs.map((x,i)=>{if(x===-1)return 'x';if(x===0)return 'o';if(tpl.off[i]===0)return 1;return fingering[i]||1;});
   const midis=abs.map((x,i)=>x<0?null:STD[i]+x).filter(x=>x!==null);
   return {abs,ws,open,bf,fingers,midis};
 }

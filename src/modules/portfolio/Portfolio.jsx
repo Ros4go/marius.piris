@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { sfx } from '../../core/audio.js'
 import GenericModal from '../../components/GenericModal.jsx'
 import { bio, cvUrl, projects, experiences, formations, categorizedSkills } from './data.js'
 
@@ -63,9 +62,7 @@ export default function Portfolio() {
               <button
                 key={i}
                 className="p-card xp text-left w-full"
-                onMouseEnter={sfx.blip}
                 onClick={() => {
-                  sfx.select()
                   setExperience(exp)
                 }}
               >
@@ -108,9 +105,7 @@ export default function Portfolio() {
             <button
               key={i}
               className="p-card text-left p-0 overflow-hidden"
-              onMouseEnter={sfx.blip}
               onClick={() => {
-                sfx.select()
                 setProject(proj)
               }}
             >

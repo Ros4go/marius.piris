@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { sfx } from '../core/audio.js'
 
 // Accueil = the launcher itself. Identity (name, portrait) on the left, the
 // modules as the headline list, the CV / contact smaller below. No Press Start.
@@ -18,7 +17,6 @@ export default function Menu({ modules, onSelect }) {
     <button
       className={`mi${small ? ' small' : ''}${shown ? ' show' : ''}`}
       style={{ animationDelay: `${i * 0.07}s` }}
-      onMouseEnter={sfx.blip}
       onClick={() => onSelect(m)}
     >
       <span className="num">{m.num}</span>

@@ -1009,187 +1009,238 @@ body {
   }
 }
 
-.studio-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 26px 22px;
-  max-width: 1200px;
+.studio-strips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 16px;
 }
 
-.gcard {
+.gstrip {
   position: relative;
   display: flex;
-  flex-direction: column;
-  text-align: left;
+  align-items: stretch;
+  width: 100%;
+  height: 104px;
   cursor: pointer;
   border: 0;
   padding: 0;
-  overflow: visible;
-  background: linear-gradient(180deg, #241b16, #100d0b 78%);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  overflow: hidden;
+  background: var(--ink);
+  border-left: 5px solid var(--red);
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
   will-change: transform;
+  animation: stripEnter 0.45s ease both;
 }
-.gcard::before {
-  /* thin red baseline that grounds each tile */
+.gstrip:hover {
+  transform: translateX(-10px);
+  box-shadow: 10px 0 50px rgba(236, 0, 22, 0.4), 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+/* halftone texture over the whole strip */
+.gstrip-halftone {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(236, 0, 22, 0.6) 1.1px, transparent 1.4px);
+  background-size: 9px 9px;
+  opacity: 0.09;
+  mix-blend-mode: screen;
+  transition: opacity 0.2s;
+}
+.gstrip:hover .gstrip-halftone {
+  opacity: 0.22;
+}
+
+/* red fill — z-index 3: covers image band (z-index 2) but not content (z-index 4) */
+.gstrip::before {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  height: 3px;
+  inset: 0;
+  z-index: 3;
   background: var(--red);
-  transform: skewX(-45deg);
-  transform-origin: left;
-  opacity: 0.5;
+  transform: translateX(-101%);
+  transition: transform 0.2s ease;
 }
-.gcard:hover {
-  transform: translateY(-7px);
-  box-shadow: 0 24px 48px -18px rgba(236, 0, 22, 0.8), 0 12px 28px rgba(0, 0, 0, 0.55);
+.gstrip:hover::before {
+  transform: translateX(0);
 }
 
-/* big outlined index number, comic-style, top-left */
-.gcard-num {
-  position: absolute;
-  top: -13px;
-  left: -7px;
-  z-index: 4;
-  font-family: 'Anton', sans-serif;
-  font-size: 40px;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 2px var(--cream);
-  transform: skewX(-10deg);
-  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
-  transition: color 0.16s ease, -webkit-text-stroke-color 0.16s ease;
-  pointer-events: none;
-}
-.gcard:hover .gcard-num {
-  color: var(--red);
-  -webkit-text-stroke-color: var(--red);
-}
-
-/* media: diagonal bottom cut + red halftone texture */
-.gcard-media {
+/* content wrapper — z-index 4, always above the red fill */
+.gstrip-content {
   position: relative;
-  aspect-ratio: 16 / 10;
+  z-index: 4;
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 20px;
+  padding: 0 24px 0 18px;
+  min-width: 0;
+}
+
+/* number — outlined red */
+.gstrip-num {
+  flex-shrink: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: 48px;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(236, 0, 22, 0.55);
+  transform: skewX(-10deg);
+  width: 52px;
+  text-align: center;
+  transition: -webkit-text-stroke-color 0.2s;
+}
+.gstrip:hover .gstrip-num {
+  -webkit-text-stroke-color: rgba(255, 255, 255, 0.4);
+}
+
+/* main text block */
+.gstrip-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gstrip-title {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(17px, 1.9vw, 24px);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transform: skewX(-10deg);
+  line-height: 1;
+  background: linear-gradient(90deg, var(--cream) 20%, var(--red) 50%, var(--cream) 80%);
+  background-size: 280% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titleShimmer 6s linear infinite;
+}
+.gstrip:hover .gstrip-title {
+  animation: none;
+  background: none;
+  -webkit-text-fill-color: #fff;
+}
+
+.gstrip-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--grey);
+  white-space: nowrap;
   overflow: hidden;
-  background: radial-gradient(120% 120% at 30% 12%, rgba(236, 0, 22, 0.22), #14110e 72%);
-  clip-path: polygon(0 0, 100% 0, 100% 87%, 0 100%);
+  text-overflow: ellipsis;
+  transition: color 0.2s;
 }
-.gcard-media img {
-  transition: transform 0.4s ease, filter 0.3s ease;
-  filter: saturate(0.92);
+.gstrip:hover .gstrip-tagline {
+  color: rgba(255, 255, 255, 0.72);
 }
-.gcard-media img.cover {
+
+/* right-side: chips + cta */
+.gstrip-right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.gstrip-chips {
+  display: flex;
+  gap: 0;
+}
+
+.gstrip-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream);
+  transform: skewX(-10deg);
+  transition: color 0.18s;
+}
+.gstrip:hover .gstrip-cta {
+  color: #fff;
+}
+
+.gstrip-arrow {
+  display: inline-block;
+  color: var(--red);
+  animation: arrowNudge 2.4s ease-in-out infinite;
+}
+.gstrip:hover .gstrip-arrow {
+  animation: none;
+  color: #fff;
+  transform: translateX(6px);
+  transition: transform 0.18s, color 0.18s;
+}
+
+/* image band — z-index 2: visible at rest, covered by red fill (z-index 3) on hover */
+.gstrip-band {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 clamp(180px, 24%, 300px);
+  align-self: stretch;
+  overflow: hidden;
+  clip-path: polygon(28px 0, 100% 0, 100% 100%, 0 100%);
+  background: #1a1210;
+}
+.gstrip-band img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
+  filter: saturate(0.82) brightness(0.78);
+  transition: transform 0.5s ease, filter 0.3s ease;
 }
-.gcard-media img.contain {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  padding: 16px;
+.gstrip:hover .gstrip-band img {
+  transform: scale(1.06);
+  filter: saturate(1.0) brightness(0.9);
 }
-.gcard:hover .gcard-media img {
-  transform: scale(1.07);
-  filter: saturate(1.08) brightness(1.04);
+.gstrip-band-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  background: radial-gradient(circle at center, rgba(236, 0, 22, 0.18), transparent 60%);
 }
-.gcard-icon {
-  font-size: 54px;
-}
-.gcard-halftone {
+.gstrip-band-halftone {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image: radial-gradient(rgba(236, 0, 22, 0.55) 1.1px, transparent 1.4px);
   background-size: 9px 9px;
-  opacity: 0.16;
+  opacity: 0.14;
   mix-blend-mode: screen;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s;
 }
-.gcard:hover .gcard-halftone {
-  opacity: 0.38;
-}
-
-/* body */
-.gcard-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 16px 14px;
-}
-/* title on a skewed black plate overlapping the diagonal cut */
-.gcard-title {
-  align-self: flex-start;
-  margin-top: -15px;
-  position: relative;
-  z-index: 3;
-  background: var(--black);
-  color: var(--cream);
-  font-family: 'Anton', sans-serif;
-  font-size: 20px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  line-height: 1;
-  padding: 7px 13px;
-  transform: skewX(-10deg);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
-  transition: background 0.16s ease;
-}
-.gcard:hover .gcard-title {
-  background: var(--red);
-}
-.gcard-title span {
-  display: inline-block;
-  transform: skewX(10deg);
-}
-.gcard-tag {
-  color: #c9c1b4;
-  font-size: 12.5px;
-  line-height: 1.45;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.gcard-chips {
-  margin-top: auto;
-  padding-top: 4px;
+.gstrip:hover .gstrip-band-halftone {
+  opacity: 0.35;
 }
 
-/* call-to-action bar — lights up red on hover to invite the click */
-.gcard-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: rgba(236, 0, 22, 0.14);
-  border-top: 2px solid var(--red);
-  color: var(--cream);
-  font-family: 'Oswald', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-size: 12px;
-  transition: background 0.18s ease, color 0.18s ease;
+@keyframes stripEnter {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-.gcard:hover .gcard-cta {
-  background: var(--red);
-  color: #fff;
+@keyframes titleShimmer {
+  from { background-position: 120% center; }
+  to   { background-position: -120% center; }
 }
-.gcard-cta .ico {
-  font-size: 14px;
-  transition: transform 0.18s ease;
-}
-.gcard:hover .gcard-cta .ico {
-  transform: translateX(5px);
+@keyframes arrowNudge {
+  0%, 100% { transform: translateX(0); }
+  55%      { transform: translateX(5px); }
+  70%      { transform: translateX(2px); }
 }
 
 /* generic fade for modals */
