@@ -8,17 +8,26 @@ import Shell from './components/Shell.jsx'
 export default function App() {
   const route = useRoute()
   const [splash, setSplash] = useState(null)
-  const splashTimer = useRef(null)
+  const splashSwap = useRef(null)
+  const splashOut = useRef(null)
 
-  useEffect(() => () => clearTimeout(splashTimer.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(splashSwap.current)
+      clearTimeout(splashOut.current)
+    },
+    []
+  )
 
   const selectModule = (m) => {
     setSplash({ label: m.label, aoa: m.aoa })
-    splashTimer.current = setTimeout(() => {
-      setSplash(null)
+    // 1) pendant que le splash couvre l'écran, on change de page en dessous
+    splashSwap.current = setTimeout(() => {
       if (m.kind === 'external') window.location.href = m.href
       else navigate(m.path)
-    }, 450)
+    }, 400)
+    // 2) puis le splash se fond en sortie pour révéler la nouvelle page
+    splashOut.current = setTimeout(() => setSplash(null), 780)
   }
 
   // ----- Home: the launcher IS the landing (no Press Start gate) -----

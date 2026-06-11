@@ -207,6 +207,25 @@
   .tr-cfg{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
   .tr-cfg input{width:52px;padding:6px 8px;}
 
+  /* accordeur */
+  .tuner-note{font-family:'Instrument Serif',serif;font-size:76px;color:var(--tonic);text-align:center;line-height:1;margin:14px 0 2px;}
+  .tuner-freq{text-align:center;color:var(--muted);font-size:13px;margin-bottom:18px;min-height:16px;}
+  .tuner-meter{position:relative;height:62px;max-width:520px;margin:0 auto;border:1px solid var(--line);border-radius:12px;background:var(--board);overflow:hidden;}
+  .tuner-zero{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--hat);transform:translateX(-50%);opacity:.6;}
+  .tuner-needle{position:absolute;left:50%;top:6px;bottom:6px;width:4px;border-radius:2px;background:var(--snare);transform:translateX(-50%);transition:left .07s linear,background .12s;}
+  .tuner-cents{text-align:center;font-size:14px;color:var(--muted);margin:12px 0 18px;min-height:18px;}
+  .tuner-strings{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;}
+  .tuner-strings span{background:var(--board);border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;color:var(--muted);}
+  .tuner-strings span.near{border-color:var(--tonic);color:var(--text);}
+  .tuner-strings span.ok{border-color:var(--hat);color:var(--hat);}
+
+  /* positions / CAGED */
+  #posSel button{background:var(--board);color:var(--muted);border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:12.5px;padding:8px 12px;cursor:pointer;}
+  #posSel button.on{background:var(--tonic);color:#1a1208;font-weight:600;border-color:var(--tonic);}
+  .pdot{position:relative;z-index:2;width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:var(--scale);color:#221c14;cursor:pointer;}
+  .pdot.tonic{background:var(--tonic);color:#1a1208;box-shadow:0 0 0 2px rgba(255,157,60,.3);}
+  .gcell.posdim{opacity:.2;}
+
   /* ---------- MOBILE ---------- */
   @media (max-width:600px){
     .vol input[type=range]{width:78px;}
@@ -347,6 +366,36 @@
     </div>
   </section>
 
+  <!-- POSITIONS / CAGED -->
+  <section class="view" id="v-pos">
+    <button class="back" data-home>← Menu</button>
+    <h2>Positions (CAGED)</h2>
+    <p class="lead">Les 5 « boxes » d'une pentatonique le long du manche. Choisis une position pour l'isoler. Tonique et accordage viennent du menu en haut.</p>
+    <div class="game-top" style="gap:13px;align-items:flex-end">
+      <div class="field"><label>Gamme</label><select id="posScale"></select></div>
+      <div class="toggle" id="posDisp" style="display:inline-flex"><button data-v="notes" class="on">Notes</button><button data-v="degres">Degrés</button></div>
+    </div>
+    <div class="toggle" id="posSel" style="display:inline-flex;flex-wrap:wrap;margin:12px 0;border:none;gap:7px"></div>
+    <div id="pos-board-wrap" style="overflow-x:auto;overflow-y:hidden"><div class="gboard" id="posBoard"></div><div class="gfrets" id="posFrets"></div></div>
+    <div class="legend" style="margin-top:14px"><span><i class="l-tonic"></i>Fondamentale</span><span><i class="l-scale"></i>Notes de la gamme</span></div>
+  </section>
+
+  <!-- ACCORDEUR -->
+  <section class="view" id="v-tuner">
+    <button class="back" data-home>← Menu</button>
+    <h2>Accordeur</h2>
+    <p class="lead">Joue une corde : l'aiguille indique la note et l'écart en cents. Le micro nécessite https ou localhost.</p>
+    <div id="tunerStart"><button class="btn" id="tunerOn">🎤 Activer le micro</button></div>
+    <div id="tunerUI" style="display:none">
+      <div class="tuner-note" id="tunerNote">—</div>
+      <div class="tuner-freq" id="tunerFreq"></div>
+      <div class="tuner-meter"><div class="tuner-zero"></div><div class="tuner-needle" id="tunerNeedle"></div></div>
+      <div class="tuner-cents" id="tunerCents">…joue une corde</div>
+      <div class="tuner-strings" id="tunerStrings"></div>
+      <button class="mut" id="tunerOff">Couper le micro</button>
+    </div>
+  </section>
+
   <!-- GUIDE -->
   <section class="view" id="v-guide">
     <button class="back" data-home>← Menu</button>
@@ -452,13 +501,15 @@ Object.entries(SHAPES).forEach(([k,v])=>$('dtype').add(new Option(v.label,k)));
 $('root').value='C';$('mode').value='ionien';$('droot').value='C';$('dtype').value='maj';
 
 /* ---------- NAVIGATION ---------- */
-const VIEWS=['v-manche','v-accords','v-jeu','v-rank','v-guide','v-metro'];
-const CTX_VIEWS=['v-manche','v-accords','v-jeu','v-guide'];
-const HASH2VIEW={manche:'v-manche',accords:'v-accords',jeu:'v-jeu',rank:'v-rank',guide:'v-guide',metro:'v-metro'};
-const VIEW2HASH={'v-manche':'manche','v-accords':'accords','v-jeu':'jeu','v-rank':'rank','v-guide':'guide','v-metro':'metro'};
+const VIEWS=['v-manche','v-accords','v-pos','v-jeu','v-rank','v-tuner','v-guide','v-metro'];
+const CTX_VIEWS=['v-manche','v-accords','v-pos','v-jeu','v-guide'];
+const HASH2VIEW={manche:'v-manche',accords:'v-accords',positions:'v-pos',jeu:'v-jeu',rank:'v-rank',tuner:'v-tuner',guide:'v-guide',metro:'v-metro'};
+const VIEW2HASH={'v-manche':'manche','v-accords':'accords','v-pos':'positions','v-jeu':'jeu','v-rank':'rank','v-tuner':'tuner','v-guide':'guide','v-metro':'metro'};
 const CARDS=[
   {v:'v-manche',ic:'🎸',t:'Manche & modes',d:'Les notes du mode sur 24 frettes. Notes ou degrés, clic = son.'},
   {v:'v-accords',ic:'🎼',t:'Accords & doigtés',d:'Accords de la tonalité + diagrammes (formes E/A, barrés).'},
+  {v:'v-pos',ic:'🗺️',t:'Positions (CAGED)',d:'Les 5 boxes d\'une pentatonique le long du manche.'},
+  {v:'v-tuner',ic:'🎤',t:'Accordeur',d:'Accorde au micro : note jouée + écart en cents.'},
   {v:'v-jeu',ic:'🎧',t:'Entraînement Oreille',d:'Manche, note & intervalle à l\'oreille, fréquence. Sans pression, sans score.'},
   {v:'v-rank',ic:'🏆',t:'Challenge du jour',d:'10 exos tirés de la date, mêmes pour tous. Score sur 1000.'},
   {v:'v-guide',ic:'🧭',t:'Guide des modes',d:'Caractère et styles de chaque mode, en un coup d\'œil.'},
@@ -469,17 +520,18 @@ CARDS.forEach(c=>{const b=document.createElement('button');b.className='card';
   b.innerHTML=`<div class="ic">${c.ic}</div><div class="t">${c.t}</div><div class="d">${c.d}</div>`;
   b.onclick=()=>{location.hash=VIEW2HASH[c.v];};cardsEl.appendChild(b);});
 function show(v){
-  stopFreq();stopChalFreq(); // kill any continuous tone (training + challenge)
+  stopFreq();stopChalFreq();stopTuner(); // kill any continuous tone / mic
   $('home').classList.remove('show');
   VIEWS.forEach(id=>$(id).classList.toggle('show',id===v));
   $('ctxbar').classList.remove('hidden');
   if(v==='v-jeu')newQuestion();
   if(v==='v-rank')rkEnter();
+  if(v==='v-pos')renderPositions();
   if(v==='v-accords')renderDiagrams();
   if(v==='v-metro')positionRing();
   window.scrollTo(0,0);
 }
-function home(){stopFreq();stopChalFreq();VIEWS.forEach(id=>$(id).classList.remove('show'));$('home').classList.add('show');$('ctxbar').classList.remove('hidden');window.scrollTo(0,0);}
+function home(){stopFreq();stopChalFreq();stopTuner();VIEWS.forEach(id=>$(id).classList.remove('show'));$('home').classList.add('show');$('ctxbar').classList.remove('hidden');window.scrollTo(0,0);}
 // Hash router: each view = a history entry, so the browser back/forward arrows work.
 function applyRoute(){const h=location.hash.replace(/^#\/?/,'');const v=HASH2VIEW[h];if(v)show(v);else home();}
 const goHome=()=>{if(location.hash)location.hash='';else home();};
@@ -1002,6 +1054,94 @@ $('gapEvery').onchange=e=>metro.gap.every=Math.max(2,+e.target.value);
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&$('v-metro').classList.contains('show')&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){
   e.preventDefault();metro.running?stopMetro():startMetro();}});
 window.addEventListener('resize',positionRing);
+
+/* ---------- ACCORDEUR (micro) ---------- */
+let tuner=null;
+function autoCorrelate(buf,sr){
+  let SIZE=buf.length,rms=0;for(let i=0;i<SIZE;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/SIZE);
+  if(rms<0.01)return -1;
+  let r1=0,r2=SIZE-1;const thres=0.2;
+  for(let i=0;i<SIZE/2;i++)if(Math.abs(buf[i])<thres){r1=i;break;}
+  for(let i=1;i<SIZE/2;i++)if(Math.abs(buf[SIZE-i])<thres){r2=SIZE-i;break;}
+  buf=buf.slice(r1,r2);SIZE=buf.length;
+  const c=new Array(SIZE).fill(0);
+  for(let i=0;i<SIZE;i++)for(let j=0;j<SIZE-i;j++)c[i]+=buf[j]*buf[j+i];
+  let d=0;while(d<SIZE-1&&c[d]>c[d+1])d++;
+  let max=-1,pos=-1;for(let i=d;i<SIZE;i++)if(c[i]>max){max=c[i];pos=i;}
+  let T0=pos;const x1=c[T0-1]||0,x2=c[T0],x3=c[T0+1]||0,a=(x1+x3-2*x2)/2,b=(x3-x1)/2;if(a)T0=T0-b/(2*a);
+  return T0>0?sr/T0:-1;
+}
+async function startTuner(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,autoGainControl:false,noiseSuppression:false}});
+    const c=ctx(),src=c.createMediaStreamSource(stream),an=c.createAnalyser();an.fftSize=2048;src.connect(an);
+    tuner={stream,src,an,buf:new Float32Array(an.fftSize),raf:null};
+    $('tunerStart').style.display='none';$('tunerUI').style.display='';buildTunerStrings();tunerLoop();
+  }catch(e){alert('Micro indisponible (autorisation refusée, ou page non sécurisée — il faut https ou localhost).');}
+}
+function stopTuner(){if(!tuner)return;cancelAnimationFrame(tuner.raf);try{tuner.stream.getTracks().forEach(t=>t.stop());}catch(e){}try{tuner.src.disconnect();}catch(e){}tuner=null;
+  if($('tunerUI')){$('tunerUI').style.display='none';$('tunerStart').style.display='';}}
+function buildTunerStrings(){const m=TUNINGS[$('tuning').value].m,box=$('tunerStrings');box.innerHTML='';
+  [...m].reverse().forEach(midi=>{const s=document.createElement('span');s.dataset.midi=midi;s.textContent=FR[CHROMA[midi%12]];box.appendChild(s);});}
+function highlightTunerString(midi){const spans=[...$('tunerStrings').children];let best=null,bd=99;
+  spans.forEach(sp=>{const d=Math.abs(+sp.dataset.midi-midi);if(d<bd){bd=d;best=sp;}});
+  spans.forEach(sp=>sp.classList.remove('near','ok'));if(best)best.classList.add(bd===0?'ok':'near');}
+function tunerLoop(){
+  if(!tuner)return;
+  tuner.an.getFloatTimeDomainData(tuner.buf);
+  const f=autoCorrelate(tuner.buf,actx.sampleRate);
+  if(f>0){
+    const midiF=12*Math.log2(f/440)+69,midi=Math.round(midiF),cents=Math.round((midiF-midi)*100),pc=((midi%12)+12)%12;
+    $('tunerNote').textContent=FR[CHROMA[pc]];$('tunerFreq').textContent=f.toFixed(1)+' Hz';
+    const cl=Math.max(-50,Math.min(50,cents)),inTune=Math.abs(cents)<5;
+    $('tunerNeedle').style.left=(50+cl)+'%';$('tunerNeedle').style.background=inTune?'var(--hat)':'var(--snare)';
+    $('tunerCents').textContent=(cents>0?'+':'')+cents+' cents — '+(inTune?'juste ✓':(cents>0?'trop haut ↓ détends':'trop bas ↑ tends'));
+    highlightTunerString(midi);
+  }else $('tunerCents').textContent='…joue une corde';
+  tuner.raf=requestAnimationFrame(tunerLoop);
+}
+$('tunerOn').onclick=startTuner;
+$('tunerOff').onclick=stopTuner;
+
+/* ---------- POSITIONS / CAGED ---------- */
+const POS_SCALES={
+  penta_min:{name:'Pentatonique mineure',iv:[0,3,5,7,10],deg:['1','♭3','4','5','♭7']},
+  penta_maj:{name:'Pentatonique majeure',iv:[0,2,4,7,9],deg:['1','2','3','5','6']},
+};
+let posDisp='notes',posCurrent=-1,posBoxes=[];
+Object.entries(POS_SCALES).forEach(([k,v])=>$('posScale').add(new Option(v.name,k)));$('posScale').value='penta_min';
+function buildPosSel(){const sel=$('posSel');sel.innerHTML='';
+  const mk=(label,idx)=>{const b=document.createElement('button');b.textContent=label;if(posCurrent===idx)b.className='on';
+    b.onclick=()=>{posCurrent=idx;renderPositions();};sel.appendChild(b);};
+  mk('Tout',-1);posBoxes.forEach((_,i)=>mk('Pos. '+(i+1),i));}
+function renderPositions(){
+  const FRN=21,rootPc=CHROMA.indexOf($('root').value),scaleKey=$('posScale').value,sc=POS_SCALES[scaleKey],
+    scalePcs=sc.iv.map(i=>(rootPc+i)%12),tun=TUNINGS[$('tuning').value].m,low=tun[0];
+  // 5 boxes pentatoniques : départs [0,2,4,7,9] frettes depuis la fondamentale (Mi grave).
+  // En majeur, on s'appuie sur la mineure relative (mêmes boxes, mêmes notes).
+  const REL=[0,2,4,7,9],anchorPc=scaleKey==='penta_maj'?(rootPc+9)%12:rootPc;
+  let R=0;while(R<12&&(low+R)%12!==anchorPc)R++;
+  posBoxes=REL.map(r=>{const wins=[];for(const o of[-12,0,12]){const s=R+o+r;if(s>=0&&s+3<=FRN)wins.push([s,s+3]);}return wins;});
+  if(posCurrent>=posBoxes.length)posCurrent=-1;
+  buildPosSel();
+  const wins=posCurrent>=0?posBoxes[posCurrent]:null,inWin=f=>!wins||wins.some(w=>f>=w[0]&&f<=w[1]);
+  const board=$('posBoard');board.style.gridTemplateColumns=`repeat(${FRN+1},minmax(30px,1fr))`;board.innerHTML='';
+  [...tun].reverse().forEach(open=>{for(let f=0;f<=FRN;f++){
+    const pc=(open+f)%12,inScale=scalePcs.includes(pc);
+    const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'')+((wins&&!inWin(f))?' posdim':'');
+    const st=document.createElement('div');st.className='gs';cell.appendChild(st);
+    if(inScale){const d=document.createElement('div');d.className='pdot'+(pc===rootPc?' tonic':'');
+      const di=sc.iv.indexOf((pc-rootPc+12)%12);d.textContent=posDisp==='notes'?FR[CHROMA[pc]]:sc.deg[di];
+      const midi=open+f;d.onclick=()=>playNote(midi);cell.appendChild(d);}
+    board.appendChild(cell);}});
+  const gf=$('posFrets');gf.style.gridTemplateColumns=`repeat(${FRN+1},minmax(30px,1fr))`;gf.innerHTML='';
+  for(let f=0;f<=FRN;f++){const sp=document.createElement('span');sp.textContent=f;if(wins&&inWin(f))sp.className='mark';gf.appendChild(sp);}
+  if(wins&&wins.length){const w=wins[0];requestAnimationFrame(()=>{const wrap=$('pos-board-wrap');const cx=((w[0]+(w[1]-w[0])/2+0.5)/(FRN+1))*board.scrollWidth;wrap.scrollLeft=cx-wrap.clientWidth/2;});}
+}
+$('posScale').addEventListener('change',()=>{posCurrent=-1;renderPositions();});
+$('posDisp').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;posDisp=e.target.dataset.v;
+  [...$('posDisp').children].forEach(b=>b.classList.toggle('on',b===e.target));renderPositions();});
+['root','tuning'].forEach(id=>$(id).addEventListener('change',()=>{if($('v-pos').classList.contains('show')){posCurrent=-1;renderPositions();}}));
 
 /* init */
 render();buildRing();applyRoute();

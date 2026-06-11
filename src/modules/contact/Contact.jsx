@@ -1,41 +1,52 @@
+import PersonaBg from '../../components/PersonaBg.jsx'
 
+// Chaque réseau a son slug Simple Icons (logo) + sa couleur de marque (chaînes hex sans #).
 const LINKS = [
-  { label: 'LinkedIn', en: 'PROFIL PRO', href: 'https://www.linkedin.com/in/marius-piris/' },
-  { label: 'GitHub', en: 'CODE', href: 'https://github.com/ros4go' },
-  { label: 'itch.io', en: 'MES JEUX', href: 'https://rosago.itch.io/' },
-  { label: 'Twitch', en: 'EN LIVE', href: 'https://www.twitch.tv/ros4go' },
-  { label: 'YouTube', en: 'VIDÉOS', href: 'https://www.youtube.com/@Ros4go' },
-  { label: 'Instagram', en: 'INSTA', href: 'https://instagram.com/marius_piris' },
-  { label: 'Deezer', en: 'MUSIQUE', href: 'https://www.deezer.com/fr/profile/6627317661' },
-  { label: 'Linktree', en: 'TOUS MES LIENS', href: 'https://linktr.ee/marius.piris' },
+  { label: 'LinkedIn', en: 'Profil pro', href: 'https://www.linkedin.com/in/marius-piris/', slug: 'linkedin', color: '0A66C2' },
+  { label: 'GitHub', en: 'Mon code', href: 'https://github.com/ros4go', slug: 'github', color: 'E6E6E6' },
+  { label: 'itch.io', en: 'Mes jeux', href: 'https://rosago.itch.io/', slug: 'itchdotio', color: 'FA5C5C' },
+  { label: 'Twitch', en: 'En live', href: 'https://www.twitch.tv/ros4go', slug: 'twitch', color: '9146FF' },
+  { label: 'YouTube', en: 'Mes vidéos', href: 'https://www.youtube.com/@Ros4go', slug: 'youtube', color: 'FF0000' },
+  { label: 'Instagram', en: 'Insta', href: 'https://instagram.com/marius_piris', slug: 'instagram', color: 'E4405F' },
+  { label: 'Deezer', en: 'Ma musique', href: 'https://www.deezer.com/fr/profile/6627317661', slug: 'deezer', color: 'EF5466' },
+  { label: 'Linktree', en: 'Tous mes liens', href: 'https://linktr.ee/marius.piris', slug: 'linktree', color: '43E660' },
 ]
 
 export default function Contact() {
   return (
-    <div className="max-w-3xl">
-      <div className="module-sub">All-Out Attack</div>
-      <h1 className="module-head">Contact</h1>
-      <p className="prose-read text-lg mb-8">
-        N'hésitez pas à me contacter pour toute collaboration, opportunité ou simplement pour discuter !
-      </p>
-      <div className="flex flex-col gap-3 max-w-md">
-        {LINKS.map((l) => (
-          <a
-            key={l.label}
-            href={l.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mi show"
-            style={{ textDecoration: 'none' }}
-          >
-            <span className="num">↗</span>
-            <span>
-              <span className="lab">{l.label}</span>
-              <span className="en">{l.en}</span>
+    <div className="contact">
+      <PersonaBg label="RÉSEAUX" />
+      <div className="contact-inner">
+        <h1 className="module-head">Contact</h1>
+
+        <div className="contact-grid">
+          {LINKS.map((l, i) => (
+            <a
+              key={l.label}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ci"
+              style={{ '--brand': '#' + l.color, '--d': `${i * 0.7}s`, animationDelay: `${i * 0.05}s` }}
+            >
+            <img
+              className="ci-ic"
+              src={`https://cdn.simpleicons.org/${l.slug}/${l.color}`}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              onError={(e) => {
+                e.target.style.display = 'none'
+              }}
+            />
+            <span className="ci-txt">
+              <span className="ci-lab">{l.label}</span>
+              <span className="ci-en">{l.en}</span>
             </span>
-            <span className="arrow">►</span>
+            <span className="ci-go" aria-hidden="true">↗</span>
           </a>
         ))}
+        </div>
       </div>
     </div>
   )
