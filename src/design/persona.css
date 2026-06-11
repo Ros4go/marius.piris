@@ -1229,6 +1229,210 @@ body {
   opacity: 0.35;
 }
 
+/* ============================================================
+   ROSTER — character-select style: slanted vertical panels
+   alternating \ / \ /, image + title, expand on hover.
+   Horizontal scroll handles 20+ items.
+   ============================================================ */
+/* 1fr | divider | 1fr → the divider is locked to the exact screen centre.
+   Each side WRAPS its panels onto new rows when they don't fit its half,
+   so nothing is ever clipped. No overflow scroll. */
+.roster {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  margin-top: 6px;
+  padding: 10px 4px 22px;
+}
+.roster-side {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 220px));
+  gap: 22px 18px;
+  align-content: flex-start;
+  min-width: 0;
+}
+.roster-jeux { justify-content: end; }   /* hug the centre from the left */
+.roster-outils { justify-content: start; } /* hug the centre from the right */
+
+/* left/right captions, aligned over their group at the centre */
+.roster-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-top: 18px;
+}
+.roster-head .module-sub { margin: 0; }
+.roster-head .module-sub:first-of-type { justify-self: end; }
+.roster-head .module-sub:last-of-type { justify-self: start; }
+.roster-head-sep { width: 2px; margin: 0 44px; } /* matches .roster-sep footprint */
+
+/* central divider where \ meets / */
+.roster-sep {
+  align-self: stretch;
+  width: 2px;
+  margin: 0 44px;
+  background: linear-gradient(to bottom, transparent, rgba(236, 0, 22, 0.6) 18%, rgba(236, 0, 22, 0.6) 82%, transparent);
+}
+
+.rpanel {
+  position: relative;
+  height: 540px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: var(--ink);
+  overflow: hidden;
+  text-align: left;
+  transform: skewX(8deg); /* jeux: \ */
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
+  animation: panelEnter 0.5s ease both;
+}
+.rpanel.outil { transform: skewX(-8deg); } /* outils: / */
+/* hover = pop via transform only (no layout change → no reflow of neighbours) */
+.rpanel:hover {
+  transform: skewX(8deg) scale(1.09);
+  z-index: 3;
+  box-shadow: 0 18px 56px rgba(236, 0, 22, 0.6);
+}
+.rpanel.outil:hover { transform: skewX(-8deg) scale(1.09); }
+/* text block stays in the panel's skewed space, so the title/chips/button
+   follow the slant. Only the image is un-skewed (below) to avoid distortion. */
+.rpanel-inner {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+/* IMAGE = portrait band on top. Counter-skewed so it stays undistorted,
+   oversized so it covers the slanted corners. */
+.rpanel-media {
+  position: relative;
+  flex: none;
+  height: 290px;
+  left: -48px;
+  width: calc(100% + 96px);
+  background-color: #160c0e;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  transform: skewX(-8deg);
+}
+.rpanel.outil .rpanel-media { transform: skewX(8deg); }
+.rpanel-media.noimg {
+  background-image: radial-gradient(70% 60% at 50% 42%, rgba(236, 0, 22, 0.3), transparent 60%),
+    linear-gradient(160deg, #2a1418, #120a0c);
+}
+.rpanel-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--ink) 1%, transparent 32%);
+}
+.rpanel-emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  opacity: 0.92;
+}
+.rpanel-num {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 2;
+  font-family: 'Anton', sans-serif;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--cream);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.85);
+}
+
+/* BODY = solid, fully readable text zone */
+.rpanel-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: -26px;
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.rpanel-title {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: 21px;
+  line-height: 1.02;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+}
+.rpanel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+.rpanel-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--cream);
+  opacity: 0.82;
+  margin-top: 11px;
+}
+.rpanel-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 14px;
+  color: var(--red);
+  transition: gap 0.2s ease;
+}
+.rpanel:hover .rpanel-cta { gap: 11px; }
+
+@keyframes panelEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .rpanel { height: 430px; }
+  .rpanel:hover { transform: skewX(8deg); } /* no zoom on touch */
+  .rpanel.outil:hover { transform: skewX(-8deg); }
+  .rpanel-media { height: 200px; }
+  .rpanel-title { font-size: 17px; }
+  .rpanel-tagline { font-size: 11.5px; }
+
+  /* stack the two groups; the divider becomes a horizontal rule */
+  .roster { grid-template-columns: 1fr; }
+  .roster-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+  .roster-sep {
+    width: auto;
+    height: 2px;
+    align-self: auto;
+    margin: 22px 12%;
+    background: linear-gradient(to right, transparent, rgba(236, 0, 22, 0.6), transparent);
+  }
+  .roster-head { display: none; }
+}
+
 @keyframes stripEnter {
   from { opacity: 0; transform: translateX(18px); }
   to   { opacity: 1; transform: translateX(0); }

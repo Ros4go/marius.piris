@@ -63,7 +63,8 @@ const CATALOG = [
   },
 ]
 
-function Strip({ item, num }) {
+// One slanted roster panel — character-select style.
+function Panel({ item, num }) {
   const external = item.kind === 'external'
   const open = () => {
     if (external) window.open(item.href, '_blank', 'noopener,noreferrer')
@@ -71,60 +72,57 @@ function Strip({ item, num }) {
   }
   return (
     <button
-      className="gstrip"
-      style={{ animationDelay: `${(parseInt(num, 10) - 1) * 0.07}s` }}
+      className={'rpanel ' + (item.cat === 'outil' ? 'outil' : 'jeu')}
+      style={{ animationDelay: `${(parseInt(num, 10) - 1) * 0.06}s` }}
       onClick={open}
+      title={item.title}
     >
-      <div className="gstrip-halftone" />
-
-      <div className="gstrip-content">
-        <span className="gstrip-num" aria-hidden="true">{num}</span>
-        <div className="gstrip-main">
-          <div className="gstrip-title">{item.title}</div>
-          <p className="gstrip-tagline">{item.tagline}</p>
+      <div className="rpanel-inner">
+        <div
+          className={'rpanel-media' + (item.image ? '' : ' noimg')}
+          style={item.image ? { backgroundImage: `url(${item.image})` } : undefined}
+        >
+          {!item.image && <span className="rpanel-emoji" aria-hidden="true">{item.icon || '▣'}</span>}
+          <span className="rpanel-num" aria-hidden="true">{num}</span>
         </div>
-        <div className="gstrip-right">
-          <div className="gstrip-chips">
+        <div className="rpanel-body">
+          <div className="rpanel-title">{item.title}</div>
+          <div className="rpanel-chips">
             {item.tags.slice(0, 3).map((t) => (
               <span key={t} className="chip">{t}</span>
             ))}
           </div>
-          <span className="gstrip-cta">
-            <span>{external ? 'Ouvrir' : 'Jouer'}</span>
-            <span className="gstrip-arrow">{external ? '↗' : '▶'}</span>
+          <p className="rpanel-tagline">{item.tagline}</p>
+          <span className="rpanel-cta">
+            {external ? 'Ouvrir' : 'Jouer'} {external ? '↗' : '▶'}
           </span>
         </div>
-      </div>
-
-      <div className="gstrip-band">
-        {item.image ? (
-          <img
-            src={item.image}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            onError={(e) => { e.target.style.display = 'none' }}
-          />
-        ) : (
-          <span className="gstrip-band-icon">{item.icon || '▣'}</span>
-        )}
-        <div className="gstrip-band-halftone" />
       </div>
     </button>
   )
 }
 
-function Section({ label, items }) {
+// Combined roster: jeux on the left (\), outils on the right (/).
+function Roster({ jeux, outils }) {
   return (
-    <div style={{ marginBottom: 38 }}>
-      <span className="module-sub" style={{ display: 'block', marginBottom: 16 }}>
-        {label}
-      </span>
-      <div className="studio-strips">
-        {items.map((it, i) => (
-          <Strip key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
-        ))}
+    <div>
+      <div className="roster-head">
+        <span className="module-sub">Jeux</span>
+        <span className="roster-head-sep" aria-hidden="true" />
+        <span className="module-sub">Outils</span>
+      </div>
+      <div className="roster">
+        <div className="roster-side roster-jeux">
+          {jeux.map((it, i) => (
+            <Panel key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
+          ))}
+        </div>
+        <div className="roster-sep" aria-hidden="true" />
+        <div className="roster-side roster-outils">
+          {outils.map((it, i) => (
+            <Panel key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -160,8 +158,10 @@ export default function Studio() {
       <div className="studio-inner">
         <div className="module-sub">JEUX &amp; OUTILS</div>
         <h1 className="module-head">L'Atelier</h1>
-        <Section label="Jeux" items={CATALOG.filter((i) => i.cat === 'jeu')} />
-        <Section label="Outils" items={CATALOG.filter((i) => i.cat === 'outil')} />
+        <Roster
+          jeux={CATALOG.filter((i) => i.cat === 'jeu')}
+          outils={CATALOG.filter((i) => i.cat === 'outil')}
+        />
       </div>
     </div>
   )
