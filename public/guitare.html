@@ -195,6 +195,18 @@
   .rk-bd:last-child{border-bottom:none;}
   .rk-bd b{color:var(--tonic);}
 
+  /* métronome — contrôles avancés */
+  .mbar{font-size:10px;color:var(--muted);margin-top:3px;min-height:12px;}
+  .marks{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .marks button{background:var(--board);color:var(--muted);border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:11px;padding:5px 9px;cursor:pointer;}
+  .marks button:hover{border-color:var(--wire);color:var(--text);}
+  .mut.on{background:var(--tonic);color:#1a1208;border-color:var(--tonic);opacity:1;}
+  .trainer{border:1px solid var(--line);border-radius:12px;padding:13px 14px;}
+  .trainer-h{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin-bottom:11px;}
+  .tr-row{display:flex;flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;}
+  .tr-cfg{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .tr-cfg input{width:52px;padding:6px 8px;}
+
   /* ---------- MOBILE ---------- */
   @media (max-width:600px){
     .vol input[type=range]{width:78px;}
@@ -349,10 +361,40 @@
     <h2>Métronome circulaire</h2>
     <p class="lead">Règle temps et tempo ; clique une tranche pour cycler son son : silence → grosse caisse → caisse claire → cymbale → clic.</p>
     <div class="metro-wrap">
-      <div class="ring" id="ring"><div class="ring-center" id="playbtn"><div class="play" id="playicon">▶</div><div class="bpm"><span id="bpmc">100</span> BPM</div></div></div>
+      <div class="ring" id="ring"><div class="ring-center" id="playbtn"><div class="play" id="playicon">▶</div><div class="bpm"><span id="bpmc">100</span> BPM</div><div class="mbar" id="metroBar"></div></div></div>
       <div class="metro-ctrl">
-        <div class="ctrl-row"><label>Tempo — <span class="val" id="bpmv">100</span> BPM</label><input type="range" id="bpm" min="30" max="320" value="100"></div>
+        <div class="ctrl-row">
+          <label>Tempo — <span class="val" id="bpmv">100</span> BPM</label>
+          <input type="range" id="bpm" min="30" max="320" value="100">
+          <div class="freqrow" style="margin-top:8px">
+            <button class="mut" id="bpmM5">−5</button><button class="mut" id="bpmM1">−1</button>
+            <button class="mut" id="bpmP1">+1</button><button class="mut" id="bpmP5">+5</button>
+            <button class="btn" id="tap">Tap</button>
+          </div>
+          <div class="marks" id="marks"></div>
+        </div>
         <div class="ctrl-row"><label>Tranches — <span class="val" id="stepsv">4</span></label><input type="range" id="steps" min="2" max="12" value="4"></div>
+        <div class="ctrl-row">
+          <label>Subdivision</label>
+          <div class="toggle" id="subsel" style="display:inline-flex">
+            <button data-s="1" class="on" title="Noire">♩</button><button data-s="2" title="Croches">♪♪</button><button data-s="3" title="Triolet">³</button><button data-s="4" title="Doubles-croches">♬</button>
+          </div>
+        </div>
+        <div class="freqrow">
+          <button class="mut on" id="accent">Accent T1</button>
+          <button class="mut" id="countin">Décompte</button>
+        </div>
+        <div class="trainer">
+          <div class="trainer-h">Entraînement</div>
+          <div class="ctrl-row tr-row">
+            <button class="mut" id="spdOn">Speed trainer</button>
+            <span class="tr-cfg">+<input type="number" id="spdInc" value="5" min="1" max="30"> BPM toutes les <input type="number" id="spdEvery" value="2" min="1" max="16"> mes. (max <input type="number" id="spdMax" value="200" min="40" max="320">)</span>
+          </div>
+          <div class="ctrl-row tr-row">
+            <button class="mut" id="gapOn">Gap trainer</button>
+            <span class="tr-cfg"><input type="number" id="gapBars" value="1" min="1" max="4"> mes. muette(s) toutes les <input type="number" id="gapEvery" value="4" min="2" max="16"></span>
+          </div>
+        </div>
         <div class="palette"><span><i style="background:var(--kick)"></i>Grosse caisse</span><span><i style="background:var(--snare)"></i>Caisse claire</span><span><i style="background:var(--hat)"></i>Cymbale</span><span><i style="background:var(--click)"></i>Clic</span></div>
       </div>
     </div>
@@ -881,7 +923,14 @@ $('rkAgain').onclick=startChallenge;
 
 /* ---------- MÉTRONOME ---------- */
 const CYCLE=['off','kick','snare','hihat','click'];
-let metro={steps:4,bpm:100,pattern:['kick','hihat','snare','hihat'],running:false,cur:0,next:0,timer:null,queue:[],active:-1};
+let metro={steps:4,bpm:100,sub:1,accent:true,pattern:['kick','hihat','snare','hihat'],
+  running:false,next:0,timer:null,queue:[],active:-1,subIdx:0,beat:0,countInBeats:0,
+  trainer:{on:false,inc:5,every:2,max:200},gap:{on:false,every:4,bars:1}};
+// accent (temps 1) et clic de subdivision
+function accentTick(t){const c=ctx(),o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.setValueAtTime(2050,t);
+  g.gain.setValueAtTime(0.5,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.045);o.connect(g);g.connect(master);o.start(t);o.stop(t+0.05);}
+function subTick(t){const c=ctx(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1250;
+  g.gain.setValueAtTime(0.13,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.025);o.connect(g);g.connect(master);o.start(t);o.stop(t+0.03);}
 function buildRing(){
   const ring=$('ring');[...ring.querySelectorAll('.seg')].forEach(e=>e.remove());
   while(metro.pattern.length<metro.steps)metro.pattern.push('off');metro.pattern.length=metro.steps;
@@ -895,20 +944,63 @@ function paintSeg(seg,snd){seg.className='seg'+(snd!=='off'?' '+snd:'');seg.text
 function positionRing(){const ring=$('ring'),w=ring.clientWidth||300,R=w/2-28;
   ring.querySelectorAll('.seg').forEach(seg=>{const i=+seg.dataset.i;const a=(i/metro.steps)*2*Math.PI-Math.PI/2;
     seg.style.left=(w/2+R*Math.cos(a))+'px';seg.style.top=(w/2+R*Math.sin(a))+'px';});}
-function schedule(){const c=ctx();while(metro.next<c.currentTime+0.12){const snd=metro.pattern[metro.cur];
-  if(snd&&DRUM[snd])DRUM[snd](metro.next);metro.queue.push({step:metro.cur,t:metro.next});
-  metro.cur=(metro.cur+1)%metro.steps;metro.next+=60/metro.bpm;}}
+function syncBpmUI(){metro.bpm=Math.max(30,Math.min(320,Math.round(metro.bpm)));$('bpm').value=metro.bpm;$('bpmv').textContent=metro.bpm;$('bpmc').textContent=metro.bpm;}
+function onNewBar(realBarIdx){ // appelé à l'entrée d'une nouvelle mesure réelle (>=1)
+  if(metro.trainer.on&&realBarIdx%Math.max(1,metro.trainer.every)===0){
+    const nb=Math.min(metro.trainer.max,metro.bpm+metro.trainer.inc);if(nb!==metro.bpm){metro.bpm=nb;syncBpmUI();}}
+}
+function schedule(){const c=ctx();
+  while(metro.next<c.currentTime+0.12){
+    const t=metro.next,isMain=metro.subIdx===0,gb=metro.beat,isCount=gb<metro.countInBeats,
+      realBeat=gb-metro.countInBeats,barIdx=isCount?-1:Math.floor(realBeat/metro.steps),
+      beatInBar=isCount?(gb%metro.steps):(((realBeat%metro.steps)+metro.steps)%metro.steps),
+      muted=!isCount&&metro.gap.on&&(barIdx%Math.max(2,metro.gap.every))>=(Math.max(2,metro.gap.every)-metro.gap.bars);
+    if(isMain){
+      if(isCount){click(t);if(beatInBar===0)accentTick(t);}
+      else if(!muted){const snd=metro.pattern[beatInBar];if(snd&&DRUM[snd])DRUM[snd](t);if(metro.accent&&beatInBar===0)accentTick(t);}
+      metro.queue.push({t,step:beatInBar,main:true,count:isCount,muted,bar:barIdx});
+    }else if(!isCount&&!muted&&metro.sub>1){subTick(t);}
+    metro.subIdx++;
+    if(metro.subIdx>=metro.sub){metro.subIdx=0;metro.beat++;
+      const nr=metro.beat-metro.countInBeats;
+      if(nr>0&&nr%metro.steps===0)onNewBar(Math.floor(nr/metro.steps));}
+    metro.next+=(60/metro.bpm)/metro.sub;
+  }
+}
 function draw(){if(!metro.running)return;const now=actx?actx.currentTime:0;
-  while(metro.queue.length&&metro.queue[0].t<now+0.02)metro.active=metro.queue.shift().step;
+  while(metro.queue.length&&metro.queue[0].t<now+0.02){const it=metro.queue.shift();if(it.main){metro.active=it.muted?-1:it.step;
+    $('metroBar').textContent=it.count?'Décompte…':(it.muted?'Mesure '+(it.bar+1)+' (muet)':'Mesure '+(it.bar+1));}}
   $('ring').querySelectorAll('.seg').forEach(s=>s.classList.toggle('playing',+s.dataset.i===metro.active));requestAnimationFrame(draw);}
-function startMetro(){ctx();metro.running=true;metro.cur=0;metro.queue=[];metro.next=actx.currentTime+0.1;
-  $('playicon').textContent='⏸';schedule();metro.timer=setInterval(schedule,25);requestAnimationFrame(draw);}
+function startMetro(){ctx();metro.running=true;metro.subIdx=0;metro.beat=0;metro.queue=[];metro.active=-1;
+  metro.countInBeats=$('countin').classList.contains('on')?metro.steps:0;
+  metro.next=actx.currentTime+0.12;$('playicon').textContent='⏸';schedule();metro.timer=setInterval(schedule,25);requestAnimationFrame(draw);}
 function stopMetro(){metro.running=false;clearInterval(metro.timer);metro.active=-1;
-  $('playicon').textContent='▶';$('ring').querySelectorAll('.seg').forEach(s=>s.classList.remove('playing'));}
+  $('playicon').textContent='▶';$('ring').querySelectorAll('.seg').forEach(s=>s.classList.remove('playing'));$('metroBar').textContent='';}
 $('playbtn').onclick=()=>metro.running?stopMetro():startMetro();
 $('bpm').addEventListener('input',e=>{metro.bpm=+e.target.value;$('bpmv').textContent=e.target.value;$('bpmc').textContent=e.target.value;});
+$('bpmM5').onclick=()=>{metro.bpm-=5;syncBpmUI();};$('bpmM1').onclick=()=>{metro.bpm-=1;syncBpmUI();};
+$('bpmP1').onclick=()=>{metro.bpm+=1;syncBpmUI();};$('bpmP5').onclick=()=>{metro.bpm+=5;syncBpmUI();};
+let taps=[];
+$('tap').onclick=()=>{const now=performance.now();if(taps.length&&now-taps[taps.length-1]>2000)taps=[];taps.push(now);
+  if(taps.length>=2){let s=0;for(let i=1;i<taps.length;i++)s+=taps[i]-taps[i-1];metro.bpm=60000/(s/(taps.length-1));syncBpmUI();}
+  if(taps.length>6)taps=taps.slice(-6);};
+[['Largo',50],['Andante',76],['Modéré',100],['Allegro',132],['Vif',168],['Presto',200]].forEach(([n,b])=>{
+  const x=document.createElement('button');x.textContent=n;x.title=b+' BPM';x.onclick=()=>{metro.bpm=b;syncBpmUI();};$('marks').appendChild(x);});
 $('steps').addEventListener('input',e=>{metro.steps=+e.target.value;$('stepsv').textContent=e.target.value;
   const r=metro.running;if(r)stopMetro();buildRing();if(r)startMetro();});
+$('subsel').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;metro.sub=+e.target.dataset.s;
+  [...$('subsel').children].forEach(b=>b.classList.toggle('on',b===e.target));});
+$('accent').onclick=()=>{metro.accent=!metro.accent;$('accent').classList.toggle('on',metro.accent);};
+$('countin').onclick=()=>$('countin').classList.toggle('on');
+$('spdOn').onclick=()=>{metro.trainer.on=!metro.trainer.on;$('spdOn').classList.toggle('on',metro.trainer.on);};
+$('spdInc').onchange=e=>metro.trainer.inc=+e.target.value;
+$('spdEvery').onchange=e=>metro.trainer.every=Math.max(1,+e.target.value);
+$('spdMax').onchange=e=>metro.trainer.max=+e.target.value;
+$('gapOn').onclick=()=>{metro.gap.on=!metro.gap.on;$('gapOn').classList.toggle('on',metro.gap.on);};
+$('gapBars').onchange=e=>metro.gap.bars=Math.max(1,+e.target.value);
+$('gapEvery').onchange=e=>metro.gap.every=Math.max(2,+e.target.value);
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&$('v-metro').classList.contains('show')&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){
+  e.preventDefault();metro.running?stopMetro():startMetro();}});
 window.addEventListener('resize',positionRing);
 
 /* init */
