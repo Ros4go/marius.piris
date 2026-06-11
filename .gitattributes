@@ -1,0 +1,37 @@
+# Normalize all text files to LF in the repo; checkout as-is.
+# This kills the phantom CRLF changes that broke branch switching on Windows.
+* text=auto eol=lf
+
+# Explicit text types (safety, in case detection misses)
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+*.txt    text eol=lf
+*.csv    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.svg    text eol=lf
+
+# Binary assets — never touch line endings, never diff.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.webp   binary
+*.mp4    binary
+*.webm   binary
+*.mov    binary
+*.wav    binary
+*.WAV    binary
+*.mp3    binary
+*.ogg    binary
+*.pdf    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.eot    binary
