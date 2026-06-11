@@ -145,8 +145,59 @@
   .palette{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center;}
   .palette i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-2px;margin-right:5px;}
 
+  /* volume in header */
+  .vol{display:flex;align-items:center;gap:8px;margin-left:auto;}
+  .vol-ic{font-size:15px;}
+  .vol input[type=range]{width:96px;accent-color:var(--tonic);cursor:pointer;}
+
+  /* game mode selector */
+  .gmodes{display:flex;flex-wrap:wrap;gap:7px;}
+  .gmodes button{background:var(--board);color:var(--muted);border:1px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:12.5px;padding:8px 12px;cursor:pointer;transition:.15s;}
+  .gmodes button:hover{border-color:var(--wire);}
+  .gmodes button.on{background:var(--tonic);color:#1a1208;font-weight:600;border-color:var(--tonic);}
+
+  /* listen game (ear / interval) */
+  .listen{display:flex;flex-direction:column;gap:14px;margin:8px 0 4px;}
+  .bigplay{align-self:flex-start;background:var(--tonic);color:#1a1208;border:none;border-radius:12px;
+    font-family:inherit;font-weight:600;font-size:16px;padding:14px 22px;cursor:pointer;display:flex;align-items:center;gap:9px;}
+  .bigplay:hover{filter:brightness(1.08);}
+
+  /* frequency game */
+  .freqgame{display:flex;flex-direction:column;gap:14px;margin:8px 0 4px;max-width:680px;}
+  .spectrum{width:100%;height:150px;background:#0e0c0a;border:1px solid var(--line);border-radius:12px;display:block;}
+  .freqctrl label{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);display:block;margin-bottom:7px;}
+  .freqctrl .val{color:var(--tonic);font-size:14px;}
+  .freqgame input[type=range]{width:100%;accent-color:var(--tonic);cursor:pointer;}
+  .freqrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .freqresult{font-size:14px;color:var(--text);min-height:20px;line-height:1.5;}
+  .freqresult b{color:var(--tonic);}
+  .mut{background:var(--board);color:var(--text);border:1px solid var(--line);border-radius:9px;
+    padding:9px 13px;font-family:inherit;font-size:12.5px;cursor:pointer;}
+  .mut.off{opacity:.45;text-decoration:line-through;}
+  .mut:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* manche complet + fenêtre de focus (jeux case↔note) */
+  #g-board{overflow-x:auto;overflow-y:hidden;padding-bottom:4px;}
+  .gboard,.gfrets{max-width:none;}
+  .gcell.dim{opacity:.24;pointer-events:none;}
+  .gcell.zone{background:rgba(255,157,60,.09);}
+  .gfrets span.mark{color:var(--tonic);}
+
+  /* challenge */
+  .rk-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;color:var(--muted);font-size:13px;}
+  .rk-top .score{margin-left:auto;color:var(--tonic);font-size:15px;}
+  #rkProgress{font-weight:600;color:var(--text);}
+  #rkKind{background:var(--board);border:1px solid var(--line);border-radius:7px;padding:4px 10px;color:var(--text);}
+  .rk-final{font-family:'Instrument Serif',serif;font-size:34px;color:var(--tonic);margin:6px 0 16px;}
+  #rkBreakdown{max-width:430px;margin:0 0 22px;}
+  .rk-bd{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:9px 2px;font-size:13px;}
+  .rk-bd:last-child{border-bottom:none;}
+  .rk-bd b{color:var(--tonic);}
+
   /* ---------- MOBILE ---------- */
   @media (max-width:600px){
+    .vol input[type=range]{width:78px;}
     .wrap{padding:0 12px 80px;}
     h1{font-size:clamp(30px,11vw,46px);}
     h2{font-size:25px;}
@@ -179,6 +230,10 @@
       <div class="field"><label>Mode</label><select id="mode"></select></div>
       <div class="field"><label>Accordage</label><select id="tuning"></select></div>
     </div>
+    <div class="vol" title="Volume">
+      <span class="vol-ic" aria-hidden="true">🔊</span>
+      <input type="range" id="vol" min="0" max="100" value="80" aria-label="Volume">
+    </div>
   </div>
 </header>
 
@@ -187,7 +242,7 @@
   <!-- HOME -->
   <section class="home show" id="home">
     <div class="hero"><h1>Marous<em>Five</em></h1>
-      <p>Six outils pour réviser, visualiser et jouer. Tonique, mode et accordage se règlent en haut et sont partagés entre les ateliers.</p></div>
+      <p>Boîte à outils guitare : manche &amp; modes, accords, jeux d'oreille, métronome. Le réglage tonique · mode · accordage (en haut) s'applique à tous les ateliers.</p></div>
     <div class="cards" id="cards"></div>
   </section>
 
@@ -208,7 +263,7 @@
   <section class="view" id="v-accords">
     <button class="back" data-home>← Menu</button>
     <h2>Accords & doigtés</h2>
-    <p class="lead">Les accords qui « tombent » dans la tonalité. Clique un accord : tu l'entends et son doigté s'affiche juste en dessous (accordage standard ; le chiffre dans le rond = le doigt).</p>
+    <p class="lead">Les accords de la tonalité. Clique : tu l'entends et son doigté s'affiche (accordage standard ; chiffre = doigt).</p>
     <div class="chords" id="chords"></div>
     <div style="border-top:1px solid var(--line);margin:22px 0 16px;padding-top:18px;display:flex;gap:13px;align-items:flex-end;flex-wrap:wrap">
       <div class="field"><label>Ou cherche un accord</label><select id="droot"></select></div>
@@ -221,21 +276,70 @@
   <!-- JEU -->
   <section class="view" id="v-jeu">
     <button class="back" data-home>← Menu</button>
-    <h2>Trouve la note</h2>
-    <p class="lead">Devine la note d'une case, ou trouve une case pour une note donnée.</p>
+    <h2>Entraînement Oreille</h2>
+    <p class="lead">Entraîne-toi librement : note sur le manche, note ou intervalle à l'oreille, accordage en fréquence. Pas de score ici — c'est pour bosser.</p>
     <div class="game-top">
-      <div class="toggle" id="gmode"><button data-g="p2n" class="on">Case → Note</button><button data-g="n2p">Note → Case</button></div>
-      <div class="qbox" id="qbox"></div><button class="btn" id="newq">Nouvelle question</button>
-      <span class="score" id="score">Score : 0 / 0</span>
+      <div class="gmodes" id="gmode">
+        <button data-g="p2n" class="on">Case → Note</button>
+        <button data-g="n2p">Note → Case</button>
+        <button data-g="ear">Son → Note</button>
+        <button data-g="intv">Intervalle</button>
+        <button data-g="freq">Fréquence</button>
+      </div>
+      <div class="qbox" id="qbox"></div><button class="btn" id="newq">Nouvelle</button>
     </div>
-    <div class="gboard" id="gboard"></div><div class="gfrets" id="gfrets"></div><div class="answers" id="answers"></div>
+
+    <!-- p2n / n2p : manche -->
+    <div id="g-board"><div class="gboard" id="gboard"></div><div class="gfrets" id="gfrets"></div></div>
+
+    <!-- ear / intv : écoute -->
+    <div class="listen" id="g-listen" style="display:none">
+      <button class="bigplay" id="greplay">🔊 Réécouter</button>
+    </div>
+
+    <!-- freq : trouver la fréquence -->
+    <div class="freqgame" id="g-freq" style="display:none">
+      <canvas class="spectrum" id="spectrum" width="680" height="150"></canvas>
+      <div class="freqctrl">
+        <label>Ta fréquence — <span class="val" id="guessHz">—</span></label>
+        <input type="range" id="freqSlider" min="0" max="1000" value="500">
+      </div>
+      <div class="freqrow">
+        <button class="mut" id="freqListen">🔊 Écouter la cible (3)</button>
+        <button class="btn" id="freqValidate">Valider</button>
+        <button class="mut" id="freqGuessMute">🔊 Ton son</button>
+      </div>
+      <div class="freqresult" id="freqResult"></div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+  </section>
+
+  <!-- CHALLENGE -->
+  <section class="view" id="v-rank">
+    <button class="back" data-home>← Menu</button>
+    <h2>Challenge du jour</h2>
+    <p class="lead" id="rankDate"></p>
+    <div id="rk-intro">
+      <p class="lead">10 exercices enchaînés — manche, oreille, intervalles, fréquence — <b>identiques pour tout le monde aujourd'hui</b> (tirés de la date, accordage standard). Score sur 1000 à la fin.</p>
+      <button class="btn" id="rkStart">Commencer le défi</button>
+    </div>
+    <div id="rk-run" style="display:none">
+      <div class="rk-top"><span id="rkProgress">1 / 10</span><span id="rkKind"></span><span class="score" id="rkScore">0 pts</span></div>
+      <div id="rkQuestion"></div>
+    </div>
+    <div id="rk-result" style="display:none">
+      <div class="rk-final" id="rkFinal"></div>
+      <div id="rkBreakdown"></div>
+      <button class="btn" id="rkAgain">Rejouer</button>
+    </div>
   </section>
 
   <!-- GUIDE -->
   <section class="view" id="v-guide">
     <button class="back" data-home>← Menu</button>
-    <h2>Quel mode pour quoi ?</h2>
-    <p class="lead">L'ambiance de chaque mode — clique une carte pour l'essayer.</p>
+    <h2>Guide des modes</h2>
+    <p class="lead">Le caractère de chaque mode — clique une carte pour l'essayer.</p>
     <div class="feature" id="feature"></div><div class="modes-grid" id="mgrid"></div>
   </section>
 
@@ -243,7 +347,7 @@
   <section class="view" id="v-metro">
     <button class="back" data-home>← Menu</button>
     <h2>Métronome circulaire</h2>
-    <p class="lead">Règle le nombre de tranches et le tempo, et clique chaque tranche pour changer son son : silence → grosse caisse → caisse claire → cymbale → clic.</p>
+    <p class="lead">Règle temps et tempo ; clique une tranche pour cycler son son : silence → grosse caisse → caisse claire → cymbale → clic.</p>
     <div class="metro-wrap">
       <div class="ring" id="ring"><div class="ring-center" id="playbtn"><div class="play" id="playicon">▶</div><div class="bpm"><span id="bpmc">100</span> BPM</div></div></div>
       <div class="metro-ctrl">
@@ -306,31 +410,34 @@ Object.entries(SHAPES).forEach(([k,v])=>$('dtype').add(new Option(v.label,k)));
 $('root').value='C';$('mode').value='ionien';$('droot').value='C';$('dtype').value='maj';
 
 /* ---------- NAVIGATION ---------- */
-const VIEWS=['v-manche','v-accords','v-jeu','v-guide','v-metro'];
+const VIEWS=['v-manche','v-accords','v-jeu','v-rank','v-guide','v-metro'];
 const CTX_VIEWS=['v-manche','v-accords','v-jeu','v-guide'];
-const HASH2VIEW={manche:'v-manche',accords:'v-accords',jeu:'v-jeu',guide:'v-guide',metro:'v-metro'};
-const VIEW2HASH={'v-manche':'manche','v-accords':'accords','v-jeu':'jeu','v-guide':'guide','v-metro':'metro'};
+const HASH2VIEW={manche:'v-manche',accords:'v-accords',jeu:'v-jeu',rank:'v-rank',guide:'v-guide',metro:'v-metro'};
+const VIEW2HASH={'v-manche':'manche','v-accords':'accords','v-jeu':'jeu','v-rank':'rank','v-guide':'guide','v-metro':'metro'};
 const CARDS=[
-  {v:'v-manche',ic:'🎸',t:'Manche & modes',d:'Visualise les notes du mode sur tout le manche. Clique pour entendre.'},
-  {v:'v-accords',ic:'🎼',t:'Accords & doigtés',d:'Les accords de la tonalité (I, ii, iii…) + le placement des doigts.'},
-  {v:'v-jeu',ic:'🎯',t:'Trouve la note',d:'Petit jeu de révision avec score.'},
-  {v:'v-guide',ic:'🧭',t:'Quel mode pour quoi',d:"L'ambiance et les styles de chaque mode."},
-  {v:'v-metro',ic:'🥁',t:'Métronome',d:'Métronome circulaire avec sons réglables.'},
+  {v:'v-manche',ic:'🎸',t:'Manche & modes',d:'Les notes du mode sur 24 frettes. Notes ou degrés, clic = son.'},
+  {v:'v-accords',ic:'🎼',t:'Accords & doigtés',d:'Accords de la tonalité + diagrammes (formes E/A, barrés).'},
+  {v:'v-jeu',ic:'🎧',t:'Entraînement Oreille',d:'Manche, note & intervalle à l\'oreille, fréquence. Sans pression, sans score.'},
+  {v:'v-rank',ic:'🏆',t:'Challenge du jour',d:'10 exos tirés de la date, mêmes pour tous. Score sur 1000.'},
+  {v:'v-guide',ic:'🧭',t:'Guide des modes',d:'Caractère et styles de chaque mode, en un coup d\'œil.'},
+  {v:'v-metro',ic:'🥁',t:'Métronome',d:'Circulaire : 2–12 temps, 30–320 BPM, son par temps.'},
 ];
 const cardsEl=$('cards');
 CARDS.forEach(c=>{const b=document.createElement('button');b.className='card';
   b.innerHTML=`<div class="ic">${c.ic}</div><div class="t">${c.t}</div><div class="d">${c.d}</div>`;
   b.onclick=()=>{location.hash=VIEW2HASH[c.v];};cardsEl.appendChild(b);});
 function show(v){
+  stopFreq();stopChalFreq(); // kill any continuous tone (training + challenge)
   $('home').classList.remove('show');
   VIEWS.forEach(id=>$(id).classList.toggle('show',id===v));
-  $('ctxbar').classList.toggle('hidden',!CTX_VIEWS.includes(v));
+  $('ctxbar').classList.remove('hidden');
   if(v==='v-jeu')newQuestion();
+  if(v==='v-rank')rkEnter();
   if(v==='v-accords')renderDiagrams();
   if(v==='v-metro')positionRing();
   window.scrollTo(0,0);
 }
-function home(){VIEWS.forEach(id=>$(id).classList.remove('show'));$('home').classList.add('show');$('ctxbar').classList.add('hidden');window.scrollTo(0,0);}
+function home(){stopFreq();stopChalFreq();VIEWS.forEach(id=>$(id).classList.remove('show'));$('home').classList.add('show');$('ctxbar').classList.remove('hidden');window.scrollTo(0,0);}
 // Hash router: each view = a history entry, so the browser back/forward arrows work.
 function applyRoute(){const h=location.hash.replace(/^#\/?/,'');const v=HASH2VIEW[h];if(v)show(v);else home();}
 const goHome=()=>{if(location.hash)location.hash='';else home();};
@@ -339,10 +446,10 @@ $('brand').onclick=goHome;
 window.addEventListener('hashchange',applyRoute);
 
 /* ---------- AUDIO ---------- */
-let actx=null,master=null,noiseBuf=null;
+let actx=null,master=null,noiseBuf=null,masterVol=0.8;
 function ctx(){
   if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();
-    master=actx.createGain();master.gain.value=0.85;master.connect(actx.destination);
+    master=actx.createGain();master.gain.value=masterVol;master.connect(actx.destination);
     const n=actx.sampleRate*0.4;noiseBuf=actx.createBuffer(1,n,actx.sampleRate);
     const d=noiseBuf.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;}
   if(actx.state==='suspended')actx.resume();return actx;
@@ -509,51 +616,268 @@ function renderDiagrams(){
   [...$('chords').children].forEach(c=>c.classList.remove('active'));renderDiagrams();}));
 
 /* ---------- JEU ---------- */
-const GFRETS=7;
-let game={mode:'p2n',s:0,f:0,opts:[],score:0,total:0,answered:false,target:0};
+const GFRETS=15; // manche complet affiché ; le jeu se concentre sur une fenêtre aléatoire
+let game={mode:'p2n',s:0,f:0,opts:[],score:0,total:0,answered:false,target:0,root:0,iv:0};
+const INTERVALS=[
+  {s:1,name:'2nde mineure'},{s:2,name:'2nde Majeure'},{s:3,name:'3ce mineure'},{s:4,name:'3ce Majeure'},
+  {s:5,name:'4te juste'},{s:6,name:'Triton'},{s:7,name:'5te juste'},{s:8,name:'6te mineure'},
+  {s:9,name:'6te Majeure'},{s:10,name:'7e mineure'},{s:11,name:'7e Majeure'},{s:12,name:'Octave'},
+];
 function noteAt(s,f){return (TUNINGS[$('tuning').value].m[s]+f)%12;}
 function midiAt(s,f){return TUNINGS[$('tuning').value].m[s]+f;}
+const randMidi=()=>48+Math.floor(Math.random()*25); // Do3..Do5
+function sampleChoices(correct,pool,n=4){const set=new Set([correct]);
+  while(set.size<n&&set.size<pool.length)set.add(pool[Math.floor(Math.random()*pool.length)]);
+  return [...set].sort(()=>Math.random()-0.5);}
+function playInterval(root,semis){playNote(root);setTimeout(()=>playNote(root+semis),650);}
+
 function newQuestion(){
-  game.answered=false;game.s=Math.floor(Math.random()*6);game.f=Math.floor(Math.random()*(GFRETS+1));
-  if(game.mode==='p2n'){const correct=FR[CHROMA[noteAt(game.s,game.f)]];const set=new Set([correct]);
-    while(set.size<4)set.add(FR[CHROMA[Math.floor(Math.random()*12)]]);game.opts=[...set].sort(()=>Math.random()-0.5);}
+  stopFreq();
+  game.answered=false;
+  if(game.mode==='p2n'||game.mode==='n2p'){
+    const Wf=4,Ws=2; // fenêtre de 5 frettes × 3 cordes
+    game.Wf=Wf;game.Ws=Ws;
+    game.f0=Math.floor(Math.random()*(GFRETS-Wf+1)); // 0..GFRETS-Wf
+    game.s0=Math.floor(Math.random()*(6-Ws));        // s0+Ws <= 5
+    game.s=game.s0+Math.floor(Math.random()*(Ws+1));
+    game.f=game.f0+Math.floor(Math.random()*(Wf+1));
+    if(game.mode==='p2n')game.opts=sampleChoices(FR[CHROMA[noteAt(game.s,game.f)]],CHROMA.map(n=>FR[n]));
+    else game.target=noteAt(game.s,game.f); // la note cible existe dans la fenêtre
+  }else if(game.mode==='ear'){
+    game.target=randMidi();game.opts=sampleChoices(FR[CHROMA[game.target%12]],CHROMA.map(n=>FR[n]));
+  }else if(game.mode==='intv'){
+    game.root=randMidi();game.iv=INTERVALS[Math.floor(Math.random()*INTERVALS.length)].s;
+    game.opts=sampleChoices(INTERVALS.find(i=>i.s===game.iv).name,INTERVALS.map(i=>i.name));
+  }
   renderGame();
+  if(game.mode==='ear')playNote(game.target);
+  if(game.mode==='intv')playInterval(game.root,game.iv);
+  if(game.mode==='freq')startFreq();
 }
+
+function showBlocks(){
+  const board=game.mode==='p2n'||game.mode==='n2p',listen=game.mode==='ear'||game.mode==='intv',fq=game.mode==='freq';
+  $('g-board').style.display=board?'':'none';
+  $('g-listen').style.display=listen?'':'none';
+  $('g-freq').style.display=fq?'':'none';
+  $('answers').style.display=fq?'none':'';
+}
+function addAns(label,cb){const b=document.createElement('button');b.className='ans';b.textContent=label;b.onclick=()=>cb(b);$('answers').appendChild(b);}
+function markAns(correct,btn){[...$('answers').children].forEach(b=>{
+  if(b.textContent===correct)b.style.borderColor='var(--hat)';else if(b===btn)b.style.borderColor='var(--snare)';});}
+
 function renderGame(){
-  const cols=GFRETS+1;const gb=$('gboard');gb.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;gb.innerHTML='';
-  const rows=[...Array(6).keys()].reverse();
-  rows.forEach(s=>{for(let f=0;f<=GFRETS;f++){
-    const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'');
-    const st=document.createElement('div');st.className='gs';cell.appendChild(st);
-    if(game.mode==='p2n'&&s===game.s&&f===game.f){const m=document.createElement('div');m.className='gmark q';m.textContent='?';cell.appendChild(m);}
-    if(game.mode==='n2p'){cell.onclick=()=>answerCell(s,f,cell);}
-    gb.appendChild(cell);}});
-  const gf=$('gfrets');gf.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;gf.innerHTML='';
-  for(let f=0;f<=GFRETS;f++){const sp=document.createElement('span');sp.textContent=f;gf.appendChild(sp);}
+  showBlocks();
   const ans=$('answers');ans.innerHTML='';
-  if(game.mode==='p2n'){$('qbox').innerHTML='Quelle note ?';
-    game.opts.forEach(o=>{const b=document.createElement('button');b.className='ans';b.textContent=o;b.onclick=()=>answerNote(o,b);ans.appendChild(b);});
-    playNote(midiAt(game.s,game.f));}
-  else{game.target=Math.floor(Math.random()*12);$('qbox').innerHTML=`Trouve un <b>${FR[CHROMA[game.target]]}</b> (clique une case)`;}
+  if(game.mode==='p2n'||game.mode==='n2p'){
+    const cols=GFRETS+1;const gb=$('gboard');gb.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;gb.innerHTML='';
+    const rows=[...Array(6).keys()].reverse();
+    rows.forEach(s=>{for(let f=0;f<=GFRETS;f++){
+      const inZone=s>=game.s0&&s<=game.s0+game.Ws&&f>=game.f0&&f<=game.f0+game.Wf;
+      const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'')+(inZone?' zone':' dim');
+      const st=document.createElement('div');st.className='gs';cell.appendChild(st);
+      if(game.mode==='p2n'&&s===game.s&&f===game.f){const m=document.createElement('div');m.className='gmark q';m.textContent='?';cell.appendChild(m);}
+      if(game.mode==='n2p'&&inZone){cell.onclick=()=>answerCell(s,f,cell);}
+      gb.appendChild(cell);}});
+    const gf=$('gfrets');gf.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;gf.innerHTML='';
+    for(let f=0;f<=GFRETS;f++){const sp=document.createElement('span');sp.textContent=f;if(f>=game.f0&&f<=game.f0+game.Wf)sp.className='mark';gf.appendChild(sp);}
+    if(game.mode==='p2n'){$('qbox').innerHTML='Quelle note ? (case éclairée)';game.opts.forEach(o=>addAns(o,b=>answerNote(o,b)));playNote(midiAt(game.s,game.f));}
+    else $('qbox').innerHTML=`Trouve un <b>${FR[CHROMA[game.target]]}</b> dans la zone éclairée`;
+    requestAnimationFrame(()=>{const wrap=$('g-board');if(!wrap)return;const cx=((game.f0+game.Wf/2+0.5)/cols)*gb.scrollWidth;wrap.scrollLeft=cx-wrap.clientWidth/2;});
+  }else if(game.mode==='ear'){
+    $('qbox').innerHTML='Quelle note entends-tu ?';game.opts.forEach(o=>addAns(o,b=>answerEar(o,b)));
+  }else if(game.mode==='intv'){
+    $('qbox').innerHTML='Quel intervalle ?';game.opts.forEach(o=>addAns(o,b=>answerIntv(o,b)));
+  }else if(game.mode==='freq'){
+    $('qbox').innerHTML='Accorde-toi sur le son cible';
+  }
 }
-function answerNote(o,btn){
-  if(game.answered)return;game.answered=true;game.total++;
-  const correct=FR[CHROMA[noteAt(game.s,game.f)]];if(o===correct)game.score++;
-  [...$('answers').children].forEach(b=>{if(b.textContent===correct)b.style.borderColor='var(--hat)';else if(b===btn)b.style.borderColor='var(--snare)';});
+function answerNote(o,btn){if(game.answered)return;game.answered=true;game.total++;
+  const correct=FR[CHROMA[noteAt(game.s,game.f)]];if(o===correct)game.score++;markAns(correct,btn);
   const idx=[...Array(6).keys()].reverse().indexOf(game.s)*(GFRETS+1)+game.f;
   const m=$('gboard').children[idx].querySelector('.gmark');if(m){m.textContent=correct;m.className='gmark '+(o===correct?'good':'bad');}
-  updScore();
-}
-function answerCell(s,f,cell){
-  if(game.answered)return;game.answered=true;game.total++;
+  updScore();}
+function answerCell(s,f,cell){if(game.answered)return;game.answered=true;game.total++;
   const ok=noteAt(s,f)===game.target;if(ok)game.score++;
-  const m=document.createElement('div');m.className='gmark '+(ok?'good':'bad');m.textContent=FR[CHROMA[noteAt(s,f)]];cell.appendChild(m);playNote(midiAt(s,f));updScore();
+  const m=document.createElement('div');m.className='gmark '+(ok?'good':'bad');m.textContent=FR[CHROMA[noteAt(s,f)]];cell.appendChild(m);playNote(midiAt(s,f));updScore();}
+function answerEar(o,btn){if(game.answered)return;game.answered=true;game.total++;
+  const correct=FR[CHROMA[game.target%12]];if(o===correct)game.score++;markAns(correct,btn);updScore();}
+function answerIntv(o,btn){if(game.answered)return;game.answered=true;game.total++;
+  const correct=INTERVALS.find(i=>i.s===game.iv).name;if(o===correct)game.score++;markAns(correct,btn);updScore();}
+function updScore(){const el=$('score');if(el)el.textContent=`Score : ${game.score} / ${game.total}`;}
+
+/* --- jeu FRÉQUENCE : 2 sons continus (cible + toi) + spectre, on s'accorde à l'oreille --- */
+const FMIN=110,FMAX=1046; // La2 .. Do6
+const sliderToFreq=v=>FMIN*Math.pow(FMAX/FMIN,v/1000);
+let freq=null;
+function startFreq(){
+  const c=ctx();
+  const an=c.createAnalyser();an.fftSize=8192;an.smoothingTimeConstant=0.75;an.connect(master);
+  // target: heard only on demand (3× max), NOT analysed → never appears on the spectrum
+  const tOsc=c.createOscillator(),tGain=c.createGain();tOsc.type='sine';tGain.gain.value=0.0001;tOsc.connect(tGain);tGain.connect(master);
+  // your tone: continuous, analysed → the only thing visible on the spectrum
+  const gOsc=c.createOscillator(),gGain=c.createGain();gOsc.type='sine';gGain.gain.value=0.07;gOsc.connect(gGain);gGain.connect(an);
+  const target=FMIN*Math.pow(FMAX/FMIN,Math.random());tOsc.frequency.value=target;
+  const gf=sliderToFreq(+$('freqSlider').value);gOsc.frequency.value=gf;
+  tOsc.start();gOsc.start();
+  freq={an,tOsc,tGain,gOsc,gGain,target,buf:new Uint8Array(an.frequencyBinCount),raf:null,answered:false,listens:3};
+  $('guessHz').textContent=Math.round(gf)+' Hz';$('freqResult').textContent='';
+  const lb=$('freqListen');lb.disabled=false;lb.textContent='🔊 Écouter la cible (3)';
+  $('freqGuessMute').classList.remove('off');
+  drawSpectrum();
 }
-function updScore(){$('score').textContent=`Score : ${game.score} / ${game.total}`;}
+function stopFreq(){if(!freq)return;cancelAnimationFrame(freq.raf);
+  try{freq.tOsc.stop();freq.gOsc.stop();}catch(e){}try{freq.an.disconnect();}catch(e){}freq=null;}
+function drawSpectrum(){
+  if(!freq)return;
+  const cv=$('spectrum'),x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  freq.an.getByteFrequencyData(freq.buf);
+  x.fillStyle='#0e0c0a';x.fillRect(0,0,W,H);
+  const bins=freq.buf.length,nyq=actx.sampleRate/2,lo=FMIN/1.3,hi=FMAX*1.3,lg=Math.log(hi/lo);
+  x.fillStyle='rgba(255,157,60,.85)';
+  for(let px=0;px<W;px++){const f=lo*Math.exp(lg*px/W);const bin=Math.round(f/nyq*bins);
+    const v=bin<bins?freq.buf[bin]/255:0;const h=v*v*H;x.fillRect(px,H-h,1,h);}
+  const gx=W*Math.log(freq.gOsc.frequency.value/lo)/lg;
+  x.strokeStyle='#5fb0a5';x.lineWidth=2;x.beginPath();x.moveTo(gx,0);x.lineTo(gx,H);x.stroke();
+  if(freq.answered){const tx=W*Math.log(freq.target/lo)/lg;x.strokeStyle='#e36b5e';x.beginPath();x.moveTo(tx,0);x.lineTo(tx,H);x.stroke();}
+  freq.raf=requestAnimationFrame(drawSpectrum);
+}
+$('freqSlider').addEventListener('input',e=>{if(!freq)return;const f=sliderToFreq(+e.target.value);
+  freq.gOsc.frequency.value=f;$('guessHz').textContent=Math.round(f)+' Hz';});
+$('freqValidate').onclick=()=>{if(!freq||freq.answered)return;freq.answered=true;game.total++;
+  const cents=1200*Math.log2(freq.gOsc.frequency.value/freq.target),ok=Math.abs(cents)<=30;if(ok)game.score++;
+  $('freqResult').innerHTML=`Cible : <b>${Math.round(freq.target)} Hz</b> · écart <b>${cents>0?'+':''}${Math.round(cents)} cents</b> — ${ok?'juste ✅':'à retravailler'}`;
+  updScore();};
+function listenTarget(){if(!freq||freq.listens<=0)return;freq.listens--;
+  const t=actx.currentTime,g=freq.tGain.gain;g.cancelScheduledValues(t);
+  g.setValueAtTime(0.0001,t);g.exponentialRampToValueAtTime(0.09,t+0.04);
+  g.setValueAtTime(0.09,t+1.4);g.exponentialRampToValueAtTime(0.0001,t+1.75);
+  const b=$('freqListen');b.textContent=`🔊 Écouter la cible (${freq.listens})`;if(freq.listens<=0)b.disabled=true;}
+$('freqListen').onclick=listenTarget;
+$('freqGuessMute').onclick=()=>{if(!freq)return;const b=$('freqGuessMute');b.classList.toggle('off');freq.gGain.gain.value=b.classList.contains('off')?0:0.07;};
+
+$('greplay').onclick=()=>{if(game.mode==='ear')playNote(game.target);else if(game.mode==='intv')playInterval(game.root,game.iv);};
 $('gmode').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;game.mode=e.target.dataset.g;
   [...$('gmode').children].forEach(b=>b.classList.toggle('on',b===e.target));newQuestion();});
 $('newq').onclick=newQuestion;
-$('tuning').addEventListener('change',()=>{if($('v-jeu').classList.contains('show'))newQuestion();});
+$('vol').addEventListener('input',e=>{masterVol=e.target.value/100;if(master)master.gain.value=masterVol;});
+$('tuning').addEventListener('change',()=>{if($('v-jeu').classList.contains('show')&&(game.mode==='p2n'||game.mode==='n2p'))newQuestion();});
+
+/* ---------- CHALLENGE DU JOUR (seedé par la date) ---------- */
+const KIND={p2n:'Case → Note',n2p:'Note → Case',ear:'Son → Note',intv:'Intervalle',freq:'Fréquence'};
+const CSTD=[40,45,50,55,59,64]; // accordage standard fixe — mêmes exos pour tous
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function hashSeed(s){let h=1779033703^s.length;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function seededChoices(correct,pool,rnd,n=4){const set=new Set([correct]);while(set.size<n&&set.size<pool.length)set.add(pool[Math.floor(rnd()*pool.length)]);
+  const a=[...set];for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function genChallenge(seedStr){
+  const rnd=mulberry32(hashSeed(seedStr)),ri=n=>Math.floor(rnd()*n),NAMES=CHROMA.map(n=>FR[n]),exos=[];
+  for(let i=0;i<3;i++){const mode=ri(2)?'n2p':'p2n',Wf=4,Ws=2,f0=ri(GFRETS-Wf+1),s0=ri(6-Ws),s=s0+ri(Ws+1),f=f0+ri(Wf+1),pc=(CSTD[s]+f)%12;
+    const e={type:mode,f0,s0,Wf,Ws,s,f,pc};if(mode==='p2n')e.opts=seededChoices(FR[CHROMA[pc]],NAMES,rnd);exos.push(e);}
+  for(let i=0;i<3;i++){const midi=48+ri(25),pc=midi%12;exos.push({type:'ear',midi,pc,opts:seededChoices(FR[CHROMA[pc]],NAMES,rnd)});}
+  for(let i=0;i<2;i++){const root=48+ri(25),iv=INTERVALS[ri(INTERVALS.length)].s,correct=INTERVALS.find(x=>x.s===iv).name;
+    exos.push({type:'intv',root,iv,opts:seededChoices(correct,INTERVALS.map(x=>x.name),rnd)});}
+  for(let i=0;i<2;i++)exos.push({type:'freq',target:110*Math.pow(1046/110,rnd())});
+  for(let i=exos.length-1;i>0;i--){const j=ri(i+1);[exos[i],exos[j]]=[exos[j],exos[i]];}
+  return exos;
+}
+
+let chal=null;
+function showRk(s){$('rk-intro').style.display=s==='intro'?'':'none';$('rk-run').style.display=s==='run'?'':'none';$('rk-result').style.display=s==='result'?'':'none';}
+function rkEnter(){stopChalFreq();$('rankDate').textContent=`Défi du ${todayStr()} — les mêmes exercices pour tout le monde aujourd'hui.`;showRk('intro');}
+function startChallenge(){stopChalFreq();chal={exos:genChallenge(todayStr()),idx:0,score:0,results:[]};showRk('run');renderExo();}
+function grade(points){const e=chal.exos[chal.idx];chal.score+=points;chal.results.push({type:e.type,points});$('rkScore').textContent=`${chal.score} pts`;
+  setTimeout(()=>{chal.idx++;if(chal.idx>=chal.exos.length)finishChallenge();else renderExo();},950);}
+function finishChallenge(){stopChalFreq();showRk('result');
+  $('rkFinal').innerHTML=`Score : <b>${chal.score}</b> / ${chal.exos.length*100}`;
+  const bd=$('rkBreakdown');bd.innerHTML='';
+  chal.results.forEach((r,i)=>{const d=document.createElement('div');d.className='rk-bd';d.innerHTML=`<span>${i+1}. ${KIND[r.type]}</span><b>${r.points} pts</b>`;bd.appendChild(d);});}
+
+function renderExo(){
+  stopChalFreq();
+  const e=chal.exos[chal.idx];
+  $('rkProgress').textContent=`${chal.idx+1} / ${chal.exos.length}`;
+  $('rkScore').textContent=`${chal.score} pts`;$('rkKind').textContent=KIND[e.type];
+  const q=$('rkQuestion');q.innerHTML='';
+  if(e.type==='p2n'||e.type==='n2p')renderChalBoard(e,q);
+  else if(e.type==='ear')renderChalMC(q,'Quelle note entends-tu ?',e.opts,FR[CHROMA[e.pc]],()=>playNote(e.midi),e);
+  else if(e.type==='intv')renderChalMC(q,'Quel intervalle ?',e.opts,INTERVALS.find(x=>x.s===e.iv).name,()=>playInterval(e.root,e.iv),e);
+  else if(e.type==='freq')renderChalFreq(e,q);
+}
+function lbl(q,txt){const d=document.createElement('div');d.className='qbox';d.style.margin='4px 0 12px';d.innerHTML=txt;q.appendChild(d);return d;}
+
+function renderChalMC(q,question,opts,correct,playFn,e){
+  lbl(q,question);
+  const play=document.createElement('button');play.className='bigplay';play.textContent='🔊 Réécouter';play.onclick=playFn;q.appendChild(play);
+  const ans=document.createElement('div');ans.className='answers';ans.style.marginTop='14px';
+  opts.forEach(o=>{const b=document.createElement('button');b.className='ans';b.textContent=o;b.onclick=()=>{if(e._done)return;e._done=true;
+    [...ans.children].forEach(x=>{if(x.textContent===correct)x.style.borderColor='var(--hat)';else if(x===b)x.style.borderColor='var(--snare)';});
+    grade(o===correct?100:0);};ans.appendChild(b);});
+  q.appendChild(ans);playFn();
+}
+function renderChalBoard(e,q){
+  lbl(q,e.type==='p2n'?'Quelle note ? (case éclairée)':`Trouve un <b>${FR[CHROMA[e.pc]]}</b> dans la zone éclairée`);
+  const cols=GFRETS+1;
+  const wrap=document.createElement('div');wrap.style.overflowX='auto';wrap.style.overflowY='hidden';
+  const gb=document.createElement('div');gb.className='gboard';gb.style.maxWidth='none';gb.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;
+  const rows=[...Array(6).keys()].reverse();
+  rows.forEach(s=>{for(let f=0;f<=GFRETS;f++){
+    const inZone=s>=e.s0&&s<=e.s0+e.Ws&&f>=e.f0&&f<=e.f0+e.Wf;
+    const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'')+(inZone?' zone':' dim');
+    const st=document.createElement('div');st.className='gs';cell.appendChild(st);
+    if(e.type==='p2n'&&s===e.s&&f===e.f){const m=document.createElement('div');m.className='gmark q';m.textContent='?';cell.appendChild(m);}
+    if(e.type==='n2p'&&inZone)cell.onclick=()=>{if(e._done)return;e._done=true;const ok=(CSTD[s]+f)%12===e.pc;
+      const m=document.createElement('div');m.className='gmark '+(ok?'good':'bad');m.textContent=FR[CHROMA[(CSTD[s]+f)%12]];cell.appendChild(m);playNote(CSTD[s]+f);grade(ok?100:0);};
+    gb.appendChild(cell);}});
+  wrap.appendChild(gb);
+  const gf=document.createElement('div');gf.className='gfrets';gf.style.maxWidth='none';gf.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;
+  for(let f=0;f<=GFRETS;f++){const sp=document.createElement('span');sp.textContent=f;if(f>=e.f0&&f<=e.f0+e.Wf)sp.className='mark';gf.appendChild(sp);}
+  wrap.appendChild(gf);q.appendChild(wrap);
+  if(e.type==='p2n'){
+    const ans=document.createElement('div');ans.className='answers';ans.style.marginTop='14px';
+    e.opts.forEach(o=>{const b=document.createElement('button');b.className='ans';b.textContent=o;b.onclick=()=>{if(e._done)return;e._done=true;const correct=FR[CHROMA[e.pc]];
+      [...ans.children].forEach(x=>{if(x.textContent===correct)x.style.borderColor='var(--hat)';else if(x===b)x.style.borderColor='var(--snare)';});grade(o===correct?100:0);};ans.appendChild(b);});
+    q.appendChild(ans);playNote(CSTD[e.s]+e.f);
+  }
+  requestAnimationFrame(()=>{const cx=((e.f0+e.Wf/2+0.5)/cols)*gb.scrollWidth;wrap.scrollLeft=cx-wrap.clientWidth/2;});
+}
+
+let chalFreq=null;
+function stopChalFreq(){if(!chalFreq)return;cancelAnimationFrame(chalFreq.raf);try{chalFreq.tOsc.stop();chalFreq.gOsc.stop();}catch(e){}try{chalFreq.an.disconnect();}catch(e){}chalFreq=null;}
+function renderChalFreq(e,q){
+  lbl(q,'Accorde-toi sur le son cible, puis valide');
+  const cv=document.createElement('canvas');cv.className='spectrum';cv.width=680;cv.height=150;q.appendChild(cv);
+  const ctl=document.createElement('div');ctl.className='freqctrl';ctl.style.marginTop='14px';
+  ctl.innerHTML='<label>Ta fréquence — <span class="val"></span></label><input type="range" min="0" max="1000" value="500">';q.appendChild(ctl);
+  const hz=ctl.querySelector('.val'),sl=ctl.querySelector('input');
+  const row=document.createElement('div');row.className='freqrow';row.style.marginTop='14px';
+  row.innerHTML='<button class="mut" data-r="listen">🔊 Écouter la cible (3)</button><button class="btn" data-r="val">Valider</button>';q.appendChild(row);
+  const listenB=row.querySelector('[data-r=listen]'),valB=row.querySelector('[data-r=val]');
+  const c=ctx(),an=c.createAnalyser();an.fftSize=8192;an.smoothingTimeConstant=0.75;an.connect(master);
+  const tOsc=c.createOscillator(),tGain=c.createGain();tOsc.type='sine';tGain.gain.value=0.0001;tOsc.connect(tGain);tGain.connect(master);tOsc.frequency.value=e.target;
+  const gOsc=c.createOscillator(),gGain=c.createGain();gOsc.type='sine';gGain.gain.value=0.07;gOsc.connect(gGain);gGain.connect(an);
+  const gf=sliderToFreq(+sl.value);gOsc.frequency.value=gf;hz.textContent=Math.round(gf)+' Hz';
+  tOsc.start();gOsc.start();
+  chalFreq={an,tOsc,tGain,gOsc,gGain,target:e.target,buf:new Uint8Array(an.frequencyBinCount),raf:null,listens:3,cv};
+  sl.oninput=()=>{if(!chalFreq)return;const f=sliderToFreq(+sl.value);gOsc.frequency.value=f;hz.textContent=Math.round(f)+' Hz';};
+  listenB.onclick=()=>{if(!chalFreq||chalFreq.listens<=0)return;chalFreq.listens--;const t=actx.currentTime,g=tGain.gain;
+    g.cancelScheduledValues(t);g.setValueAtTime(0.0001,t);g.exponentialRampToValueAtTime(0.09,t+0.04);g.setValueAtTime(0.09,t+1.4);g.exponentialRampToValueAtTime(0.0001,t+1.75);
+    listenB.textContent=`🔊 Écouter la cible (${chalFreq.listens})`;if(chalFreq.listens<=0)listenB.disabled=true;};
+  valB.onclick=()=>{if(!chalFreq||e._done)return;e._done=true;const cents=1200*Math.log2(gOsc.frequency.value/e.target),pts=Math.max(0,Math.round(100-Math.max(0,Math.abs(cents)-10)*0.9));
+    const r=document.createElement('div');r.className='freqresult';r.style.marginTop='12px';r.innerHTML=`Cible : <b>${Math.round(e.target)} Hz</b> · écart <b>${cents>0?'+':''}${Math.round(cents)} cents</b> — <b>${pts} pts</b>`;q.appendChild(r);
+    stopChalFreq();grade(pts);};
+  drawChalSpectrum();
+}
+function drawChalSpectrum(){if(!chalFreq)return;const cv=chalFreq.cv,x=cv.getContext('2d'),W=cv.width,H=cv.height;chalFreq.an.getByteFrequencyData(chalFreq.buf);
+  x.fillStyle='#0e0c0a';x.fillRect(0,0,W,H);const bins=chalFreq.buf.length,nyq=actx.sampleRate/2,lo=110/1.3,hi=1046*1.3,lg=Math.log(hi/lo);
+  x.fillStyle='rgba(255,157,60,.85)';for(let px=0;px<W;px++){const f=lo*Math.exp(lg*px/W),bin=Math.round(f/nyq*bins),v=bin<bins?chalFreq.buf[bin]/255:0;x.fillRect(px,H-v*v*H,1,v*v*H);}
+  const gx=W*Math.log(chalFreq.gOsc.frequency.value/lo)/lg;x.strokeStyle='#5fb0a5';x.lineWidth=2;x.beginPath();x.moveTo(gx,0);x.lineTo(gx,H);x.stroke();
+  chalFreq.raf=requestAnimationFrame(drawChalSpectrum);}
+
+$('rkStart').onclick=startChallenge;
+$('rkAgain').onclick=startChallenge;
 
 /* ---------- MÉTRONOME ---------- */
 const CYCLE=['off','kick','snare','hihat','click'];
