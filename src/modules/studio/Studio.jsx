@@ -1,4 +1,5 @@
 import { useRoute, navigate, segments } from '../../core/router.js'
+import PersonaBg from '../../components/PersonaBg.jsx'
 import FrometonsGame from '../games/frometons/FrometonsGame.jsx'
 
 // Combined "Jeux & Outils" hub. Everything interactive lives here, one click away.
@@ -150,11 +151,7 @@ export default function Studio() {
 
   return (
     <div className="studio">
-      <div className="studio-bg" aria-hidden="true">
-        <span className="studio-bar b1" />
-        <span className="studio-bar b2" />
-        <span className="studio-bar b3" />
-      </div>
+      <PersonaBg label="ATELIER" />
       <div className="studio-inner">
         <div className="module-sub">JEUX &amp; OUTILS</div>
         <h1 className="module-head">L'Atelier</h1>

@@ -1,13 +1,39 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Accueil = the launcher itself. Identity (name, portrait) on the left, the
 // modules as the headline list, the CV / contact smaller below. No Press Start.
 export default function Menu({ modules, onSelect }) {
   const [shown, setShown] = useState(false)
+  const heroRef = useRef(null)
 
   useEffect(() => {
     const t = setTimeout(() => setShown(true), 20)
     return () => clearTimeout(t)
+  }, [])
+
+  // Parallax léger : la position de la souris pilote --px / --py (lus par le CSS).
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let raf = 0
+    const onMove = (e) => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        el.style.setProperty('--px', ((e.clientX / window.innerWidth - 0.5) * 2).toFixed(3))
+        el.style.setProperty('--py', ((e.clientY / window.innerHeight - 0.5) * 2).toFixed(3))
+      })
+    }
+    const reset = () => {
+      el.style.setProperty('--px', '0')
+      el.style.setProperty('--py', '0')
+    }
+    window.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseleave', reset)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseleave', reset)
+    }
   }, [])
 
   const primary = modules.filter((m) => m.group !== 'about')
@@ -29,10 +55,12 @@ export default function Menu({ modules, onSelect }) {
   )
 
   return (
-    <section className="hero accueil">
+    <section className="hero accueil" ref={heroRef}>
       <div className="stripes" />
       <div className="halftone" />
       <div className="red-slab" />
+      <span className="persona-bar b1" />
+      <span className="persona-bar b2" />
 
       <div className="portrait-wrap">
         <img className="portrait" src="/assets/images/marius_profile.png" alt="Marius Piris" />
