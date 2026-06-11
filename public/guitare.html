@@ -67,8 +67,10 @@
   .neckrow{display:flex;align-items:stretch;gap:5px;}
   .strnames{display:flex;flex-direction:column;padding-top:14px;}
   .strnames span{flex:1;display:flex;align-items:center;justify-content:flex-end;width:26px;font-size:11px;color:var(--muted);}
-  .neck{flex:1;container-type:inline-size;background:linear-gradient(180deg,#221c16,var(--board));
-    border:1px solid var(--board-edge);border-radius:12px;padding:14px 8px 4px;box-shadow:inset 0 1px 0 #312a22;}
+  .neck{flex:1;min-width:0;container-type:inline-size;background:linear-gradient(180deg,#221c16,var(--board));
+    border:1px solid var(--board-edge);border-radius:12px;padding:14px 8px 4px;box-shadow:inset 0 1px 0 #312a22;
+    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--wire) transparent;}
+  .neck::-webkit-scrollbar{height:7px;} .neck::-webkit-scrollbar-thumb{background:var(--wire);border-radius:4px;}
   .board{position:relative;display:grid;width:100%;}
   .cell{position:relative;height:clamp(26px,5.2cqw,46px);display:flex;align-items:center;justify-content:center;border-right:2px solid var(--wire);}
   .cell.open{border-right:4px solid var(--text);}
@@ -142,6 +144,30 @@
   input[type=range]{width:100%;accent-color:var(--tonic);}
   .palette{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center;}
   .palette i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-2px;margin-right:5px;}
+
+  /* ---------- MOBILE ---------- */
+  @media (max-width:600px){
+    .wrap{padding:0 12px 80px;}
+    h1{font-size:clamp(30px,11vw,46px);}
+    h2{font-size:25px;}
+    .lead{font-size:12.5px;}
+    .bar{gap:9px;padding:10px 13px;}
+    .brand{font-size:19px;}
+    .ctxbar{margin-left:0;width:100%;gap:8px;}
+    .ctxbar .field{flex:1;min-width:0;}
+    .ctxbar select{width:100%;padding:8px 28px 8px 10px;}
+    main{padding-top:16px;}
+    .cards{grid-template-columns:1fr 1fr;gap:10px;}
+    .card{padding:15px 14px;border-radius:13px;}
+    .card .ic{font-size:22px;} .card .t{font-size:18px;margin:8px 0 3px;} .card .d{font-size:11.5px;}
+    .strnames span{width:19px;font-size:10px;}
+    .legend{gap:10px 14px;font-size:11px;}
+    .readout{margin-left:0;}
+    .diagrams{gap:14px;}
+    .metro-wrap{gap:16px;}
+    .ans{padding:10px 16px;font-size:14px;}
+    .game-top{gap:10px;}
+  }
 </style>
 </head>
 <body>
@@ -282,6 +308,8 @@ $('root').value='C';$('mode').value='ionien';$('droot').value='C';$('dtype').val
 /* ---------- NAVIGATION ---------- */
 const VIEWS=['v-manche','v-accords','v-jeu','v-guide','v-metro'];
 const CTX_VIEWS=['v-manche','v-accords','v-jeu','v-guide'];
+const HASH2VIEW={manche:'v-manche',accords:'v-accords',jeu:'v-jeu',guide:'v-guide',metro:'v-metro'};
+const VIEW2HASH={'v-manche':'manche','v-accords':'accords','v-jeu':'jeu','v-guide':'guide','v-metro':'metro'};
 const CARDS=[
   {v:'v-manche',ic:'🎸',t:'Manche & modes',d:'Visualise les notes du mode sur tout le manche. Clique pour entendre.'},
   {v:'v-accords',ic:'🎼',t:'Accords & doigtés',d:'Les accords de la tonalité (I, ii, iii…) + le placement des doigts.'},
@@ -292,7 +320,7 @@ const CARDS=[
 const cardsEl=$('cards');
 CARDS.forEach(c=>{const b=document.createElement('button');b.className='card';
   b.innerHTML=`<div class="ic">${c.ic}</div><div class="t">${c.t}</div><div class="d">${c.d}</div>`;
-  b.onclick=()=>show(c.v);cardsEl.appendChild(b);});
+  b.onclick=()=>{location.hash=VIEW2HASH[c.v];};cardsEl.appendChild(b);});
 function show(v){
   $('home').classList.remove('show');
   VIEWS.forEach(id=>$(id).classList.toggle('show',id===v));
@@ -303,8 +331,12 @@ function show(v){
   window.scrollTo(0,0);
 }
 function home(){VIEWS.forEach(id=>$(id).classList.remove('show'));$('home').classList.add('show');$('ctxbar').classList.add('hidden');window.scrollTo(0,0);}
-document.querySelectorAll('[data-home]').forEach(b=>b.onclick=home);
-$('brand').onclick=home;
+// Hash router: each view = a history entry, so the browser back/forward arrows work.
+function applyRoute(){const h=location.hash.replace(/^#\/?/,'');const v=HASH2VIEW[h];if(v)show(v);else home();}
+const goHome=()=>{if(location.hash)location.hash='';else home();};
+document.querySelectorAll('[data-home]').forEach(b=>b.onclick=goHome);
+$('brand').onclick=goHome;
+window.addEventListener('hashchange',applyRoute);
 
 /* ---------- AUDIO ---------- */
 let actx=null,master=null,noiseBuf=null;
@@ -359,7 +391,7 @@ function render(){
     const c=document.createElement('span');c.className='chip'+(half?' half':'');c.textContent=half?'½':'T';fbox.appendChild(c);}
 
   const cols=FRETS+1;
-  const board=$('board');board.style.gridTemplateColumns=`repeat(${cols},1fr)`;board.innerHTML='';
+  const board=$('board');board.style.gridTemplateColumns=`repeat(${cols},minmax(30px,1fr))`;board.innerHTML='';
   const rowsMidi=[...tun].reverse();
   $('strnames').innerHTML='';
   rowsMidi.forEach(m=>{const s=document.createElement('span');s.textContent=FR[CHROMA[m%12]];$('strnames').appendChild(s);});
@@ -378,7 +410,7 @@ function render(){
   MARKERS.forEach(f=>{const x=(f+0.5)/cols*100;
     const add=y=>{const i=document.createElement('div');i.className='inlay';i.style.left=x+'%';i.style.top=y;board.appendChild(i);};
     if(DOUBLE.includes(f)){add('30%');add('70%');}else add('50%');});
-  const fn=$('fretnums');fn.style.gridTemplateColumns=`repeat(${cols},1fr)`;fn.innerHTML='';
+  const fn=$('fretnums');fn.style.gridTemplateColumns=`repeat(${cols},minmax(30px,1fr))`;fn.innerHTML='';
   for(let f=0;f<=FRETS;f++){const s=document.createElement('span');s.textContent=f;if(MARKERS.includes(f))s.className='mark';fn.appendChild(s);}
 
   buildChords(rootIdx,mode);
@@ -488,7 +520,7 @@ function newQuestion(){
   renderGame();
 }
 function renderGame(){
-  const cols=GFRETS+1;const gb=$('gboard');gb.style.gridTemplateColumns=`repeat(${cols},1fr)`;gb.innerHTML='';
+  const cols=GFRETS+1;const gb=$('gboard');gb.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;gb.innerHTML='';
   const rows=[...Array(6).keys()].reverse();
   rows.forEach(s=>{for(let f=0;f<=GFRETS;f++){
     const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'');
@@ -496,7 +528,7 @@ function renderGame(){
     if(game.mode==='p2n'&&s===game.s&&f===game.f){const m=document.createElement('div');m.className='gmark q';m.textContent='?';cell.appendChild(m);}
     if(game.mode==='n2p'){cell.onclick=()=>answerCell(s,f,cell);}
     gb.appendChild(cell);}});
-  const gf=$('gfrets');gf.style.gridTemplateColumns=`repeat(${cols},1fr)`;gf.innerHTML='';
+  const gf=$('gfrets');gf.style.gridTemplateColumns=`repeat(${cols},minmax(34px,1fr))`;gf.innerHTML='';
   for(let f=0;f<=GFRETS;f++){const sp=document.createElement('span');sp.textContent=f;gf.appendChild(sp);}
   const ans=$('answers');ans.innerHTML='';
   if(game.mode==='p2n'){$('qbox').innerHTML='Quelle note ?';
@@ -556,7 +588,7 @@ $('steps').addEventListener('input',e=>{metro.steps=+e.target.value;$('stepsv').
 window.addEventListener('resize',positionRing);
 
 /* init */
-render();buildRing();
+render();buildRing();applyRoute();
 </script>
 </body>
 </html>
