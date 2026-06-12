@@ -1306,6 +1306,9 @@ body {
 .studio {
   position: relative;
   min-height: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(16px, 2.5vw, 34px);
 }
 /* fond animé : composant <PersonaBg label="ATELIER" /> (.persona-bg / .persona-bar) */
 /* keyframes partagées par PersonaBg (halftone qui dérive + barres qui balaient) */
@@ -1319,7 +1322,46 @@ body {
 .studio-inner {
   position: relative;
   z-index: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
+.studio .kw-band { z-index: 1; }
+
+/* pixels/braises qui montent en fond — remplit le vide, ambiance arcade */
+.studio-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.studio-fx span {
+  position: absolute;
+  bottom: -24px;
+  border-radius: 1px;
+  background: var(--red);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation-name: fxRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.studio-fx span:nth-child(3n) { background: var(--cream); }
+@keyframes fxRise {
+  0% { transform: translateY(0); opacity: 0; }
+  12% { opacity: 0.5; }
+  88% { opacity: 0.5; }
+  100% { transform: translateY(-112vh); opacity: 0; }
+}
+
+/* curseur d'arcade clignotant après le titre */
+.studio .module-head::after {
+  content: '_';
+  color: var(--red);
+  margin-left: 0.06em;
+  animation: blink 1.05s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
 
 .studio-strips {
   display: flex;
@@ -1575,10 +1617,31 @@ body {
   align-items: center;
   margin-top: 18px;
 }
-.roster-head .module-sub { margin: 0; }
-.roster-head .module-sub:first-of-type { justify-self: end; }
-.roster-head .module-sub:last-of-type { justify-self: start; }
+.roster-head .roster-title:first-of-type { justify-self: end; }
+.roster-head .roster-title:last-of-type { justify-self: start; }
 .roster-head-sep { width: 2px; margin: 0 44px; } /* matches .roster-sep footprint */
+/* labels Jeux / Outils mis en valeur : gros titre angulaire + compteur rouge */
+.roster-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(18px, 2.1vw, 26px);
+  letter-spacing: 0.03em;
+  color: var(--cream);
+  transform: skewX(-6deg);
+}
+.roster-title i {
+  font-style: normal;
+  font-family: 'Anton', sans-serif;
+  font-size: 13px;
+  background: var(--red);
+  color: #fff;
+  border-radius: 6px;
+  padding: 3px 9px 1px;
+  transform: skewX(6deg);
+}
 /* libellé de carrousel (mobile uniquement) */
 .carlabel {
   display: none;
@@ -1647,7 +1710,23 @@ body {
   background-position: center;
   overflow: hidden;
   transform: skewX(-8deg);
+  /* Ken Burns : zoom/pan lent et continu (le skew est conservé dans les keyframes) */
+  animation: kbJeu 16s ease-in-out infinite;
 }
+.rpanel.outil .rpanel-media { animation-name: kbOutil; }
+@keyframes kbJeu {
+  0%, 100% { transform: skewX(-8deg) scale(1.03); }
+  50% { transform: skewX(-8deg) scale(1.14) translate(1.5%, -1.5%); }
+}
+@keyframes kbOutil {
+  0%, 100% { transform: skewX(8deg) scale(1.03); }
+  50% { transform: skewX(8deg) scale(1.14) translate(-1.5%, -1.5%); }
+}
+/* décalage par panneau pour que les zooms ne soient pas synchrones */
+.roster-side .rpanel:nth-child(2) .rpanel-media { animation-delay: -5s; }
+.roster-side .rpanel:nth-child(3) .rpanel-media { animation-delay: -10s; }
+.roster-side .rpanel:nth-child(4) .rpanel-media { animation-delay: -3s; }
+.roster-side .rpanel:nth-child(5) .rpanel-media { animation-delay: -8s; }
 .rpanel.outil .rpanel-media { transform: skewX(8deg); }
 .rpanel-media.noimg {
   background-image: radial-gradient(70% 60% at 50% 42%, rgba(236, 0, 22, 0.3), transparent 60%),
@@ -1744,6 +1823,7 @@ body {
   /* en-tête de page compact pour laisser la place aux 2 carrousels */
   .studio-inner > .module-sub { font-size: 10px; }
   .studio-inner > .module-head { font-size: 30px; margin-bottom: 8px; }
+  .studio-fx { display: none; } /* perf mobile */
 
   /* deux carrousels empilés (Jeux, puis Outils) */
   .roster { grid-template-columns: 1fr; }
@@ -1776,7 +1856,7 @@ body {
   .rpanel:hover,
   .rpanel.outil:hover { transform: none; }
   .rpanel { width: 162px; flex: 0 0 162px; height: 304px; scroll-snap-align: start; }
-  .rpanel-media { transform: none; left: 0; width: 100%; height: 116px; }
+  .rpanel-media { transform: none; left: 0; width: 100%; height: 116px; animation: none; }
   .rpanel.outil .rpanel-media { transform: none; }
   .rpanel-num { font-size: 22px; top: 7px; }
   .rpanel-body { margin-top: -8px; padding: 0 13px 12px; }

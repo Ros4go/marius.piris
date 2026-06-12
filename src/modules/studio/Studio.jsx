@@ -2,6 +2,23 @@ import { useRoute, navigate, segments } from '../../core/router.js'
 import PersonaBg from '../../components/PersonaBg.jsx'
 import FrometonsGame from '../games/frometons/FrometonsGame.jsx'
 
+// Mots défilants de la bande verticale (droite) — ambiance arcade / catalogue.
+const ATELIER_WORDS = [
+  'Arcade', 'Jouer', 'Frometons', 'Neuvième Vie', 'Pot of Greed', 'Super Sushi',
+  'MarousFive', 'Idle', 'Plateforme', 'Rogue-lite', 'Rythme', 'Guitare',
+  'Unity', 'Godot', 'itch.io', 'High Score', 'Combo', 'Insert Coin',
+]
+
+// Pixels/braises qui montent en fond (ambiance arcade) — positions/vitesses fixes.
+const FX = [
+  { l: 6, s: 5, d: 13, t: 0 }, { l: 14, s: 7, d: 17, t: -4 }, { l: 22, s: 4, d: 11, t: -8 },
+  { l: 31, s: 6, d: 15, t: -2 }, { l: 42, s: 5, d: 19, t: -10 }, { l: 53, s: 8, d: 14, t: -6 },
+  { l: 61, s: 4, d: 12, t: -3 }, { l: 69, s: 6, d: 18, t: -9 }, { l: 77, s: 5, d: 16, t: -1 },
+  { l: 85, s: 7, d: 13, t: -7 }, { l: 92, s: 4, d: 20, t: -5 }, { l: 38, s: 4, d: 21, t: -13 },
+  { l: 48, s: 6, d: 12, t: -11 }, { l: 18, s: 5, d: 22, t: -15 }, { l: 64, s: 5, d: 17, t: -14 },
+  { l: 8, s: 6, d: 19, t: -12 },
+]
+
 // Combined "Jeux & Outils" hub. Everything interactive lives here, one click away.
 //
 // AJOUTER UN MODULE : une entrée dans CATALOG suffit.
@@ -108,9 +125,9 @@ function Roster({ jeux, outils }) {
   return (
     <div>
       <div className="roster-head">
-        <span className="module-sub">Jeux</span>
+        <span className="roster-title">🎮 Jeux<i>{jeux.length}</i></span>
         <span className="roster-head-sep" aria-hidden="true" />
-        <span className="module-sub">Outils</span>
+        <span className="roster-title">🛠️ Outils<i>{outils.length}</i></span>
       </div>
       <div className="roster">
         <span className="carlabel" aria-hidden="true">Jeux</span>
@@ -153,7 +170,15 @@ export default function Studio() {
 
   return (
     <div className="studio">
-      <PersonaBg label="ATELIER" />
+      <PersonaBg />
+      <div className="studio-fx" aria-hidden="true">
+        {FX.map((p, i) => (
+          <span
+            key={i}
+            style={{ left: p.l + '%', width: p.s, height: p.s, animationDuration: p.d + 's', animationDelay: p.t + 's' }}
+          />
+        ))}
+      </div>
       <div className="studio-inner">
         <div className="module-sub">JEUX &amp; OUTILS</div>
         <h1 className="module-head">L'Atelier</h1>
@@ -162,6 +187,13 @@ export default function Studio() {
           outils={CATALOG.filter((i) => i.cat === 'outil')}
         />
       </div>
+      <aside className="kw-band" aria-hidden="true">
+        <div className="kw-track">
+          {ATELIER_WORDS.concat(ATELIER_WORDS).map((w, i) => (
+            <span key={i}>{w}</span>
+          ))}
+        </div>
+      </aside>
     </div>
   )
 }
