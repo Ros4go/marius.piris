@@ -132,6 +132,14 @@ export const projects = [
 
 export const experiences = [
   {
+    title: 'Développeur de jeux (alternance)',
+    company: 'STUDIO ORACLE',
+    duration: 'sept. 2025 - août 2027 · alternance',
+    description:
+      "Alternance en développement de jeux vidéo chez Studio Oracle, en parallèle de ma formation Game Programming à ISART Digital Paris. Développement sous Unity (C#), conception et implémentation de mécaniques de jeu, et participation à la production.",
+    skills: ['Unity', 'C#', 'C', 'Conception de jeux', 'Production de jeux vidéos', 'Game Design'],
+  },
+  {
     title: 'Développeur Unity 3D',
     company: 'STUDIO ORACLE',
     duration: 'févr. 2025 - mars 2025 · 2 mois',
@@ -169,7 +177,7 @@ export const formations = [
   {
     title: 'RNCP7, Game Programming',
     school: 'ISART DIGITAL Paris',
-    duration: 'sept. 2024 - juil. 2026',
+    duration: 'sept. 2024 - juil. 2027',
     level: 'BAC +5',
     skills: [
       'Unity', 'Unreal Engine', 'Godot',
@@ -195,7 +203,7 @@ export const formations = [
   {
     title: 'Réorientation',
     school: 'Polytech Nice Sophia',
-    duration: '2020 - 2021',
+    duration: 'sept. 2020 - 2021',
     level: 'N/A',
     skills: ['Optique', 'Mécanique', 'Programmation orientée objet (POO)', 'Programmation', 'Modélisation 3D', 'Mathématiques', 'Python'],
   },

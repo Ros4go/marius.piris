@@ -20,9 +20,19 @@ const periodShort = (s) => {
   const a = Math.min(...y), b = Math.max(...y)
   return a === b ? String(a) : `${a}–${String(b).slice(2)}`
 }
-const sortYear = (s) => {
-  const y = yearsOf(s)
-  return y.length ? Math.max(...y) : 0
+// Clé de tri = date de DÉBUT (mois + année), pour ordonner la timeline chronologiquement.
+const MONTHS = { janv: 0, 'févr': 1, fevr: 1, mars: 2, avr: 3, mai: 4, juin: 5, juil: 6, 'août': 7, aout: 7, sept: 8, oct: 9, nov: 10, 'déc': 11, dec: 11 }
+const startKey = (s) => {
+  const m = s.match(/(janv|févr|fevr|mars|avr|mai|juin|juil|août|aout|sept|oct|nov|déc|dec)\.?\s+(\d{4})/i)
+  if (m) return parseInt(m[2], 10) * 12 + (MONTHS[m[1].toLowerCase()] ?? 0)
+  const y = s.match(/\d{4}/)
+  return y ? parseInt(y[0], 10) * 12 : 0
+}
+
+// Extrait lisible d'une description HTML (balises retirées, tronqué).
+const excerpt = (html, n = 145) => {
+  const t = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '…' : t
 }
 
 // Single-page résumé: everything visible at a glance. Projects & experiences
@@ -31,11 +41,11 @@ export default function Portfolio() {
   const [project, setProject] = useState(null)
   const [experience, setExperience] = useState(null)
 
-  // Expériences + formations fusionnées, triées du plus récent au plus ancien.
+  // Expériences + formations fusionnées, triées par date de DÉBUT (plus récent commencé en haut).
   const timeline = [
     ...experiences.map((e) => ({ ...e, kind: 'xp' })),
     ...formations.map((f) => ({ ...f, kind: 'edu' })),
-  ].sort((a, b) => sortYear(b.duration) - sortYear(a.duration))
+  ].sort((a, b) => startKey(b.duration) - startKey(a.duration))
 
   return (
     <div className="resume">
@@ -138,6 +148,7 @@ export default function Portfolio() {
                 />
                 <div className="p-2">
                   <h3 className="text-sm">{proj.title}</h3>
+                  <p className="proj-desc">{excerpt(proj.description)}</p>
                   <div className="mt-1">
                     {proj.skills.slice(0, 3).map((s) => (
                       <span key={s} className="chip">
