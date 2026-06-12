@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 // Auto-rotating image carousel used inside the project modal.
 function ImageCarousel({ images, interval = 4000 }) {
@@ -62,7 +63,7 @@ export default function GenericModal({ item, onClose, type }) {
   const videoButtonThumbnail =
     images && images.length > 0 ? images[0] : 'https://placehold.co/100x100/6B7280/FFFFFF?text=Vidéo'
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-4 animate-fade-in"
       onClick={(e) => {
@@ -148,6 +149,7 @@ export default function GenericModal({ item, onClose, type }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -113,12 +113,14 @@ function Roster({ jeux, outils }) {
         <span className="module-sub">Outils</span>
       </div>
       <div className="roster">
+        <span className="carlabel" aria-hidden="true">Jeux</span>
         <div className="roster-side roster-jeux">
           {jeux.map((it, i) => (
             <Panel key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
           ))}
         </div>
         <div className="roster-sep" aria-hidden="true" />
+        <span className="carlabel" aria-hidden="true">Outils</span>
         <div className="roster-side roster-outils">
           {outils.map((it, i) => (
             <Panel key={it.id} item={it} num={String(i + 1).padStart(2, '0')} />
