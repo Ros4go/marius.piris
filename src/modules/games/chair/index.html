@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="chair-base" content="/src/modules/games/chair">
+  <title>CHAIR</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/scene.css">
+  <link rel="stylesheet" href="styles/hud.css">
+</head>
+<body>
+
+<!-- Portrait warning -->
+<div class="rotate">
+  <div>
+    <span style="font-size:2.2rem">⟳</span><br>
+    pivote ton téléphone<br>
+    <em>CHAIR se joue en paysage</em>
+  </div>
+</div>
+
+<div class="game" id="chair-app" data-biome="gorge">
+  <!-- Grain + heartpulse overlays -->
+  <div class="grain" aria-hidden="true"></div>
+  <div class="heartpulse" aria-hidden="true"></div>
+  <!-- Corner marks -->
+  <span class="fc tl" aria-hidden="true">✛</span>
+  <span class="fc tr" aria-hidden="true">✛</span>
+  <span class="fc bl" aria-hidden="true">✛</span>
+  <span class="fc br" aria-hidden="true">✛</span>
+
+  <!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
+  <header class="game-h">
+    <span class="title"><em>☩ </em>C H A I R<b> †</b></span>
+    <span class="hdo" aria-hidden="true"></span>
+    <span class="loc" id="hud-floor">LA GORGE · ÉTAGE <b>1</b> · TICK <b>0</b> · HUMANITÉ <b>▓▓▓▓▓</b></span>
+    <span class="hctl" style="position:relative">
+      <button id="settings-btn" aria-pressed="false" title="réglages">⚙</button>
+      <button id="save-btn" title="Exporter la sauvegarde (JSON)">⇩ SAVE</button>
+      <button id="import-btn" title="Importer une sauvegarde">⇧</button>
+      <div class="menu panel" id="settings-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:60;width:200px">
+        <h3><i>⚙</i> Réglages</h3>
+        <div style="font:.6rem var(--mono);color:#6a5d48;padding:6px 2px">son <button id="sound-toggle" style="font:.56rem var(--mono);background:#0b0807;color:#6a5d48;border:1px solid #2a1f14;padding:2px 7px;cursor:pointer;margin-left:4px">off</button></div>
+      </div>
+    </span>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none">
+  </header>
+
+  <!-- ══ COLONNE GAUCHE — Besace + Carte ═════════════════════════════════════ -->
+  <aside class="col-l">
+
+    <!-- Besace (2×3 inventory grid, 6 cells) -->
+    <div class="panel">
+      <h3><i>❖</i> Besace</h3>
+      <div class="inv" id="inventory-grid">
+        <!-- 12 cells: 0-1 base, 2-3 bras gauche, 4-5 bras droit, 6-11 verrouillés -->
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+      </div>
+      <div class="suture" style="margin:9px 0 7px"></div>
+      <div class="counters">
+        <span>viande &nbsp;<b id="val-gold">0</b></span>
+        <span>torches <span id="val-torches"><b>▮▮▮</b><span class="dim">▮▮</span></span></span>
+        <span>faim &nbsp;&nbsp;<span id="val-satiete"><b>▓▓▓</b><span class="dim">▓▓</span></span></span>
+      </div>
+      <div id="relic-list" style="display:none"></div>
+    </div>
+
+    <!-- Carte (CSS-grid minimap) -->
+    <div class="panel grow">
+      <h3><i>✠</i> Carte</h3>
+      <div class="map-wrap">
+        <span class="compass" id="compass-dir">N ▴</span>
+        <div class="map" id="minimap-grid">
+          <!-- .mc cells rendered by MinimapRenderer -->
+        </div>
+        <div class="maplegend">
+          <span>▲ toi</span>
+          <span class="le">◌ entendu</span>
+          <span>▒ deviné</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══ CENTRE — Viewport + Log + Room panel ════════════════════════════════ -->
+  <main class="center">
+
+    <!-- First-person viewport -->
+    <div class="viewport">
+      <div class="scene" id="scene">
+        <!-- Corridor geometry -->
+        <div class="geo g-ceil" id="scene-ceil"></div>
+        <div class="geo g-floor" id="scene-floor"></div>
+        <div class="geo g-wl"   id="scene-wl"></div>
+        <div class="geo g-wr"   id="scene-wr"></div>
+        <div class="g-end"      id="scene-end"></div>
+        <!-- Rib arches -->
+        <div class="rib rib1" aria-hidden="true"></div>
+        <div class="rib rib2" aria-hidden="true"></div>
+        <div class="rib rib3" aria-hidden="true"></div>
+        <!-- Mob silhouette (dynamic, managed by MobRenderer) -->
+        <div class="creature" id="mob-display">
+          <div class="c-mass"></div>
+          <div class="c-eye l"></div>
+          <div class="c-eye r"></div>
+        </div>
+        <!-- Ambiance -->
+        <div class="torchlight" aria-hidden="true"></div>
+        <div class="darkness"   aria-hidden="true"></div>
+        <!-- Eye blind body-fx overlays (right eye / left eye) -->
+        <div class="eyeblind"   id="body-fx"    aria-hidden="true"></div>
+        <div class="eyeblind-l" aria-hidden="true"></div>
+        <!-- NPC figure (merchant / seamstress / etc.) — managed by RoomPanel -->
+        <div id="npc-figure" aria-hidden="true"></div>
+      </div>
+
+      <!-- Enemy overlay (shown in combat) -->
+      <div class="foe" id="foe-panel">
+        <div class="foe-name" id="foe-name"></div>
+        <div class="segbar"   id="foe-seg"></div>
+        <div class="foe-intent" id="foe-intent"></div>
+      </div>
+
+      <!-- Room-specific overlay (trade / graft / altar / rest / puzzle / pathchoice) -->
+      <div id="room-panel"></div>
+
+      <!-- La Ligne (sound visualizer canvas) -->
+      <div class="soundline" aria-label="La Ligne sonore">
+        <canvas id="slc"></canvas>
+        <div class="sl-axis" aria-hidden="true">
+          <span>◄ G</span><span>FACE</span><span>D ►</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Combat / event log -->
+    <div class="log" id="combat-log" aria-live="polite" aria-atomic="false"></div>
+
+  </main>
+
+  <!-- ══ COLONNE DROITE — Ton corps + Inspection ═════════════════════════════ -->
+  <aside class="col-r">
+
+    <!-- Ton corps (player body map) -->
+    <div class="panel">
+      <h3><i>†</i> Ton corps</h3>
+      <div class="body-wrap">
+        <div class="silh">
+          <div class="s-head"></div>
+          <div class="s-torso"></div>
+          <div class="s-arm l"></div>
+          <div class="s-arm r"></div>
+          <div class="s-leg l"></div>
+          <div class="s-leg r"></div>
+          <!-- Slot dots (positions match the 84×160 silhouette at scale .7) -->
+          <span class="slotdot on"       data-slot="brain"   title="cerveau"    style="left:37px;top:1px"></span>
+          <span class="slotdot"          data-slot="eye_l"   title="œil g."     style="left:26px;top:11px"></span>
+          <span class="slotdot"          data-slot="eye_r"   title="œil d."     style="left:48px;top:11px"></span>
+          <span class="slotdot on"       data-slot="ear_l"   title="oreille g." style="left:15px;top:14px"></span>
+          <span class="slotdot on"       data-slot="ear_r"   title="oreille d." style="left:59px;top:14px"></span>
+          <span class="slotdot on"       data-slot="tongue"  title="langue"     style="left:37px;top:22px"></span>
+          <span class="slotdot on heartdot" data-slot="heart" title="cœur"     style="left:30px;top:44px"></span>
+          <span class="slotdot on"       data-slot="skin"    title="peau"       style="left:56px;top:52px"></span>
+          <span class="slotdot on"       data-slot="stomach" title="estomac"    style="left:44px;top:60px"></span>
+          <span class="slotdot on"       data-slot="arm_l"   title="bras g."    style="left:6px;top:48px"></span>
+          <span class="slotdot on"       data-slot="arm_r"   title="bras d."    style="left:68px;top:48px"></span>
+          <span class="slotdot on"       data-slot="legs"    title="jambes"     style="left:37px;top:108px"></span>
+        </div>
+      </div>
+      <!-- Player segbar (12 slots) -->
+      <div class="segbar youhp" id="player-seg"></div>
+    </div>
+
+    <!-- Inspection panel -->
+    <div class="panel grow inspector" id="inspector-panel">
+      <h3><i>✦</i> Inspection</h3>
+      <div id="insp-content">
+        <div class="hint">← clique un segment</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ══ YOUBAR — Actions + Pad ══════════════════════════════════════════════ -->
+  <div class="youbar">
+    <!-- Action buttons (rendered by ActionBar.js) -->
+    <div id="action-bar" style="display:flex;flex:1;gap:5px;max-width:none"></div>
+    <!-- Suture divider -->
+    <span class="ybdiv" aria-hidden="true"></span>
+    <!-- Touch movement pad (3×2 grid) -->
+    <div class="padmini" id="padmini" title="se déplacer = 1 tick · fuir = reculer">
+      <button class="pad-btn" data-action="TURN_LEFT"     style="grid-column:1;grid-row:1" aria-label="Tourner gauche">↺</button>
+      <button class="pad-btn" data-action="MOVE_FORWARD"  style="grid-column:2;grid-row:1" aria-label="Avancer">↑</button>
+      <button class="pad-btn" data-action="TURN_RIGHT"    style="grid-column:3;grid-row:1" aria-label="Tourner droite">↻</button>
+      <button class="pad-btn" data-action="STRAFE_LEFT"   style="grid-column:1;grid-row:2" aria-label="Pas gauche">←</button>
+      <button class="pad-btn" data-action="MOVE_BACK"     style="grid-column:2;grid-row:2" aria-label="Reculer">↓</button>
+      <button class="pad-btn" data-action="STRAFE_RIGHT"  style="grid-column:3;grid-row:2" aria-label="Pas droite">→</button>
+    </div>
+  </div>
+
+</div><!-- /.game -->
+
+<!-- Start screen overlay -->
+<div id="start-screen" class="start-screen">
+  <div class="start-inner">
+    <p class="start-title">C H A I R <span>†</span></p>
+    <p class="start-sub">les entrailles du dieu mort</p>
+    <div id="start-grave" class="start-grave"></div>
+    <button id="start-btn" class="act start-btn">DESCENDRE</button>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

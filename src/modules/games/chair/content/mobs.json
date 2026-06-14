@@ -1,0 +1,80 @@
+[
+  {
+    "id": "boss_langue",
+    "name": "La Langue",
+    "biomeId": "gorge",
+    "isBoss": true,
+    "pattern": "read_ahead",
+    "phase2Threshold": 0.5,
+    "organs": [
+      { "slot": "tongue",  "organId": "tongue_human", "hp": 10 },
+      { "slot": "skin",    "organId": "skin_human",   "hp": 8  },
+      { "slot": "arm_l",   "organId": "arm_human",    "hp": 7  },
+      { "slot": "arm_r",   "organId": "arm_human",    "hp": 7  },
+      { "slot": "heart",   "organId": "heart_human",  "hp": 12 }
+    ],
+    "dropOrganId": "tongue_human"
+  },
+  {
+    "id": "boss_souffle",
+    "name": "Le Souffle",
+    "biomeId": "poumons",
+    "isBoss": true,
+    "pattern": "zone_burst",
+    "phase2Threshold": 0.4,
+    "organs": [
+      { "slot": "ear_l",   "organId": "ear_bat",       "hp": 8  },
+      { "slot": "ear_r",   "organId": "ear_bat",       "hp": 8  },
+      { "slot": "skin",    "organId": "skin_human",    "hp": 10 },
+      { "slot": "stomach", "organId": "stomach_human", "hp": 6  },
+      { "slot": "heart",   "organId": "heart_human",   "hp": 15 }
+    ],
+    "dropOrganId": "ear_bat"
+  },
+  {
+    "id": "boss_coeur",
+    "name": "Le Cœur",
+    "biomeId": "coeur",
+    "isBoss": true,
+    "pattern": "pulse_rhythm",
+    "phase2Threshold": 0.5,
+    "organs": [
+      { "slot": "heart",   "organId": "heart_lich",   "hp": 18 },
+      { "slot": "arm_l",   "organId": "arm_human",    "hp": 9  },
+      { "slot": "arm_r",   "organId": "arm_human",    "hp": 9  },
+      { "slot": "skin",    "organId": "skin_stone",   "hp": 12 }
+    ],
+    "dropOrganId": "heart_lich"
+  },
+  {
+    "id": "boss_faim",
+    "name": "La Faim",
+    "biomeId": "estomac",
+    "isBoss": true,
+    "pattern": "devour",
+    "phase2Threshold": 0.45,
+    "organs": [
+      { "slot": "stomach", "organId": "stomach_human", "hp": 14 },
+      { "slot": "tongue",  "organId": "tongue_human",  "hp": 10 },
+      { "slot": "skin",    "organId": "skin_human",    "hp": 8  },
+      { "slot": "heart",   "organId": "heart_human",   "hp": 12 }
+    ],
+    "dropOrganId": "stomach_human"
+  },
+  {
+    "id": "boss_flore",
+    "name": "La Flore",
+    "biomeId": "entrailles",
+    "isBoss": true,
+    "pattern": "infect",
+    "phase2Threshold": 0.5,
+    "organs": [
+      { "slot": "skin",    "organId": "skin_stone",    "hp": 12 },
+      { "slot": "stomach", "organId": "stomach_human", "hp": 8  },
+      { "slot": "tongue",  "organId": "tongue_human",  "hp": 6  },
+      { "slot": "arm_l",   "organId": "arm_troll",     "hp": 10 },
+      { "slot": "heart",   "organId": "heart_human",   "hp": 14 }
+    ],
+    "dropOrganId": "skin_stone"
+  }
+]
