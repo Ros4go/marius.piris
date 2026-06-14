@@ -1,0 +1,114 @@
+[
+  {
+    "id": "lore_001",
+    "trigger": "firstRoom",
+    "channel": "ligne",
+    "text": "Tu descends dans le cadavre d'un dieu. Il respire encore.",
+    "once": true
+  },
+  {
+    "id": "lore_002",
+    "trigger": "firstOrganEquipped",
+    "channel": "ligne",
+    "text": "La chair n'est pas une armure. C'est une dette.",
+    "once": true
+  },
+  {
+    "id": "lore_003",
+    "trigger": "firstCombat",
+    "channel": "ligne",
+    "text": "Le corps du dieu rejette les intrus. Comme tout corps.",
+    "once": true
+  },
+  {
+    "id": "lore_004",
+    "trigger": "firstDeath",
+    "channel": "ligne",
+    "text": "Le dieu se souvient de toi maintenant.",
+    "once": true
+  },
+  {
+    "id": "lore_005",
+    "trigger": "humanityBelow50",
+    "channel": "ligne",
+    "text": "Quelque chose dans toi a cessé de saigner quand ça devrait.",
+    "once": true
+  },
+  {
+    "id": "lore_006",
+    "trigger": "humanityBelow20",
+    "channel": "ligne",
+    "text": "Les marchands te regardent différemment. Ou peut-être que c'est toi.",
+    "once": true
+  },
+  {
+    "id": "lore_007",
+    "trigger": "humanityBelow5",
+    "channel": "ligne",
+    "text": "Tu n'entends plus tes propres pensées. Il n'y a que le bruit de la chair.",
+    "once": true
+  },
+  {
+    "id": "lore_gorge_entry",
+    "trigger": "biomeEntry:gorge",
+    "channel": "ligne",
+    "text": "La Gorge. Ici le dieu a dit son dernier mot.",
+    "once": true
+  },
+  {
+    "id": "lore_poumons_entry",
+    "trigger": "biomeEntry:poumons",
+    "channel": "ligne",
+    "text": "Les Poumons. Ils ne respirent plus depuis des siècles. Mais quelque chose pulse encore.",
+    "once": true
+  },
+  {
+    "id": "lore_coeur_entry",
+    "trigger": "biomeEntry:coeur",
+    "channel": "ligne",
+    "text": "Le Cœur. Tu sens les battements dans les murs. Dans ton propre pouls.",
+    "once": true
+  },
+  {
+    "id": "lore_estomac_entry",
+    "trigger": "biomeEntry:estomac",
+    "channel": "ligne",
+    "text": "L'Estomac. Il digère encore. Tout. Y compris les vivants.",
+    "once": true
+  },
+  {
+    "id": "lore_entrailles_entry",
+    "trigger": "biomeEntry:entrailles",
+    "channel": "ligne",
+    "text": "Les Entrailles. La flore du dieu y a poussé pendant des millénaires. Elle a faim.",
+    "once": true
+  },
+  {
+    "id": "lore_fond_entry",
+    "trigger": "biomeEntry:le-fond",
+    "channel": "ligne",
+    "text": "Le Fond. Il n'y a plus rien ici. Sauf ce que tu es devenu.",
+    "once": true
+  },
+  {
+    "id": "lore_rest_found",
+    "trigger": "firstRestRoom",
+    "channel": "ligne",
+    "text": "La chair peut être douce parfois. Ne t'y habitue pas.",
+    "once": true
+  },
+  {
+    "id": "lore_first_kill",
+    "trigger": "firstKill",
+    "channel": "ligne",
+    "text": "Le dieu enregistre chaque mort en son sein. Il se souviendra.",
+    "once": true
+  },
+  {
+    "id": "lore_first_harvest",
+    "trigger": "firstHarvest",
+    "channel": "ligne",
+    "text": "Tu prends ses organes. Il prenait les tiens, en un sens.",
+    "once": true
+  }
+]

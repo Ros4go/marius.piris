@@ -1,0 +1,571 @@
+/* CHAIR — Layout + first-person scene. Source DA v8. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--void);
+  font-family: var(--serif);
+  font-size: var(--fz);
+  color: var(--bone);
+}
+
+/* ── Root game grid ──────────────────────────────────────────────────────────── */
+.game {
+  position: relative;
+  width: 100%; height: 100dvh;
+  background: var(--panel);
+  border: 3px solid var(--edge);
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 0 6px var(--edge2),
+    inset 0 0 0 7px #000,
+    inset 0 0 120px #000;
+  display: grid;
+  grid-template-columns: clamp(150px, 15vw, 212px) 1fr clamp(178px, 19vw, 244px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--gap);
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* ── Corner marks ──────────────────────────────────────────────────────────── */
+.fc {
+  position: absolute; width: 15px; height: 15px;
+  color: var(--bone-dark); font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 30; pointer-events: none;
+}
+.fc.tl { top: 2px; left: 2px; }
+.fc.tr { top: 2px; right: 2px; }
+.fc.bl { bottom: 2px; left: 2px; }
+.fc.br { bottom: 2px; right: 2px; }
+
+/* ── Grain overlay ─────────────────────────────────────────────────────────── */
+.grain {
+  position: absolute; inset: 0; pointer-events: none; z-index: 50; opacity: .09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+  animation: grainShift .42s steps(3) infinite;
+}
+@keyframes grainShift {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-18px, 9px); }
+  66%  { transform: translate(11px, -14px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ── Heartpulse vignette ───────────────────────────────────────────────────── */
+.heartpulse {
+  position: absolute; inset: 0; pointer-events: none; z-index: 40;
+  opacity: 0; box-shadow: inset 0 0 90px #8a2f2a55;
+  transition: opacity .34s;
+}
+.game.hb .heartpulse { opacity: 1; transition: opacity .05s; }
+.game.heart-alive .heartpulse { animation: hbpulse 1.1s ease-in-out infinite; }
+@keyframes hbpulse {
+  0%   { opacity: 0; }
+  7%   { opacity: 0.38; }
+  14%  { opacity: 0; }
+  21%  { opacity: 0.22; }
+  32%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* ── Header (full width) ─────────────────────────────────────────────────────── */
+.game-h {
+  grid-column: 1 / -1;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 2px 4px 8px; border-bottom: 1px solid var(--edge);
+  position: relative;
+}
+.game-h::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 6px;
+  background: repeating-linear-gradient(105deg, transparent 0 7px, var(--thread) 7px 9px, transparent 9px 16px);
+  opacity: .8;
+}
+.title {
+  font-variant: small-caps; letter-spacing: .5em;
+  font-size: 1.2rem; color: var(--bone); white-space: nowrap;
+}
+.title em { font-style: normal; color: var(--bone-dark); font-size: .85rem; letter-spacing: .2em; }
+.title b  { color: var(--blood); font-weight: normal; }
+.hdo {
+  flex: 1; height: 1px; align-self: center; position: relative;
+  background: linear-gradient(90deg, transparent, var(--bone-dark) 30%, var(--bone-dark) 70%, transparent);
+}
+.hdo::after {
+  content: "✠"; position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -52%);
+  background: var(--panel); padding: 0 8px; color: #574a35; font-size: .7rem;
+}
+.loc { font-family: var(--mono); font-size: .64rem; color: #5a4f3d; letter-spacing: .14em; white-space: nowrap; }
+.loc b { color: var(--torch); font-weight: normal; }
+.hctl { display: flex; gap: 5px; margin-left: 8px; }
+.hctl button {
+  font: .54rem var(--mono); letter-spacing: .06em;
+  background: #0b0807; color: #6a5d48; border: 1px solid #2a1f14;
+  padding: 3px 7px; cursor: pointer;
+  box-shadow: inset 0 1px 0 #ffffff0a, inset 0 -2px 3px #000;
+}
+.hctl button:hover { color: var(--torch); border-color: #574226; }
+.hctl button[aria-pressed="true"] { background: #190b0b; border-color: #5d2120; color: var(--torch-hot); }
+
+/* ── Left / right columns ────────────────────────────────────────────────────── */
+.col-l, .col-r {
+  display: flex; flex-direction: column; gap: var(--gap);
+  min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding-top: 4px;
+  scrollbar-width: thin; scrollbar-color: #2a1f14 transparent;
+}
+
+/* ── Center column ─────────────────────────────────────────────────────────── */
+.center {
+  display: flex; flex-direction: column; gap: var(--gap);
+  min-width: 0; min-height: 0;
+}
+
+/* ── Viewport (first-person scene) ──────────────────────────────────────────── */
+.viewport {
+  position: relative; flex: 1; min-height: 0; overflow: hidden;
+  background: #000; border: 2px solid var(--edge);
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 0 4px #181009,
+    inset 0 0 0 5px #000,
+    inset 0 0 32px #000;
+}
+
+.scene {
+  position: absolute; inset: 0;
+  animation: walls-breathe 8s ease-in-out infinite;
+}
+@keyframes walls-breathe { 50% { transform: scale(1.011); } }
+
+/* Corridor geometry — Gorge palette */
+.geo { position: absolute; inset: 0; }
+
+.g-ceil {
+  background: linear-gradient(#120808 20%, #040202 95%);
+  clip-path: polygon(0% 0%, 100% 0%, 64% 30%, 36% 30%);
+}
+.g-floor {
+  background:
+    repeating-linear-gradient(0deg, #0a0505 0 10px, #130a08 10px 22px),
+    linear-gradient(#020101 30%, #160c09 100%);
+  background-blend-mode: overlay;
+  clip-path: polygon(0% 100%, 100% 100%, 64% 66%, 36% 66%);
+}
+.g-wl {
+  background: repeating-linear-gradient(
+    112deg, #1c0b0c 0 7px, var(--meat) 7px 11px, #240e0f 11px 19px
+  );
+  clip-path: polygon(0% 0%, 36% 30%, 36% 66%, 0% 100%);
+  transition: opacity .15s;
+}
+.g-wr {
+  background: repeating-linear-gradient(
+    68deg, #1c0b0c 0 7px, var(--meat) 7px 11px, #240e0f 11px 19px
+  );
+  clip-path: polygon(100% 0%, 64% 30%, 64% 66%, 100% 100%);
+  transition: opacity .15s;
+}
+.g-end {
+  position: absolute; left: 36%; top: 30%; width: 28%; height: 36%;
+  background: radial-gradient(circle at 50% 60%, #1b0c0d, #050202 85%);
+  transition: opacity .15s;
+}
+
+/* Door arch: shown when forward passage exists */
+.g-end.has-door {
+  background: radial-gradient(ellipse 46% 52% at 50% 78%, #030101 0%, #1b0c0d 60%, #050202 100%);
+}
+
+/* Rib arches */
+.rib {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  border-style: solid; border-color: var(--bone-dark);
+  border-width: 7px 6px 0 6px; border-bottom: none;
+  border-radius: 50% 50% 0 0 / 96% 96% 0 0;
+  filter: drop-shadow(0 0 4px #000);
+}
+.rib1 { width: 88%; height: 92%; top: 3%;  border-color: #4d4330; border-width: 9px 8px 0 8px; }
+.rib2 { width: 62%; height: 62%; top: 16%; border-color: #39301f; }
+.rib3 { width: 42%; height: 42%; top: 25%; border-color: #272013; border-width: 5px 4px 0 4px; }
+
+/* Creature silhouette (mob display) — hidden when no mob present */
+.creature {
+  position: absolute; left: 43.5%; top: 42%;
+  width: 13%; aspect-ratio: 1 / 1.1;
+  animation: breath 4.2s ease-in-out infinite;
+  filter: blur(.4px);
+  display: none;
+}
+.creature.visible { display: block; }
+@keyframes breath { 50% { transform: scale(1.05) translateY(-2%); } }
+.c-mass {
+  position: absolute; inset: 0;
+  border-radius: 46% 54% 44% 46% / 60% 58% 40% 42%;
+  background: radial-gradient(circle at 40% 28%, #241011, #070303 75%);
+  box-shadow: 0 0 18px #000, inset -3px -5px 12px #000, inset 2px 3px 6px #3d161788;
+}
+.c-eye {
+  position: absolute; top: 32%; width: 8%; aspect-ratio: 1;
+  background: var(--torch-hot); border-radius: 50%;
+  box-shadow: 0 0 8px var(--torch), 0 0 20px #c47f3366;
+  animation: blink 6.5s infinite;
+}
+.c-eye.l { left: 34%; }
+.c-eye.r { left: 56%; animation-delay: .12s; }
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  93%            { transform: scaleY(.06); }
+}
+
+/* Torchlight + darkness vignettes */
+.torchlight {
+  position: absolute; inset: 0; mix-blend-mode: screen; pointer-events: none;
+  background: radial-gradient(ellipse 56% 48% at 50% 60%, #c47f3336 0%, transparent 66%);
+  animation: flick 3.7s infinite steps(11);
+}
+@keyframes flick {
+  0%, 100% { opacity: .85; } 9% { opacity: .5; }  22% { opacity: .95; }
+  31%       { opacity: .4; }  47% { opacity: .9; } 58% { opacity: .65; }
+  71%       { opacity: 1; }   84% { opacity: .55; }
+}
+.darkness {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 75% 66% at 50% 47%, transparent 34%, #0006 72%, #000c 100%);
+}
+
+/* ── Enemy overlay (inside viewport) ────────────────────────────────────────── */
+.foe {
+  position: absolute; top: 3.5%; left: 50%; transform: translateX(-50%);
+  width: 66%; text-align: center; z-index: 6;
+  display: none;
+}
+.foe.active { display: block; }
+.foe-name {
+  font-variant: small-caps; letter-spacing: .4em;
+  font-size: .66rem; color: #8d7e63;
+  text-shadow: 0 1px 4px #000; margin-bottom: 4px;
+}
+.foe-name::before { content: "☙ "; color: #3d3322; letter-spacing: 0; }
+.foe-name::after  { content: " ❧"; color: #3d3322; letter-spacing: 0; }
+.foe-intent {
+  margin-top: 5px; font: .58rem var(--mono); color: #7a6c54;
+  letter-spacing: .08em; text-shadow: 0 0 6px #000;
+}
+.foe-intent b { color: #b5453c; font-weight: normal; animation: intblink 1.4s steps(2) infinite; }
+@keyframes intblink { 50% { opacity: .4; } }
+
+/* ── La Ligne (canvas) ──────────────────────────────────────────────────────── */
+.soundline {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 56px; z-index: 7;
+  background: linear-gradient(transparent, #000e 45%);
+  border-top: 1px solid #b8a8861a;
+}
+.soundline canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+.sl-axis {
+  position: absolute; top: 2px; left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  padding: 0 8px; color: #b8a88626;
+  font: .52rem var(--mono); letter-spacing: .25em;
+  pointer-events: none;
+}
+
+/* ── Eye blind overlays (inside .scene via BodyFX) ──────────────────────────── */
+.eyeblind {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 0; background: #000; transition: width .55s; z-index: 20;
+}
+.eyeblind-l {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 0; background: #000; transition: width .55s; z-index: 20;
+}
+.game.eye-r-dead .eyeblind   { width: 50%; }
+.game.eye-l-dead .eyeblind-l { width: 50%; }
+.game.no-eye     .eyeblind   { width: 50%; }
+
+/* ── Body-FX: scene limp + organ filter effects ──────────────────────────────── */
+.game.limp .scene { transform: rotate(-2.8deg) translateY(1.6%) scale(1.04); }
+.bfx-hex-frag     { filter: hue-rotate(25deg) saturate(1.6); }
+.bfx-lich-pulse   { animation: bfx-lich 2.2s ease-in-out infinite; }
+@keyframes bfx-lich { 0%, 100% { opacity: 1; } 50% { opacity: .82; } }
+.bfx-spider-crawl { animation: bfx-crawl .28s steps(2) infinite; }
+@keyframes bfx-crawl { from { transform: translateX(-1px); } to { transform: translateX(1px); } }
+.bfx-stone-crack  { filter: contrast(1.18) saturate(.35); }
+
+/* ── Youbar (full-width bottom) ─────────────────────────────────────────────── */
+.youbar {
+  grid-column: 1 / -1;
+  position: relative; display: flex; align-items: center; gap: 10px;
+  border: 1px solid var(--edge);
+  background: linear-gradient(#0a0706, #060403);
+  padding: 7px 10px;
+  box-shadow: inset 0 0 0 1px #000, inset 0 1px 0 #ffffff08;
+}
+.youbar::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -5px; height: 6px;
+  background: repeating-linear-gradient(75deg, transparent 0 7px, var(--thread) 7px 9px, transparent 9px 16px);
+  opacity: .7;
+}
+
+/* Suture divider between actions and padmini */
+.ybdiv {
+  width: 8px; margin-left: auto; align-self: stretch;
+  background: repeating-linear-gradient(
+    15deg, transparent 0 5px, var(--thread) 5px 6.5px, transparent 6.5px 11px
+  );
+  flex-shrink: 0;
+}
+
+/* Touch pad */
+.padmini {
+  display: grid;
+  grid-template-columns: repeat(3, clamp(34px, 3vw, 52px));
+  grid-auto-rows: clamp(27px, 2.4vw, 44px);
+  gap: clamp(4px, .4vw, 7px);
+  flex-shrink: 0;
+}
+.pad-btn {
+  font: clamp(.85rem, 1.05vw, 1.2rem) var(--serif);
+  background: linear-gradient(#181009, #0a0705);
+  color: #8d7e63; border: 1px solid #2a1f14; cursor: pointer; line-height: 1;
+  box-shadow: inset 0 1px 0 #ffffff10, inset 0 -2px 3px #000;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.pad-btn:hover, .pad-btn:focus-visible { color: var(--torch); border-color: #574226; outline: none; }
+.pad-btn:active { transform: translateY(1px); }
+
+/* ── Portrait warning ──────────────────────────────────────────────────────── */
+.rotate {
+  display: none; position: fixed; inset: 0;
+  align-items: center; justify-content: center; text-align: center;
+  font-variant: small-caps; letter-spacing: .3em;
+  color: var(--bone-dim); line-height: 2.6; font-size: .85rem;
+}
+.rotate em { display: block; font: .58rem var(--mono); letter-spacing: .15em; color: #4d4233; font-style: normal; }
+@media (orientation: portrait) and (max-width: 760px) {
+  .game  { display: none; }
+  .rotate { display: flex; }
+}
+
+/* ── Tablet compact ────────────────────────────────────────────────────────── */
+@media (max-width: 840px) {
+  .game { grid-template-columns: 1fr 1fr; }
+  .center, .game-h, .youbar { grid-column: 1 / -1; }
+  .col-l { grid-column: 1; }
+  .col-r { grid-column: 2; }
+  .hdo   { display: none; }
+}
+
+/* ── Landscape compact ─────────────────────────────────────────────────────── */
+@media (max-height: 560px) and (orientation: landscape) {
+  .game    { padding: 6px; gap: 5px; grid-template-columns: 128px 1fr 170px; }
+  .youbar  { padding: 5px 7px; gap: 7px; }
+  .soundline { height: 42px; }
+  .padmini { grid-template-columns: repeat(3, 30px); grid-auto-rows: 21px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ── Start screen ──────────────────────────────────────────────────────────── */
+.start-screen {
+  position: fixed; inset: 0; z-index: 200;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+.start-screen.hidden { display: none; }
+.start-inner {
+  text-align: center; padding: 52px 64px;
+  border: 1px solid var(--edge);
+  background: linear-gradient(#0a0706, #060403);
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 40px #000,
+    0 0 100px #0009;
+}
+.start-title {
+  font-variant: small-caps; letter-spacing: .55em;
+  font-size: 2.4rem; color: var(--bone);
+  margin-bottom: 10px;
+}
+.start-title span { color: var(--blood); }
+.start-sub {
+  font: .62rem var(--mono); color: #5a4f3d;
+  letter-spacing: .22em; margin-bottom: 40px;
+  text-transform: uppercase;
+}
+.start-grave {
+  font: .6rem var(--mono); color: #4a3f30;
+  letter-spacing: .1em; line-height: 1.8; margin-bottom: 30px;
+  min-height: 1em;
+}
+.start-grave b { color: #7a6b52; font-weight: normal; }
+.start-btn {
+  flex: none !important; display: block !important;
+  margin: 0 auto; width: auto; max-width: none !important;
+  font-size: .9rem; letter-spacing: .4em;
+  padding: 12px 40px;
+}
+
+/* ── Humanity visual tiers (applied to .scene via .game.hm-* parent) ─────────── */
+.game.hm-low      .scene { filter: saturate(0.75); }
+.game.hm-mid      .scene { filter: saturate(0.5) brightness(0.9); }
+.game.hm-vlow     .scene { filter: saturate(0.2) brightness(0.85) hue-rotate(5deg); }
+.game.hm-critical .scene { filter: saturate(0) brightness(0.7) contrast(1.15); animation: hm-crit 0.6s steps(2) infinite; }
+@keyframes hm-crit {
+  0%   { filter: saturate(0) brightness(0.7) contrast(1.15); }
+  50%  { filter: saturate(0) brightness(0.55) contrast(1.3); }
+  100% { filter: saturate(0) brightness(0.7) contrast(1.15); }
+}
+
+/* Grain intensifies with HUM loss */
+.game.hm-mid      .grain { opacity: .18; }
+.game.hm-vlow     .grain { opacity: .30; animation-duration: .22s; }
+.game.hm-critical .grain { opacity: .48; animation-duration: .12s; }
+
+/* ── Torch exhaustion — total darkness ──────────────────────────────────────── */
+.game.lum-out .torchlight { opacity: 0 !important; animation: none !important; }
+.game.lum-out .scene      { filter: brightness(0.06) saturate(0) !important; }
+.game.lum-out .grain      { opacity: .55 !important; animation-duration: .08s !important; }
+
+/* ── SensoryFX: Beat pulse vignette ──────────────────────────────────────────
+   .beatpulse-overlay sits inside .viewport, fires class bp-fire each beat.
+   Intensity scales from 0.12 (ryt=0) to 1.0 (ryt≥15) via --beat-intensity. */
+.beatpulse-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 42;
+  box-shadow: inset 0 0 80px rgba(138, 47, 42, calc(var(--beat-intensity, 0.12) * 0.72));
+  opacity: 0;
+}
+.beatpulse-overlay.bp-fire {
+  animation: bp-slam 0.16s ease-out forwards;
+}
+@keyframes bp-slam {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── SensoryFX: Eye vision filters (backdrop-filter on overlay div) ──────────
+   vis-* classes on .vision-overlay apply filters to everything rendered below.
+   Multiple classes can coexist (e.g. one beast eye + one void eye). */
+.vision-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 14;
+  /* Must have a background or isolation for backdrop-filter to activate */
+  background: rgba(0, 0, 0, 0.001);
+}
+.vision-overlay.vis-beast    { backdrop-filter: sepia(0.35) brightness(0.96); }
+.vision-overlay.vis-spider   { backdrop-filter: grayscale(0.55) hue-rotate(115deg) brightness(1.08); }
+.vision-overlay.vis-void     { backdrop-filter: brightness(0.38) contrast(2.2) hue-rotate(208deg) saturate(2); }
+.vision-overlay.vis-beholder { backdrop-filter: hue-rotate(265deg) saturate(1.5) brightness(1.05); }
+.vision-overlay.vis-lich     { backdrop-filter: invert(1) hue-rotate(178deg) brightness(1.1); }
+
+/* Both eyes different: second class stacks over first */
+.vision-overlay.vis-beast.vis-spider {
+  backdrop-filter: sepia(0.25) grayscale(0.4) hue-rotate(110deg);
+}
+.vision-overlay.vis-void.vis-lich {
+  backdrop-filter: invert(1) brightness(0.4) contrast(2.4);
+}
+
+/* ── SensoryFX: Hit flash (on .viewport) ─────────────────────────────────────
+   Color encodes skin type — red=default, grey=stone, none=carapace,
+   dark purple=lich, green=alchimique/acid. */
+@keyframes hit-red   { 0% { box-shadow: inset 0 0 50px #8a2f2aaa; } 100% {} }
+@keyframes hit-grey  { 0% { box-shadow: inset 0 0 50px #6a6a5088; } 100% {} }
+@keyframes hit-dark  { 0% { box-shadow: inset 0 0 50px #3a0a5888; } 100% {} }
+@keyframes hit-green { 0% { box-shadow: inset 0 0 50px #2a6a1888; } 100% {} }
+
+.viewport.hit-normal   { animation: hit-red   0.21s ease-out; }
+.viewport.hit-stone    { animation: hit-grey  0.21s ease-out; }
+.viewport.hit-lich     { animation: hit-dark  0.21s ease-out; }
+.viewport.hit-acid     { animation: hit-green 0.21s ease-out; }
+.viewport.hit-carapace { /* silent: carapace absorbs — no flash */ }
+
+/* ── SensoryFX: Hunger vignette ─────────────────────────────────────────────── */
+.hunger-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 38;
+  opacity: 0; transition: opacity 1s;
+}
+.hunger-overlay.hun-low  {
+  opacity: 1;
+  box-shadow: inset 0 0 90px rgba(140, 72, 0, 0.28);
+}
+.hunger-overlay.hun-crit {
+  opacity: 1;
+  box-shadow: inset 0 0 90px rgba(140, 72, 0, 0.52);
+  animation: hunger-pulse 1.8s ease-in-out infinite;
+}
+@keyframes hunger-pulse { 50% { box-shadow: inset 0 0 90px rgba(140, 72, 0, 0.22); } }
+
+/* ── SensoryFX: EKG line (brain_lich equipped) ────────────────────────────────
+   A thin violet sweep at the bottom of the viewport, fires each beat. */
+.ekg-line {
+  position: absolute; left: 0; right: 0; bottom: 56px; height: 2px;
+  z-index: 9; pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, #7a3aaa 40%, #c080ff 50%, #7a3aaa 60%, transparent 100%);
+  opacity: 0; transform: scaleX(0); transform-origin: left;
+}
+.game.ekg-active .ekg-line { opacity: 0; } /* visible only on pulse */
+.ekg-line.ekg-pulse { animation: ekg-sweep 0.38s ease-out forwards; }
+@keyframes ekg-sweep {
+  0%   { opacity: 0;    transform: scaleX(0);    transform-origin: left; }
+  18%  { opacity: 0.85; transform: scaleX(0.35); }
+  55%  { opacity: 0.9;  transform: scaleX(1);    }
+  100% { opacity: 0;    transform: scaleX(1);    }
+}
+
+/* ── SensoryFX: Heart last beat (HEART_ULTIMATE) ─────────────────────────────
+   Beat stops — white-out slam — then silence. */
+.heart-last-beat-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 46;
+  background: radial-gradient(ellipse 80% 60% at 50% 62%, #c03030, #000 72%);
+  opacity: 0;
+}
+.heart-last-beat-overlay.htlb-fire {
+  animation: htlb 1.5s ease-out forwards;
+}
+@keyframes htlb {
+  0%   { opacity: 0;    }
+  6%   { opacity: 0.95; filter: brightness(2.5); }
+  18%  { opacity: 0.6;  filter: brightness(1);   }
+  55%  { opacity: 0.15; }
+  100% { opacity: 0;    }
+}
+
+/* ── SensoryFX: Lich revive fracture ─────────────────────────────────────────
+   Black → purple burst → fade. */
+.lich-revive-overlay {
+  position: absolute; inset: 0; pointer-events: none; z-index: 47;
+  background: radial-gradient(circle at 50% 55%, #7a2aaa 0%, #1a0528 45%, #000 75%);
+  opacity: 0;
+}
+.lich-revive-overlay.lr-fire {
+  animation: lr-burst 2.4s ease-out forwards;
+}
+@keyframes lr-burst {
+  0%   { opacity: 0;                       }
+  5%   { opacity: 1;    filter: brightness(4) saturate(2); }
+  14%  { opacity: 0.85; filter: brightness(1.2);           }
+  50%  { opacity: 0.35; filter: brightness(1);             }
+  100% { opacity: 0;                       }
+}
+
+/* ── SensoryFX: LUM light emission aura ─────────────────────────────────────── */
+.game.lum-low  .torchlight { opacity: 0.9;  filter: brightness(1.25) saturate(1.1); }
+.game.lum-mid  .torchlight { opacity: 1.0;  filter: brightness(1.55) saturate(1.2); }
+.game.lum-high .torchlight {
+  opacity: 1.0;
+  filter: brightness(2.0) saturate(1.4);
+  animation: flick 3.7s infinite steps(11), lum-pulse 2.1s ease-in-out infinite;
+}
+@keyframes lum-pulse { 50% { filter: brightness(2.4) saturate(1.6); } }
+
+/* LUM also brightens grain to simulate glow noise */
+.game.lum-mid  .grain { opacity: .14; }
+.game.lum-high .grain { opacity: .22; animation-duration: .28s; }

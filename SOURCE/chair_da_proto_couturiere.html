@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHAIR — proto DA v5</title>
+<style>
+:root{
+  --void:#030202; --panel:#0b0807; --edge:#241a12; --edge2:#15100b;
+  --meat:#3a2310; --blood:#9a5a26; --thread:#5a3818;
+  --bone:#b8a886; --bone-dim:#6a5d48; --bone-dark:#403828;
+  --torch:#cf9a3a; --torch-hot:#f0c468; --whisper:#7d659e;
+  --mono:"Courier New",ui-monospace,monospace;
+  --serif:Georgia,"Palatino Linotype",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--void);color:var(--bone);font-family:var(--serif)}
+html,body{height:100%}
+body{height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+  background-image:radial-gradient(ellipse 80% 60% at 50% 0%,#0d0706,transparent)}
+
+/* ============ CADRE MAÎTRE ============ */
+.game{position:relative;width:100%;height:100dvh;background:var(--panel);
+  border:3px solid var(--edge);
+  box-shadow:inset 0 0 0 1px #000,inset 0 0 0 6px var(--edge2),inset 0 0 0 7px #000,
+    inset 0 0 120px #000;
+  display:grid;grid-template-columns:clamp(150px,15vw,212px) 1fr clamp(178px,19vw,244px);
+  grid-template-rows:auto minmax(0,1fr) auto;
+  gap:9px;padding:12px}
+.fc{position:absolute;width:15px;height:15px;color:var(--bone-dark);font-size:11px;
+  display:flex;align-items:center;justify-content:center;z-index:30}
+.fc.tl{top:2px;left:2px}.fc.tr{top:2px;right:2px}.fc.bl{bottom:2px;left:2px}.fc.br{bottom:2px;right:2px}
+.grain{position:absolute;inset:0;pointer-events:none;z-index:50;opacity:.09;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+  animation:grainShift .42s steps(3) infinite}
+@keyframes grainShift{0%{transform:translate(0,0)}33%{transform:translate(-18px,9px)}66%{transform:translate(11px,-14px)}100%{transform:translate(0,0)}}
+.heartpulse{position:absolute;inset:0;pointer-events:none;z-index:40;opacity:0;
+  box-shadow:inset 0 0 90px #8a2f2a55;transition:opacity .34s}
+.game.hb .heartpulse{opacity:1;transition:opacity .05s}
+.game.hb .seg.heart i{filter:brightness(2.1)}
+
+/* ============ EN-TÊTE ============ */
+.game-h{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:2px 4px 8px;border-bottom:1px solid var(--edge);position:relative}
+.game-h::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:6px;
+  background:repeating-linear-gradient(105deg,transparent 0 7px,var(--thread) 7px 9px,transparent 9px 16px);opacity:.8}
+.title{font-variant:small-caps;letter-spacing:.5em;font-size:1.2rem;color:var(--bone);white-space:nowrap}
+.title em{font-style:normal;color:var(--bone-dark);font-size:.85rem;letter-spacing:.2em}
+.title b{color:var(--blood);font-weight:normal}
+.hdo{flex:1;height:1px;align-self:center;position:relative;
+  background:linear-gradient(90deg,transparent,var(--bone-dark) 30%,var(--bone-dark) 70%,transparent)}
+.hdo::after{content:"✠";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);
+  background:var(--panel);padding:0 8px;color:#574a35;font-size:.7rem}
+.loc{font-family:var(--mono);font-size:.64rem;color:#5a4f3d;letter-spacing:.14em;white-space:nowrap}
+.hctl{display:flex;gap:5px;margin-left:8px}
+.hctl button{font:.54rem var(--mono);letter-spacing:.06em;background:#0b0807;color:#6a5d48;
+  border:1px solid #2a1f14;padding:3px 7px;cursor:pointer;
+  box-shadow:inset 0 1px 0 #ffffff0a,inset 0 -2px 3px #000}
+.hctl button:hover,.hctl button:focus-visible{color:var(--torch);border-color:#574226;outline:none}
+.hctl button[aria-pressed="true"]{background:#190b0b;border-color:#5d2120;color:var(--torch-hot)}
+.menu{position:absolute;top:calc(100% + 8px);right:0;z-index:60;width:212px;display:none}
+.menu.open{display:block}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  font:.6rem var(--mono);color:#6a5d48;letter-spacing:.05em;
+  padding:6px 2px 5px;border-bottom:1px dotted #1a120c}
+.mrow:last-child{border-bottom:none}
+.mrow button{font:.56rem var(--mono);min-width:34px;background:#0b0807;color:#6a5d48;
+  border:1px solid #2a1f14;padding:2px 7px;cursor:pointer}
+.mrow button:hover{color:var(--torch);border-color:#574226}
+.mrow button[aria-pressed="true"]{background:#190b0b;border-color:#5d2120;color:var(--torch-hot)}
+.loc b{color:var(--torch);font-weight:normal}
+
+/* ============ PANNEAUX : os suturé, coins ciselés ============ */
+.panel{position:relative;border:1px solid var(--edge);padding:11px 10px 10px;
+  background:
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 0 0/10px 1px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 0 0/1px 10px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 100% 0/10px 1px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 100% 0/1px 10px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 0 100%/10px 1px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 0 100%/1px 10px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 100% 100%/10px 1px no-repeat,
+    linear-gradient(var(--bone-dark),var(--bone-dark)) 100% 100%/1px 10px no-repeat,
+    radial-gradient(ellipse at 50% 0%,#0e0a08,#070504 80%);
+  box-shadow:inset 0 0 0 1px #000,inset 0 1px 0 #ffffff08,inset 0 0 26px #000}
+.panel::before{content:"";position:absolute;inset:3px;border:1px solid #1a120c;pointer-events:none}
+.panel::after{content:"◆";position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+  font-size:8px;color:var(--bone-dark);background:var(--panel);padding:0 5px}
+h3{font-variant:small-caps;letter-spacing:.3em;font-weight:normal;font-size:.68rem;
+  color:#8d7e63;display:flex;align-items:center;gap:7px;margin-bottom:8px}
+h3 i{font-style:normal;color:#6e3a2a;font-size:.6rem}
+h3::before,h3::after{content:"";height:1px;flex:1;
+  background:linear-gradient(90deg,transparent,var(--bone-dark))}
+h3::after{background:linear-gradient(90deg,var(--bone-dark),transparent)}
+.suture{height:8px;margin:2px 0;background:
+  linear-gradient(transparent 3px,var(--thread) 3px 4px,transparent 4px),
+  repeating-linear-gradient(115deg,transparent 0 6px,var(--thread) 6px 7.5px,transparent 7.5px 13px)}
+.col-l,.col-r{display:flex;flex-direction:column;gap:9px;min-height:0;
+  overflow-y:auto;overflow-x:hidden;padding-top:8px;
+  scrollbar-width:thin;scrollbar-color:#2a1f14 transparent}
+.col-l>.panel,.col-r>.panel{flex-shrink:0}
+.col-l>.panel.grow,.col-r>.panel.grow{flex-shrink:1}
+.panel.grow{flex:1;display:flex;flex-direction:column}
+.center{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0}
+
+/* ============ VUE : LA GORGE ============ */
+.viewport{position:relative;flex:1;min-height:0;overflow:hidden;background:#000;
+  border:2px solid var(--edge);
+  box-shadow:inset 0 0 0 1px #000,inset 0 0 0 4px #181009,inset 0 0 0 5px #000,inset 0 0 32px #000}
+.scene{position:absolute;inset:0;transition:transform .45s;animation:walls-breathe 8s ease-in-out infinite}
+@keyframes walls-breathe{50%{transform:scale(1.011)}}
+/* ===== POCHE GASTRIQUE ===== */
+.gas-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 90% 64% at 50% 32%,#5a3a18 0%,#3d2710 26%,#241608 52%,#120b04 78%,#070402 100%)}
+.rug{position:absolute;left:50%;transform:translateX(-50%);border-radius:50%;
+  background:transparent;border:solid;border-color:#5a3a1a transparent transparent transparent;
+  box-shadow:inset 0 14px 30px #0009;filter:drop-shadow(0 4px 8px #0008);
+  animation:churn 7s ease-in-out infinite}
+@keyframes churn{50%{transform:translateX(-50%) scaleY(1.03) translateY(-1%)}}
+.rug.rugA{width:150%;height:128%;top:-30%;border-width:60px 40px 0 40px;border-color:#5a3a1a}
+.rug.rugB{width:118%;height:104%;top:-14%;border-width:46px 34px 0 34px;border-color:#4a3015;filter:brightness(.9) drop-shadow(0 4px 8px #0008)}
+.rug.rugC{width:86%;height:80%;top:2%;border-width:38px 28px 0 28px;border-color:#3a2611;filter:brightness(.78)}
+.rug.rugD{width:58%;height:56%;top:16%;border-width:28px 20px 0 20px;border-color:#2c1d0c;filter:brightness(.64)}
+.pylore{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  width:24%;height:30%;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;
+  background:radial-gradient(circle at 50% 40%,#241608 0%,#120b04 48%,#060301 82%);
+  box-shadow:inset 0 0 26px #000,0 0 22px #0009,inset 0 6px 14px #cf9a3a1a}
+.pylore::after{content:"";position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);
+  width:46%;height:38%;border-radius:50%;background:radial-gradient(circle,#040201,#020100);box-shadow:0 0 12px #000}
+.flap{position:absolute;top:30%;width:24%;height:50%;
+  background:radial-gradient(ellipse at 50% 30%,#4a3015,#160d05 78%);
+  box-shadow:inset -4px -6px 16px #000,inset 4px 4px 10px #cf9a3a22;filter:blur(.3px)}
+.flap.fl{left:-3%;border-radius:10% 60% 50% 40%/30% 50% 50% 70%;transform:rotate(-6deg)}
+.flap.fr{right:-3%;border-radius:60% 10% 40% 50%/50% 30% 70% 50%;transform:rotate(6deg);filter:brightness(.85) blur(.3px)}
+.suclake{position:absolute;left:0;right:0;bottom:0;height:34%;z-index:1;pointer-events:none;
+  background:linear-gradient(#7a5320 0%,#a87a2c 16%,#5a3c18 56%,#2c1d0c 100%);
+  box-shadow:0 -6px 26px #cf9a3a55,inset 0 6px 16px #f0c46844;
+  animation:lakewave 5.5s ease-in-out infinite;border-radius:48% 52% 0 0/30% 30% 0 0}
+@keyframes lakewave{50%{filter:brightness(1.12)}}
+.sucmist{position:absolute;left:0;right:0;bottom:20%;height:30%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 70% 70% at 50% 100%,#cf9a3a30,transparent 72%);animation:sucglow 5s ease-in-out infinite}
+@keyframes sucglow{50%{opacity:.5}}
+.bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 38% 30%,#f0c468,#7a5320);
+  box-shadow:0 0 7px #cf9a3a66;z-index:1;animation:bub 4s ease-in-out infinite}
+.b1{left:34%;bottom:10%;width:12px;height:12px}
+.b2{left:58%;bottom:7%;width:8px;height:8px;animation-delay:1.2s}
+.b3{left:46%;bottom:13%;width:6px;height:6px;animation-delay:2.4s}
+.b4{left:66%;bottom:11%;width:9px;height:9px;animation-delay:.6s}
+.b5{left:26%;bottom:6%;width:7px;height:7px;animation-delay:3.1s}
+@keyframes bub{0%,100%{transform:translateY(0) scale(.7);opacity:.25}50%{transform:translateY(-9px) scale(1.15);opacity:.75}}
+.debris{position:absolute;z-index:1;background:linear-gradient(#3a2c14,#1a1006);opacity:.7;filter:blur(.4px)}
+.d1{left:30%;bottom:18%;width:22px;height:9px;border-radius:60% 40% 50% 50%;transform:rotate(-12deg)}
+.d2{left:60%;bottom:22%;width:14px;height:6px;border-radius:50%;transform:rotate(18deg)}
+.d3{left:48%;bottom:15%;width:10px;height:14px;border-radius:40% 40% 50% 50%/60% 60% 40% 40%}
+.seamstress{position:absolute;left:50%;top:30%;transform:translateX(-50%);width:19%;aspect-ratio:1/1.05;z-index:3}
+.ss-lamp{position:absolute;left:58%;top:-8%;width:38%;height:38%;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#f0c468 0%,#cf9a3a55 38%,transparent 70%);mix-blend-mode:screen;animation:flick 3.5s infinite steps(8)}
+.ss-hood{position:absolute;left:30%;top:6%;width:40%;height:30%;
+  background:radial-gradient(circle at 50% 36%,#3a2614,#0e0804 80%);
+  border-radius:50% 50% 40% 40%/64% 64% 36% 36%;box-shadow:inset -2px -3px 8px #000,0 0 12px #000}
+.ss-body{position:absolute;left:24%;top:28%;width:52%;height:54%;background:linear-gradient(#2e1d0d,#0a0603);
+  border-radius:46% 46% 16% 16%/34% 34% 14% 14%;box-shadow:inset 0 5px 12px #cf9a3a1a,0 0 14px #000}
+.ss-arm{position:absolute;top:40%;width:13%;height:32%;background:linear-gradient(#291a0c,#0a0603);border-radius:40%;transform-origin:top}
+.ss-arm.la{left:18%;transform:rotate(22deg);animation:sew 1.8s ease-in-out infinite}
+.ss-arm.ra{right:18%;transform:rotate(-30deg);animation:sew 1.8s ease-in-out infinite reverse}
+@keyframes sew{50%{transform:rotate(8deg) translateY(6%)}}
+.ss-eye{position:absolute;left:46%;top:18%;width:7%;aspect-ratio:1;background:var(--torch-hot);
+  border-radius:50%;box-shadow:0 0 7px var(--torch),0 0 16px #cf9a3a66;animation:blink 5.5s infinite}
+.ss-table{position:absolute;left:6%;bottom:0%;width:88%;height:11%;background:linear-gradient(#3a2614,#160d05);
+  border-radius:4px;box-shadow:0 4px 10px #000,inset 0 1px 0 #cf9a3a22}
+.ss-thread{position:absolute;left:30%;top:60%;width:40%;height:2px;
+  background:linear-gradient(90deg,transparent,#cf9a3a,transparent);opacity:.6;animation:sew 1.8s ease-in-out infinite}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}93%{transform:scaleY(.06)}}
+.torchlight{position:absolute;inset:0;mix-blend-mode:screen;pointer-events:none;
+  background:radial-gradient(ellipse 52% 44% at 54% 34%,#cf9a3a30 0%,transparent 64%);animation:flick 3.6s infinite steps(9)}
+@keyframes flick{0%,100%{opacity:.84}13%{opacity:.55}30%{opacity:.95}52%{opacity:.6}71%{opacity:1}88%{opacity:.7}}
+.darkness{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 82% 74% at 50% 40%,transparent 38%,#0006 76%,#000d 100%)}
+.foe{position:absolute;top:3.5%;left:50%;transform:translateX(-50%);width:66%;text-align:center;z-index:6}
+.foe-name{font-variant:small-caps;letter-spacing:.4em;font-size:.66rem;color:#8d7e63;
+  text-shadow:0 1px 4px #000;margin-bottom:4px}
+.foe-name::before{content:"☙ "}.foe-name::after{content:" ❧"}
+.foe-name::before,.foe-name::after{color:#3d3322;letter-spacing:0}
+.segbar{display:flex;gap:2px;height:14px}
+.seg{flex:1;position:relative;border:1px solid #000;background:#170a0b;
+  box-shadow:inset 0 1px 0 #ffffff12,inset 0 -1px 0 #000}
+.seg i{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(#6b2625,#451818)}
+.seg i::after{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 5px,#00000038 5px 6px)}
+.seg.harvest{box-shadow:0 0 9px #c47f3370,inset 0 1px 0 #ffffff12;border-color:#7a5224}
+.seg.hurt i{width:42%}
+.seg.dead{background:#0c0908}.seg.dead i{width:0}
+.seg.locked{opacity:.35;background:repeating-linear-gradient(45deg,#0e0a0a 0 4px,#161010 4px 8px)}
+.seg b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font:.5rem var(--mono);color:#cfc2a6;font-weight:bold;z-index:2;text-shadow:0 1px 2px #000}
+.seg.dead b,.seg.locked b{color:#4a4234}
+.seg.heart i{background:linear-gradient(#8d3232,#5d1f1f)}
+
+/* ============ LA LIGNE ============ */
+.graft{position:absolute;top:3%;left:50%;transform:translateX(-50%);width:60%;z-index:6;text-align:center}
+.graft-name{font-variant:small-caps;letter-spacing:.3em;font-size:.72rem;color:#d8b878;text-shadow:0 1px 4px #000;margin-bottom:7px}
+.graft-bar{display:flex;align-items:center;gap:5px;justify-content:center;
+  border:1px solid #4a3015;background:#0c070399;padding:6px 8px;box-shadow:inset 0 0 0 1px #000,inset 0 0 16px #000}
+.gtab{font:.6rem var(--serif);font-variant:small-caps;letter-spacing:.12em;
+  background:linear-gradient(#1c1208,#0c0703);color:#a3884f;border:1px solid #3a2614;cursor:pointer;
+  padding:5px 11px;box-shadow:inset 0 1px 0 #ffffff0a}
+.gtab:hover{border-color:#5a3818;color:var(--torch)}
+.gtab.on{background:#241608;border-color:#cf9a3a;color:var(--torch-hot)}
+.graft-cost{margin-left:auto;font:.55rem var(--mono);color:#7a6638;letter-spacing:.05em}
+.graft-cost b{color:var(--torch);font-weight:normal}
+.dealbtn{display:block;width:100%;margin-top:9px;padding:7px;cursor:pointer;font:inherit;
+  font-variant:small-caps;letter-spacing:.14em;font-size:.66rem;
+  border:1px solid #cf9a3a;background:linear-gradient(#241608,#0c0703);color:var(--torch-hot);box-shadow:inset 0 1px 0 #ffffff10}
+.dealbtn:hover{border-color:#f0c468;color:#fff0d0}
+.soundline{position:absolute;left:0;right:0;bottom:0;height:56px;z-index:7;
+  background:linear-gradient(transparent,#000e 45%);border-top:1px solid #b8a8861a}
+.soundline canvas{position:absolute;inset:0;width:100%;height:100%}
+.sl-lbl{position:absolute;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;
+  transform:translateX(-50%);bottom:37px;color:#9b8c70;text-shadow:0 0 5px #000;white-space:nowrap}
+.sl-lbl.close{color:#e3d8c2;font-size:.66rem}
+.sl-lbl.whisper{color:var(--whisper);font-style:italic}
+.sl-axis{position:absolute;top:2px;left:0;right:0;display:flex;justify-content:space-between;
+  padding:0 8px;color:#b8a88626;font:.52rem var(--mono);letter-spacing:.25em}
+.behind{position:absolute;right:7px;top:13px;color:#8a2f2a;font:.56rem var(--mono);letter-spacing:.12em;
+  border:1px solid #8a2f2a44;padding:1px 5px}
+
+/* ============ LOG ============ */
+.log{position:relative;flex:0 0 auto;font-family:var(--mono);font-size:.7rem;line-height:1.7;
+  border:1px solid var(--edge);background:#060403;padding:8px 13px;min-height:58px;
+  box-shadow:inset 0 0 0 1px #000,inset 0 0 22px #000}
+.log::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:repeating-linear-gradient(0deg,var(--thread) 0 5px,transparent 5px 9px)}
+.log div::before{content:"▸ ";color:#33291c}
+.log .sys{color:#5f5440}
+.log .warn{color:var(--torch)}
+.log .god{color:var(--whisper);font-style:italic;letter-spacing:.3em;opacity:.85}
+.cur{color:#8d7e63;animation:curblink 1.1s steps(1) infinite}
+@keyframes curblink{50%{opacity:0}}
+
+/* ============ BESACE / CARTE / TAROT ============ */
+.inv{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.cell{position:relative;aspect-ratio:1;border:1px solid #1d130b;background:
+  linear-gradient(#060404,#040302);display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 1px 2px #000}
+.cell.full{border-color:#332313}
+.cell.glow{border-color:#6e4a1f;box-shadow:0 0 7px #c47f3338,inset 0 1px 2px #000}
+.cell.rot{filter:saturate(.15) brightness(.45)}
+.cell.lock{background:repeating-linear-gradient(45deg,#0a0606 0 4px,#0f0907 4px 8px);border-color:#140d08;cursor:default}
+.cell .q{position:absolute;right:1px;bottom:0;font:.46rem var(--mono);color:#6a5d48}
+.orgshape{width:60%;height:60%;border-radius:50% 50% 55% 45%/60% 55% 45% 50%;
+  background:radial-gradient(circle at 35% 30%,#6e2c2b,#2a0f10);box-shadow:0 2px 4px #000}
+.orgshape.eye{background:radial-gradient(circle at 50% 50%,#b3a890 26%,#5d3820 28% 50%,#180a0a 52%);border-radius:50%}
+.orgshape.pot{width:46%;height:66%;border-radius:44% 44% 50% 50%/20% 20% 60% 60%;
+  background:linear-gradient(#c8d65e,#3d4a16);box-shadow:0 0 6px #9aae3a55}
+.orgshape.relic{width:54%;height:54%;border-radius:8% 8% 8% 8%;
+  background:linear-gradient(135deg,#6e7a24,#1a2208);box-shadow:0 0 6px #6e7a2455}
+.orgshape.bone-it{background:linear-gradient(160deg,#9a8c6c,#473d2a);border-radius:40% 40% 40% 40%/90% 90% 20% 20%;width:28%;height:72%}
+.counters{font-family:var(--mono);font-size:.64rem;color:#564b39;display:flex;flex-direction:column;gap:4px}
+.counters b{color:var(--torch);font-weight:normal}
+.counters .dim{opacity:.35}
+.tarot{text-align:center}
+.tarot .num{font-size:.58rem;letter-spacing:.45em;color:var(--whisper)}
+.tarot .nm{font-variant:small-caps;letter-spacing:.22em;font-size:.76rem;margin:4px 0;color:#a3947a}
+.tarot .fx{font-family:var(--mono);font-size:.56rem;color:#564b39;line-height:1.55}
+.tarot .orn{color:#3d3322;font-size:.6rem;letter-spacing:.6em;margin-top:5px}
+.map-wrap{position:relative;margin:auto 0}
+.compass{position:absolute;top:-13px;right:1px;font:.56rem var(--mono);color:#574a35;letter-spacing:.1em}
+.map{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:#000;border:1px solid #181009;padding:3px;
+  box-shadow:inset 0 0 8px #000}
+.mc{aspect-ratio:1;background:#060404}
+.mc.r{background:#1c1610}.mc.r.v{background:#2b2114}
+.mc.q{background:#0b0806;box-shadow:inset 0 0 0 1px #1a140c}
+.mc.e{background:#2a100e;position:relative}
+.mc.e::after{content:"◌";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:#b5453c}
+.mc.p{background:var(--torch);position:relative}
+.mc.p::after{content:"▲";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;color:#000}
+.maplegend{font:.52rem var(--mono);color:#4d4233;margin-top:6px;display:flex;justify-content:space-between;letter-spacing:.04em}
+.maplegend i{font-style:normal}.maplegend .le{color:#b5453c}
+
+/* ============ GREFFES (effets du build) ============ */
+.build{flex:1;margin-top:2px}
+.build li{list-style:none;padding:4px 0 3px;border-bottom:1px dotted #1a120c;
+  display:grid;grid-template-columns:auto 1fr;gap:0 8px;align-items:baseline}
+.build li:last-child{border-bottom:none}
+.build .sl{font:.56rem var(--mono);color:#4d4233;letter-spacing:.06em}
+.build .org{font:.6rem var(--mono);color:#a3947a;text-align:right}
+.build .org.mut{color:#bf5a3d}
+.build .org.gone{color:#3a3328;font-style:italic}
+.build .org.hurtc{color:#8a6a3a}
+.build em{grid-column:1/-1;font:.52rem var(--mono);font-style:italic;color:#564b39;text-align:right;line-height:1.5}
+.buildfoot{font:.53rem var(--mono);color:#4d4233;text-align:center;letter-spacing:.06em;margin-top:7px}
+.buildfoot b{color:#bf5a3d;font-weight:normal}
+
+/* ============ LA BARRE DU CORPS (unique) ============ */
+.youbar{grid-column:1/-1;position:relative;display:flex;align-items:center;gap:10px;
+  border:1px solid var(--edge);background:linear-gradient(#0a0706,#060403);padding:7px 10px;
+  box-shadow:inset 0 0 0 1px #000,inset 0 1px 0 #ffffff08}
+.youbar::before{content:"";position:absolute;left:0;right:0;top:-5px;height:6px;
+  background:repeating-linear-gradient(75deg,transparent 0 7px,var(--thread) 7px 9px,transparent 9px 16px);opacity:.7}
+.youbar .lbl{display:flex;flex-direction:column;gap:1px;min-width:74px}
+.youbar .lbl span{font-variant:small-caps;font-size:.6rem;letter-spacing:.3em;color:#8d7e63}
+.youbar .lbl em{font:.5rem var(--mono);font-style:normal;color:#4d4233;letter-spacing:.05em}
+.youbar .segbar{flex:1;height:clamp(27px,2.4vw,40px);max-width:560px}
+.youbar .seg{cursor:pointer}
+.youbar .seg b{font-size:.55rem;letter-spacing:.04em}
+.youbar .seg.active{border-color:#7a5224;box-shadow:inset 0 1px 0 #ffffff18,0 0 6px #c47f3328}
+.youbar .seg.dead b{color:#3a3328}
+.ybdiv{width:8px;margin-left:auto;align-self:stretch;background:
+  repeating-linear-gradient(15deg,transparent 0 5px,var(--thread) 5px 6.5px,transparent 6.5px 11px)}
+.padmini{display:grid;grid-template-columns:repeat(3,clamp(34px,3vw,56px));grid-auto-rows:clamp(27px,2.4vw,44px);gap:clamp(4px,.4vw,7px)}
+.padmini button{font:clamp(.85rem,1.05vw,1.2rem) var(--serif);background:linear-gradient(#181009,#0a0705);
+  color:#8d7e63;border:1px solid #2a1f14;cursor:pointer;line-height:1;
+  box-shadow:inset 0 1px 0 #ffffff10,inset 0 -2px 3px #000}
+.padmini button:hover,.padmini button:focus-visible{color:var(--torch);border-color:#574226;outline:none}
+.padmini button:active{transform:translateY(1px)}
+
+/* ============ SILHOUETTE & SLOTS ============ */
+.body-wrap{position:relative;height:118px;display:flex;justify-content:center;overflow:hidden}
+.silh{position:relative;width:84px;height:160px;transform:scale(.7);transform-origin:top center;
+  filter:drop-shadow(0 0 10px #8a2f2a26)}
+.silh>div{position:absolute;background:#150c0c;border:1px solid #341819}
+.s-head{left:27px;top:0;width:30px;height:30px;border-radius:50%}
+.s-torso{left:20px;top:32px;width:44px;height:58px;border-radius:38% 38% 30% 30%}
+.s-arm{top:34px;width:13px;height:50px;border-radius:8px}
+.s-arm.l{left:3px;transform:rotate(7deg)}.s-arm.r{right:3px;transform:rotate(-7deg)}
+.s-leg{top:92px;width:15px;height:58px;border-radius:8px}
+.s-leg.l{left:24px}.s-leg.r{left:45px}
+.s-arm.r.missing{background:repeating-linear-gradient(45deg,#0a0606 0 3px,#120b0a 3px 6px);border-style:dashed;opacity:.5}
+.slotdot{position:absolute;width:10px;height:10px;border-radius:50%;background:#0a0706;border:1px solid var(--bone-dark);z-index:2}
+.slotdot.on{background:#5d2120;box-shadow:0 0 5px #8a2f2a55}
+.slotdot.mut{background:#bf5a3d;box-shadow:0 0 6px #bf5a3d66}
+.slotdot.hurt{background:#6a4a1f}
+.game.hb .slotdot.heartdot{box-shadow:0 0 12px #b5453c}
+.youhp{height:17px;margin:7px 0 2px}
+
+/* ============ BARRE D'ACTIONS ============ */
+.act{position:relative;flex:1;max-width:clamp(150px,13vw,235px);display:flex;flex-direction:column;align-items:center;gap:1px;
+  padding:5px 8px 4px;background:linear-gradient(#181009,#0a0705);border:1px solid #2a1f14;cursor:pointer;
+  box-shadow:inset 0 1px 0 #ffffff10,inset 0 -3px 5px #000;color:#a3947a;font:inherit}
+.act b{font-family:var(--serif);font-variant:small-caps;letter-spacing:.16em;font-size:clamp(.66rem,.8vw,.86rem);
+  color:#b8a886;font-weight:normal}
+.act em{font:clamp(.5rem,.55vw,.62rem) var(--mono);font-style:normal;color:#564b39;letter-spacing:.04em}
+.act .key{position:absolute;top:2px;left:5px;font:.5rem var(--mono);color:#574a35}
+.act:hover,.act:focus-visible{border-color:#574226;outline:none}
+.act:hover b{color:var(--torch)}
+.act:active{transform:translateY(1px)}
+.act.heartact b{color:#b5453c}
+.act.empty{opacity:.38;cursor:default;border-style:dashed}
+.act.empty:hover{border-color:#2a1f14}.act.empty:hover b{color:#b8a886}
+
+/* ============ INSPECTION ============ */
+[data-i]{cursor:pointer}
+.sel-ring{outline:1px solid var(--torch)!important;box-shadow:0 0 8px #c47f3360!important}
+.inspector .hint{font:.55rem var(--mono);color:#4d4233;line-height:1.8;text-align:center;padding:7px 2px}
+.inspector .hint:hover{color:#8d7e63}
+.ins-name{font-variant:small-caps;letter-spacing:.18em;font-size:.8rem;color:#c9b994;text-align:center;margin-top:2px}
+.ins-arc{font:.54rem var(--mono);color:var(--whisper);text-align:center;letter-spacing:.35em;margin:2px 0 7px}
+.ins-row{display:flex;justify-content:space-between;gap:8px;font:.58rem var(--mono);color:#6a5d48;
+  padding:4px 0 3px;border-bottom:1px dotted #1a120c}
+.ins-row b{color:#a3947a;font-weight:normal;text-align:right;line-height:1.5}
+.ins-row b.bad{color:#bf5a3d}
+.ins-row b.good{color:var(--torch)}
+.ins-row b.ghost{color:#3a3328;font-style:italic}
+.intent{margin-top:5px;font:.58rem var(--mono);color:#7a6c54;letter-spacing:.08em;text-shadow:0 0 6px #000}
+.intent b{color:#b5453c;font-weight:normal;animation:intblink 1.4s steps(2) infinite}
+@keyframes intblink{50%{opacity:.4}}
+
+/* contrôles proto */
+.dactl{width:100%;max-width:1060px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  font-family:var(--mono);font-size:.68rem;color:#564b39}
+.dactl button{font:inherit;background:#0b0807;color:#8d7e63;border:1px solid #352c1e;
+  box-shadow:inset 0 1px 0 #ffffff0a,inset 0 -2px 4px #000;
+  padding:7px 13px;cursor:pointer;letter-spacing:.1em}
+.dactl button:hover,.dactl button:focus-visible{border-color:var(--torch);color:var(--torch);outline:none}
+.dactl button[aria-pressed="true"]{background:#190b0b;border-color:#5d2120;color:var(--torch-hot)}
+
+.eyeblind{position:absolute;top:0;right:0;bottom:0;width:0;background:#000;transition:width .55s;z-index:20}
+.game.no-eye .eyeblind{width:50%}
+.game.limp .scene{transform:rotate(-2.8deg) translateY(1.6%) scale(1.04)}
+
+@media (max-width:840px){
+  .game{grid-template-columns:1fr 1fr}
+  .center,.game-h,.youbar{grid-column:1/-1}
+  .col-l{grid-column:1}.col-r{grid-column:2}
+  .hdo{display:none}
+}
+@media (pointer:coarse){.slotdot{width:16px;height:16px;margin:-3px 0 0 -3px}}
+@media (max-height:560px) and (orientation:landscape){
+  .game{padding:6px;gap:5px;grid-template-columns:128px 1fr 170px}
+  .panel{padding:6px 6px 5px}
+  h3{font-size:.56rem;margin-bottom:5px;letter-spacing:.22em}
+  .log{min-height:36px;font-size:.6rem;line-height:1.5;padding:5px 9px}
+  .game-h{padding-bottom:4px}.title{font-size:.82rem;letter-spacing:.3em}.loc{font-size:.52rem}
+  .body-wrap{height:84px}.silh{transform:scale(.5)}
+  .act{padding:2px 5px}.act b{font-size:.56rem;letter-spacing:.1em}.act em{font-size:.45rem}
+  .padmini{grid-template-columns:repeat(3,30px);grid-auto-rows:21px}
+  .soundline{height:42px}.sl-lbl{bottom:26px;font-size:.52rem}
+  .inspector .hint{padding:4px 0}.ins-row{padding:2px 0;font-size:.54rem}
+  .inv{gap:2px}.counters{font-size:.56rem;gap:2px}
+  .youbar{padding:5px 7px;gap:7px}
+}
+.rotate{display:none}
+@media (orientation:portrait) and (max-width:760px){
+  .game{display:none}
+  .rotate{display:flex;position:fixed;inset:0;align-items:center;justify-content:center;
+    text-align:center;font-variant:small-caps;letter-spacing:.3em;
+    color:var(--bone-dim);line-height:2.6;font-size:.85rem}
+  .rotate em{display:block;font:.58rem var(--mono);letter-spacing:.15em;color:#4d4233;font-style:normal}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="rotate"><div><span style="font-size:2.2rem">⟳</span><br>pivote ton téléphone<br><em>CHAIR se joue en paysage</em></div></div>
+
+<div class="game" id="game">
+  <div class="grain"></div>
+  <div class="heartpulse"></div>
+  <span class="fc tl">✛</span><span class="fc tr">✛</span><span class="fc bl">✛</span><span class="fc br">✛</span>
+
+  <div class="game-h">
+    <span class="title"><em>☩&nbsp;</em>C H A I R<b> †</b></span>
+    <span class="hdo"></span>
+    <span class="loc">L'ESTOMAC · ÉTAGE <b>9</b> · TICK <b>2210</b> · ✠ LA COUTURIÈRE · HUMANITÉ <b>▓▓</b>░░░</span>
+    <span class="hctl">
+      <button id="setbtn" aria-pressed="false" title="réglages">⚙</button>
+      <button id="expbtn" title="exporter la sauvegarde (JSON)">⇩ SAVE</button>
+      <button id="impbtn" title="importer une sauvegarde">⇧</button>
+    </span>
+    <div class="menu panel" id="menu">
+      <h3><i>⚙</i> Réglages</h3>
+      <div class="mrow"><span>ambiance sonore</span><button id="sndbtn" data-onoff aria-pressed="false">off</button></div>
+      <div class="mrow"><span>démo — œil vendu</span><button id="eyebtn" data-onoff aria-pressed="false">off</button></div>
+      <div class="mrow"><span>démo — boiterie</span><button id="limpbtn" data-onoff aria-pressed="false">off</button></div>
+    </div>
+    <input type="file" id="impfile" accept=".json,application/json" style="display:none">
+  </div>
+
+  <!-- ===== gauche ===== -->
+  <div class="col-l">
+    <div class="panel">
+      <h3><i>❖</i> Besace</h3>
+      <div class="inv">
+        <div class="cell full glow" data-i="i_glande" title="Glande à acide — parfaite"><div class="orgshape"></div><span class="q">XII</span></div>
+        <div class="cell full" data-i="i_potion" title="Fiel fermenté — potion"><div class="orgshape pot"></div></div>
+        <div class="cell full" data-i="i_potion" title="Fiel fermenté — potion"><div class="orgshape pot"></div></div>
+        <div class="cell full" data-i="i_relic" title="Relique — Bocal Saumuré"><div class="orgshape relic"></div></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell lock" title="perdu avec le bras droit"></div><div class="cell lock" title="perdu avec le bras droit"></div><div class="cell lock" title="perdu avec le bras droit"></div><div class="cell lock" title="perdu avec le bras droit"></div>
+        <div class="cell lock" title="perdu avec le bras droit"></div><div class="cell lock" title="perdu avec le bras droit"></div><div class="cell lock" title="perdu avec le bras droit"></div><div class="cell lock" title="perdu avec le bras droit"></div>
+      </div>
+      <div class="suture" style="margin:9px 0 7px"></div>
+      <div class="counters">
+        <span>viande&nbsp;&nbsp;<b>41</b></span>
+        <span>torches&nbsp;<b>▮</b><span class="dim">▮▮▮▮</span></span>
+        <span>satiété&nbsp;<b>▓</b><span class="dim">▓▓▓▓</span> <span style="color:#bf5a3d">famine</span></span>
+      </div>
+    </div>
+    <div class="panel grow">
+      <h3><i>✠</i> Carte — étage 14</h3>
+      <div class="map-wrap">
+        <span class="compass">N ▴</span>
+        <div class="map">
+          <div class="mc"></div><div class="mc"></div><div class="mc r"></div><div class="mc r v"></div><div class="mc r"></div><div class="mc"></div><div class="mc"></div>
+          <div class="mc"></div><div class="mc"></div><div class="mc r"></div><div class="mc"></div><div class="mc r"></div><div class="mc"></div><div class="mc"></div>
+          <div class="mc r"></div><div class="mc r"></div><div class="mc r"></div><div class="mc e"></div><div class="mc r"></div><div class="mc r"></div><div class="mc q"></div>
+          <div class="mc r v"></div><div class="mc"></div><div class="mc r"></div><div class="mc p"></div><div class="mc r"></div><div class="mc"></div><div class="mc r"></div>
+          <div class="mc"></div><div class="mc"></div><div class="mc r"></div><div class="mc r"></div><div class="mc r"></div><div class="mc"></div><div class="mc"></div>
+          <div class="mc"></div><div class="mc"></div><div class="mc"></div><div class="mc q"></div><div class="mc"></div><div class="mc"></div><div class="mc"></div>
+          <div class="mc"></div><div class="mc"></div><div class="mc"></div><div class="mc q"></div><div class="mc"></div><div class="mc"></div><div class="mc"></div>
+        </div>
+        <div class="maplegend"><i>▲ toi</i><i class="le">◌ entendu</i><i>▒ deviné</i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== centre ===== -->
+  <div class="center">
+    <div class="viewport">
+      <div class="scene">
+        <div class="gas-bg"></div>
+        <div class="rug rugA"></div><div class="rug rugB"></div><div class="rug rugC"></div><div class="rug rugD"></div>
+        <div class="pylore"></div>
+        <div class="flap fl"></div><div class="flap fr"></div>
+        <div class="suclake"></div>
+        <div class="sucmist"></div>
+        <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+        <div class="bubble b4"></div><div class="bubble b5"></div>
+        <div class="debris d1"></div><div class="debris d2"></div><div class="debris d3"></div>
+        <div class="seamstress">
+          <div class="ss-lamp"></div><div class="ss-hood"></div><div class="ss-body"></div>
+          <div class="ss-arm la"></div><div class="ss-arm ra"></div>
+          <div class="ss-eye"></div><div class="ss-table"></div><div class="ss-thread"></div>
+        </div>
+        <div class="torchlight"></div>
+        <div class="darkness"></div>
+      </div>
+      <div class="graft">
+        <div class="graft-name">&#10082; La Couturi&egrave;re &middot; chambre de greffe &#10081;</div>
+        <div class="graft-bar">
+          <button class="gtab on" data-gt="greffer">greffer</button>
+          <button class="gtab" data-gt="amputer">amputer</button>
+          <button class="gtab" data-gt="coudre">coudre</button>
+          <button class="gtab" data-gt="consigne">consigne</button>
+          <span class="graft-cost">greffe propre &middot; 0 tick &middot; <b>15 viande</b></span>
+        </div>
+      </div>
+      <div class="soundline">
+        <div class="sl-axis"><span>◄&nbsp;G</span><span>FACE</span><span>D&nbsp;►</span></div>
+        <span class="behind" data-snd="behind">&#9676; &ccedil;a glougloute</span>
+        <canvas id="slc"></canvas>
+        <span class="sl-lbl close" data-snd="steps" style="left:26%">borborygmes&#8230;</span>
+        <span class="sl-lbl" data-snd="drip" style="left:50%">goutte de suc</span>
+        <span class="sl-lbl whisper" data-snd="whisper" style="left:70%">&hellip;assieds-toi&hellip;</span>
+      </div>
+      <div class="eyeblind"></div>
+    </div>
+    <div class="log">
+      <div class="sys">La Couturi&egrave;re ne l&egrave;ve pas les yeux de son ouvrage.</div>
+      <div class="warn">Ici la greffe ne co&ucirc;te aucun tick &mdash; et aucun risque. &Ccedil;a se paie.</div>
+      <div class="god">&hellip; a s s i e d s - t o i &hellip; <span class="cur">▌</span></div>
+    </div>
+  </div>
+
+  <!-- ===== droite : ton corps (interactif) + inspection ===== -->
+  <div class="col-r">
+    <div class="panel">
+      <h3><i>†</i> Ton corps</h3>
+      <div class="body-wrap">
+        <div class="silh">
+          <div class="s-head"></div><div class="s-torso"></div>
+          <div class="s-arm l"></div><div class="s-arm r"></div>
+          <div class="s-leg l"></div><div class="s-leg r"></div>
+          <span class="slotdot mut" data-i="d_cerveau" style="left:37px;top:1px" title="cerveau"></span>
+          <span class="slotdot mut" data-i="d_oeilg" style="left:30px;top:11px" title="œil g."></span>
+          <span class="slotdot mut" data-i="d_oeild" style="left:44px;top:11px" title="œil d."></span>
+          <span class="slotdot" data-i="d_oreille" style="left:18px;top:14px" title="oreille g."></span>
+          <span class="slotdot mut" data-i="d_oreille" style="left:56px;top:14px" title="oreille d."></span>
+          <span class="slotdot mut" data-i="d_langue" style="left:37px;top:22px" title="langue"></span>
+          <span class="slotdot mut" data-i="d_brasg" style="left:6px;top:48px" title="bras g."></span>
+          <span class="slotdot mut" data-i="d_brasd" style="left:68px;top:48px" title="bras d."></span>
+          <span class="slotdot mut heartdot" data-i="d_coeur" style="left:30px;top:44px" title="cœur"></span>
+          <span class="slotdot mut" data-i="d_peau" style="left:56px;top:74px" title="peau"></span>
+          <span class="slotdot on" data-i="d_estomac" style="left:44px;top:60px" title="estomac"></span>
+          <span class="slotdot mut" data-i="d_jambes" style="left:37px;top:108px" title="jambes"></span>
+        </div>
+      </div>
+      <div class="segbar youhp">
+        <div class="seg" data-i="d_peau" title="peau alchimique"><i style="background:linear-gradient(#6e7a24,#2c3a14)"></i><b>PEAU</b></div>
+        <div class="seg" data-i="d_brasg" title="bras d'araignée"><i style="background:linear-gradient(#4a3a5a,#241830)"></i><b>BRAS</b></div>
+        <div class="seg" data-i="d_brasd" title="bras-conduit"><i style="background:linear-gradient(#3a5a6a,#182830)"></i><b>BRAS</b></div>
+        <div class="seg" data-i="d_jambes" title="jambes d'araignée"><i style="background:linear-gradient(#4a3a5a,#241830)"></i><b>JAMBES</b></div>
+        <div class="seg" data-i="d_torse" title="torse"><i></i><b>TORSE</b></div>
+        <div class="seg heart" data-i="d_coeur" title="cœur de liche"><i></i><b>CŒUR</b></div>
+      </div>
+    </div>
+    <div class="panel grow inspector">
+      <h3><i>✦</i> Inspection</h3>
+      <div id="insp"></div>
+    </div>
+  </div>
+
+  <!-- ===== LA barre d'actions ===== -->
+  <div class="youbar">
+    <button class="act" title="bras d'araignée — frappe">
+      <span class="key">1</span><b>Lacérer</b><em>bras d'araignée</em>
+    </button>
+    <button class="act heartact" title="décharge d'orbes">
+      <span class="key">2</span><b>Décharge</b><em>bras-conduit</em>
+    </button>
+    <button class="act" title="insulte — aggro">
+      <span class="key">3</span><b>Insulter</b><em>langue de sel</em>
+    </button>
+    <button class="act" title="piloter un cadavre">
+      <span class="key">4</span><b>Posséder</b><em>cerveau carcasse</em>
+    </button>
+    <button class="act heartact" title="ultime du cœur de liche">
+      <span class="key">5</span><b>Renaître</b><em>cœur de liche</em>
+    </button>
+    <button class="act empty"><span class="key">6</span><b>—</b></button>
+    <span class="ybdiv"></span>
+    <div class="padmini" title="se déplacer = une action (1 tick) · fuir = reculer">
+      <button title="tourner à gauche (Q)">↺</button>
+      <button title="avancer (↑)">↑</button>
+      <button title="tourner à droite (E)">↻</button>
+      <button title="pas de côté (←)">←</button>
+      <button title="reculer — fuir (↓)">↓</button>
+      <button title="pas de côté (→)">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const game=document.getElementById('game');
+const tg=(btn,fn)=>{btn.addEventListener('click',()=>{const on=btn.getAttribute('aria-pressed')!=='true';
+  btn.setAttribute('aria-pressed',on);
+  if(btn.dataset.onoff!==undefined)btn.textContent=on?'on':'off';
+  fn(on);});};
+tg(document.getElementById('eyebtn'),on=>game.classList.toggle('no-eye',on));
+tg(document.getElementById('limpbtn'),on=>game.classList.toggle('limp',on));
+document.querySelectorAll('.gtab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.gtab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+  const m={greffer:'greffe propre · 0 tick · <b>15 viande</b>',
+    amputer:'amputation propre · <b>gratuit</b> · part en besace',
+    coudre:'coudre une privation · <b>30 viande</b>',
+    consigne:'1 organe mis de côté pour ta prochaine vie · <b>100 viande</b>'};
+  document.querySelector('.graft-cost').innerHTML=m[t.dataset.gt];}));
+
+/* ===== menu réglages ===== */
+const menu=document.getElementById('menu');
+tg(document.getElementById('setbtn'),on=>menu.classList.toggle('open',on));
+
+/* ===== log ===== */
+const logEl=document.querySelector('.log');
+function logline(txt,cls){const d=document.createElement('div');d.className=cls||'sys';
+  d.textContent=txt;logEl.appendChild(d);
+  while(logEl.children.length>4)logEl.removeChild(logEl.firstChild);}
+
+/* ===== save : export / import JSON ===== */
+function buildSave(){return{
+  meta:{version:'proto-da-1',runCount:12,exportedAt:new Date().toISOString()},
+  currentRun:{strate:'gorge',etage:3,tick:412,humanite:3,viande:233,
+    body:{slots:{eye_l:'eye_pale_king',eye_r:null,ear_l:'ear_human',ear_r:'ear_human',
+      arm_l:'arm_troll',arm_r:null,legs:'legs_human@2',heart:'heart_human',
+      skin:'skin_human',brain:'brain_human',stomach:'stomach_human',tongue:'tongue_human'}},
+    bag:['eye_intact@IX','heart_worn@IV','tongue_rotten','bone']},
+  graveyard:[],rival:{alive:true,kills:0}};}
+document.getElementById('expbtn').addEventListener('click',()=>{
+  const b=new Blob([JSON.stringify(buildSave(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='chair_save.json';a.click();URL.revokeObjectURL(a.href);
+  logline('sauvegarde exportée — chair_save.json');});
+const impfile=document.getElementById('impfile');
+document.getElementById('impbtn').addEventListener('click',()=>impfile.click());
+impfile.addEventListener('change',()=>{const f=impfile.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const j=JSON.parse(r.result);
+      logline('sauvegarde importée — étage '+(j.currentRun&&j.currentRun.etage!=null?j.currentRun.etage:'?')
+        +' · tick '+(j.currentRun&&j.currentRun.tick!=null?j.currentRun.tick:'?'),'warn');
+    }catch(e){logline('sauvegarde illisible — la chair rejette la greffe','god');}
+    impfile.value='';};
+  r.readAsText(f);});
+
+/* ===== LA LIGNE — connectée à l'audio ===== */
+const cv=document.getElementById('slc'),cx=cv.getContext('2d');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SND={
+  steps:  {x:.15,base:6, exc:0,w:.05, sp:5.2,hue:'#e3d8c2'},
+  drip:   {x:.50,base:1.2,exc:0,w:.013,sp:11, hue:'#b8a886'},
+  whisper:{x:.67,base:2.5,exc:0,w:.09, sp:1.3,hue:'#7d659e'},
+  behind: {x:.985,base:3,exc:0,w:.02, sp:3.1,hue:'#8a2f2a'}
+};
+function fit(){cv.width=cv.clientWidth*devicePixelRatio;cv.height=cv.clientHeight*devicePixelRatio;}
+fit();addEventListener('resize',fit);
+const LBLS={};document.querySelectorAll('[data-snd]').forEach(e=>LBLS[e.dataset.snd]=e);
+let t=0;
+function draw(){
+  const W=cv.width,H=cv.height,base=H*.6,dpr=devicePixelRatio;
+  cx.clearRect(0,0,W,H);
+  cx.lineWidth=1*dpr;cx.strokeStyle='#ece6d8';
+  cx.shadowColor='#fff8ea';cx.shadowBlur=5*dpr;
+  cx.beginPath();
+  for(let px=0;px<=W;px+=2){
+    const u=px/W;
+    let y=base+(Math.random()-.5)*1.4*dpr;
+    for(const k in SND){const s=SND[k];
+      const d=(u-s.x)/s.w,env=Math.exp(-d*d);
+      const amp=s.base+s.exc;
+      const osc=Math.sin(t*s.sp+px*.21)+.45*Math.sin(t*s.sp*2.7+px*.5);
+      y-=env*osc*amp*dpr;
+    }
+    px===0?cx.moveTo(px,y):cx.lineTo(px,y);
+  }
+  cx.stroke();cx.shadowBlur=0;
+  for(const k in SND){const s=SND[k];
+    const a=Math.min(1,(s.base+s.exc)/14);
+    const g=cx.createRadialGradient(s.x*W,base,0,s.x*W,base,s.w*W*2.6);
+    g.addColorStop(0,s.hue+Math.round(40*a+16).toString(16));g.addColorStop(1,'transparent');
+    cx.fillStyle=g;cx.fillRect(s.x*W-s.w*W*2.6,base-34,s.w*W*5.2,68);
+    s.exc*=.93;
+  }
+  for(const k in LBLS){const s2=SND[k];
+    LBLS[k].style.opacity=Math.min(1,(s2.base+s2.exc)/9).toFixed(2);}
+  t+=reduced?0:.05;
+  requestAnimationFrame(draw);
+}
+draw();
+const excite=(k,v)=>{SND[k].exc=Math.min(20,SND[k].exc+v);};
+setInterval(()=>{if(!ac){excite('steps',7);setTimeout(()=>excite('steps',6),420);}},1100);
+setInterval(()=>{if(!ac)excite('drip',8);},4200);
+
+/* ===== INSPECTION : la silhouette est l'index ===== */
+const insp=document.getElementById('insp');
+const R=(l,v,c)=>'<div class="ins-row"><span>'+l+'</span><b class="'+(c||'')+'">'+v+'</b></div>';
+const INFO={
+ d_oeilg:{n:'Œil de Verre',a:'— XV —',r:[['état','7 / 7 PV','good'],['pouvoir','revoit la dernière mort de la salle'],['écran','vision en dithering 1-bit'],['humanité','−20','bad']]},
+ d_oeild:{n:'Œil Noctambule',a:'— XI —',r:[['état','6 / 6 PV','good'],['pouvoir','vision totale dans le noir'],['malédiction','aveuglé par la lumière vive','bad'],['+Hallu','dans le noir','bad']]},
+ d_cerveau:{n:'Cerveau de la Carcasse',a:'— XVII —',r:[['état','sain'],['pouvoir','piloter un mob tué récemment'],['malédiction','+Hallucination passive','bad']]},
+ d_oreille:{n:'Oreille de Chauve-Souris',a:'— X —',r:[['état','intacte'],['pouvoir','écholocation → minimap'],['coût','crier alerte les mobs','bad']]},
+ d_langue:{n:'Langue de Sel',a:'— VIII —',r:[['état','intacte'],['pouvoir','insulte : force l\'aggro'],['bonus','la cible rate parfois de rage','good']]},
+ d_brasg:{n:'Bras d\'Araignée',a:'— monstre —',r:[['état','5 / 6 PV'],['action','frappe + grimpe les murs'],['humanité','−12','bad']]},
+ d_brasd:{n:'Bras-Conduit',a:'— XIII —',r:[['état','6 / 6 PV','good'],['action','charge un orbe / tick, relâche tout','good'],['synergie','le tempo du Cœur','good']]},
+ d_jambes:{n:'Jambes d\'Araignée',a:'— monstre —',r:[['état','6 / 6 PV','good'],['effet','marche murs & plafond : ignore l\'acide','good'],['humanité','−15','bad']]},
+ d_coeur:{n:'Cœur de Liche',a:'— XVI —',r:[['état','8 / 8 PV','good'],['pouvoir','survit à une mort / étage','good'],['malédiction','les soins te BLESSENT','bad'],['⚠','manger ne te répare plus','bad']]},
+ d_peau:{n:'Peau Alchimique',a:'— XIV —',r:[['état','5 / 5 PV','good'],['pouvoir','boit l\'acide au sol → te répare','good'],['ici','le bain d\'acide te soigne','good']]},
+ d_estomac:{n:'Estomac humain',a:'— 0 —',r:[['état','sain — le dernier organe humain'],['satiété','▓░░░░ FAMINE — autophagie imminente','bad'],['⚠','le cœur de liche bloque les soins','bad']]},
+ d_torse:{n:'Torse',a:'— chair —',r:[['état','6 / 6'],['rôle','protège le cœur de liche']]},
+ f_peau:{n:'Cuir acide',a:'— cible —',r:[['état','résiste à l\'acide','good'],['récolte','peau anti-acide — précieuse'],['couche','externe']]},
+ f_coeur1:{n:'Cœur exposé',a:'— cible ! —',r:[['état','battant, à découvert','good'],['le frapper','dégâts énormes'],['piège','en détruire un ENRAGE l\'autre','bad']]},
+ f_torse:{n:'Ventre gonflé',a:'— cible —',r:[['état','plein d\'acide'],['le percer','éclaboussure — 2 cases','bad']]},
+ f_glande:{n:'Glande à acide',a:'— cible ✦ —',r:[['état','intacte — récoltable','good'],['donne','crache d\'acide à distance'],['fragile','le feu la cuit','bad']]},
+ f_coeur2:{n:'2e cœur',a:'— couche profonde —',r:[['état','non exposé','ghost'],['les deux','tuer l\'un enrage l\'autre','bad'],['stratégie','les briser dans le même tick']]},
+ i_glande:{n:'Glande (besace)',a:'— XII · parfaite —',r:[['greffe','un crachat d\'acide'],['pourrit dans','~90 ticks'],['conserve','via le Bocal Saumuré']]},
+ i_potion:{n:'Fiel fermenté',a:'— potion —',r:[['effet','restaure la satiété','good'],['⚠','soin bloqué par le cœur de liche','bad'],['source','alambic — déchets fermentés']]},
+ i_relic:{n:'Bocal Saumuré',a:'— relique —',r:[['effet','1 organe ne pourrit plus','good'],['idéal pour','la glande XII']]}
+};
+function card(k){const o=INFO[k];if(!o)return;
+  insp.innerHTML='<div class="ins-name">'+o.n+'</div><div class="ins-arc">'+o.a+'</div>'
+    +o.r.map(r=>R(r[0],r[1],r[2])).join('')
+    +'<div class="hint" data-back="1">↩ revenir aux stats du corps</div>';}
+function stats(){insp.innerHTML=
+   '<div class="ins-name">Stats du corps</div><div class="ins-arc">— dérivées des organes —</div>'
+  +R('dégâts','▮▮▮▮▮▮ <span style="opacity:.5">conduit</span>','good')
+  +R('perception','▮▮▮▮▮▮ <span style="opacity:.5">3 yeux mutés</span>','good')
+  +R('bruit émis','▮ <span style="opacity:.5">araignée</span>','good')
+  +R('vitesse','mur & plafond','good')
+  +R('satiété','▓░░░░ — FAMINE','bad')
+  +R('hallucination','▓▓▓▓ <span style="opacity:.5">le noir, le dieu</span>','bad')
+  +R('humanité','▓░░░░ · 1 organe humain','bad')
+  +'<div class="hint">tape un organe, un segment ennemi<br>ou un objet de la besace</div>';}
+stats();
+stats();
+document.querySelectorAll('[data-i]').forEach(el=>el.addEventListener('click',()=>{
+  document.querySelectorAll('.sel-ring').forEach(e=>e.classList.remove('sel-ring'));
+  el.classList.add('sel-ring');card(el.dataset.i);}));
+insp.addEventListener('click',e=>{if(e.target.dataset.back){
+  document.querySelectorAll('.sel-ring').forEach(x=>x.classList.remove('sel-ring'));stats();}});
+
+/* ===== AUDIO ===== */
+let ac=null,timers=[];
+const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
+function startAudio(){
+  ac=new (window.AudioContext||window.webkitAudioContext)();
+  const out=ac.createGain();out.gain.value=.85;out.connect(ac.destination);
+  const pan=v=>{const p=ac.createStereoPanner?ac.createStereoPanner():null;if(p)p.pan.value=v;return p;};
+  const route=(node,p)=>{if(p){node.connect(p);p.connect(out);}else node.connect(out);};
+
+  const heartbeat=()=>{if(!ac)return;
+    [[0,52,.55],[ .22,38,.7]].forEach(([d,fr,vol])=>{
+      const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+      f.type='lowpass';f.frequency.value=120;
+      o.frequency.value=fr;o.connect(f);f.connect(g);g.connect(out);
+      const tt=ac.currentTime+d;g.gain.setValueAtTime(.0001,tt);
+      g.gain.exponentialRampToValueAtTime(vol,tt+.012);
+      g.gain.exponentialRampToValueAtTime(.0001,tt+.30);o.start(tt);o.stop(tt+.36);});
+    game.classList.add('hb');later(()=>game.classList.remove('hb'),140);
+    later(heartbeat,1080);};
+  heartbeat();
+
+  const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=105;
+  [33,34.3,49.7].forEach(fr=>{const o=ac.createOscillator();o.type='sawtooth';
+    o.frequency.value=fr;o.connect(f);o.start();});
+  const dg=ac.createGain();dg.gain.value=.11;f.connect(dg);dg.connect(out);
+  const lfo=ac.createOscillator();lfo.frequency.value=.05;
+  const lg=ac.createGain();lg.gain.value=42;lfo.connect(lg);lg.connect(f.frequency);lfo.start();
+
+  let stepVol=.14;
+  const step=()=>{if(!ac)return;
+    const o=ac.createOscillator(),g=ac.createGain(),fl=ac.createBiquadFilter();
+    fl.type='lowpass';fl.frequency.value=160;
+    o.frequency.value=64;o.connect(fl);fl.connect(g);
+    route(g,pan(-.75));
+    g.gain.setValueAtTime(stepVol,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.24);
+    o.start();o.stop(ac.currentTime+.28);
+    excite('steps',9);
+    stepVol=Math.min(.5,stepVol*1.06);
+    if(stepVol>.48){stepVol=.14;later(step,2600);}
+    else later(step,860+Math.random()*180);};
+  later(step,900);
+
+  const drip=()=>{if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();
+    o.frequency.setValueAtTime(1300,ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(260,ac.currentTime+.1);
+    o.connect(g);route(g,pan(0));
+    g.gain.setValueAtTime(.16,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.24);
+    o.start();o.stop(ac.currentTime+.27);
+    excite('drip',10);later(drip,3000+Math.random()*5500);};
+  later(drip,1600);
+
+  const whisper=()=>{if(!ac)return;
+    const len=ac.sampleRate*1.6,b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*.4;
+    const s=ac.createBufferSource();s.buffer=b;
+    const bf=ac.createBiquadFilter();bf.type='bandpass';bf.frequency.value=750+Math.random()*500;bf.Q.value=3;
+    const g=ac.createGain();
+    g.gain.setValueAtTime(.0001,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.12,ac.currentTime+.7);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+1.6);
+    s.connect(bf);bf.connect(g);route(g,pan(.55));
+    s.start();excite('whisper',7);
+    later(()=>excite('whisper',5),600);
+    later(whisper,5000+Math.random()*8000);};
+  later(whisper,3000);
+
+  const breathLen=ac.sampleRate*4,bb=ac.createBuffer(1,breathLen,ac.sampleRate),bd=bb.getChannelData(0);
+  for(let i=0;i<breathLen;i++)bd[i]=(Math.random()*2-1)*.3;
+  const bs=ac.createBufferSource();bs.buffer=bb;bs.loop=true;
+  const bf2=ac.createBiquadFilter();bf2.type='bandpass';bf2.frequency.value=420;bf2.Q.value=1.2;
+  const bg=ac.createGain();bg.gain.value=.0001;
+  bs.connect(bf2);bf2.connect(bg);bg.connect(out);bs.start();
+  const breathe=()=>{if(!ac)return;const n=ac.currentTime;
+    bg.gain.exponentialRampToValueAtTime(.09,n+1.3);
+    bg.gain.exponentialRampToValueAtTime(.0005,n+2.9);
+    excite('behind',5);later(()=>excite('behind',4),1300);
+    later(breathe,3400);};
+  breathe();
+
+  const groan=()=>{if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();
+    o.type='triangle';o.frequency.setValueAtTime(58,ac.currentTime);
+    o.frequency.linearRampToValueAtTime(41,ac.currentTime+2.4);
+    const df=ac.createBiquadFilter();df.type='lowpass';df.frequency.value=200;
+    o.connect(df);df.connect(g);g.connect(out);
+    g.gain.setValueAtTime(.0001,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.13,ac.currentTime+.9);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+2.6);
+    o.start();o.stop(ac.currentTime+2.8);later(groan,12000+Math.random()*14000);};
+  later(groan,7000);
+}
+function stopAudio(){timers.forEach(clearTimeout);timers=[];if(ac){ac.close();ac=null;}
+  game.classList.remove('hb');}
+tg(document.getElementById('sndbtn'),on=>on?startAudio():stopAudio());
+</script>
+</body>
+</html>

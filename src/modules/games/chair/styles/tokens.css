@@ -1,0 +1,80 @@
+/* CHAIR — Design tokens. Source DA v8 palette. */
+
+:root {
+  /* ── Base palette (Gorge / default) ───────────────────────────────────────── */
+  --void:      #030202;
+  --panel:     #0b0807;
+  --edge:      #241a12;
+  --edge2:     #15100b;
+  --meat:      #2e1112;
+  --blood:     #8a2f2a;
+  --thread:    #5d2120;
+  --bone:      #b8a886;
+  --bone-dim:  #6a5d48;
+  --bone-dark: #403828;
+  --torch:     #c47f33;
+  --torch-hot: #e8b25c;
+  --whisper:   #7d659e;
+
+  /* ── Typography ───────────────────────────────────────────────────────────── */
+  --mono:  "Courier New", ui-monospace, monospace;
+  --serif: Georgia, "Palatino Linotype", serif;
+  --fz:    clamp(10px, 1.15vw, 13px);
+
+  /* ── Spacing ──────────────────────────────────────────────────────────────── */
+  --gap:     9px;
+  --pad:     11px;
+  --seg-gap: 2px;
+
+  /* ── Aliases for legacy JS references ────────────────────────────────────── */
+  --c-meat:      var(--meat);
+  --c-blood:     var(--blood);
+  --c-thread:    var(--thread);
+  --c-torch:     var(--torch);
+  --c-torch-hot: var(--torch-hot);
+  --c-text:      var(--bone);
+  --c-text-dim:  var(--bone-dim);
+
+  /* ── Quality indicator colors (used in InspectorPanel inline styles) ─────── */
+  --c-parfait: #7acd50;
+  --c-intact:  #c8a830;
+  --c-abime:   #c86020;
+  --c-cuit:    #8a2510;
+  --c-pourri:  #4a3820;
+  --c-dead:    #1c1412;
+
+  /* ── Organ layer seg backgrounds ─────────────────────────────────────────── */
+  --c-outer: #170a0b;
+  --c-mid:   #0e0c0b;
+  --c-deep:  #0c0a0b;
+}
+
+/* ── Biome overrides ─────────────────────────────────────────────────────────── */
+.game[data-biome="poumons"] {
+  --meat:      #1a2a1e;
+  --blood:     #3a7a4a;
+  --thread:    #224e2e;
+  --torch:     #6fc48a;
+  --torch-hot: #a6dca8;
+}
+.game[data-biome="coeur"] {
+  --meat:      #3a0e14;
+  --blood:     #b5333a;
+  --thread:    #5a181c;
+  --torch:     #d8484a;
+  --torch-hot: #ff7a6e;
+}
+.game[data-biome="estomac"] {
+  --meat:      #182430;
+  --blood:     #3a6a72;
+  --thread:    #1e4048;
+  --torch:     #6fb0c4;
+  --torch-hot: #a6dcea;
+}
+.game[data-biome="entrailles"] {
+  --meat:      #382010;
+  --blood:     #9a5a26;
+  --thread:    #563818;
+  --torch:     #cf9a3a;
+  --torch-hot: #f0c468;
+}

@@ -70,6 +70,16 @@ const CATALOG = [
     tags: ['Rythme', 'Godot', 'itch.io'],
   },
   {
+    id: 'chair',
+    cat: 'jeu',
+    title: 'CHAIR',
+    tagline: 'Dungeon crawler CSS en vue FPS — combat organique, biomes procéduraux.',
+    icon: '💀',
+    kind: 'external',
+    href: '/src/modules/games/chair/',
+    tags: ['Dungeon', 'FPS', 'Roguelike'],
+  },
+  {
     id: 'guitare',
     cat: 'outil',
     title: 'MarousFive',

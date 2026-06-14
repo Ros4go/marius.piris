@@ -1,0 +1,223 @@
+[
+  {
+    "id": "combat",
+    "family": "combat",
+    "ui": "combat",
+    "weight": 40,
+    "spawns": { "minMobs": 1, "maxMobs": 2 },
+    "loot": { "organs": true, "relics": false },
+    "description": "Une salle de chair et de sang.",
+    "cleared": false
+  },
+  {
+    "id": "combat_elite",
+    "family": "combat",
+    "ui": "combat",
+    "weight": 10,
+    "spawns": { "minMobs": 1, "maxMobs": 1, "elite": true },
+    "loot": { "organs": true, "relics": true },
+    "description": "Quelque chose d'imposant attend.",
+    "cleared": false
+  },
+  {
+    "id": "trade",
+    "family": "npc",
+    "ui": "trade",
+    "weight": 8,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Un marchant dans l'ombre.",
+    "cleared": true
+  },
+  {
+    "id": "graft",
+    "family": "npc",
+    "ui": "graft",
+    "weight": 6,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Un greffeur silencieux.",
+    "cleared": true
+  },
+  {
+    "id": "altar",
+    "family": "special",
+    "ui": "altar",
+    "weight": 4,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": true },
+    "description": "Un autel imprégné de pouvoir.",
+    "cleared": true
+  },
+  {
+    "id": "rest",
+    "family": "safe",
+    "ui": "rest",
+    "weight": 10,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Le silence, pour une fois.",
+    "cleared": true
+  },
+  {
+    "id": "pillard",
+    "family": "npc",
+    "ui": "pillard",
+    "weight": 5,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "cleared": true
+  },
+  {
+    "id": "puzzle",
+    "family": "special",
+    "ui": "puzzle",
+    "weight": 5,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": true, "relics": false },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "cleared": false
+  },
+  {
+    "id": "nid",
+    "family": "combat",
+    "ui": "combat",
+    "weight": 4,
+    "spawns": { "minMobs": 1, "maxMobs": 1 },
+    "loot": { "organs": true, "relics": false },
+    "description": "Des parois palpitantes. Quelque chose couve ici.",
+    "cleared": false,
+    "roomEffect": "nid"
+  },
+  {
+    "id": "path_choice",
+    "family": "navigation",
+    "ui": "path_choice",
+    "weight": 0,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Un carrefour de chairs.",
+    "cleared": true
+  },
+  {
+    "id": "entrance",
+    "family": "navigation",
+    "ui": "entrance",
+    "weight": 0,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Tu es entré par ici.",
+    "cleared": true
+  },
+  {
+    "id": "exit",
+    "family": "navigation",
+    "ui": "exit",
+    "weight": 0,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "La descente continue.",
+    "cleared": false
+  },
+  {
+    "id": "cordes_vocales",
+    "family": "thematic",
+    "ui": "combat",
+    "weight": 3,
+    "spawns": { "minMobs": 1, "maxMobs": 3, "themeForced": "putrid" },
+    "loot": { "organs": true, "relics": false },
+    "description": "Des cordes de chair vibrent sans raison. Les ennemis arrivent de partout.",
+    "cleared": false,
+    "biomeOnly": "gorge"
+  },
+  {
+    "id": "salle_derniers_mots",
+    "family": "thematic",
+    "ui": "altar",
+    "weight": 2,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": true },
+    "description": "Les mots d'un dieu se cristallisent ici.",
+    "cleared": true,
+    "biomeOnly": "gorge"
+  },
+  {
+    "id": "alveoles",
+    "family": "thematic",
+    "ui": "puzzle",
+    "weight": 4,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Les alvéoles pulsent. Un vent chaud vous frappe par rafales.",
+    "cleared": true,
+    "biomeOnly": "poumons",
+    "roomEffect": "wind_dmg"
+  },
+  {
+    "id": "bronchioles",
+    "family": "safe",
+    "ui": "rest",
+    "weight": 3,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Un carrefour de bronches. Le silence ici est presque respiratoire.",
+    "cleared": true,
+    "biomeOnly": "poumons"
+  },
+  {
+    "id": "ventricules",
+    "family": "thematic",
+    "ui": "puzzle",
+    "weight": 4,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Les murs battent au rythme d'un cœur mort. Chaque pulse vous blesse.",
+    "cleared": true,
+    "biomeOnly": "coeur",
+    "roomEffect": "pulse_damage"
+  },
+  {
+    "id": "salle_pression",
+    "family": "special",
+    "ui": "altar",
+    "weight": 3,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": true },
+    "description": "Une pression cardiaque fossilisée émane de l'autel.",
+    "cleared": true,
+    "biomeOnly": "coeur"
+  },
+  {
+    "id": "bains_acide",
+    "family": "thematic",
+    "ui": "puzzle",
+    "weight": 3,
+    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "loot": { "organs": false, "relics": false },
+    "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
+    "cleared": true,
+    "roomEffect": "acid_baths"
+  },
+  {
+    "id": "boss",
+    "family": "boss",
+    "ui": "combat",
+    "weight": 0,
+    "spawns": { "minMobs": 1, "maxMobs": 1, "boss": true },
+    "loot": { "organs": true, "relics": true },
+    "description": "Une présence ancienne emplit la salle.",
+    "cleared": false
+  },
+  {
+    "id": "grave",
+    "family": "boss",
+    "ui": "combat",
+    "weight": 5,
+    "spawns": { "minMobs": 1, "maxMobs": 1, "graveyard": true },
+    "loot": { "organs": true, "relics": false },
+    "description": "La salle sent la chair familière.",
+    "cleared": false,
+    "biomeOnly": "le-fond"
+  }
+]
