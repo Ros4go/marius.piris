@@ -7,7 +7,7 @@ import * as AbilitySystem from './AbilitySystem.js';
 import * as RelicSystem   from './RelicSystem.js';
 
 // HP drained from the firing organ each time a skill is used (player AND mobs)
-const SKILL_COST_BY_TYPE = {
+export const SKILL_COST_BY_TYPE = {
   arm:     1,
   tongue:  1,
   legs:    1,
@@ -38,72 +38,7 @@ const MOB_SKILL_NAME = {
 // ARM only reduces damage when the targeted slot is in the outer layer (or cartilage_fossile).
 // pierce_layer ability negates ARM reduction entirely.
 
-// Auto-attack fired by BattleEngine each beat.
-// Uses WS.battle.aimedSlot (set by VISER skill) if present, then clears it.
-export function playerAutoAttack(mobId) {
-  const mob = WS.mobs.get(mobId);
-  if (!mob || mob.lifecycle !== 'active') return { ok: false, reason: 'no_target' };
-
-  if (mob.invisible && !AbilitySystem.playerCanSeeInvisible(WS.player.body)) {
-    if (rng() > 0.3) {
-      emit({ type: 'ATTACK_MISSED', source: 'player', target: mobId,
-             data: { invisible: true }, priority: PRIORITY.ACTION });
-      return { ok: true, miss: true };
-    }
-  }
-
-  // Mob esquive buff (from ESQUIVE skill)
-  if ((mob.buffDodge ?? 0) > 0) {
-    mob.buffDodge--;
-    emit({ type: 'DODGE', source: mob.id, target: mobId,
-           data: { mobDodge: true }, priority: PRIORITY.ACTION });
-    return { ok: true, dodged: true };
-  }
-
-  const aimed = WS.battle?.aimedSlot ?? null;
-  if (aimed) WS.battle.aimedSlot = null;
-
-  const slotKey = aimed ?? _autoTarget(mob.body);
-  if (!slotKey) return { ok: false, reason: 'no_targetable_organ' };
-
-  const playerBody  = WS.player.body;
-  const playerStats = playerBody.statsWith(organResolver);
-
-  if (aimed) {
-    const hitChance = Math.min(0.95, 0.5 + 0.05 * (playerStats.prc ?? 0));
-    if (rng() > hitChance) {
-      emit({ type: 'ATTACK_MISSED', source: 'player', target: mobId,
-             data: { slotKey: aimed }, priority: PRIORITY.ACTION });
-      return { ok: true, miss: true };
-    }
-  }
-
-  const targetSlotDef = ORGAN_SLOTS[slotKey];
-  const mobStats      = mob.body.statsWith(organResolver);
-  const pierces       = AbilitySystem.playerHasPierceLayer(playerBody);
-  const armApplies    = !pierces && RelicSystem.armAppliesToLayer(targetSlotDef.layer);
-  const armReduction  = armApplies
-    ? (mobStats.arm + (mob.buffArm ?? 0) + (WS.humeur === 'rigor_mortis' ? 2 : 0))
-    : 0;
-  const quality = _armQuality(playerBody);
-  // Auto-attacks deal half damage — skills provide the burst
-  const dmg = Math.max(1, Math.round((playerStats.dgt - armReduction) * quality * 0.5));
-
-  _applyDamage(mob.body, slotKey, dmg);
-  if (mob.isBoss) BossSystem.checkPhase2(mob);
-
-  emit({ type: 'ORGAN_DAMAGED', source: 'player', target: mobId,
-         data: { slotKey, dmg, organId: mob.body.slots[slotKey]?.organId },
-         priority: PRIORITY.ACTION });
-
-  const s = mob.body.slots[slotKey];
-  if (s && s.hp <= 0) _onOrganDestroyed(mob, slotKey);
-  if (!_isMobAlive(mob)) _onMobDied(mob);
-
-  return { ok: true, dmg, slotKey };
-}
-
-// Skill activated by the player during battle (click-triggered, immediate).
+// Skill activated by the player during battle (click-triggered, organ fully charged).
 // Returns { ok, cooldown?, dmg? } — BattleEngine stores the cooldown.
 export function playerSkill(slotKey, mobId, targetSlotKey) {
   const slot = WS.player.body?.slots?.[slotKey];
@@ -200,15 +135,22 @@ export function playerSkill(slotKey, mobId, targetSlotKey) {
     }
 
     case 'ear': {
-      // Stall the mob's telegraphed skill by 2 beats
-      if (mob.scheduledSkill) {
-        mob.scheduledSkill.countdown += 2;
-        mob.intent = `⚔ ${mob.scheduledSkill.organName} [${mob.scheduledSkill.countdown}▸] ${mob.scheduledSkill.skillName}`;
+      // Reset the most-charged mob organ to 0 (interrupts the biggest threat)
+      const prog = mob.organProgress ?? {};
+      let stalledKey = null, bestRatio = -1;
+      for (const [key, p] of Object.entries(prog)) {
+        if (!p) continue;
+        const ratio = p.chargedMs / Math.max(1, p.totalMs);
+        if (ratio > bestRatio) { bestRatio = ratio; stalledKey = key; }
+      }
+      if (stalledKey && prog[stalledKey]) {
+        prog[stalledKey].chargedMs = 0;
+        prog[stalledKey].ready     = false;
       }
       emit({ type: 'SKILL_LISTEN', source: 'player', target: mobId,
-             data: { intent: mob.intent ?? '?' }, priority: PRIORITY.ACTION });
+             data: { stalled: stalledKey, ratio: bestRatio }, priority: PRIORITY.ACTION });
       _applySelfDamage(playerBody, slotKey, SKILL_COST_BY_TYPE.ear);
-      return { ok: true, cooldown: 3 };
+      return { ok: true };
     }
 
     case 'stomach': {
@@ -375,13 +317,13 @@ export function mobAttack(mobId) {
   const playerBody = WS.player.body;
   const targetDeep = behaviorMod.targetDeep ?? false;
 
-  // brain ANALYSE skill: mob targets a specific player slot for N beats
+  // brain ANALYSE skill: mob targets a specific player slot until expiry
   let slotKey;
-  if (mob.aimedSlot && playerBody.slots[mob.aimedSlot] && (playerBody.slots[mob.aimedSlot].hp ?? 1) > 0) {
+  if (mob.aimedSlot && (mob.aimedSlotExpiry ?? 0) > Date.now() &&
+      playerBody.slots[mob.aimedSlot] && (playerBody.slots[mob.aimedSlot].hp ?? 1) > 0) {
     slotKey = mob.aimedSlot;
-    mob.aimedSlotBeats = (mob.aimedSlotBeats ?? 1) - 1;
-    if (mob.aimedSlotBeats <= 0) mob.aimedSlot = null;
   } else {
+    mob.aimedSlot = null;
     slotKey = targetDeep ? _targetDeepOrMid(playerBody) : _autoTarget(playerBody);
   }
   if (!slotKey) return;
@@ -392,24 +334,6 @@ export function mobAttack(mobId) {
     emit({ type: 'DODGE', source: 'player', target: mobId,
            data: { slotKey, skill: true }, priority: PRIORITY.MOB });
     return;
-  }
-
-  // RYT riposte: if player waited last tick, parry is possible
-  if (WS.player.lastActionType === 'WAIT') {
-    const playerStats = playerBody.statsWith(organResolver);
-    const rytStat     = (playerStats.ryt ?? 0) + RelicSystem.rytBonus();
-    const parryChance = Math.min(0.6, 0.05 + rytStat * 0.1);
-    if (rng() < parryChance) {
-      const counterDmg  = Math.max(1, Math.round(playerStats.dgt * 0.5));
-      const mobSlotKey  = _autoTarget(mob.body);
-      if (mobSlotKey) {
-        _applyDamage(mob.body, mobSlotKey, counterDmg);
-        if (!_isMobAlive(mob)) _onMobDied(mob);
-      }
-      emit({ type: 'RIPOSTE', source: 'player', target: mobId,
-             data: { dmg: counterDmg, slotKey: mobSlotKey }, priority: PRIORITY.MOB });
-      return;
-    }
   }
 
   // Dodge check — legs with dodge ability (unless charger skips dodge)
@@ -551,13 +475,14 @@ function _applyDamage(body, slotKey, dmg) {
 }
 
 function _onOrganDestroyed(mob, slotKey) {
-  // If the destroyed organ was powering the mob's telegraphed skill → cancel it
-  if (mob.scheduledSkill?.slotKey === slotKey) {
-    const cancelled = mob.scheduledSkill.skillName;
-    mob.scheduledSkill = null;
-    mob.intent = `✗ ${cancelled} — interrompu`;
+  // Cancel this organ's charge progress
+  if (mob.organProgress?.[slotKey]) {
+    mob.organProgress[slotKey].chargedMs = 0;
+    mob.organProgress[slotKey].ready     = false;
+    const orgName = organResolver(mob.body.slots[slotKey]?.organId)?.name ?? slotKey;
+    mob.intent = `✗ ${orgName} — interrompu`;
     emit({ type: 'SKILL_CANCELLED', source: 'player', target: mob.id,
-           data: { slotKey, skillName: cancelled }, priority: PRIORITY.ACTION });
+           data: { slotKey }, priority: PRIORITY.ACTION });
   }
 
   emit({
@@ -594,72 +519,17 @@ function _applySelfDamage(body, slotKey, cost) {
   if ((body.slots[slotKey]?.hp ?? 1) <= 0) _onPlayerOrganDestroyed(slotKey);
 }
 
-// --- Mob skill scheduling (called from BattleEngine each beat) ---
+// Fires a mob organ skill when it reaches full charge (called from BattleEngine).
+// Drains HP from the organ, then executes the skill effect.
+export function fireMobOrganSkill(mob, slotKey) {
+  const slot = mob.body.slots[slotKey];
+  if (!slot || (slot.hp !== null && slot.hp <= 0)) return;
 
-// Picks which organ/skill the mob will schedule next, based on brain AI type.
-export function pickMobSkillOrgan(mob) {
-  const SKILL_TYPES = new Set(['arm', 'tongue', 'legs', 'skin', 'heart', 'stomach', 'brain']);
-  const candidates = [];
-  for (const [slotKey, slot] of Object.entries(mob.body.slots)) {
-    if (!slot || (slot.hp !== null && slot.hp <= 0)) continue;
-    const def = organResolver(slot.organId);
-    if (!def || !SKILL_TYPES.has(def.type)) continue;
-    candidates.push({ slotKey, type: def.type, name: def.name });
-  }
-  if (!candidates.length) return null;
+  const def = organResolver(slot.organId);
+  if (!def) return;
 
-  const brainId  = mob.body.slots['brain']?.organId;
-  const hpRatio  = _mobHpRatio(mob);
-
-  if (brainId === 'brain_lich') {
-    if (hpRatio < 0.4) {
-      const def = candidates.find(c => ['skin', 'heart', 'stomach'].includes(c.type));
-      if (def) return def;
-    }
-    const arms = candidates.filter(c => c.type === 'arm' || c.type === 'tongue');
-    if (arms.length && rng() < 0.7) return arms[Math.floor(rng() * arms.length)];
-  }
-  if (brainId === 'brain_titan') {
-    const arms = candidates.filter(c => c.type === 'arm');
-    if (arms.length) return arms[Math.floor(rng() * arms.length)];
-  }
-
-  return candidates[Math.floor(rng() * candidates.length)];
-}
-
-// Returns the telegraph countdown (beats) based on mob's brain and RYT.
-export function mobSkillCountdown(mob) {
-  const brainSlot = mob.body.slots['brain'];
-  const ryt       = mob.body.statsWith(organResolver)?.ryt ?? 0;
-  if (!brainSlot) return Math.max(2, 6 - Math.floor(ryt / 3));
-  switch (brainSlot.organId) {
-    case 'brain_lich':  return 3;
-    case 'brain_titan': return 7;
-    default:            return 5;
-  }
-}
-
-// Fires the mob's scheduled skill when countdown reaches 0.
-export function executeMobScheduledSkill(mob) {
-  const sched = mob.scheduledSkill;
-  if (!sched) return;
-
-  const slot = mob.body.slots[sched.slotKey];
-  if (!slot || (slot.hp !== null && slot.hp <= 0)) {
-    mob.scheduledSkill = null;
-    return;
-  }
-
-  // Cost HP to mob organ (same rates as player)
-  const cost    = SKILL_COST_BY_TYPE[sched.type] ?? 1;
-  const current = slot.hp ?? (organResolver(slot.organId)?.maxHp ?? 1);
-  mob.body.setSlotHp(sched.slotKey, Math.max(0, current - cost));
-  if ((mob.body.slots[sched.slotKey]?.hp ?? 1) <= 0) _onOrganDestroyed(mob, sched.slotKey);
-
-  // If the HP drain killed the mob, don't fire the skill effect
-  if (!_isMobAlive(mob)) { _onMobDied(mob); mob.scheduledSkill = null; return; }
-  if (mob.lifecycle === 'active') _doMobSkillEffect(mob, sched.type);
-  mob.scheduledSkill = null;
+  // Mob organs fire freely — they only lose HP from player attacks, not from firing
+  if (mob.lifecycle === 'active') _doMobSkillEffect(mob, def.type);
 }
 
 function _doMobSkillEffect(mob, type) {
@@ -668,7 +538,14 @@ function _doMobSkillEffect(mob, type) {
   switch (type) {
     case 'arm':
     case 'tongue': {
-      const slotKey = _autoTarget(playerBody);
+      // Use brain-aimed slot if still valid
+      let slotKey;
+      if (mob.aimedSlot && (mob.aimedSlotExpiry ?? 0) > Date.now() &&
+          playerBody.slots[mob.aimedSlot] && (playerBody.slots[mob.aimedSlot].hp ?? 1) > 0) {
+        slotKey = mob.aimedSlot;
+      } else {
+        slotKey = _autoTarget(playerBody);
+      }
       if (!slotKey) break;
 
       // ESQUIVER: consume 1 dodge charge → mob skill misses entirely
@@ -712,8 +589,8 @@ function _doMobSkillEffect(mob, type) {
       break;
     }
     case 'skin': {
-      mob.buffArm      = (mob.buffArm ?? 0) + 4;
-      mob.buffArmBeats = (mob.buffArmBeats ?? 0) + 3;
+      mob.buffArm       = (mob.buffArm ?? 0) + 4;
+      mob.buffArmExpiry = Date.now() + 9000;
       emit({ type: 'MOB_SKILL_FIRED', source: mob.id, target: mob.id,
              data: { type: 'harden', mobId: mob.id }, priority: PRIORITY.MOB });
       break;
@@ -746,8 +623,8 @@ function _doMobSkillEffect(mob, type) {
         const ratio = (s.hp ?? def.maxHp) / def.maxHp;
         if (ratio < worstRatio) { worstRatio = ratio; worst = key; }
       }
-      mob.aimedSlot      = worst;
-      mob.aimedSlotBeats = 3;
+      mob.aimedSlot       = worst;
+      mob.aimedSlotExpiry = Date.now() + 9000;
       emit({ type: 'MOB_SKILL_FIRED', source: mob.id, target: 'player',
              data: { type: 'analyse', mobId: mob.id, slotKey: worst }, priority: PRIORITY.MOB });
       break;

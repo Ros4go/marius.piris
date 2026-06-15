@@ -21,7 +21,7 @@ Tu es un pillard mourant qui descend dans le cadavre vertical d'un dieu. Pas d'X
 Tout le jeu repose sur quatre mécanismes universels. Toute nouvelle mécanique DOIT se construire avec eux.
 
 ### 1. Le Tick (le temps)
-Une seule horloge pour tout. Un pas = 1 tick. Un tour de combat = 1 tick. Une greffe = 5 ticks. Consomment des ticks : la faim, les torches, le pourrissement des organes en inventaire, la décomposition des cadavres, les patterns des mobs, les effets temporaires. **Il n'y a pas de différence entre "temps d'exploration" et "temps de combat"** — fuir, greffer en plein donjon, attendre : tout a le même coût mesurable partout.
+Une seule horloge pour tout. Un pas = 1 tick. Une greffe = 5 ticks. Consomment des ticks : la faim, les torches, le pourrissement des organes en inventaire, la décomposition des cadavres, les effets temporaires. Les skills de combat ont leurs propres cooldowns en temps réel — mais le tick continue d'avancer pendant le combat. Fuir, greffer, manger en plein combat : même coût au tick.
 
 ### 2. L'Organe (la matière)
 La donnée universelle. C'est à la fois : le build (greffé), le loot (récolté), les PV (segments de vie), la cible (segments visés), la nourriture (mangé), la monnaie (vendu), le moteur (triggers). Joueur, mobs, boss, anciens corps : tous sont des `Body`, c'est-à-dire des assemblages d'organes. **Aucune stat n'existe en dehors d'un organe.**
@@ -105,7 +105,7 @@ Pour l'instant : **6 par type (54 organes).**
 | Armure | `ARM` | peau | réduction plate sur la couche `outer` |
 | Faim | `FAM` | estomac, malédictions | vitesse de chute de la **satiété** (voir Ressources ; bas = sobre) |
 | Lueur | `LUM` | yeux, peau | lumière émise/requise (interagit avec le phototropisme) |
-| Rythme | `RYT` | cœur | vitesse des beats (`max(400, 1200−RYT×60)` ms) + probabilité de riposte sur WAIT |
+| Rythme | `RYT` | cœur | taille du pool de sang (sang à répartir entre les organes) — cœur lent = peu d'organes actifs simultanément, cœur rapide = anatomie pleinement alimentée |
 
 **Humanité (`HUM`, /100)** : `100 + somme des champs humanity` des organes (les organes humains valent 0, les monstrueux sont négatifs). Pilote les PNJ, les zones, l'Écho du dieu (seuils : voir PNJ).
 
@@ -165,7 +165,7 @@ L'ouïe humaine de base est vague : sons proches uniquement, descriptions floues
 |--------|-----|----------|-----------|
 | Oreille de Chauve-Souris | Mark of the Ninja | Écholocation : crie (1 tick, alerte les mobs) et les murs alentour se dessinent sur la minimap. **Nécessite un cerveau** (sans minimap, l'écho ne s'inscrit nulle part). | Anneaux concentriques qui pulsent depuis le centre de l'écran |
 | Oreille Absolue | — | Identifie l'espèce exacte et l'état (blessé, endormi, en chasse) de chaque son. | La bande affiche des étiquettes précises : *« troll, blessé, 3 cases »* |
-| Oreille du Métronome | Crypt of the NecroDancer | Entend le « rythme » des mobs : leurs ticks d'action sont affichés un tour à l'avance. Élargit la fenêtre de riposte (+1 tick). | Tic-tac visuel sur la bande, icônes d'intention au-dessus des sons |
+| Oreille du Métronome | Crypt of the NecroDancer | Détecte le flux de sang dans les organes ennemis : affiche les cooldowns restants en temps réel sur la bande. | Barres de progression ennemies en surimpression sur la bande, labels de temps restant |
 | Oreille du Confessionnal | — | Entend les murmures des morts et du dieu : lore, indices de salles secrètes. Malédiction : ils ne se taisent jamais (bande encombrée). | Mots gris fantomatiques qui dérivent en permanence sur la bande |
 | Oreille Paranoïaque | Darkest Dungeon | Portée d'écoute doublée, entend à travers 2 murs. Malédiction : +Hallucination passive — la jauge alimente ses sons imaginaires. | Bande étendue, certains mots tremblent (vrais et faux mélangés) |
 | Tympan du Siffleur | A Short Hike | Émet un sifflement qui attire les mobs vers une position (leurre directionnel). | Une note de musique part sur la bande dans la direction choisie |
@@ -211,8 +211,8 @@ L'ouïe humaine de base est vague : sons proches uniquement, descriptions floues
 | Cœur de Liche | — | Survit à une destruction par étage (le cœur se reforme à 1 PV). Malédiction : les soins te blessent. | Barre violette inversée, pulse lent |
 | Cœur Déterminé | Undertale | Quand il devrait être détruit : tient à 1 PV pendant 3 ticks. Si le combat n'est pas fini à temps, mort réelle. | Le cœur jaune pixelisé craque à l'écran, « Tu refuses de mourir. » |
 | Cœur du Styx | Hades | Première destruction de la run : remontée d'une strate au lieu du game over (le cœur se répare en remontant). | Fondu rouge sang, remontée en flottant |
-| Cœur-Réacteur | FTL | Avant chaque combat : répartis 5 barres d'énergie entre tes organes (les non-alimentés sont inertes, leurs triggers éteints). | Jauge d'énergie segmentée à la FTL sous la vue |
-| Cœur de Cristal | Crypt of the NecroDancer | Agir pile sur le tick du tempo = dégâts ×2. Rater = tick perdu. Fusionne le tempo avec la fenêtre de riposte. | Métronome battant, la vue pulse au tempo |
+| Cœur-Réacteur | FTL | +3 sang permanent au pool. Malédiction : retirer du sang d'un organe lui coûte 1 HP — le cœur résiste aux réallocations, chaque changement de distribution saigne. | Pool étendu visible sous la vue, flash de douleur à chaque redéploiement |
+| Cœur de Cristal | Crypt of the NecroDancer | Déclencher deux skills dans la même seconde : le second fait ×2 dégâts. Malédiction : chaque skill déclenché seul coûte +1 HP supplémentaire à son organe — le cœur de cristal exige l'enchaînement. | Éclat cristallin à chaque double-activation, silence pesant entre les skills isolés |
 | Cœur du Culte | Cult of the Lamb | Sacrifie un organe d'inventaire pour réparer tes organes blessés (valeur selon tier). | Auréole rouge, petit autel dans l'inventaire |
 
 **Cœur humain de base :** rien de spécial — le seul organe sans malédiction du jeu. Le garder est un choix (build « humanité »).
@@ -285,7 +285,7 @@ L'ouïe humaine de base est vague : sons proches uniquement, descriptions floues
 - **L'absence est un build.** Chaque slot vide a un effet défini (malus + petit avantage caché). S'amputer volontairement doit être viable.
 - **L'UI est le feedback.** Effet visible à l'écran pour chaque organe, même minime.
 - **L'absurde est permis, pas équilibré.** Les combos de triggers qui s'emballent sont le but, pas un bug. Les seuls garde-fous : les malédictions qui s'accumulent et les anatomies qui contrent.
-- **Synergies attendues :** Cœur de Cristal + Oreille du Métronome (build tempo, fenêtre de riposte géante), Cœur du Culte + Estomac du Fermier + Bras du Bûcheron (moteur d'immortalité par moisson), Tympan du Siffleur + Peau de Limon + pièges (l'éleveur de files d'attente), Langue de Sel + Peau Alchimique + flaque d'acide (le tank qui se soigne en encaissant), Œil Noctambule + Peau du Dragueur + Langue Cousue (le fantôme total), Aveugle + 2 oreilles légendaires (l'écholocateur).
+- **Synergies attendues :** Cœur de Cristal + double Bras (enchaîner deux FRAPPE dans la même seconde → burst ×6 — le build rafale), Cœur-Réacteur + Oreille du Métronome (pool étendu + lecture des cooldowns ennemis = lecture totale du champ de bataille), Cœur du Culte + Estomac du Fermier + Bras du Bûcheron (moteur d'immortalité par moisson), Tympan du Siffleur + Peau de Limon + pièges (l'éleveur de files d'attente), Langue de Sel + Peau Alchimique + flaque d'acide (le tank qui se soigne en encaissant), Œil Noctambule + Peau du Dragueur + Langue Cousue (le fantôme total), Aveugle + 2 oreilles légendaires (l'écholocateur).
 
 ---
 
@@ -337,15 +337,27 @@ Le donjon est découpé en zones taguées (ID + type). Trois familles :
 
 ## Combat
 
-**Temps-réel à base de beats**, déclenché automatiquement à l'entrée d'une salle hostile. Le beat interval varie selon RYT : `max(400, 1200 - RYT×60)` ms — plus le cœur est rapide, plus les beats s'enchaînent vite. Pas d'écran séparé, le jeu continue dans la même vue.
+Pas d'écran séparé. Le jeu continue dans la même vue — fuir, greffer, manger en plein combat : même coût au tick.
+
+### Le sang — pool d'énergie
+
+Chaque Body possède un **pool de sang** défini par son cœur (stat `RYT`). Ce pool est **fixe et immuable** tant que le cœur ne change pas — le sang n'est pas consommé, il est **réparti librement et instantanément** entre les organes. Retirer du sang d'un organe l'endort immédiatement ; en y mettre le réveille.
+
+Un organe **sous son seuil minimum** de sang est inerte : il ne charge pas, ses triggers sont éteints. Un organe alimenté charge son skill. Certains organes **scalent** entre leur minimum et leur maximum : plus de sang reçu = cooldown plus court ou skill plus puissant.
+
+Le pool ne suffit jamais à tout alimenter à fond — c'est là que naît la tactique.
+
+### Les cooldowns
+
+Chaque organe a son propre cooldown indépendant. Quand écoulé, le skill est **disponible** — tu choisis le moment de le déclencher. Rien ne se déclenche sans décision. **Pas d'auto-attaque.**
+
+**L'ennemi fonctionne exactement pareil.** Son cœur définit son pool, ses organes chargent en parallèle et tirent quand prêts. La barre segmentée ennemie est un **tableau de menaces actives** : chaque segment visible est à la fois un organe qui charge et un loot potentiel.
 
 ### La règle fondamentale : la Vie est une Ressource
 
-**Utiliser un skill coûte des PV à l'organe qui le déclenche.** Bras qui frappe → le bras saigne. Peau qui durcit → la peau se consume. C'est la même règle pour les joueurs et les mobs.
+**Déclencher un skill coûte des HP à l'organe source.** Bras qui frappe → le bras saigne. Jambes qui esquivent → les jambes s'usent. Même règle pour le joueur et les mobs. Conséquence : chaque skill est un pari — un organe peut mourir de ses propres capacités, et le perdre en combat supprime son slot d'action et retourne son sang au pool.
 
-Conséquence directe : **chaque skill est un pari**. Frapper fort détruit ton arme. Esquiver épuise tes jambes. L'organe peut mourir de ses propres capacités — et perdre un organe en plein combat supprime son slot d'action. Le build n'est pas juste une liste de stats : c'est une mécanique qui se dégrade.
-
-Les coûts par type : arm 1 HP, tongue 1 HP, legs 1 HP, eye 1 HP, ear 1 HP, brain 1 HP, stomach 2 HP, skin 2 HP, heart 0 HP (passif, pas de coût).
+Coûts par type : bras 1 HP · langue 1 HP · jambes 1 HP · œil 1 HP · oreille 1 HP · cerveau 1 HP · estomac 2 HP · peau 2 HP · cœur 0 HP (passif).
 
 ### La barre de vie segmentée (l'UI signature)
 
@@ -357,33 +369,27 @@ Pas de PV globaux — **la barre de vie d'un Body est la somme de ses organes**,
 - **Les couches** : `outer` (peau, membres) → `mid` (torse, sens) → `deep` (cœur, cerveau). Les segments profonds sont **grisés, non ciblables** tant que la couche au-dessus tient. Atteindre le cœur = traverser du loot. Certains organes contournent (perforant, pogo dorsal, grab de langue).
 - **Symétrie de données, pas d'écran** *(décision proto v8)* : ta barre segmentée est le même composant que celle de l'ennemi, mais elle vit **avec ton corps** (panneau de droite, sous la silhouette) — c'est ta vie et ce que l'ennemi vise. Tes **actions** sont une barre séparée en bas. Ce que tu ES à droite, ce que tu FAIS en bas.
 
-### Le tour de jeu (en beat)
+### Décisions tactiques
 
-1. **Auto-attaque joueur** : chaque beat, le joueur frappe automatiquement l'ennemi (couche outer disponible, ou l'organe visé si aimedSlot actif). C'est le débit de dégâts de base — gratuit en HP.
-2. **Télégraphe mob** : simultanément, le mob annonce son prochain skill avec un compte à rebours : *« ⚔ Bras Tentacule [3▸] FRAPPE LOURDE »*. Le nombre de beats avant exécution dépend du cerveau du mob. Chaque beat le compteur descend — le joueur voit venir le coup.
-3. **Tes skills (hors rythme)** : la barre d'actions affiche tes organes comme boutons cliquables. Chaque skill se déclenche immédiatement (pas d'attente du prochain beat). Coût : des PV à l'organe qui tire. Affichage sous-texte : HP courants / HP max de l'organe.
+**Gérer son pool** : basculer du sang vers les Jambes pour charger l'esquive plus vite, au détriment du Bras qui ralentit. Lire les charges ennemies, reconfigurer en conséquence. Le pool est le curseur central de chaque combat.
 
-**Décisions tactiques disponibles à chaque beat :**
-- **FRAPPER** (bras, ×3.0 dmg) : porter un coup massif pour détruire un organe avant son countdown.
+**La mécanique clé** : **détruire l'organe qui charge un skill l'annule définitivement.** *Frapper le bras d'un Troll qui charge ÉTREINTE LOURDE → bras détruit → skill annulé.* Mais le bras loote moins bien. Le dilemme de chaque combat.
+
+**Skills disponibles :**
+- **FRAPPER** (bras, ×3.0 dmg) : coup massif pour détruire un organe avant qu'il déclenche.
 - **ESTOC** (bras perforant, ×2.0, ignore ARM) : atteindre les couches profondes.
-- **ESQUIVER** (jambes, +2 charges) : bloquer les 2 prochains skills mob.
-- **ANALYSER** (cerveau) : révèle l'organe le plus faible ET verrouille l'auto-attaque dessus.
-- **VISER** (œil, CD 1) : verrouille l'auto-attaque sur n'importe quel organe cible.
-- **ÉCOUTER** (oreille) : repousse le countdown ennemi de +2 beats — gagne du temps.
+- **ESQUIVER** (jambes) : annule le prochain skill ennemi qui se déclenche.
+- **ANALYSER** (cerveau) : révèle l'organe au cooldown le plus court + verrouille le ciblage dessus.
+- **VISER** (œil) : verrouille le ciblage sur n'importe quel organe cible.
+- **ÉCOUTER** (oreille) : ralentit le cooldown d'un organe ennemi ciblé.
 - **DIGÉRER** (estomac, +4 HP) : soigne l'organe le plus blessé.
-- **VAMPIRISER** (langue liche) : frappe ×2.5, vole autant de HP que les dégâts infligés.
+- **VAMPIRISER** (langue) : frappe ×2.5, vole autant de HP que les dégâts infligés.
 - **DURCIR** (peau, absorbe 8 dmg) : prépare un bouclier contre le prochain skill mob.
 - **MANGER** (en combat, si inventaire non vide) : consomme un organe → satiété + transfert de PV vers l'organe de ton choix.
 
-**La mécanique clé** : détruire l'organe qui prépare un skill ANNULE ce skill. *FRAPPER le bras d'un Troll qui charge FRAPPE LOURDE → le bras est détruit → skill annulé.* Le combat est une course contre les countdowns.
-
-### La fenêtre de riposte
-
-Si le joueur choisit ATTENDRE (WAIT), une chance de riposte se déclenche au prochain coup mob : la stat `RYT` (cœur) fixe la probabilité (min(0.6, 0.05 + RYT×0.1)). Réussie → 0 dégât reçu + contre-attaque automatique. C'est une alternative défensive à ESQUIVER pour les builds RYT élevés.
-
 ### Les triggers (le moteur à builds)
 
-Tout organe peut porter des déclencheurs : `onKill`, `onTick`, `onDamaged`, `onDestroy`, `onSound`, `onHarvest`, `onGraft`. C'est de la pure data, et c'est là que naissent les combos absurdes — des moteurs qui s'emballent (voir synergies). **Le build = quel moteur tu construis. Le skill = quand tu appuies.**
+Tout organe peut porter des déclencheurs : `onKill`, `onTick`, `onDamaged`, `onDestroy`, `onSound`, `onHarvest`, `onGraft`. C'est de la pure data, et c'est là que naissent les combos absurdes — des moteurs qui s'emballent (voir synergies). **Le build = quel moteur tu construis. Le sang = comment tu l'alimentes.**
 
 ### Tuer vite ou tuer bien
 
@@ -393,9 +399,8 @@ Tout organe peut porter des déclencheurs : `onKill`, `onTick`, `onDamaged`, `on
 
 ### Anti-lenteur
 
-- Mob trash = 2–3 ticks. Un combat ordinaire dure 10–15 secondes.
-- Humanité basse : les mobs très inférieurs fuient ou se soumettent (tu es un prédateur — plus de trash en fin de run).
-- Le jeu n'attend ton cerveau que quand un télégraphe l'exige.
+- Combat trash : 5–10 secondes. Combat standard : 15–30 secondes.
+- Humanité basse : les mobs inférieurs fuient ou se soumettent — plus de trash en fin de run.
 
 ## Récolte
 
@@ -434,7 +439,7 @@ Le jeu repose sur deux canaux de confiance : **la vue et la Ligne**. La jauge d'
 |---|---|
 | 25+ | la Ligne ment parfois : petits sons fantômes ; le grain s'épaissit, les couleurs dérivent |
 | 50+ | faux mobs au loin, fausses portes sur la minimap, faux loot qui se dissout au toucher |
-| 75+ | **screamers rares** (un son énorme surgit sur la Ligne, l'écran convulse 1 tick) ; mobs illusoires qui attaquent — 0 dégâts réels, mais tu gaspilles ticks, riposte et viande à te battre contre rien ; l'UI ment (fausses barres de vie) |
+| 75+ | **screamers rares** (un son énorme surgit sur la Ligne, l'écran convulse 1 tick) ; mobs illusoires qui attaquent — 0 dégâts réels, mais tu gaspilles ticks, cooldowns et viande à te battre contre rien ; l'UI ment (fausses barres de vie) |
 | 100 | crise : Panique appliquée — et *(réf. Don't Starve)* **les hallucinations deviennent tangibles** : tes cauchemars gagnent des PV et un vrai loot. La folie complète est dangereuse… et farmable |
 
 **Règles de fair-play** : une hallucination ne tue jamais directement (elle coûte des ressources et du doute, jamais de PV avant le palier 100) ; **la jauge n'est jamais affichée en chiffres** — l'écran EST la jauge (grain, dérive, Ligne qui tremble : pilier 1, diégétique). Le Cerveau du Détective prétend la chiffrer. Il ment parfois.
@@ -451,8 +456,8 @@ Toutes consommées **au tick** (primitive n°1) :
 ## Mobs
 
 - **Un mob = un Body + une IA.** Même structure que le joueur, même barre segmentée, même ouïe (il a sa propre bande sonore interne — tes pas y figurent). Ce que tu vois sur sa barre, c'est ce que tu peux looter.
-- **Les mobs n'ont pas d'auto-attaque en combat** — toute leur menace passe par les skills télégraphiés. La tension du combat vient du countdown visible, pas d'un dégât continu passif. C'est ce qui donne au joueur le temps de réagir stratégiquement (ÉCOUTER, ESQUIVER, FRAPPER l'organe avant qu'il tire).
-- **L'IA mob dépend du cerveau équipé** : brain_lich → schedule agressif (3 beats), priorise soins quand HP bas ; brain_titan → schedule lent (7 beats) mais frappe massive avec les bras ; sans cerveau spécialisé → 5 beats, comportement neutre. Le cerveau est aussi le nœud de l'intelligence — le détruire peut paralyser l'IA du mob.
+- **Les mobs n'ont pas d'auto-attaque en combat** — toute leur menace passe par les cooldowns de leurs organes. La tension du combat vient des charges visibles en parallèle, pas d'un dégât continu passif. C'est ce qui donne au joueur le temps de lire la situation et de prioriser (ÉCOUTER pour ralentir, ESQUIVER pour bloquer, FRAPPER pour annuler avant le déclenchement).
+- **L'IA mob dépend du cerveau équipé** : brain_lich → cooldowns courts (~2s), priorise soins quand HP bas ; brain_titan → cooldowns longs (~6s) mais frappe massive avec les bras ; sans cerveau spécialisé → cooldowns moyens (~4s), comportement neutre. Le cerveau est aussi le nœud de l'intelligence — le détruire peut paralyser l'IA du mob.
 - **Génération procédurale — les règles :**
   - **Budget** : `B = 4 + étage` points d'arcane (commun = 1 pt, rare = 2, épique = 4, légendaire = 8). Élite ×1,5. Le générateur achète des organes jusqu'à épuisement.
   - **Plafond d'arcane = la strate** : étages 1-5 → arcanes 0-V, 6-10 → jusqu'à X, 11-15 → jusqu'à XV, 16-20 → jusqu'à XX. Le XXI n'existe que sur les Organes Majeurs. *Le loot monte donc naturellement avec la profondeur.*
@@ -473,7 +478,7 @@ Toutes consommées **au tick** (primitive n°1) :
 |---|---|---|---|
 | **La Langue** | Gorge | *Lit tes intentions* : annonce TON action un tick avant que tu la joues. Il faut jouer à contretemps de sa propre logique (feinter). | lecture de soi |
 | **Le Souffle** | Poumons | *Invisible* : aucune barre à l'écran. On le combat uniquement à la Ligne — frapper les directions d'où vient le vent. La folie fait apparaître de faux souffles. | ouïe pure + Hallucination |
-| **Le Cœur** | Cœur | Tout pulse à son BPM ; tes actions ne comptent que si elles tombent **sur le battement**. Il accélère le tempo en phase finale. | timing / RYT |
+| **Le Cœur** | Cœur | **Vampirise ton pool** : toutes les 3s, aspire 1 sang de ton pool — ta capacité se contracte sous pression. Phase 2 : redistribue le sang volé en surcharge de tes organes, qui se déclenchent involontairement hors de ton contrôle. Phase 3 : pool réduit à 1 sang total — un seul organe peut agir. | gestion du pool sous contrainte décroissante |
 | **La Faim** | Estomac | Ne t'attaque pas : à chaque tick elle **arrache un de TES organes** (le plus monstrueux d'abord) et se le greffe — elle grossit de ce qu'elle te prend. Course contre ta dissolution. | gestion du corps |
 | **La Flore** | Entrailles | Repousse : chaque segment détruit **repart** après N ticks, sauf si on brûle d'abord sa racine (un segment caché). | ordre de destruction |
 
@@ -583,7 +588,7 @@ Un event tous les 2-3 étages, porté par les salles rares (autel, fosse aux par
 # BOUCLE & MÉTA
 
 ## La boucle d'une run
-Explorer (au tick, à l'oreille) → lire les télégraphes → tuer vite ou tuer bien → récolter sous la menace des charognards → greffer (dilemme, 5 ticks) → event → descendre → Organe Majeur → plus profond, plus monstre → mort ou Fond.
+Explorer (au tick, à l'oreille) → lire les charges ennemies → tuer vite ou tuer bien → récolter sous la menace des charognards → greffer (dilemme, 5 ticks) → event → descendre → Organe Majeur → plus profond, plus monstre → mort ou Fond.
 
 ## Début de run
 Chaque pillard démarre **entièrement humain** (corps de référence), 30 viande, 3 torches — plus, éventuellement, son **Héritage** (voir ci-dessous). L'entrée du donjon est la bouche du dieu : le premier étage sert de tutoriel environnemental (un charognard faible, un cadavre à récolter, une greffe évidente).
@@ -655,7 +660,7 @@ Chaque zone a UN job :
 | **En-tête** | lieu · étage · tick · humanité + ⚙ réglages (dont toggle « sons soudains ») · ⇩ save · ⇧ import |
 | **Gauche — Besace** | inventaire en grille ; bras perdu = moitié des cases **condamnées** (hachures visibles) ; viande / torches / faim |
 | **Gauche — Carte** | 7×7 révélée en explorant ; ▲ toi, **◌ rouge = ennemi entendu** (l'ouïe reportée sur la carte), ▒ couloirs devinés ; boussole |
-| **Centre — Vue** | le couloir, la créature, sa barre segmentée + **télégraphe** (*« ⚠ charge · ~2 ticks »*, sobre — type d'action + compte approximatif de base, exact via organes) |
+| **Centre — Vue** | le couloir, la créature, sa barre segmentée + **charges des organes ennemis** (*« ⚠ Bras · charge 80% »*, sobre — type d'action + progression de cooldown, détail exact via organes) |
 | **Centre — la Ligne** | sismographe blanc fin en bas de vue : chaque son = perturbation à sa position (G/FACE/D + « derrière ») ; **l'opacité des labels suit le volume en temps réel** (pur visualizer : un son qui meurt s'efface en fondu) |
 | **Centre — Log** | 3-4 lignes mono, marqueurs ▸, curseur clignotant ; les murmures du dieu en violet espacé |
 | **Droite — Ton corps** | **la silhouette est l'index** : 12 points de slot cliquables, code couleur (rouge-orangé = monstrueux, rouge sombre = humain, ocre = blessé, vide = perdu) ; ta barre de vie segmentée dessous |
@@ -672,14 +677,14 @@ Chaque organe DOIT avoir un effet visible (pilier 1). Implémentés via le modul
 |---|---|
 | Œil droit vendu | moitié droite noire |
 | Jambe perdue | vue penchée |
-| Cœur | écran pulse à chaque beat (vignette beatpulse, intensité ∝ RYT) |
+| Cœur | écran pulse au battement du cœur (vignette heartpulse, intensité ∝ RYT) |
 | eye_beast | filtre chaud sur le viewport (backdrop-filter sepia+saturate) |
 | eye_spider | filtre hue-rotate bleuté |
 | eye_void | filtre noir désaturé |
 | eye_beholder | filtre violet/hex |
 | eye_lich | filtre lich-pulse |
 | Satiété < 35 | vignette orange faim (pulsée en dessous de 15) |
-| brain_lich | ligne EKG violette qui sweep à chaque beat |
+| brain_lich | ligne EKG violette qui sweep à chaque battement |
 | BRT élevé | halo ambré sur la cellule minimap du joueur |
 | LUM élevé | éclat chaud sur le viewport (.game lum-low/mid/high) |
 | Coup reçu | flash viewport selon skin : normal / pierre / carapace / liche / acide |

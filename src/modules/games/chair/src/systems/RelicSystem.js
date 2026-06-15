@@ -23,11 +23,6 @@ export function outerDamageReduction() {
   return playerHasRelic('relic_membrane_epaisse') ? 1 : 0;
 }
 
-// relic_nerf_expose: +2 RYT effective bonus
-export function rytBonus() {
-  return playerHasRelic('relic_nerf_expose') ? 2 : 0;
-}
-
 // Called each maintenance tick
 export function tick() {
   const body = WS.player.body;
