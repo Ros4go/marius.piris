@@ -63,14 +63,15 @@ export const WS = {
   },
   battle: {
     active:         false,
-    beatInterval:   1200,   // ms per beat (derived from RYT at combat start)
-    beatTick:       0,
-    skillCooldowns: {},     // slotKey → remaining beats
+    bloodPool:      0,      // total blood available (derived from RYT at combat start)
+    bloodAlloc:     {},     // slotKey → blood allocated to that organ
+    organProgress:  {},     // slotKey → { chargedMs, totalMs, ready }
     buffDodge:      0,      // mob attacks to dodge (consumed on use)
     buffAbsorb:     0,      // flat damage absorbed on next mob hit
-    aimedSlot:      null,   // next auto-attack targets this slot (cleared after use)
-    targetSlotKey:  'skin', // player's skill aim on the enemy
+    aimedSlot:      null,   // next player skill targets this slot (cleared after use)
+    targetSlotKey:  null,   // player's skill aim on the enemy
     explCost:       0,      // exploration ticks to consume when combat ends
+    _lastTs:        null,   // last rAF timestamp for delta-time
   },
   save: {
     lastCheckpoint: null,   // ISO timestamp
@@ -129,7 +130,7 @@ export function initRun(seed, humeur = null) {
   WS.ligne      = { events: [] };
   WS.triggerBus = { queue: [], budget: 0 };
   WS.combat     = { active: false, roundMobs: [], log: [] };
-  WS.battle     = { active: false, beatInterval: 1200, beatTick: 0, skillCooldowns: {}, buffDodge: 0, buffAbsorb: 0, aimedSlot: null, targetSlotKey: 'skin', explCost: 0 };
+  WS.battle     = { active: false, bloodPool: 0, bloodAlloc: {}, organProgress: {}, buffDodge: 0, buffAbsorb: 0, aimedSlot: null, targetSlotKey: null, explCost: 0, _lastTs: null };
   WS.save       = { lastCheckpoint: null, dirty: false };
 }
 
@@ -244,6 +245,6 @@ export function fromJSON(data) {
   WS.combat     = deepCopy(data.combat);
   WS.triggerBus = { queue: [], budget: 0 };
   WS.light      = { current: 1.0, sources: [] };
-  WS.battle     = { active: false, beatInterval: 1200, beatTick: 0, skillCooldowns: {}, buffDodge: 0, buffAbsorb: 0, aimedSlot: null, targetSlotKey: 'skin', explCost: 0 };
+  WS.battle     = { active: false, bloodPool: 0, bloodAlloc: {}, organProgress: {}, buffDodge: 0, buffAbsorb: 0, aimedSlot: null, targetSlotKey: null, explCost: 0, _lastTs: null };
   WS.save       = { lastCheckpoint: null, dirty: false };
 }

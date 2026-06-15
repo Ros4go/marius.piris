@@ -25,8 +25,8 @@ const SLOT_FR = {
 // Mechanical role of each slot — shown as a description under the organ name.
 // Heart is handled dynamically in _slotRole() to show live BPM.
 const SLOT_ROLE = {
-  arm_l:   'Bras — frappe automatiquement à chaque battement. Chaque bras porte 2 objets dans l\'inventaire.',
-  arm_r:   'Bras — frappe automatiquement à chaque battement. Chaque bras porte 2 objets dans l\'inventaire.',
+  arm_l:   'Bras — skill FRAPPER disponible au combat. Chaque bras porte 2 objets dans l\'inventaire.',
+  arm_r:   'Bras — skill FRAPPER disponible au combat. Chaque bras porte 2 objets dans l\'inventaire.',
   legs:    'Jambes — déplacement normal (1 tick). Sans elles, chaque déplacement coûte 2 ticks.',
   brain:   'Cerveau — mémorise la carte du donjon. Sans cerveau, les salles visitées disparaissent.',
   eye_l:   'Œil — améliore la Perception (détecte les ennemis) et la Lueur bioluminescente.',
@@ -58,18 +58,17 @@ function _computedRows(def, slotKey, hp) {
 
   switch (type) {
     case 'arm': {
-      const autoDmg = Math.max(1, Math.round(dgt * qualMult * 0.5));
-      return _row('Attaque auto', `~${autoDmg} dmg / battement`);
+      const skillDmg = Math.max(1, Math.round(dgt * qualMult * 3.0));
+      return _row('FRAPPER', `~${skillDmg} dmg · charge ~4s (−0.8s/sang sup.)`);
     }
     case 'legs': {
       const dodgePct = Math.round(Math.min(40, 5 + (stats.vit ?? 0) * 2.5));
       return _row('Esquive', `${dodgePct}% des coups évités`);
     }
     case 'heart': {
-      const beatMs  = Math.max(400, 1200 - (stats.ryt ?? 0) * 60);
-      const beatSec = (beatMs / 1000).toFixed(1);
-      const bpm     = Math.round(60000 / beatMs);
-      return _row('Rythme', `1 attaque / ${beatSec}s · ${bpm} BPM`);
+      const ryt  = stats.ryt ?? 0;
+      const pool = Math.max(3, ryt + 3);
+      return _row('Pool de sang', `${pool} sang à répartir entre les organes`);
     }
     case 'eye': {
       const precPct = Math.round(Math.min(95, 50 + 5 * (stats.prc ?? 0)));
@@ -154,28 +153,28 @@ function _skillDesc(def, slotKey, hp) {
   switch (type) {
     case 'arm': {
       if (hasPierce) {
-        const dmg = Math.max(1, Math.round(dgt * qualMult));
-        return `Skill ESTOC — frappe un organe profond, ignore l'armure ennemie · ~${dmg} dmg · rechargé en 4 battements`;
+        const dmg = Math.max(1, Math.round(dgt * qualMult * 2.0));
+        return `Skill ESTOC — frappe un organe profond, ignore l'armure ennemie · ~${dmg} dmg · charge ~4s (min 1 sang)`;
       }
-      const dmg = Math.max(1, Math.round(dgt * qualMult * 1.5));
-      return `Skill FRAPPER — frappe lourde sur l'organe ciblé · ~${dmg} dmg · rechargé en 3 battements`;
+      const dmg = Math.max(1, Math.round(dgt * qualMult * 3.0));
+      return `Skill FRAPPER — frappe lourde sur l'organe ciblé · ~${dmg} dmg · charge ~4s (min 1 sang, −0.8s/sang sup.)`;
     }
     case 'legs':
-      return 'Skill ESQUIVER — bloque entièrement la prochaine attaque ennemie · rechargé en 5 battements';
+      return 'Skill ESQUIVER — bloque entièrement les 2 prochaines attaques ennemies · charge ~6s (min 1 sang)';
     case 'brain':
-      return 'Skill ANALYSER — révèle l\'organe le plus endommagé de l\'ennemi · rechargé en 4 battements';
+      return 'Skill ANALYSER — révèle et cible l\'organe le plus endommagé de l\'ennemi · charge ~4s (min 1 sang)';
     case 'eye':
-      return 'Skill VISER — la prochaine attaque auto cible précisément l\'organe sélectionné · rechargé en 2 battements';
+      return 'Skill VISER — le prochain skill cible précisément l\'organe sélectionné · charge ~2s (min 1 sang)';
     case 'ear':
-      return 'Skill ÉCOUTER — révèle ce que l\'ennemi va faire ce prochain battement · rechargé en 4 battements';
+      return 'Skill ÉCOUTER — réinitialise la charge de l\'organe ennemi le plus avancé · charge ~4s (min 1 sang)';
     case 'stomach':
-      return 'Skill RÉGÉNÉRER — régénère 1 HP sur l\'organe le plus endommagé du corps · rechargé en 6 battements';
+      return 'Skill RÉGÉNÉRER — régénère 4 HP sur l\'organe le plus endommagé du corps · charge ~8s (min 2 sang)';
     case 'tongue': {
-      const dmg = Math.max(1, Math.round(dgt * qualMult));
-      return `Skill MORDRE — morsure ciblée, peut atteindre n'importe quel organe · ~${dmg} dmg · rechargé en 3 battements`;
+      const dmg = Math.max(1, Math.round(dgt * qualMult * 2.5));
+      return `Skill MORDRE — morsure ciblée, peut atteindre n'importe quel organe · ~${dmg} dmg · charge ~3s (min 1 sang)`;
     }
     case 'skin':
-      return 'Skill DURCIR — absorbe les 3 prochains points de dégâts ennemis · rechargé en 6 battements';
+      return 'Skill DURCIR — absorbe les 8 prochains points de dégâts ennemis · charge ~7s (min 2 sang)';
     case 'heart':
       return null;
     default:
@@ -258,16 +257,15 @@ export function showBody(body) {
 
   // --- Computed combat values ---
   const dgt       = stats.dgt ?? 0;
-  const autoDmg   = Math.max(1, Math.round(dgt * 0.5));
-  const beatMs    = Math.max(400, 1200 - (stats.ryt ?? 0) * 60);
-  const beatSec   = (beatMs / 1000).toFixed(1);
+  const ryt       = stats.ryt ?? 0;
+  const bloodPool = Math.max(3, ryt + 3);
   const precPct   = Math.round(Math.min(95, 50 + 5 * (stats.prc ?? 0)));
   const dodgePct  = Math.round(Math.min(40, 5 + (stats.vit ?? 0) * 2.5));
   const arm       = stats.arm ?? 0;
 
   const combatRows = `
     <div class="ins-section-head">Combat</div>
-    <div class="ins-row"><span>Attaque auto</span><span>~${autoDmg} dmg · /${beatSec}s</span></div>
+    <div class="ins-row"><span>Pool de sang</span><span>${bloodPool} sang (RYT ${ryt > 0 ? '+' : ''}${ryt})</span></div>
     <div class="ins-row"><span>Skills (visée)</span><span>${precPct}% touché</span></div>
     <div class="ins-row"><span>Esquive (passif)</span><span>${dodgePct}%</span></div>
     <div class="ins-row"><span>Armure (outer)</span><span>${arm > 0 ? `−${arm} dmg` : '—'}</span></div>
@@ -321,9 +319,14 @@ export function close() {
 function _battleSection() {
   if (!WS.battle?.active) return '';
 
-  const cds = Object.entries(WS.battle.skillCooldowns ?? {})
-    .filter(([, v]) => v > 0)
-    .map(([k, v]) => `${k} ${v}♥`)
+  const pool  = WS.battle.bloodPool ?? 0;
+  const alloc = Object.values(WS.battle.bloodAlloc ?? {}).reduce((s, n) => s + n, 0);
+
+  const charges = Object.entries(WS.battle.organProgress ?? {})
+    .map(([k, p]) => {
+      const pct = p.ready ? '▶' : `${Math.round((p.chargedMs / Math.max(1, p.totalMs)) * 100)}%`;
+      return `${k} ${pct}`;
+    })
     .join(' · ');
 
   const buffs = [];
@@ -332,8 +335,8 @@ function _battleSection() {
   if (WS.battle.aimedSlot)             buffs.push(`→ [${WS.battle.aimedSlot}]`);
 
   return `
-    <div class="ins-section-head" style="color:var(--torch-hot)">⚔ En combat · beat #${WS.battle.beatTick ?? 0}</div>
-    ${cds ? `<div class="ins-row insp-neg"><span>Recharge</span><span>${cds}</span></div>` : ''}
+    <div class="ins-section-head" style="color:var(--torch-hot)">⚔ En combat · sang ${alloc}/${pool}</div>
+    ${charges ? `<div class="ins-row insp-neg"><span>Organes</span><span>${charges}</span></div>` : ''}
     ${buffs.length ? `<div class="ins-row insp-pos"><span>Buffs actifs</span><span>${buffs.join(' · ')}</span></div>` : ''}
   `;
 }

@@ -6,8 +6,10 @@
 import { WS, currentRoom } from '../WorldState.js';
 import { organResolver } from '../registry.js';
 import { ORGAN_SLOTS } from '../entities/Body.js';
+import { ORGAN_CD } from '../BattleEngine.js';
 
-const _bar = document.getElementById('action-bar');
+const _bar      = document.getElementById('action-bar');
+const _bloodBar = document.getElementById('blood-pool-bar');
 let _onAction = null;
 
 export function setCallback(fn) { _onAction = fn; }
@@ -17,11 +19,31 @@ export function render() {
   const actions = _derive(room);
 
   _bar.innerHTML = '';
+
+  if (WS.battle?.active) {
+    _updateBloodBar();
+    _bloodBar.style.display = '';
+  } else {
+    _bloodBar.style.display = 'none';
+    _bloodBar.innerHTML = '';
+  }
+
   actions.forEach((act, i) => {
+    const isBattleSkill = WS.battle?.active && act.action === 'SKILL';
+
     const btn = document.createElement('button');
-    btn.className = 'act' + (act.heart ? ' heartact' : '') + (act.disabled ? ' empty' : '');
-    if (act.disabled) btn.disabled = true;
+    btn.className = 'act'
+      + (act.heart ? ' heartact' : '')
+      + (act.disabled && !isBattleSkill ? ' empty' : '')
+      + (isBattleSkill ? ' charging' : '')
+      + (isBattleSkill && act.ready ? ' ready' : '');
+
+    if (act.disabled && !isBattleSkill) btn.disabled = true;
     btn.dataset.action = act.action;
+
+    if (isBattleSkill) {
+      btn.style.setProperty('--charge', `${act.chargePct ?? 0}%`);
+    }
 
     const key = document.createElement('span');
     key.className = 'key';
@@ -35,14 +57,73 @@ export function render() {
 
     btn.append(key, label, sub);
 
-    btn.addEventListener('click', () => _onAction?.(act));
+    if (isBattleSkill) {
+      btn.appendChild(_renderBloodCtrl(act));
+    }
+
+    btn.addEventListener('click', () => {
+      if (isBattleSkill && !act.ready) return;  // can't fire if not charged
+      _onAction?.(act);
+    });
     btn.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      if (isBattleSkill && !act.ready) return;
       _onAction?.(act);
     }, { passive: false });
 
     _bar.appendChild(btn);
   });
+}
+
+function _updateBloodBar() {
+  const pool  = WS.battle.bloodPool ?? 0;
+  const alloc = Object.values(WS.battle.bloodAlloc ?? {}).reduce((s, n) => s + n, 0);
+  const free  = pool - alloc;
+
+  const pips = Array.from({ length: pool }, (_, i) =>
+    `<span class="blood-pip${i < alloc ? ' used' : ''}"></span>`
+  ).join('');
+
+  _bloodBar.className = 'blood-pool-bar';
+  _bloodBar.innerHTML = `<span class="blood-label">💉</span>${pips}<span class="blood-free${free <= 0 ? ' empty' : ''}">${free}</span>`;
+}
+
+function _renderBloodCtrl(act) {
+  const ctrl = document.createElement('div');
+  ctrl.className = 'blood-ctrl';
+
+  const minus = document.createElement('button');
+  minus.className = 'blood-btn';
+  minus.textContent = '−';
+  minus.disabled = (act.blood ?? 0) <= 0;
+  minus.addEventListener('click', (e) => {
+    e.stopPropagation();
+    _onAction?.({ action: 'BLOOD_DEC', slotKey: act.slotKey });
+  });
+  minus.addEventListener('touchstart', (e) => {
+    e.stopPropagation(); e.preventDefault();
+    _onAction?.({ action: 'BLOOD_DEC', slotKey: act.slotKey });
+  }, { passive: false });
+
+  const count = document.createElement('span');
+  count.className = 'blood-count';
+  count.textContent = `${act.blood ?? 0}💉`;
+
+  const plus = document.createElement('button');
+  plus.className = 'blood-btn';
+  plus.textContent = '+';
+  plus.disabled = (act.freeBlood ?? 0) <= 0 || (act.blood ?? 0) >= (act.maxBlood ?? 1);
+  plus.addEventListener('click', (e) => {
+    e.stopPropagation();
+    _onAction?.({ action: 'BLOOD_INC', slotKey: act.slotKey });
+  });
+  plus.addEventListener('touchstart', (e) => {
+    e.stopPropagation(); e.preventDefault();
+    _onAction?.({ action: 'BLOOD_INC', slotKey: act.slotKey });
+  }, { passive: false });
+
+  ctrl.append(minus, count, plus);
+  return ctrl;
 }
 
 // --- Helpers ---
@@ -91,8 +172,10 @@ function _skillForSlot(slotKey, def) {
 const BATTLE_SLOT_ORDER = ['arm_l','arm_r','legs','tongue','brain','eye_l','eye_r','ear_l','ear_r','stomach','skin'];
 
 function _deriveBattle() {
-  const body = WS.player.body;
-  const acts = [];
+  const body      = WS.player.body;
+  const acts      = [];
+  const allocSum  = Object.values(WS.battle?.bloodAlloc ?? {}).reduce((s, n) => s + n, 0);
+  const freeBlood = (WS.battle?.bloodPool ?? 0) - allocSum;
 
   for (const slotKey of BATTLE_SLOT_ORDER) {
     if (acts.length >= 6) break;
@@ -106,14 +189,26 @@ function _deriveBattle() {
     const skill = _skillForSlot(slotKey, def);
     if (!skill) continue;
 
-    const cd  = WS.battle?.skillCooldowns?.[slotKey] ?? 0;
-    const hp  = slot.hp ?? def.maxHp;
+    const prog      = WS.battle?.organProgress?.[slotKey];
+    const blood     = WS.battle?.bloodAlloc?.[slotKey] ?? 0;
+    const chargePct = prog ? Math.round((prog.chargedMs / Math.max(1, prog.totalMs)) * 100) : 0;
+    const ready     = prog?.ready ?? false;
+    const slotType  = ORGAN_SLOTS[slotKey]?.type;
+    const maxBlood  = ORGAN_CD[slotType]?.maxBlood ?? 1;
+
+    const sub = !prog ? 'inactif' : ready ? '▶ PRÊT' : `${chargePct}%`;
+
     acts.push({
-      action:   'SKILL',
+      action:    'SKILL',
       slotKey,
-      label:    skill.label,
-      sub:      cd > 0 ? `${cd}♥` : `${hp}/${def.maxHp} HP`,
-      disabled: cd > 0,
+      label:     skill.label,
+      sub,
+      disabled:  !ready,
+      ready,
+      chargePct,
+      blood,
+      maxBlood,
+      freeBlood,
     });
   }
 
@@ -148,7 +243,7 @@ function _derive(room) {
       acts.push({ label: '···', sub: 'bras droit perdu', action: 'NOOP', disabled: true });
     }
 
-    // Jambes → ESQUIVER = WAIT avec chance de riposte/esquive
+    // Jambes → ESQUIVER (consomme une charge au combat)
     if (_slotAlive('legs')) {
       acts.push({ label: 'ESQUIVER', sub: _organName('legs') ?? 'jambes', action: 'WAIT' });
     } else {

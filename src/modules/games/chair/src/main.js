@@ -317,7 +317,7 @@ function _wireTriggers() {
   onTrigger('MOB_SKILL_FIRED', (e) => {
     switch (e.data?.type) {
       case 'dodge':   addLog('◈ Ennemi esquive le prochain coup.', 'sys'); break;
-      case 'harden':  addLog('◈ Ennemi se durcit — +4 ARM pendant 3 beats.', 'sys'); break;
+      case 'harden':  addLog('◈ Ennemi se durcit — +4 ARM pendant ~9s.', 'sys'); break;
       case 'heal':    addLog(`◈ Ennemi régénère +2 HP [${e.data?.slotKey ?? '?'}].`, 'sys'); break;
       case 'analyse': addLog(`◈ Ennemi analyse · cible [${e.data?.slotKey ?? '?'}].`, 'sys'); break;
     }
@@ -342,11 +342,6 @@ function _wireTriggers() {
   onTrigger('PARANOIA_EVENT', () => {
     addLog('✦ Quelque chose tourne dans votre crâne.', 'sys');
     SoundLine.excite('FACE', 0.35);
-  });
-
-  onTrigger('RIPOSTE', () => {
-    addLog('★ RIPOSTE — vous contre-attaquez.', 'sys');
-    SoundLine.excite('FACE', 0.6);
   });
 
   const _ECHO_LINES = [
@@ -457,6 +452,18 @@ function _handleUiAction(act) {
     case 'SKILL':
       BattleEngine.activateSkill(act.slotKey);
       break;
+    case 'BLOOD_INC': {
+      const cur = WS.battle.bloodAlloc?.[act.slotKey] ?? 0;
+      BattleEngine.allocateBlood(act.slotKey, cur + 1);
+      render();
+      break;
+    }
+    case 'BLOOD_DEC': {
+      const cur = WS.battle.bloodAlloc?.[act.slotKey] ?? 0;
+      if (cur > 0) BattleEngine.allocateBlood(act.slotKey, cur - 1);
+      render();
+      break;
+    }
     case 'ATTACK_AUTO': {
       if (!_targetedMobId) {
         const room = currentRoom();
