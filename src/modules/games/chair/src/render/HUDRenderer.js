@@ -1,16 +1,15 @@
 // HUD strip + combat log. Diff-based: only writes to DOM when data changed.
 
 import { WS, currentFloor } from '../WorldState.js';
-import { organResolver, relic as getRelicDef } from '../registry.js';
+import { relic as getRelicDef } from '../registry.js';
 
 const _elFloor   = document.getElementById('hud-floor');
 const _elGold    = document.getElementById('val-gold');
 const _elTorches = document.getElementById('val-torches');
-const _elSatiete = document.getElementById('val-satiete');
 const _elRelics  = document.getElementById('relic-list');
 const _elLog     = document.getElementById('combat-log');
 
-let _prev = { floor: null, gold: null, torches: null, satiete: null, relics: null };
+let _prev = { floor: null, gold: null, torches: null, relics: null };
 
 function _blocks(n, max, filled, empty) {
   const f = Math.max(0, Math.min(max, Math.round(n)));
@@ -21,21 +20,11 @@ export function render() {
   const floor     = currentFloor();
   const biomeName = (floor?.biomeId ?? 'gorge').replace(/-/g, ' ').toUpperCase();
   const floorNum  = (WS.player.floorIdx ?? 0) + 1;
-  const humanity  = WS.player.body?.humanityWith(organResolver) ?? 100;
-  const humKey    = `${biomeName}/${floorNum}/${WS.tick}/${humanity}/${WS.humeur}`;
+  const key       = `${biomeName}/${floorNum}/${WS.tick}`;
 
-  if (_prev.floor !== humKey) {
-    const humFilled = Math.round(humanity / 20);
-    const humStr = '<b>' + '▓'.repeat(Math.max(0, humFilled)) + '</b>'
-                 + '░'.repeat(Math.max(0, 5 - humFilled));
-    const HUMEUR_ABBR = {
-      fievre: 'FIÈVRE', frissons: 'FRISSONS', bile_montante: 'BILE',
-      rigor_mortis: 'RIGOR', insomnie: 'INSOMNIE',
-    };
-    const hLabel = HUMEUR_ABBR[WS.humeur];
-    const humeurStr = hLabel ? ` · <span style="color:var(--c-abime,#8d3820)">${hLabel}</span>` : '';
-    _elFloor.innerHTML = `${biomeName} · ÉTAGE <b>${floorNum}</b> · TICK <b>${WS.tick}</b> · HUMANITÉ ${humStr}${humeurStr}`;
-    _prev.floor = humKey;
+  if (_prev.floor !== key) {
+    _elFloor.innerHTML = `${biomeName} · ÉTAGE <b>${floorNum}</b> · TICK <b>${WS.tick}</b>`;
+    _prev.floor = key;
   }
 
   const gold = WS.player.gold ?? 0;
@@ -48,12 +37,6 @@ export function render() {
   if (_prev.torches !== torches) {
     _elTorches.innerHTML = _blocks(torches, 5, '▮', '▮');
     _prev.torches = torches;
-  }
-
-  const satiete = Math.floor(WS.player.satiete ?? 50);
-  if (_prev.satiete !== satiete) {
-    _elSatiete.innerHTML = _blocks(Math.round(satiete / 20), 5, '▓', '▓');
-    _prev.satiete = satiete;
   }
 
   const relics = WS.player.relics ?? [];

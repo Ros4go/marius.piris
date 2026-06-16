@@ -10,8 +10,7 @@ const _game  = document.querySelector('.game');
 const _scene = document.querySelector('.scene');
 
 // Classes managed on .game
-const GAME_MANAGED = ['no-eye', 'eye-l-dead', 'eye-r-dead', 'limp', 'heart-alive',
-                      'hm-low', 'hm-mid', 'hm-vlow', 'hm-critical', 'lum-out'];
+const GAME_MANAGED = ['no-eye', 'eye-l-dead', 'eye-r-dead', 'limp', 'heart-alive', 'lum-out'];
 
 // Organ overlay → CSS class on .scene (matches scene.css bfx-* rules)
 const OVERLAY_FX = {
@@ -58,13 +57,6 @@ export function apply() {
   if (heartSlot && (heartSlot.hp === null || heartSlot.hp > 0)) {
     _game?.classList.add('heart-alive');
   }
-
-  // Humanity visual tiers
-  const hum = body.humanityWith(organResolver);
-  if (hum < 75) _game?.classList.add('hm-low');
-  if (hum < 50) _game?.classList.add('hm-mid');
-  if (hum < 25) _game?.classList.add('hm-vlow');
-  if (hum <  5) _game?.classList.add('hm-critical');
 
   // Torch exhaustion: total darkness
   if ((WS.light?.current ?? 1.0) <= 0) _game?.classList.add('lum-out');

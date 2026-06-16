@@ -84,13 +84,13 @@ export function allBiomes() { return [..._biomes.values()]; }
 export function allRooms()  { return [..._rooms.values()]; }
 export function loreAll()   { return [..._lore.values()]; }
 
-// Convenience resolver compatible with Body.statsWith / Body.humanityWith
+// Convenience resolver: organId → Organ instance.
 export function organResolver(id) { return organ(id); }
 
 // --- Validators (throw on missing required fields) ---
 
 function _validateOrgan(def) {
-  const req = ['id','type','name','arcana','tier','hp','layer','humanity','price'];
+  const req = ['id','type','name','tier','hp','layer','price'];
   for (const f of req) {
     if (def[f] === undefined) throw new Error(`Organ "${def.id}" missing field: ${f}`);
   }

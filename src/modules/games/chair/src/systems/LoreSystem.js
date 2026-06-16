@@ -16,7 +16,7 @@ export function init() {
   onTrigger('MOB_DIED',        ()  => _check('firstKill'));
   onTrigger('PLAYER_DIED',     ()  => _check('firstDeath'));
   onTrigger('ORGAN_DAMAGED',   (e) => {
-    if (e.source !== 'infection' && e.source !== 'hunger') _check('firstCombat');
+    if (e.source !== 'infection') _check('firstCombat');
   });
 }
 
@@ -28,13 +28,6 @@ export function checkBiomeEntry(biomeId) { _check(`biomeEntry:${biomeId}`); }
 
 // Call when entering a rest room for the first time.
 export function checkRestFound() { _check('firstRestRoom'); }
-
-// Call from HallucinationSystem or BodyFX tick after computing HUM.
-export function checkHumanity(hum) {
-  if (hum < 50) _check('humanityBelow50');
-  if (hum < 20) _check('humanityBelow20');
-  if (hum < 5)  _check('humanityBelow5');
-}
 
 function _check(triggerType) {
   for (const entry of loreAll()) {

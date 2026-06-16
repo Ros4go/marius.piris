@@ -2,16 +2,6 @@ import { WS } from '../WorldState.js';
 import { organResolver } from '../registry.js';
 import { emit, PRIORITY } from '../TriggerBus.js';
 
-// Returns dodge probability [0..0.40] if equipped legs have the dodge ability.
-export function playerDodgeChance(body) {
-  const legs = body.slots['legs'];
-  if (!legs) return 0;
-  const def = organResolver(legs.organId);
-  if (!def?.abilities?.includes('dodge')) return 0;
-  const stats = body.statsWith(organResolver);
-  return Math.min(0.4, 0.05 + (stats.vit ?? 0) * 0.025);
-}
-
 // Returns true if any equipped arm has pierce_layer (ARM reduction = 0 on attack).
 export function playerHasPierceLayer(body) {
   for (const key of ['arm_l', 'arm_r']) {

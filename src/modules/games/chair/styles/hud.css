@@ -544,6 +544,105 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .blood-btn:disabled { opacity: .3; cursor: default; }
 .blood-count { font: .56rem var(--mono); color: #8a6840; min-width: 22px; text-align: center; }
 
+/* ── Reactor panel (col-r) — heart reactor (left) + anatomical body map ─────── */
+.reactor { display: flex; gap: 11px; align-items: stretch; }
+
+/* Heart = the reactor: it produces the blood pool */
+.rheart { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
+          padding: 4px 11px 4px 0; border-right: 1px solid var(--thread); }
+.rheart-icon { width: 40px; height: 40px; border-radius: 50%; padding: 0; cursor: pointer;
+               border: 2px solid #7a2a2a; background: #1a0a0a; color: var(--blood);
+               font-size: 1.35rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.rheart-icon:hover { color: #ff7a6e; border-color: #b5453c; box-shadow: 0 0 10px var(--blood); }
+.rheart.dead .rheart-icon { color: #3a322a; border-color: #241a12; }
+.rpool-v { display: flex; flex-direction: column-reverse; align-items: center; gap: 3px; }
+.rpool-v .rpip { width: 18px; height: 9px; background: #160c0c; border: 1px solid #381a1a; }
+.rpool-v .rpip.on { background: var(--blood); border-color: var(--blood); box-shadow: 0 0 5px var(--blood); }
+.rpool-free { font: bold .8rem var(--mono); color: var(--torch); margin-top: 2px; }
+.rpool-free.empty { color: var(--bone-dark); }
+
+/* Body map (4 columns) — arrangement:
+     oreille · cerveau · oreille
+     œil     · langue  · œil
+     bras    · peau · estomac · bras
+               jambes                  */
+.rbody { flex: 1; position: relative; display: grid;
+         grid-template-columns: 1fr 1.05fr 1.05fr 1fr; gap: 12px 5px;
+         grid-template-areas:
+           "earL brain brain earR"
+           "eyeL tong  tong  eyeR"
+           "armL skin  stom  armR"
+           ".    legs  legs  ."; }
+
+/* Soft red halo behind the organs (replaces the silhouette) */
+.rbody::before { content: ''; position: absolute; inset: -6%; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 58% 64% at 50% 46%,
+              rgba(138, 47, 42, .28), rgba(138, 47, 42, .08) 52%, transparent 74%); }
+
+.rcell { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+/* Blood bar: segments have a FIXED height, so the bar grows with the segment
+   count (works for organs with many segments). */
+.rbar { position: relative; width: 26px; box-sizing: border-box;
+        display: flex; flex-direction: column; gap: 3px; padding: 3px;
+        background: #0b0606; border: 1px solid #2a1414; }
+.rbar.nobar { visibility: hidden; height: 14px; }
+.rseg { flex: 0 0 auto; height: 13px; background: #1a0e0e; cursor: pointer; }
+.rseg.on { background: var(--blood); box-shadow: inset 0 0 3px #00000066, 0 0 5px var(--blood); }
+.rseg:hover { filter: brightness(1.5); }
+.rcharge { position: absolute; left: 0; bottom: 0; width: 100%; height: 0;
+           background: linear-gradient(transparent, var(--torch)); opacity: .4;
+           pointer-events: none; transition: height .1s linear; }
+.rcell.ready .rbar { outline: 1px solid var(--torch-hot); box-shadow: 0 0 9px var(--torch-hot); }
+
+.rname { background: none; border: 0; padding: 0; cursor: pointer;
+         font: .66rem var(--mono); letter-spacing: .02em; color: var(--bone-dim);
+         text-align: center; line-height: 1.1; white-space: normal; }
+.rname:hover:not(:disabled) { color: var(--torch-hot); }
+.rcell.mut  .rname { color: var(--torch); }
+.rcell.hurt .rname { color: var(--c-abime); }
+.rcell.dead .rname { color: #3a322a; text-decoration: line-through; }
+.rcell.empty .rname { opacity: .4; }
+.rcell.ready .rname { color: var(--torch-hot); }
+.rcell.dead .rbar { opacity: .3; }
+
+.rhp { width: 30px; height: 6px; background: #160c0c; border: 1px solid #2a1414; }
+.rhp > span { display: block; height: 100%; background: linear-gradient(90deg, #5d1f1f, #b5453c); transition: width .18s ease-out; }
+.rcell.dead .rhp > span, .rheart.dead .rhp > span { background: #2a1414; }
+
+/* ── Reactor juiciness + creepy life ────────────────────────────────────────── */
+/* Heart throbs like a lub-dub (~1.1s) and pushes blood */
+@keyframes heartthrob {
+  0%, 40%, 100% { transform: scale(1);     box-shadow: 0 0 5px var(--blood); }
+  16%           { transform: scale(1.045); box-shadow: 0 0 9px var(--blood); }
+  26%           { transform: scale(1.01);  box-shadow: 0 0 6px var(--blood); }
+}
+.rheart-icon { animation: heartthrob 1.15s ease-in-out infinite; will-change: transform; }
+.rheart.dead .rheart-icon { animation: none; }
+
+/* The blood halo breathes slowly — the body is alive under the skin */
+@keyframes halobreathe {
+  0%, 100% { opacity: .8;  transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.05); }
+}
+.rbody::before { animation: halobreathe 5.5s ease-in-out infinite; transform-origin: 50% 46%; }
+
+/* Free blood pips glow wetly */
+@keyframes pipwet { 0%, 100% { box-shadow: 0 0 4px var(--blood); } 50% { box-shadow: 0 0 8px var(--blood); } }
+.rpool-v .rpip.on { animation: pipwet 1.15s ease-in-out infinite; }
+
+/* Allocated blood segments look wet; allocating animates in */
+.rseg { transition: background .12s ease-out, box-shadow .12s ease-out; }
+.rseg.on { background: linear-gradient(90deg, #5a1d1a, var(--blood) 50%, #5a1d1a);
+           box-shadow: inset 0 0 4px #000, 0 0 6px var(--blood); }
+
+/* A charged-and-ready organ pulses to demand attention */
+@keyframes readythrob {
+  0%, 100% { box-shadow: 0 0 6px var(--torch-hot); }
+  50%      { box-shadow: 0 0 14px var(--torch-hot); }
+}
+.rcell.ready .rbar { animation: readythrob .7s ease-in-out infinite; }
+.rcharge { transition: height .12s linear; box-shadow: 0 0 6px var(--torch); }
+
 /* ── Inspector panel (col-r) ─────────────────────────────────────────────────── */
 .inspector .hint {
   font: .55rem var(--mono); color: #4d4233;

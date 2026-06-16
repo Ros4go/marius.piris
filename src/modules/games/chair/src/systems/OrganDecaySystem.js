@@ -25,9 +25,7 @@ export function scheduleDecay(itemId) {
   const def = organResolver(item.organId);
   if (!def) return;
 
-  // Fièvre: inventory decays 1.5× faster
-  const moodMult = WS.humeur === 'fievre' ? 1.5 : 1;
-  const delay = Math.round((TIER_DECAY[def.tier] ?? 60) / moodMult);
+  const delay = TIER_DECAY[def.tier] ?? 60;
   scheduleAt(WS.tick + delay, () => _decayItem(itemId));
 }
 

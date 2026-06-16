@@ -5,50 +5,58 @@
 import { WS, currentRoom } from './WorldState.js';
 import { emit, flush, PRIORITY } from './TriggerBus.js';
 import { organResolver } from './registry.js';
-import { ORGAN_SLOTS } from './entities/Body.js';
 import * as CombatSystem from './systems/CombatSystem.js';
-
-// Charge config per organ type.
-// effectiveMs = baseMs − (allocatedBlood − minBlood) × scaleMs   (min 500ms)
-// Organs with allocatedBlood < minBlood are inactive (progress frozen).
-export const ORGAN_CD = {
-  arm:     { baseMs: 4000, minBlood: 1, maxBlood: 3, scaleMs: 800 },
-  tongue:  { baseMs: 3000, minBlood: 1, maxBlood: 2, scaleMs: 600 },
-  legs:    { baseMs: 6000, minBlood: 1, maxBlood: 2, scaleMs: 1000 },
-  skin:    { baseMs: 7000, minBlood: 2, maxBlood: 2, scaleMs: 0 },
-  brain:   { baseMs: 4000, minBlood: 1, maxBlood: 2, scaleMs: 800 },
-  eye:     { baseMs: 2000, minBlood: 1, maxBlood: 1, scaleMs: 0 },
-  ear:     { baseMs: 4000, minBlood: 1, maxBlood: 2, scaleMs: 800 },
-  stomach: { baseMs: 8000, minBlood: 2, maxBlood: 3, scaleMs: 1200 },
-  heart:   { baseMs: 0,    minBlood: 0, maxBlood: 0, scaleMs: 0 },
-};
-
-// Per-brain charge speed multiplier for mobs (higher = fires faster).
-const MOB_SPEED = {
-  brain_lich:  1.4,
-  brain_titan: 0.7,
-};
 
 let _rafId      = null;
 let _onRender   = null;  // called to refresh UI (~10fps during combat)
 let _onEnd      = null;  // called with explCost when combat ends
 let _lastRender = 0;     // throttle UI updates
 
-// --- Blood helpers ---
+// --- Blood helpers (persistent: WS.player.bloodAlloc is the source of truth) ---
 
-function _bloodPool() {
-  const ryt = WS.player.body?.statsWith(organResolver)?.ryt ?? 1;
-  return Math.max(3, ryt + 3);
+// The heart produces the blood pool.
+export function bloodPool() {
+  const heart = WS.player.body?.slots?.heart;
+  if (heart && (heart.hp === null || heart.hp > 0)) {
+    return organResolver(heart.organId)?.pool ?? 3;
+  }
+  return 3;
 }
 
-// Effective charge time in ms for a given organ type + blood allocation.
-// Returns Infinity when blood < minBlood (organ inactive).
-function _chargeMs(type, blood) {
-  const cfg = ORGAN_CD[type];
-  if (!cfg || !cfg.baseMs) return Infinity;
-  if (blood < cfg.minBlood) return Infinity;
-  const extra = Math.min(blood - cfg.minBlood, cfg.maxBlood - cfg.minBlood);
-  return Math.max(500, cfg.baseMs - extra * cfg.scaleMs);
+function _slotAlive(slotKey) {
+  const slot = WS.player.body?.slots?.[slotKey];
+  return slot && (slot.hp === null || slot.hp > 0);
+}
+
+// Total blood currently committed to living organs.
+export function bloodSpent() {
+  const alloc = WS.player.bloodAlloc ?? {};
+  let sum = 0;
+  for (const [k, n] of Object.entries(alloc)) if (_slotAlive(k)) sum += n;
+  return sum;
+}
+
+export function bloodFree() {
+  return bloodPool() - bloodSpent();
+}
+
+// Max blood an organ can hold (0 = takes no blood, e.g. heart).
+export function organMaxBlood(slotKey) {
+  const slot = WS.player.body?.slots?.[slotKey];
+  if (!slot) return 0;
+  return organResolver(slot.organId)?.maxBlood ?? 0;
+}
+
+// Effective charge time in ms for an organ at a given blood level.
+// Only organs with an active skill charge; needs ≥1 blood to be active.
+// charge may be a fixed number or an array (per blood level).
+function _chargeMs(def, blood) {
+  const skill = def?.skill;
+  if (!skill || blood < 1) return Infinity;
+  const ch = skill.charge;
+  const idx = Math.min(blood, (def.maxBlood || 1)) - 1;
+  const v = Array.isArray(ch) ? (ch[idx] ?? ch[ch.length - 1]) : ch;
+  return Math.max(500, v ?? 4000);
 }
 
 // --- Public API ---
@@ -58,9 +66,6 @@ export function start(onRender, onEnd) {
   _onRender = onRender;
   _onEnd    = onEnd;
 
-  const pool = _bloodPool();
-  WS.battle.bloodPool     = pool;
-  WS.battle.bloodAlloc    = {};
   WS.battle.organProgress = {};
   WS.battle.active        = true;
   WS.battle.explCost      = 0;
@@ -70,7 +75,7 @@ export function start(onRender, onEnd) {
   WS.battle.targetSlotKey = null;
   WS.battle._lastTs       = null;
 
-  _defaultBloodAlloc();
+  ensureDefaultAlloc();        // seed allocation once; respects the player's prior choices
   _initPlayerProgress();
 
   const room = currentRoom();
@@ -88,7 +93,7 @@ export function start(onRender, onEnd) {
   }
 
   emit({ type: 'BATTLE_STARTED', source: 'engine', target: 'all',
-         data: { bloodPool: pool }, priority: PRIORITY.ACTION });
+         data: { bloodPool: bloodPool() }, priority: PRIORITY.ACTION });
   flush(PRIORITY.ACTION);
 
   _lastRender = 0;
@@ -132,16 +137,23 @@ export function activateSkill(slotKey) {
   return !!result?.ok;
 }
 
-// Reallocate blood between organs. Rejects if total would exceed bloodPool.
-// Preserves relative charge progress when totalMs changes.
+// Set an organ's blood to `amount`, clamped to its max and to the free pool.
+// Works in AND out of combat (persistent). Refreshes charge if a fight is live.
 export function allocateBlood(slotKey, amount) {
-  if (!WS.battle.active || amount < 0) return false;
-  const prev  = WS.battle.bloodAlloc[slotKey] ?? 0;
-  const total = Object.values(WS.battle.bloodAlloc).reduce((s, n) => s + n, 0);
-  if (total - prev + amount > WS.battle.bloodPool) return false;
+  if (amount < 0) amount = 0;
+  const max = organMaxBlood(slotKey);
+  if (max <= 0) return false;            // organ takes no blood (heart / passive)
 
-  WS.battle.bloodAlloc[slotKey] = amount;
-  _refreshPlayerOrganProgress(slotKey);
+  const alloc = WS.player.bloodAlloc ?? (WS.player.bloodAlloc = {});
+  const prev  = alloc[slotKey] ?? 0;
+  // Most this slot can hold given its cap and what's free elsewhere.
+  const maxAffordable = Math.min(max, Math.max(0, prev + bloodFree()));
+  amount = Math.min(amount, maxAffordable);
+
+  if (amount <= 0) delete alloc[slotKey];
+  else             alloc[slotKey] = amount;
+
+  if (WS.battle.active) _refreshPlayerOrganProgress(slotKey);
   return true;
 }
 
@@ -149,28 +161,22 @@ export function allocateBlood(slotKey, amount) {
 
 const _BLOOD_PRIORITY = ['arm_l','arm_r','legs','tongue','brain','eye_l','eye_r','ear_l','ear_r','stomach','skin'];
 
-function _defaultBloodAlloc() {
-  const body      = WS.player.body;
-  let   remaining = WS.battle.bloodPool;
-  const alloc     = {};
+// Seed a sensible default allocation ONCE — leaves the player's choices intact.
+// Gives 1 blood to each blood-capable organ by priority until the pool runs out.
+export function ensureDefaultAlloc() {
+  const alloc = WS.player.bloodAlloc ?? (WS.player.bloodAlloc = {});
+  if (Object.keys(alloc).some(k => _slotAlive(k) && alloc[k] > 0)) return;  // already configured
 
+  const body = WS.player.body;
+  if (!body) return;
+  let remaining = bloodPool();
   for (const slotKey of _BLOOD_PRIORITY) {
     if (remaining <= 0) break;
-    const slot = body.slots[slotKey];
-    if (!slot || (slot.hp !== null && slot.hp <= 0)) continue;
-    const def = organResolver(slot.organId);
-    if (!def) continue;
-    // Common non-arm/legs organs have no action button — skip them in default alloc
-    const slotType = ORGAN_SLOTS[slotKey]?.type;
-    if (slotType !== 'arm' && slotType !== 'legs' && def.tier === 'common') continue;
-    const cfg = ORGAN_CD[def.type];
-    if (!cfg || !cfg.minBlood) continue;
-    if (remaining >= cfg.minBlood) {
-      alloc[slotKey] = cfg.minBlood;
-      remaining      -= cfg.minBlood;
-    }
+    if (!_slotAlive(slotKey)) continue;
+    if (organMaxBlood(slotKey) < 1) continue;
+    alloc[slotKey] = 1;
+    remaining -= 1;
   }
-  WS.battle.bloodAlloc = alloc;
 }
 
 function _initPlayerProgress() {
@@ -180,7 +186,7 @@ function _initPlayerProgress() {
     if (!slot || (slot.hp !== null && slot.hp <= 0)) continue;
     const def = organResolver(slot.organId);
     if (!def) continue;
-    const totalMs = _chargeMs(def.type, WS.battle.bloodAlloc[slotKey] ?? 0);
+    const totalMs = _chargeMs(def, WS.player.bloodAlloc[slotKey] ?? 0);
     if (totalMs === Infinity) continue;
     prog[slotKey] = { chargedMs: 0, totalMs, ready: false };
   }
@@ -192,7 +198,7 @@ function _refreshPlayerOrganProgress(slotKey) {
   if (!slot) return;
   const def = organResolver(slot.organId);
   if (!def) return;
-  const totalMs = _chargeMs(def.type, WS.battle.bloodAlloc[slotKey] ?? 0);
+  const totalMs = _chargeMs(def, WS.player.bloodAlloc[slotKey] ?? 0);
   if (totalMs === Infinity) {
     delete WS.battle.organProgress[slotKey];
     return;
@@ -207,17 +213,14 @@ function _refreshPlayerOrganProgress(slotKey) {
   }
 }
 
+// Mob organs charge at their skill's full-tier charge (mobs don't allocate blood).
 function _initMobProgress(mob) {
-  const brainId   = mob.body.slots['brain']?.organId;
-  const speedMult = MOB_SPEED[brainId] ?? 1.0;
-
   for (const [slotKey, slot] of Object.entries(mob.body.slots)) {
     if (!slot || (slot.hp !== null && slot.hp <= 0)) continue;
     const def = organResolver(slot.organId);
-    if (!def) continue;
-    const cfg = ORGAN_CD[def.type];
-    if (!cfg || !cfg.baseMs) continue;
-    const totalMs = Math.max(500, Math.round(cfg.baseMs / speedMult));
+    if (!def?.skill) continue;
+    const totalMs = _chargeMs(def, def.maxBlood || 1);
+    if (totalMs === Infinity) continue;
     mob.organProgress[slotKey] = { chargedMs: 0, totalMs, ready: false };
   }
 }

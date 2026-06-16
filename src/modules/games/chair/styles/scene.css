@@ -23,7 +23,7 @@ html, body {
     inset 0 0 0 7px #000,
     inset 0 0 120px #000;
   display: grid;
-  grid-template-columns: clamp(150px, 15vw, 212px) 1fr clamp(178px, 19vw, 244px);
+  grid-template-columns: clamp(150px, 15vw, 212px) 1fr clamp(212px, 23vw, 300px);
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: var(--gap);
   padding: 12px;
@@ -258,6 +258,26 @@ html, body {
 }
 .foe-intent b { color: #b5453c; font-weight: normal; animation: intblink 1.4s steps(2) infinite; }
 @keyframes intblink { 50% { opacity: .4; } }
+
+/* Enemy reactor: parallel organ charges (FTL-style threat table) */
+.foe-reactor { display: flex; justify-content: center; align-items: flex-end; gap: 7px; flex-wrap: wrap; }
+.fcell { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 34px; cursor: pointer; }
+.fcell.locked { cursor: default; opacity: .55; }
+.fbar { position: relative; width: 22px; height: 34px; box-sizing: border-box; overflow: hidden;
+        background: #0b0606; border: 1px solid #2a1414; box-shadow: inset 0 0 8px #000; }
+.fcharge { position: absolute; left: 0; bottom: 0; width: 100%; height: 0;
+           background: linear-gradient(transparent, #b5453c); transition: height .12s linear; }
+.fcell.ready .fbar { border-color: var(--torch-hot); box-shadow: 0 0 10px var(--torch-hot), inset 0 0 8px #000; }
+.fcell.ready .fcharge { background: linear-gradient(transparent, var(--torch-hot)); }
+.fcell.targeted .fbar { outline: 2px solid var(--torch); outline-offset: 1px; }
+.fcell.dead .fbar { opacity: .3; }
+.fcell:hover:not(.locked):not(.dead) .fbar { border-color: var(--torch); }
+.fname { font: .5rem var(--mono); color: #8d7e63; text-shadow: 0 1px 3px #000; white-space: nowrap; letter-spacing: .04em; }
+.fcell.targeted .fname { color: var(--torch-hot); }
+.fcell.dead .fname { color: #4a4234; text-decoration: line-through; }
+.fhp { width: 26px; height: 4px; background: #160c0c; border: 1px solid #2a1414; }
+.fhp > span { display: block; height: 100%; background: linear-gradient(90deg, #5d1f1f, #b5453c); }
+.fcell.dead .fhp > span { background: #2a1414; }
 
 /* ── La Ligne (canvas) ──────────────────────────────────────────────────────── */
 .soundline {

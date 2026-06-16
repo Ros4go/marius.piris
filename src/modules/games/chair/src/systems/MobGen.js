@@ -4,15 +4,16 @@ import { pick, shuffle } from '../rng.js';
 import { Body, ORGAN_SLOTS } from '../entities/Body.js';
 
 const TIER_COST = { common: 1, rare: 2, epic: 4, legendary: 8 };
+const TIER_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
 
-const ARCANE_CAP = {
-  gorge:      5,
-  poumons:    12,
-  estomac:    12,
-  coeur:      18,
-  entrailles: 22,
-  'le-fond':  28,
-};
+// Which tiers may appear, by depth (replaces the old arcana cap).
+function _tierAllowed(tier, floorIdx) {
+  if (tier === 'common')    return true;
+  if (tier === 'rare')      return floorIdx >= 1;
+  if (tier === 'epic')      return floorIdx >= 4;
+  if (tier === 'legendary') return floorIdx >= 8;
+  return true;
+}
 
 const THEME_NAMES = {
   putrid:      { adj: ['Putride','Nécrotique','Fétide','Ranci'],        noun: 'de Chair'     },
@@ -144,10 +145,9 @@ export function spawnGraveyardMob(room, floorIdx) {
 function _createMob(biome, theme, floorIdx, room, idx, isElite) {
   const id = `mob_${floorIdx}_${room.id}_${idx}`;
 
-  const arcanaCap = biome.arcanaCap ?? ARCANE_CAP[biome.id] ?? 5;
-  let budget      = Math.floor((5 + floorIdx * 2) * (isElite ? 1.7 : 1));
+  let budget = Math.floor((5 + floorIdx * 2) * (isElite ? 1.7 : 1));
 
-  const pool = allOrgans().filter(o => o.arcana <= arcanaCap);
+  const pool = allOrgans().filter(o => _tierAllowed(o.tier, floorIdx));
   const body = Body.empty(id);
 
   let attempts = 0;
@@ -176,7 +176,7 @@ function _createMob(biome, theme, floorIdx, room, idx, isElite) {
   if (isElite && !body.slots['heart']) {
     const hearts = pool.filter(o => o.type === 'heart');
     if (hearts.length) {
-      const h = hearts.reduce((b, o) => o.arcana > b.arcana ? o : b, hearts[0]);
+      const h = hearts.reduce((b, o) => (TIER_RANK[o.tier] ?? 0) > (TIER_RANK[b.tier] ?? 0) ? o : b, hearts[0]);
       body.setOrgan('heart', h.id, h.maxHp);
     }
   }

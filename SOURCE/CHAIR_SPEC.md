@@ -156,83 +156,100 @@ humanity(body)  = clamp( 100 + Σ organe.humanity, 0, 100 )
 
 Combat — formules implémentées :
 ```
-# ── Système de combat temps-réel (BattleEngine) ──────────────────────────────
-# Le combat est déclenché dès qu'on entre dans une salle hostile.
-# Il tourne en temps-réel : intervalle de beat = max(400, 1200 - RYT×60) ms.
-# Chaque beat : joueur auto-attaque → mobs tick leur countdown.
-# Les mobs N'ont PAS d'auto-attaque en combat : ils n'agissent QUE via skills.
+# ── Combat temps-réel (BattleEngine) ────────────────────────────────────────
+# Le combat démarre dès qu'on entre dans une salle hostile et tourne en
+# temps-réel via requestAnimationFrame. PAS de tour par tour, PAS de beats,
+# PAS d'auto-attaque : chaque organe charge indépendamment ; le joueur
+# déclenche manuellement ses organes PRÊTS ; les organes des mobs tirent
+# automatiquement à pleine charge.
 
-beat_interval(ryt)  = max(400, 1200 - ryt × 60)   // ms
+# ── Le pool de sang ──────────────────────────────────────────────────────────
+bloodPool = max(3, RYT + 3)          # fixé par le cœur, immuable tant qu'il vit
+# Réparti librement entre les organes pendant le combat (allocateBlood) :
+#   - un organe sous son sang minimum est INACTIF (charge gelée) ;
+#   - plus de sang = charge plus rapide (jusqu'au max de l'organe).
+# La réallocation conserve le ratio de charge en cours.
 
-# ── Auto-attaque joueur (chaque beat) ────────────────────────────────────────
-auto_dmg = max(1, (DGT_joueur - ARM_mob_si_couche_outer) × qualité_arme)
-qualité_arme = 1.0 (base) · armures abîmées réduisent selon tier
-# si WS.battle.aimedSlot : cible cet organe (PRC-based hit chance)
-# sinon : frappe la couche la plus externe disponible
+# Temps de charge effectif (ms) d'un organe selon le sang alloué :
+chargeMs(type, blood):
+  cfg = ORGAN_CD[type]
+  si blood < cfg.minBlood : Infinity                       # organe inactif
+  extra = min(blood - minBlood, maxBlood - minBlood)
+  return max(500, baseMs - extra × scaleMs)
 
-# ── Skills joueur (coût en PV de l'organe qui tire) ─────────────────────────
+# Table de charge (baseMs, minBlood, maxBlood, scaleMs) :
+ORGAN_CD = {
+  arm:     { baseMs:4000, min:1, max:3, scaleMs:800  },
+  tongue:  { baseMs:3000, min:1, max:2, scaleMs:600  },
+  legs:    { baseMs:6000, min:1, max:2, scaleMs:1000 },
+  skin:    { baseMs:7000, min:2, max:2, scaleMs:0    },
+  brain:   { baseMs:4000, min:1, max:2, scaleMs:800  },
+  eye:     { baseMs:2000, min:1, max:1, scaleMs:0    },
+  ear:     { baseMs:4000, min:1, max:2, scaleMs:800  },
+  stomach: { baseMs:8000, min:2, max:3, scaleMs:1200 },
+  heart:   { baseMs:0 — passif, pas de skill manuel             },
+}
+# Charge des organes mob : même baseMs, modulée par le cerveau :
+mob_totalMs(type, brain) = max(500, ORGAN_CD[type].baseMs / MOB_SPEED[brain])
+MOB_SPEED = { brain_lich:1.4, brain_titan:0.7, default:1.0 }
+
+# ── La Vie est une Ressource (coût HP des skills JOUEUR) ─────────────────────
+# Déclencher un skill coûte des HP à l'organe source (joueur uniquement).
 SKILL_COST_BY_TYPE = { arm:1, tongue:1, legs:1, eye:1, ear:1, brain:1, stomach:2, skin:2, heart:0 }
-PIERCE_COST = 2   // bras perforant coûte 2 HP au lieu de 1
+PIERCE_COST = 2   # bras perforant coûte 2 HP
+# ASYMÉTRIE ASSUMÉE : les organes des mobs tirent SANS coût HP — ils ne perdent
+# des HP que sous les coups du joueur.
+# Pas de cooldown propre : après déclenchement, la charge repart de 0 et se
+# recharge selon le sang alloué.
 
-# Multiplicateurs de dégâts par skill :
-# FRAPPER  (bras)          : ×3.0, ignore ARM si pierce_layer, CD 3 beats
-# ESTOC    (bras perforant): ×2.0, ignore ARM, CD 3 beats
-# MORDRE   (langue)        : ×2.5, CD 2 beats
-# VAMPIRISER (langue liche): ×2.5 + life_steal = dmg infligé (cap = HP manquants)
-# ESQUIVER (jambes)        : +2 charges dodge, CD 4 beats
-# ANALYSER (cerveau)       : révèle organe le plus faible + fixe aimedSlot, CD 3 beats
-# VISER    (œil)           : fixe aimedSlot sur cible choisie, CD 1 beat
-# ÉCOUTER  (oreille)       : countdown ennemi +2 beats (délai), CD 3 beats
-# DIGÉRER  (estomac)       : +4 HP sur l'organe le plus blessé, CD 5 beats
-# DURCIR   (peau)          : buffAbsorb +8 (absorbe le prochain skill mob), CD 5 beats
+# ── Skills joueur (déclenchés à la main, organe PRÊT) ────────────────────────
+# FRAPPER    (bras)            : ×3.0, ARM réduit si couche outer
+# ESTOC      (bras perforant)  : ×2.0, ignore ARM, vise mid/deep direct
+# MORDRE     (langue)          : ×2.5
+# VAMPIRISER (langue life_steal): ×2.5 + soigne l'organe le plus blessé du montant infligé
+# ESQUIVER   (jambes)          : +2 charges d'esquive (annulent les 2 prochains skills mob)
+# ANALYSER   (cerveau)         : repère l'organe le plus faible + fixe aimedSlot dessus
+# VISER      (œil)             : fixe aimedSlot sur la cible choisie
+# ÉCOUTER    (oreille)         : remet à 0 la charge de l'organe mob le plus avancé
+# DIGÉRER    (estomac)         : +4 HP à l'organe le plus blessé
+# DURCIR     (peau)            : +8 d'absorption sur le prochain skill mob
+# MANGER                       : satiété + transfert de PV (bypass tick guard)
 
-chance de toucher visé = min(0.95, 0.5 + 0.05×PRC)
-coup au corps (non visé) = toujours frappe la couche outer disponible
+chance de toucher (visé) = min(0.95, 0.5 + 0.05×PRC)
+coup non visé = couche outer dispo, puis mid, puis deep (au hasard dans la couche)
 
-# ── Mob skill scheduling ─────────────────────────────────────────────────────
-# Chaque mob schedule un skill chaque beat s'il n'en a pas déjà un en cours.
-# Countdown basé sur le cerveau du mob :
-mob_countdown(brain_type):
-  brain_lich  → 3 beats
-  brain_titan → 7 beats
-  default     → 5 beats
-# Intent affiché : "⚔ <organName> [<countdown>▸] <skillName>"
-# Si l'organe qui doit tirer est détruit avant la fin du countdown :
-#   → skill annulé, event SKILL_CANCELLED, mob.intent = "✗ <skillName> — interrompu"
+# ── Skills mob (auto-fire à pleine charge) ───────────────────────────────────
+# FRAPPE  (arm/tongue)   : ×2.5, min 2 dmg ; consomme une charge d'esquive joueur ;
+#                          DURCIR en absorbe une partie
+# ESQUIVE (legs)         : mob.buffDodge +1
+# DURCIR  (skin)         : mob.buffArm +4 pendant ~9 s
+# SOINS   (heart/stomach): +2 HP sur l'organe mob le plus blessé
+# ANALYSE (brain)        : mob.aimedSlot = organe joueur le plus blessé, ~9 s
 
-# Coûts HP mob (identiques joueur, prélevés sur l'organe qui tire) :
-mob_skill_cost = SKILL_COST_BY_TYPE  // même table
+# ── Mécanique-clé : interruption ─────────────────────────────────────────────
+# Détruire un organe mob qui charge ANNULE sa charge (reset chargedMs/ready),
+# event SKILL_CANCELLED, intent = "✗ <organe> — interrompu". Le dilemme : un
+# organe détruit loote moins bien.
 
-# Effets des skills mob :
-# FRAPPE LOURDE (arm/tongue) : ×2.5 dmg, ignore buffAbsorb partiel
-# ESQUIVE       (legs)        : mob.buffDodge +1
-# DURCIR        (skin)        : mob.buffArm +4 pendant 3 beats
-# SOINS         (heart/stomach): +2 HP sur l'organe le plus blessé du mob
-# ANALYSE       (brain)       : mob.aimedSlot = organe joueur le plus blessé, 3 beats
+# ── Mort & couches ───────────────────────────────────────────────────────────
+isAlive(mob) : vivant tant que cœur > 0 ; sans cœur → tant que cerveau > 0 ;
+               sans cœur ni cerveau (golem) → tant qu'un segment > 0.
+couches : on ne cible mid que si outer est vidé, deep que si mid l'est ;
+          pierce_layer (ESTOC) saute une couche.
 
-# ── Manger en combat ─────────────────────────────────────────────────────────
-# eatInCombat(idx, targetSlotKey) : bypass du tick guard, exécuté immédiatement
-# Effet : satiété += SAT_GAIN[quality] ET HP organe choisi += HP de l'organe mangé
-# Les deux effets coexistent (satiété + transfert de PV)
-# Si targetSlotKey null : répare automatiquement l'organe le plus blessé +1 HP (fallback)
-SAT_GAIN = { parfait:30, intact:25, 'abîmé':18, cuit:10, pourri:4 }
-HP_TRANSFER = item.hp ?? def.maxHp  // PV actuels de l'organe mangé
-
-# ── Autres formules (inchangées) ─────────────────────────────────────────────
-esquive parfaite     = fenêtre de RYT ticks ; réussie → 0 dégât + contre si bras dispo
-riposte (WAIT)       = parry_chance = min(0.6, 0.05 + RYT×0.1) → contre_dmg = DGT×0.5
+# ── Autres formules (hors combat, au tick) ───────────────────────────────────
 satiété/tick         = -0.04 × FAM   (0 = autophagie : -1 PV organe / 10 ticks, plus monstrueux d'abord)
 torche/tick          = -1 tous les 40 ticks (humeur frissons : 25 ticks)
 pourrissement organe = qualité baisse d'un cran tous les : commun 60, rare 90, épique 140
 greffe (donjon)      = 5 ticks (3 avec relic_suture_noire, 0 chez la Couturière)
 amputation           = gratuit, instantané ; l'organe retiré → besace (périssable)
+manger en combat     = eatInCombat() bypasse le tick guard ; satiété += SAT_GAIN[q] ET +HP organe choisi
+SAT_GAIN = { parfait:30, intact:25, 'abîmé':18, cuit:10, pourri:4 }
+HP_TRANSFER = item.hp ?? def.maxHp   # PV actuels de l'organe mangé
 
-# ── HP organes — échelle révisée (×3 vs proto v1) ───────────────────────────
-# commun  : 6-12 HP  (était 2-4)
-# rare    : 9-18 HP  (était 3-6)
-# épique  : 12-24 HP (était 5-8)
-# Carapace Vivante (épique skin max) : 24 HP
-# Cœur de Titan (épique heart max)   : 21 HP
+# ── HP organes — échelle ─────────────────────────────────────────────────────
+# commun 6-12 HP · rare 9-18 HP · épique 12-24 HP
+# Carapace Vivante (épique skin max) : 24 HP · Cœur de Titan (épique heart max) : 21 HP
 ```
 
 Économie (viande) :
@@ -335,42 +352,53 @@ onBossDefeated(boss):
 
 ## 7. Combat — architecture temps-réel (BattleEngine + CombatSystem)
 
+Le combat tourne en temps-réel via `requestAnimationFrame` (PAS de beats, PAS
+d'auto-attaque). Formules : voir §3.
+
 ```
-# ── Séquence d'un beat (BattleEngine._beat) ──────────────────────────────────
-1. Decay cooldowns joueur (-1 beat)
-2. Player auto-attaque le mob actif (CombatSystem.playerAutoAttack)
-   → flush PRIORITY.ACTION
+# ── Boucle (BattleEngine._tick, à chaque frame) ──────────────────────────────
+1. delta = temps écoulé depuis la dernière frame (capé à 500 ms)
+2. Avance la charge de chaque organe joueur (chargedMs += delta ; ready à plein)
 3. Pour chaque mob actif :
-   a. Decay buffArmBeats ; si ≤0 → buffArm = 0
-   b. Si scheduledSkill :
-      - countdown--
-      - si countdown ≤ 0 : executeMobScheduledSkill() + flush + intent = ''
-      - sinon : intent = "⚔ <organName> [<countdown>▸] <skillName>"
-   c. Sinon : pickMobSkillOrgan() → schedule nouveau skill, intent = telegram
-   → flush PRIORITY.MOB
-4. onBeat() callback → re-render UI
+   a. expire les buffs datés (buffArm, aimedSlot)
+   b. avance la charge de chaque organe ; à plein → fireMobOrganSkill() + reset
+   c. met à jour l'intent (organe le plus chargé : "⚠ <organe> · NN%")
+4. si combat terminé (joueur mort OU plus de mob actif) → stop()
+5. re-render throttlé (~10 fps)
 
-# ── Skills joueur (BattleEngine.activateSkill → CombatSystem.playerSkill) ───
-# Exécutés immédiatement (hors du rythme des beats)
-# Coût HP prélevé sur l'organe qui tire (voir table SKILL_COST_BY_TYPE)
-# CombatSystem.playerAutoAttack : auto-frappe chaque beat (sans coût HP)
-# CombatSystem.playerSkill      : skills manuels cliquables sur l'ActionBar
+# ── Entrées joueur ───────────────────────────────────────────────────────────
+# activateSkill(slotKey)    : déclenche un organe PRÊT → CombatSystem.playerSkill
+# allocateBlood(slotKey, n) : redistribue le sang (rejet si dépasse le pool ;
+#                             conserve le ratio de charge quand totalMs change)
+# setTarget(slotKey)        : choisit l'organe ennemi visé (aimedSlot)
+# eatInCombat(idx, slot)    : manger pendant le combat (bypass tick guard)
 
-# ── Mort & récolte (inchangé) ─────────────────────────────────────────────────
-mort violente = heart détruit → spasme + charognards accélérés sur la Ligne
-mort propre   = barre vidée segment par segment → loot préservé selon cibles
-récolte       = 1 organe ; qualité = organHp restant + fragileTo ; cadavre se décompose au tick
+# ── Mort & récolte (résolues au tick, après le combat) ───────────────────────
+mort violente = cœur détruit → kill instantané, cadavre marqué
+mort propre   = barre vidée segment par segment → loot préservé selon les cibles
+récolte       = 1 organe ; qualité = organHp restant + fragileTo ; décomposition au tick
+explCost      = compteur de skills/kills du combat → advanceTicks() une fois fini
 ```
 
 ### Modules implémentés (état actuel)
 
 | Module | Rôle |
 |--------|------|
-| `BattleEngine.js` | Boucle temps-réel (setInterval au beat_interval), scheduling mob |
-| `CombatSystem.js` | playerAutoAttack, playerSkill, mobAttack (hors-combat seulement), mob skill effects |
-| `SensoryFX.js` | Effets visuels temps-réel : beat pulse, vision overlay, hit flash, hunger vignette, EKG, LUM, BRT |
-| `ActionBar.js` | Barre d'actions contextuelle : en combat → skills organes + MANGER ; hors combat → contexte |
+| `BattleEngine.js` | Boucle rAF, pool de sang, charge des organes, auto-fire des organes mob |
+| `CombatSystem.js` | playerSkill (10 skills), fireMobOrganSkill/_doMobSkillEffect, ciblage, couches, dégâts, mort, récolte |
+| `BossSystem.js` | checkPhase2 : reconfiguration de la barre du boss sous un seuil de PV |
+| `SensoryFX.js` | Effets visuels temps-réel : pulse, vision overlay, hit flash, hunger vignette, EKG, LUM, BRT |
+| `ActionBar.js` | Barre d'actions : en combat → skills d'organes + contrôle du sang + MANGER ; hors combat → contexte |
 | `TickEngine.js` | Ticks d'exploration (hors combat) ; `eatInCombat()` bypasse le guard en combat |
+
+> **Patterns de boss & comportements de mob — NON implémentés.** Les patterns
+> signatures (read_ahead, zone_burst, pulse_rhythm, devour, infect) et les
+> comportements de mob (charger, ambusher, ranged, swarm, fleer) décrits dans le
+> GDD vivaient sur un ancien chemin de combat tour-par-tour, désormais supprimé.
+> Aujourd'hui, boss et mobs se battent via les skills génériques par type
+> d'organe ; seule la reconfiguration de barre en phase 2 (`checkPhase2`) reste
+> active. À réimplémenter dans BattleEngine/CombatSystem pour redonner aux boss
+> leur identité.
 
 ### SensoryFX — effets visuels pilotés par le corps
 

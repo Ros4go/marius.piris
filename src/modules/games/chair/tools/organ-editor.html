@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHAIR — Éditeur d'organes</title>
+<style>
+  :root{
+    --bg:#0c0a09; --panel:#15110e; --panel2:#1d1812; --edge:#2e251b; --edge2:#41331f;
+    --bone:#c8b894; --dim:#7d6f56; --dim2:#544733; --torch:#c47f33; --hot:#e8b25c;
+    --blood:#8a2f2a; --ok:#7acd50; --bad:#c8503a;
+    --mono:"Courier New",ui-monospace,monospace; --serif:Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--bone);font:13px/1.4 var(--mono);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  button{font:inherit;cursor:pointer;background:var(--panel2);color:var(--bone);border:1px solid var(--edge2);border-radius:3px;padding:5px 10px}
+  button:hover{border-color:var(--torch);color:var(--hot)}
+  button.danger:hover{border-color:var(--bad);color:var(--bad)}
+  button.primary{background:#3a2a14;border-color:var(--torch);color:var(--hot)}
+  input,select,textarea{font:inherit;background:#0a0806;color:var(--bone);border:1px solid var(--edge);border-radius:3px;padding:4px 6px}
+  input:focus,select:focus{outline:none;border-color:var(--torch)}
+  h1{font:600 16px var(--serif);letter-spacing:.25em;margin:0} h1 b{color:var(--blood)}
+  header{display:flex;align-items:center;gap:14px;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--edge)}
+  header .count{color:var(--dim);font-size:12px} header .count b{color:var(--torch)}
+  .toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel2);border-bottom:1px solid var(--edge);flex-wrap:wrap}
+  .toolbar label{color:var(--dim);font-size:11px}
+  .toolbar input[type=search]{width:170px}
+  main{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0}
+  .list{border-right:1px solid var(--edge);overflow-y:auto;padding:6px}
+  .grp{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);margin:12px 6px 4px;border-bottom:1px solid var(--edge)}
+  .item{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer}
+  .item:hover{background:var(--panel2)} .item.sel{background:#241a10;border-color:var(--torch)}
+  .item .sw{width:11px;height:11px;border-radius:50%;border:1px solid #000;flex:0 0 auto}
+  .item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item .tag{font-size:9.5px;color:var(--dim)}
+  .item .tier{font-size:9px;padding:0 4px;border-radius:2px;border:1px solid var(--edge2);color:var(--dim)}
+  .tier-rare{color:#5fa8d8!important} .tier-epic{color:#b06ad0!important} .tier-legendary{color:var(--hot)!important}
+  .editor{overflow-y:auto;padding:16px 22px}
+  .empty{color:var(--dim);text-align:center;margin-top:18vh;font-size:14px}
+  .sec{margin:0 0 18px}
+  .sec h2{font:600 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--torch);border-bottom:1px solid var(--edge2);padding-bottom:4px;margin:0 0 10px}
+  .row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .f{display:flex;flex-direction:column;gap:3px} .f.grow{flex:1}
+  .f label{font-size:10px;letter-spacing:.06em;color:var(--dim)}
+  .vals{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+  .vcol{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .vcol label{font-size:9px;color:var(--dim2)}
+  .vcol input{width:50px;text-align:center}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{display:flex;align-items:center;gap:4px;background:#0a0806;border:1px solid var(--edge2);border-radius:12px;padding:2px 6px 2px 9px;font-size:11px}
+  .chip button{padding:0 4px;border:0;background:none;color:var(--dim)} .chip button:hover{color:var(--bad)}
+  .trg{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+  .frag{display:flex;gap:12px;flex-wrap:wrap} .frag label{display:flex;gap:5px;align-items:center;font-size:12px}
+  .hint{font-size:10.5px;color:var(--dim2);margin:-4px 0 8px}
+  .warn{color:var(--bad);font-size:11px}
+  .preview{position:sticky;top:0;background:var(--panel);border:1px solid var(--edge2);border-radius:4px;padding:10px 12px;margin-bottom:16px;display:flex;gap:14px;align-items:center;z-index:2}
+  .preview .pbar{width:22px;height:34px;background:#0b0606;border:1px solid #2a1414}
+  .preview .pmeta{flex:1;font-size:11px;color:var(--dim);line-height:1.7} .preview .pmeta b{color:var(--bone)}
+  .jsonbox{width:100%;height:240px;font-size:11px;white-space:pre;color:var(--ok)}
+  .muted{opacity:.5}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>C H A I R <b>†</b> <span style="font:400 12px var(--mono);letter-spacing:.1em;color:var(--dim)">éditeur d'organes</span></h1>
+  <span class="count" id="count"></span>
+  <span style="flex:1"></span>
+  <button id="btn-load">⟳ Charger organs.json</button>
+  <button id="btn-import">⇧ Importer</button>
+  <button id="btn-export" class="primary">⇩ Exporter</button>
+  <button id="btn-clear" class="danger">Tout vider</button>
+  <input type="file" id="file" accept=".json,application/json" hidden>
+</header>
+
+<div class="toolbar">
+  <input type="search" id="search" placeholder="rechercher…">
+  <label>Grouper</label>
+  <select id="groupby"><option value="type">par type</option><option value="set">par set</option><option value="none">aucun</option></select>
+  <label>Type</label><select id="ftype"></select>
+  <label>Set</label><select id="fset"></select>
+  <label>Tier</label><select id="ftier"></select>
+  <span style="flex:1"></span>
+  <button id="btn-new" class="primary">+ Nouvel organe</button>
+</div>
+
+<main>
+  <div class="list" id="list"></div>
+  <div class="editor" id="editor"><div class="empty">Sélectionne un organe, ou crée-en un.</div></div>
+</main>
+
+<script>
+const TYPES=['eye','ear','arm','legs','heart','skin','brain','stomach','tongue'];
+const TYPE_FR={eye:'Œil',ear:'Oreille',arm:'Bras',legs:'Jambes',heart:'Cœur',skin:'Peau',brain:'Cerveau',stomach:'Estomac',tongue:'Langue'};
+const TIERS=['common','rare','epic','legendary'];
+const LAYERS=['outer','mid','deep'];
+// skill id → ce que "values" représente (info UI)
+// Skill behaviours (the code primitives). "values" meaning depends on the kind.
+const KINDS={ attack:'dégâts', heal:'PV soignés', shield:'absorption', dodge:'charges d\'esquive',
+              aim:'(aucune valeur)', analyse:'(aucune valeur)', stall:'recul charge ennemie' };
+const KIND_FR={ attack:'Attaque', heal:'Soin', shield:'Bouclier', dodge:'Esquive',
+                aim:'Visée', analyse:'Analyse', stall:'Interruption' };
+// Migration from the old preset-id skills.
+const LEGACY_SKILL={
+  frapper:{kind:'attack',label:'FRAPPER'}, estoc:{kind:'attack',label:'ESTOC',pierce:true},
+  mordre:{kind:'attack',label:'MORDRE'}, vampiriser:{kind:'attack',label:'VAMPIRISER',lifesteal:true},
+  esquiver:{kind:'dodge',label:'ESQUIVER'}, durcir:{kind:'shield',label:'DURCIR'},
+  digerer:{kind:'heal',label:'DIGÉRER'}, analyser:{kind:'analyse',label:'ANALYSER'},
+  viser:{kind:'aim',label:'VISER'}, ecouter:{kind:'stall',label:'ÉCOUTER'},
+};
+const PASSIVES={ armor:'armure (réduction dmg)', dodge:'esquive % (defense)', regen:'PV régénérés/tick', glow:'lueur' };
+const ABILITIES=['see_invisible','echolocate','pierce_layer','heart_ultimate','lich_revive','acid_resist'];
+const TRIGGER_ON=['onKill','onTick','onDamaged','onDestroy','onHarvest','onGraft'];
+const FLAWS=['','slow_charge','bleeds','loud','fragile','blinding','heavy'];
+const FRAGILE=['fire','crush','acid','cold'];
+const OVERLAYS=['','hex-fragment','lich-pulse','spider-crawl','stone-crack'];
+const DOTS=['mut','hum'];
+const LS_KEY='chair_organ_editor_v2';
+
+let organs=[], selUid=null, uidSeq=1;
+const filters={search:'',groupby:'type',type:'',set:'',tier:''};
+
+function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(organs.map(stripUid)));}catch(e){} }
+function load(){ try{const r=localStorage.getItem(LS_KEY); if(r){ingest(JSON.parse(r));return true;}}catch(e){} return false; }
+function ingest(arr){ organs=(arr||[]).map(o=>({_uid:uidSeq++,...normalize(o)})); }
+function stripUid(o){const c={...o};delete c._uid;return c;}
+
+function normalize(o){
+  const type=TYPES.includes(o.type)?o.type:'arm';
+  return {
+    id:o.id||'', type, name:o.name||'', set:o.set||'', tier:TIERS.includes(o.tier)?o.tier:'common',
+    hp:Number(o.hp??10), layer:LAYERS.includes(o.layer)?o.layer:'outer',
+    pool:Number(o.pool??(type==='heart'?5:0)),
+    maxBlood:Number(o.maxBlood??(type==='heart'?0:3)),
+    skill:_normSkill(o.skill),
+    passive:{ id:o.passive?.id||'', values:[...(o.passive?.values||[])] },
+    abilities:[...(o.abilities||[])],
+    triggers:(o.triggers||[]).map(t=>({on:t.on,do:t.do})),
+    flaw:o.flaw||'',
+    visual:Object.assign({color:'#7a4a1a',overlay:'',dot:'mut'},o.visual||{}),
+    icon:o.icon||'', sounds:Object.assign({active:'',passive:''},o.sounds||{}),
+    price:Number(o.price??20), harvest:{fragileTo:[...((o.harvest||{}).fragileTo||[])]},
+  };
+}
+function _normSkill(s){
+  const lg = (s && s.id) ? (LEGACY_SKILL[s.id] || {}) : {};
+  return {
+    kind:  s?.kind  ?? lg.kind  ?? '',
+    label: s?.label ?? lg.label ?? '',
+    pierce:    !!(s?.pierce    ?? lg.pierce),
+    lifesteal: !!(s?.lifesteal ?? lg.lifesteal),
+    values:[...(s?.values||[])],
+    charge:(s && s.charge!=null)?s.charge:4000,
+  };
+}
+function sized(arr,n){ const a=[]; for(let i=0;i<n;i++) a.push(Number(arr[i] ?? arr[arr.length-1] ?? 0)); return a; }
+
+function serialize(o){
+  const out={id:o.id,type:o.type,name:o.name};
+  if(o.set) out.set=o.set;
+  out.tier=o.tier; out.hp=o.hp; out.layer=o.layer;
+  if(o.type==='heart') out.pool=o.pool;
+  out.maxBlood=o.maxBlood;
+  if(o.skill.kind){
+    const sk={kind:o.skill.kind, label:o.skill.label||'', values:sized(o.skill.values,o.maxBlood)};
+    sk.charge = Array.isArray(o.skill.charge) ? sized(o.skill.charge,o.maxBlood) : Number(o.skill.charge);
+    if(o.skill.pierce) sk.pierce=true;
+    if(o.skill.lifesteal) sk.lifesteal=true;
+    out.skill=sk;
+  }
+  if(o.passive.id) out.passive={id:o.passive.id, values:sized(o.passive.values,o.maxBlood)};
+  if(o.abilities.length) out.abilities=o.abilities;
+  if(o.triggers.length) out.triggers=o.triggers.filter(t=>t.on&&t.do);
+  if(o.flaw) out.flaw=o.flaw;
+  out.visual={color:o.visual.color||null,overlay:o.visual.overlay||null,dot:o.visual.dot||'mut'};
+  if(o.icon) out.icon=o.icon;
+  if(o.sounds.active||o.sounds.passive) out.sounds={active:o.sounds.active||null,passive:o.sounds.passive||null};
+  out.price=o.price; out.harvest={fragileTo:o.harvest.fragileTo};
+  return out;
+}
+
+function visible(){
+  return organs.filter(o=>{
+    if(filters.type&&o.type!==filters.type) return false;
+    if(filters.set&&(o.set||'—')!==filters.set) return false;
+    if(filters.tier&&o.tier!==filters.tier) return false;
+    if(filters.search&&!(o.name+o.id+o.set).toLowerCase().includes(filters.search.toLowerCase())) return false;
+    return true;
+  });
+}
+function uniqueSets(){ return [...new Set(organs.map(o=>o.set).filter(Boolean))].sort(); }
+
+function renderList(){
+  const el=document.getElementById('list'), vis=visible(); el.innerHTML='';
+  document.getElementById('count').innerHTML=`<b>${organs.length}</b> organes`+(vis.length!==organs.length?` · ${vis.length} affichés`:'');
+  let groups;
+  if(filters.groupby==='none') groups=[['',vis]];
+  else{ const k=filters.groupby,map={}; for(const o of vis){const g=o[k]||'—';(map[g]=map[g]||[]).push(o);}
+    const order=k==='type'?TYPES:Object.keys(map).sort(); groups=order.filter(g=>map[g]).map(g=>[g,map[g]]);
+    for(const g of Object.keys(map)) if(!order.includes(g)) groups.push([g,map[g]]); }
+  for(const [g,items] of groups){
+    if(g!==''){const h=document.createElement('div');h.className='grp';h.textContent=(filters.groupby==='type'?(TYPE_FR[g]||g):g)+` (${items.length})`;el.appendChild(h);}
+    items.sort((a,b)=>(a.name||a.id).localeCompare(b.name||b.id));
+    for(const o of items){
+      const it=document.createElement('div'); it.className='item'+(o._uid===selUid?' sel':'');
+      it.innerHTML=`<span class="sw" style="background:${o.visual.color||'#444'}"></span>
+        <span class="nm">${o.name||'<sans nom>'} <span class="tag">${TYPE_FR[o.type]}${o.set?' · '+o.set:''}</span></span>
+        <span class="tier tier-${o.tier}">${o.tier[0].toUpperCase()}</span>`;
+      it.onclick=()=>{selUid=o._uid;render();}; el.appendChild(it);
+    }
+  }
+}
+
+function cur(){ return organs.find(o=>o._uid===selUid); }
+function esc(s){ return String(s??'').replace(/"/g,'&quot;'); }
+
+function valsRow(prefix,arr,n){
+  if(n<=0) return '<span class="hint">maxBlood = 0 (aucun sang) → pas de valeurs.</span>';
+  let h='<div class="vals">';
+  for(let i=0;i<n;i++) h+=`<div class="vcol"><label>${i+1} sang</label><input data-${prefix}="${i}" type="number" value="${arr[i] ?? (arr[arr.length-1] ?? 0)}"></div>`;
+  return h+'</div>';
+}
+
+function renderEditor(){
+  const el=document.getElementById('editor'), o=cur();
+  if(!o){ el.innerHTML='<div class="empty">Sélectionne un organe, ou crée-en un.</div>'; return; }
+  const opt=(arr,val,fr)=>arr.map(v=>`<option value="${v}"${v===val?' selected':''}>${fr?(fr[v]||v||'—'):(v||'—')}</option>`).join('');
+  const dupId=organs.some(x=>x!==o&&x.id===o.id&&o.id);
+  const chargeArr=Array.isArray(o.skill.charge);
+
+  el.innerHTML=`
+    <div class="preview"><div class="pbar" id="pv-bar"></div><div class="pmeta" id="pv-meta"></div>
+      <button id="btn-json" style="font-size:11px">&lt;/&gt; JSON</button></div>
+
+    <div class="sec"><h2>Identité</h2>
+      <div class="row">
+        <div class="f grow"><label>Nom</label><input id="f-name" value="${esc(o.name)}"></div>
+        <div class="f grow"><label>ID ${dupId?'<span class="warn">⚠ doublon</span>':''}</label><input id="f-id" value="${esc(o.id)}"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label>Type</label><select id="f-type">${opt(TYPES,o.type,TYPE_FR)}</select></div>
+        <div class="f"><label>Set</label><input id="f-set" list="dl-sets" value="${esc(o.set)}" placeholder="troll, stone…"></div>
+        <div class="f"><label>Tier</label><select id="f-tier">${opt(TIERS,o.tier)}</select></div>
+        <div class="f"><label>Prix (viande)</label><input id="f-price" type="number" value="${o.price}"></div>
+      </div>
+    </div>
+
+    <div class="sec"><h2>Corps & sang</h2>
+      <div class="row">
+        <div class="f"><label>PV</label><input id="f-hp" type="number" value="${o.hp}"></div>
+        <div class="f"><label>Couche</label><select id="f-layer">${opt(LAYERS,o.layer)}</select></div>
+        <div class="f"><label>maxBlood (paliers)</label><input id="f-maxblood" type="number" min="0" max="8" value="${o.maxBlood}"></div>
+        ${o.type==='heart'?`<div class="f"><label>Pool produit (cœur)</label><input id="f-pool" type="number" value="${o.pool}"></div>`:''}
+      </div>
+      <div class="hint">maxBlood = combien de sang l'organe peut recevoir (0 = aucun, ex. cœur). Les valeurs de skill/passif sont définies par palier de sang.</div>
+    </div>
+
+    <div class="sec"><h2>Skill actif <span class="hint" style="margin:0">(se charge puis se déclenche)</span></h2>
+      <div class="row">
+        <div class="f"><label>Comportement</label><select id="f-skind"><option value=""${o.skill.kind?'':' selected'}>— aucun —</option>${opt(Object.keys(KINDS),o.skill.kind,KIND_FR)}</select></div>
+        <div class="f grow"><label>Nom affiché</label><input id="f-slabel" value="${esc(o.skill.label)}" placeholder="FRAPPER, MORSURE TOXIQUE…"></div>
+        <div class="f"><label>Modificateurs</label>
+          <div style="display:flex;gap:12px;align-items:center;height:28px;font-size:11px;color:var(--dim)">
+            <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="f-pierce" ${o.skill.pierce?'checked':''}> perforant</label>
+            <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="f-lifesteal" ${o.skill.lifesteal?'checked':''}> vol de vie</label>
+          </div>
+        </div>
+      </div>
+      <div class="f${o.skill.kind?'':' muted'}"><label>Valeurs par palier — <b>${KINDS[o.skill.kind]||'magnitude'}</b></label>${valsRow('sk',o.skill.values,o.maxBlood)}</div>
+      <div class="row" style="margin-top:8px;align-items:flex-end">
+        <label style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--dim)"><input type="checkbox" id="f-chargearr" ${chargeArr?'checked':''}> charge par palier</label>
+        ${chargeArr
+          ? `<div class="f grow"><label>Charge par palier (ms)</label>${valsRow('ch',o.skill.charge,o.maxBlood)}</div>`
+          : `<div class="f"><label>Charge (ms, fixe)</label><input id="f-charge" type="number" step="100" value="${o.skill.charge}"></div>`}
+      </div>
+    </div>
+
+    <div class="sec"><h2>Passif <span class="hint" style="margin:0">(toujours actif, scale au sang alloué)</span></h2>
+      <div class="row">
+        <div class="f grow"><label>Passif id (vide = aucun)</label><input id="f-passive" list="dl-passives" value="${esc(o.passive.id)}" placeholder="armor, dodge, regen…"></div>
+      </div>
+      <div class="f${o.passive.id?'':' muted'}"><label>Valeurs par palier — <b>${PASSIVES[o.passive.id]||'magnitude'}</b></label>${valsRow('pa',o.passive.values,o.maxBlood)}</div>
+    </div>
+
+    <div class="sec"><h2>Effets divers</h2>
+      <div class="f" style="margin-bottom:10px"><label>Capacités passives (flags)</label>
+        <div class="chips" id="ab-chips"></div>
+        <div style="margin-top:5px"><input id="ab-add" list="dl-abilities" placeholder="ajouter + Entrée" style="width:240px"></div>
+      </div>
+      <div class="f" style="margin-bottom:10px"><label>Triggers</label><div id="trg-list"></div><button id="trg-add" style="margin-top:4px">+ trigger</button></div>
+      <div class="row"><div class="f grow"><label>Flaw (contrepartie, descriptif)</label><input id="f-flaw" list="dl-flaws" value="${esc(o.flaw)}" placeholder="slow_charge, bleeds…"></div></div>
+    </div>
+
+    <div class="sec"><h2>Présentation & loot</h2>
+      <div class="row">
+        <div class="f"><label>Couleur</label><input id="f-color" type="color" value="${o.visual.color||'#7a4a1a'}" style="width:54px;height:30px;padding:1px"></div>
+        <div class="f"><label>Point</label><select id="f-dot">${opt(DOTS,o.visual.dot)}</select></div>
+        <div class="f"><label>Overlay</label><select id="f-overlay">${opt(OVERLAYS,o.visual.overlay)}</select></div>
+        <div class="f"><label>Icône</label><input id="f-icon" value="${esc(o.icon)}" style="width:60px"></div>
+        <div class="f"><label>Son actif</label><input id="f-sa" value="${esc(o.sounds.active)}"></div>
+        <div class="f"><label>Son passif</label><input id="f-sp" value="${esc(o.sounds.passive)}"></div>
+      </div>
+      <label style="font-size:10px;color:var(--dim)">Fragile à (dégrade la récolte)</label>
+      <div class="frag" id="frag">${FRAGILE.map(f=>`<label><input type="checkbox" data-frag="${f}" ${o.harvest.fragileTo.includes(f)?'checked':''}>${f}</label>`).join('')}</div>
+    </div>
+
+    <div class="sec" style="display:flex;gap:10px">
+      <button id="btn-dup">⎘ Dupliquer</button><button id="btn-del" class="danger">✕ Supprimer</button>
+    </div>
+    <div class="sec" id="json-sec" style="display:none"><h2>JSON</h2><textarea class="jsonbox" id="jsonbox" readonly></textarea></div>
+
+    <datalist id="dl-sets">${uniqueSets().map(s=>`<option value="${s}">`).join('')}</datalist>
+    <datalist id="dl-passives">${Object.keys(PASSIVES).map(s=>`<option value="${s}">`).join('')}</datalist>
+    <datalist id="dl-abilities">${ABILITIES.map(s=>`<option value="${s}">`).join('')}</datalist>
+    <datalist id="dl-flaws">${FLAWS.filter(Boolean).map(s=>`<option value="${s}">`).join('')}</datalist>`;
+
+  wire(o); renderChips(o); renderTriggers(o); updatePreview(o);
+}
+
+function wire(o){
+  const $=id=>document.getElementById(id);
+  const touch=()=>{ save(); renderList(); updatePreview(o); refreshJson(o); };
+  const reflow=()=>{ save(); renderEditor(); };  // re-render when array sizes change
+  const b=(id,fn,ev='input')=>{const e=$(id);if(e)e.addEventListener(ev,fn);};
+
+  b('f-name',e=>{o.name=e.target.value;touch();});
+  b('f-id',e=>{o.id=e.target.value;touch();});
+  b('f-type',e=>{o.type=e.target.value; if(o.type==='heart'&&!o.pool)o.pool=5; reflow();},'change');
+  b('f-set',e=>{o.set=e.target.value;touch();});
+  b('f-tier',e=>{o.tier=e.target.value;touch();},'change');
+  b('f-price',e=>{o.price=Number(e.target.value);touch();});
+  b('f-hp',e=>{o.hp=Number(e.target.value);touch();});
+  b('f-layer',e=>{o.layer=e.target.value;touch();},'change');
+  b('f-maxblood',e=>{o.maxBlood=Math.max(0,Number(e.target.value)); reflow();});
+  b('f-pool',e=>{o.pool=Number(e.target.value);touch();});
+  b('f-skind',e=>{o.skill.kind=e.target.value;reflow();},'change');
+  b('f-slabel',e=>{o.skill.label=e.target.value;touch();});
+  b('f-pierce',e=>{o.skill.pierce=e.target.checked;touch();},'change');
+  b('f-lifesteal',e=>{o.skill.lifesteal=e.target.checked;touch();},'change');
+  b('f-passive',e=>{o.passive.id=e.target.value.trim();reflow();});
+  b('f-charge',e=>{o.skill.charge=Number(e.target.value);touch();});
+  b('f-chargearr',e=>{ o.skill.charge = e.target.checked ? sized(Array.isArray(o.skill.charge)?o.skill.charge:[o.skill.charge],o.maxBlood) : (Array.isArray(o.skill.charge)?o.skill.charge[0]||4000:o.skill.charge); reflow(); },'change');
+  b('f-flaw',e=>{o.flaw=e.target.value.trim();touch();});
+  b('f-color',e=>{o.visual.color=e.target.value;touch();});
+  b('f-dot',e=>{o.visual.dot=e.target.value;touch();},'change');
+  b('f-overlay',e=>{o.visual.overlay=e.target.value;touch();},'change');
+  b('f-icon',e=>{o.icon=e.target.value;touch();});
+  b('f-sa',e=>{o.sounds.active=e.target.value;touch();});
+  b('f-sp',e=>{o.sounds.passive=e.target.value;touch();});
+
+  document.querySelectorAll('[data-sk]').forEach(i=>i.addEventListener('input',e=>{o.skill.values[+e.target.dataset.sk]=Number(e.target.value);touch();}));
+  document.querySelectorAll('[data-pa]').forEach(i=>i.addEventListener('input',e=>{o.passive.values[+e.target.dataset.pa]=Number(e.target.value);touch();}));
+  document.querySelectorAll('[data-ch]').forEach(i=>i.addEventListener('input',e=>{ if(!Array.isArray(o.skill.charge))o.skill.charge=[]; o.skill.charge[+e.target.dataset.ch]=Number(e.target.value);touch();}));
+  document.querySelectorAll('[data-frag]').forEach(cb=>cb.addEventListener('change',e=>{const f=e.target.dataset.frag,a=o.harvest.fragileTo; if(e.target.checked){if(!a.includes(f))a.push(f);}else o.harvest.fragileTo=a.filter(x=>x!==f); touch();}));
+
+  $('ab-add').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();if(v&&!o.abilities.includes(v)){o.abilities.push(v);renderChips(o);touch();}e.target.value='';}});
+  $('trg-add').addEventListener('click',()=>{o.triggers.push({on:'onKill',do:''});renderTriggers(o);touch();});
+  $('btn-dup').addEventListener('click',()=>duplicate(o));
+  $('btn-del').addEventListener('click',()=>del(o));
+  $('btn-json').addEventListener('click',()=>{const s=$('json-sec');s.style.display=s.style.display==='none'?'':'none';refreshJson(o);});
+}
+
+function renderChips(o){
+  const box=document.getElementById('ab-chips'); if(!box)return;
+  box.innerHTML=o.abilities.length?o.abilities.map((a,i)=>`<span class="chip">${a}<button data-i="${i}">✕</button></span>`).join(''):'<span style="color:var(--dim2);font-size:11px">aucune</span>';
+  box.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{o.abilities.splice(+bt.dataset.i,1);renderChips(o);save();});
+}
+function renderTriggers(o){
+  const box=document.getElementById('trg-list'); if(!box)return; box.innerHTML='';
+  o.triggers.forEach((t,i)=>{const row=document.createElement('div');row.className='trg';
+    row.innerHTML=`<select data-i="${i}" data-k="on">${TRIGGER_ON.map(v=>`<option${v===t.on?' selected':''}>${v}</option>`).join('')}</select><span style="color:var(--dim)">→</span>
+      <input data-i="${i}" data-k="do" value="${esc(t.do)}" placeholder="effet (life_steal…)" style="flex:1"><button data-i="${i}" class="danger">✕</button>`;
+    box.appendChild(row);});
+  box.querySelectorAll('select,input').forEach(e=>e.addEventListener('input',ev=>{o.triggers[+ev.target.dataset.i][ev.target.dataset.k]=ev.target.value;save();}));
+  box.querySelectorAll('button.danger').forEach(bt=>bt.onclick=()=>{o.triggers.splice(+bt.dataset.i,1);renderTriggers(o);save();});
+}
+function updatePreview(o){
+  const bar=document.getElementById('pv-bar'); if(!bar)return;
+  bar.style.borderColor=o.visual.color||'#2a1414'; bar.style.background=`linear-gradient(transparent 40%, ${o.visual.color||'#8a2f2a'})`;
+  const sk=o.skill.kind?`skill <b>${o.skill.label||o.skill.kind}</b> [${sized(o.skill.values,o.maxBlood).join('/')}]`:'pas de skill';
+  const pa=o.passive.id?` · passif <b>${o.passive.id}</b> [${sized(o.passive.values,o.maxBlood).join('/')}]`:'';
+  const pool=o.type==='heart'?` · pool <b>${o.pool}</b>`:'';
+  document.getElementById('pv-meta').innerHTML=
+    `<b>${o.name||'—'}</b> — ${TYPE_FR[o.type]} · ${o.set||'sans set'} · <span class="tier-${o.tier}">${o.tier}</span><br>
+     ${o.hp} PV · couche ${o.layer} · maxBlood ${o.maxBlood}${pool}<br>${sk}${pa}${o.flaw?' · ⚠ '+o.flaw:''}`;
+}
+function refreshJson(o){const t=document.getElementById('jsonbox'); if(t&&document.getElementById('json-sec').style.display!=='none')t.value=JSON.stringify(serialize(o),null,2);}
+
+function newOrgan(){
+  const t=filters.type||'arm';
+  const o=normalize({type:t,name:'Nouvel organe',id:`${t}_new`,layer:(t==='heart'||t==='brain')?'deep':((t==='eye'||t==='ear'||t==='stomach'||t==='tongue')?'mid':'outer')});
+  o._uid=uidSeq++; organs.push(o); selUid=o._uid; save(); render();
+  const n=document.getElementById('f-name'); if(n){n.focus();n.select();}
+}
+function duplicate(o){const c=normalize(stripUid(o));c._uid=uidSeq++;c.id=o.id+'_copy';c.name=o.name+' (copie)';const i=organs.indexOf(o);organs.splice(i+1,0,c);selUid=c._uid;save();render();}
+function del(o){if(!confirm(`Supprimer « ${o.name||o.id} » ?`))return;organs=organs.filter(x=>x!==o);if(selUid===o._uid)selUid=null;save();render();}
+function doExport(){const data=organs.map(serialize);const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='organs.json';a.click();URL.revokeObjectURL(a.href);}
+async function loadFromServer(){try{const r=await fetch('../content/organs.json',{cache:'no-store'});if(!r.ok)throw 0;const arr=await r.json();if(organs.length&&!confirm('Remplacer par content/organs.json ?'))return;ingest(arr);selUid=null;save();render();}catch(e){alert('Impossible de charger ../content/organs.json (lance via le serveur local).');}}
+function importFile(file){const fr=new FileReader();fr.onload=()=>{try{ingest(JSON.parse(fr.result));selUid=null;save();render();}catch(e){alert('JSON invalide.');}};fr.readAsText(file);}
+function clearAll(){if(!confirm('Vider TOUS les organes ?'))return;organs=[];selUid=null;save();render();}
+
+function renderFilters(){
+  const ft=document.getElementById('ftype'),fs=document.getElementById('fset'),fr=document.getElementById('ftier');
+  ft.innerHTML=`<option value="">tous</option>`+TYPES.map(t=>`<option value="${t}"${filters.type===t?' selected':''}>${TYPE_FR[t]}</option>`).join('');
+  fs.innerHTML=`<option value="">tous</option>`+uniqueSets().map(s=>`<option value="${s}"${filters.set===s?' selected':''}>${s}</option>`).join('');
+  fr.innerHTML=`<option value="">tous</option>`+TIERS.map(t=>`<option value="${t}"${filters.tier===t?' selected':''}>${t}</option>`).join('');
+}
+function render(){renderFilters();renderList();renderEditor();}
+
+document.getElementById('btn-new').onclick=newOrgan;
+document.getElementById('btn-export').onclick=doExport;
+document.getElementById('btn-load').onclick=loadFromServer;
+document.getElementById('btn-clear').onclick=clearAll;
+document.getElementById('btn-import').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value='';};
+document.getElementById('search').oninput=e=>{filters.search=e.target.value;renderList();};
+document.getElementById('groupby').onchange=e=>{filters.groupby=e.target.value;renderList();};
+document.getElementById('ftype').onchange=e=>{filters.type=e.target.value;renderList();};
+document.getElementById('fset').onchange=e=>{filters.set=e.target.value;renderList();};
+document.getElementById('ftier').onchange=e=>{filters.tier=e.target.value;renderList();};
+
+load(); render();
+</script>
+</body>
+</html>
