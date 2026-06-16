@@ -12,7 +12,6 @@ import { organResolver } from './registry.js';
 export const WS = {
   // Meta
   seed:      0,
-  humeur:    'balanced',  // run humeur / difficulty modifier
   tick:      0,
   phase:     'idle',      // 'idle' | 'player_turn' | 'mob_turn' | 'maintenance'
   runId:     null,        // uuid-ish string for save slot disambiguation
@@ -23,13 +22,12 @@ export const WS = {
     pos:            { x: 0, y: 0 },
     floorIdx:       0,
     gold:           0,
-    satiete:        50,
     torches:        3,
     inventory:      [],
     relics:         [],
     statusIds:      [],
+    bloodAlloc:     {},     // slotKey → blood allocated (persistent, editable in & out of combat)
     lastAction:      null,
-    lastActionType:  null,
     biomePath:       null,
     runStats:        { kills: 0, harvests: 0, floorReached: 0 },
     usedHeartAbility: false,
@@ -91,14 +89,11 @@ export function _rngState() { return _rng ? _rng.getState() : 0; }
 
 // --- Init ---
 
-const HUMEURS = ['fievre', 'frissons', 'bile_montante', 'rigor_mortis', 'insomnie'];
-
-export function initRun(seed, humeur = null) {
+export function initRun(seed) {
   WS.seed   = seed >>> 0;
   WS.tick   = 0;
   WS.phase  = 'idle';
   _rng = mulberry32(WS.seed);
-  WS.humeur = humeur ?? HUMEURS[Math.floor(_rng() * HUMEURS.length)];
   WS.runId  = `${WS.seed}_${Date.now()}`;
 
   WS.player = {
@@ -107,13 +102,12 @@ export function initRun(seed, humeur = null) {
     dir:            'S',
     floorIdx:       0,
     gold:           0,
-    satiete:        50,
     torches:        3,
     inventory:      [],
     relics:         [],
     statusIds:      [],
+    bloodAlloc:     {},
     lastAction:       null,
-    lastActionType:   null,
     biomePath:        null,
     runStats:         { kills: 0, harvests: 0, floorReached: 0 },
     usedHeartAbility: false,
@@ -175,7 +169,6 @@ export function scheduleAt(atTick, fn) {
 export function toJSON() {
   return {
     seed:     WS.seed,
-    humeur:   WS.humeur,
     tick:     WS.tick,
     runId:    WS.runId,
     rngState: _rngState(),
@@ -185,12 +178,11 @@ export function toJSON() {
       dir:            WS.player.dir ?? 'S',
       floorIdx:       WS.player.floorIdx,
       gold:           WS.player.gold,
-      satiete:        WS.player.satiete,
       torches:        WS.player.torches,
       inventory:      deepCopy(WS.player.inventory),
       relics:         [...(WS.player.relics ?? [])],
       statusIds:      [...WS.player.statusIds],
-      lastActionType:   WS.player.lastActionType,
+      bloodAlloc:     { ...(WS.player.bloodAlloc ?? {}) },
       biomePath:        WS.player.biomePath,
       runStats:         { ...WS.player.runStats },
       usedHeartAbility: WS.player.usedHeartAbility ?? false,
@@ -206,7 +198,6 @@ export function toJSON() {
 
 export function fromJSON(data) {
   WS.seed     = data.seed;
-  WS.humeur   = data.humeur;
   WS.tick     = data.tick;
   WS.runId    = data.runId;
   WS.phase    = 'idle';
@@ -222,13 +213,12 @@ export function fromJSON(data) {
     dir:            data.player.dir ?? 'S',
     floorIdx:       data.player.floorIdx,
     gold:           data.player.gold,
-    satiete:        data.player.satiete ?? 50,
     torches:        data.player.torches ?? 3,
     inventory:      deepCopy(data.player.inventory),
     relics:         [...(data.player.relics ?? [])],
     statusIds:      [...data.player.statusIds],
+    bloodAlloc:     { ...(data.player.bloodAlloc ?? {}) },
     lastAction:       null,
-    lastActionType:   data.player.lastActionType ?? null,
     biomePath:        data.player.biomePath ?? null,
     runStats:         data.player.runStats ?? { kills: 0, harvests: 0, floorReached: 0 },
     usedHeartAbility: data.player.usedHeartAbility ?? false,

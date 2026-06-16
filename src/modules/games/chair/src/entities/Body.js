@@ -1,4 +1,4 @@
-import { clamp, deepCopy } from '../utils.js';
+import { deepCopy } from '../utils.js';
 
 export const ORGAN_TYPES = ['eye','ear','arm','legs','heart','skin','brain','stomach','tongue'];
 
@@ -15,13 +15,6 @@ export const ORGAN_SLOTS = {
   brain:    { type: 'brain',   layer: 'deep'  },
   stomach:  { type: 'stomach', layer: 'mid'   },
   tongue:   { type: 'tongue',  layer: 'mid'   },
-};
-
-// Human reference stats (unmodified baseline body)
-export const BASE_STATS = {
-  dgt: 2, prc: 5, per: 4, oui: 3,
-  brt: 3, vit: 5, arm: 2, fam: 3,
-  lum: 2, ryt: 1,
 };
 
 export class Body {
@@ -44,39 +37,6 @@ export class Body {
 
   static empty(id) {
     return new Body(id);
-  }
-
-  // --- Stat resolution (requires registry lookup externally) ---
-
-  // Returns aggregate stats given a resolver function: organId → Organ instance
-  statsWith(resolver) {
-    const out = { ...BASE_STATS };
-    for (const key of Object.keys(this.slots)) {
-      const slot = this.slots[key];
-      if (!slot) continue;
-      const organ = resolver(slot.organId);
-      if (!organ) continue;
-      for (const [stat, val] of Object.entries(organ.stats)) {
-        out[stat] = (out[stat] ?? 0) + val;
-      }
-    }
-    // clamp minimums
-    for (const k of Object.keys(out)) out[k] = Math.max(0, out[k]);
-    return out;
-  }
-
-  // --- Humanity ---
-
-  humanityWith(resolver) {
-    let h = 100;
-    for (const key of Object.keys(this.slots)) {
-      const slot = this.slots[key];
-      if (!slot) continue;
-      const organ = resolver(slot.organId);
-      if (!organ) continue;
-      h += organ.humanity;
-    }
-    return clamp(h, 0, 100);
   }
 
   // --- HP ---

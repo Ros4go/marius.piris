@@ -3,7 +3,6 @@
 // Classes are mutually exclusive (proto semantics): player > enemy > hostile > visited > revealed
 
 import { WS, currentFloor } from '../WorldState.js';
-import { organResolver } from '../registry.js';
 
 const _grid    = document.getElementById('minimap-grid');
 const _compass = document.getElementById('compass-dir');
@@ -35,12 +34,6 @@ export function render() {
       cell.className = 'mc';
 
       if (x === px && y === py) {
-        // Player cell: BRT glow (noise radius) — higher brt = bigger orange halo
-        const brt = Math.max(0, WS.player.body?.statsWith(organResolver)?.brt ?? 0);
-        if (brt > 0) {
-          const px_ = Math.min(40, brt * 5);
-          cell.style.boxShadow = `0 0 ${px_}px ${Math.ceil(px_ * 0.4)}px rgba(196,127,51,${Math.min(0.45, 0.1 + brt * 0.025)})`;
-        }
         // .p wins visually (avoids .r.v specificity conflict)
         cell.classList.add('p', WS.player.dir ?? 'S');
       } else {

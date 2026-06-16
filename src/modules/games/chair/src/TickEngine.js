@@ -1,14 +1,12 @@
-import { WS, currentFloor, currentRoom } from './WorldState.js';
+import { WS, currentFloor } from './WorldState.js';
 import { emit, flush, PRIORITY } from './TriggerBus.js';
 import { generateFloor } from './systems/DungeonGen.js';
-import { roomDef as getRoomDef, biome as getBiome, organResolver } from './registry.js';
-import * as CombatSystem        from './systems/CombatSystem.js';
+import { roomDef as getRoomDef, biome as getBiome } from './registry.js';
 import * as HarvestSystem       from './systems/HarvestSystem.js';
 import * as GraftSystem         from './systems/GraftSystem.js';
 import * as MobGen              from './systems/MobGen.js';
-import * as HungerSystem        from './systems/HungerSystem.js';
 import * as AbilitySystem       from './systems/AbilitySystem.js';
-import * as HallucinationSystem from './systems/HallucinationSystem.js';
+import * as CurseSystem         from './systems/CurseSystem.js';
 import * as RoomEffectSystem    from './systems/RoomEffectSystem.js';
 import * as RelicSystem         from './systems/RelicSystem.js';
 import * as LoreSystem          from './systems/LoreSystem.js';
@@ -81,12 +79,12 @@ function _advance(n) {
   WS.phase = 'mob_turn';
   for (let i = 0; i < n; i++) {
     WS.tick++;
-    _mobPhase();
     flush(PRIORITY.MOB);
 
     WS.phase = 'maintenance';
-    HungerSystem.tick();       // also calls RelicSystem.tick() + CurseSystem.tick()
-    HallucinationSystem.tick();
+    if (WS.tick % 10 === 0) _tickInfected();
+    RelicSystem.tick();
+    CurseSystem.tick();
     RoomEffectSystem.tick();
     _flushEvents(WS.tick);
     flush(PRIORITY.TICK);
@@ -97,10 +95,7 @@ function _advance(n) {
 // --- Phase A ---
 
 function _resolveAction(action) {
-  WS.player.lastActionType = action.type;   // stored for boss patterns + telegraph
   switch (action.type) {
-    case 'ATTACK':
-      return CombatSystem.playerAttack(action.mobId, action.slotKey ?? null);
     case 'MOVE':
       return _movePlayer(action.direction);
     case 'HARVEST':
@@ -115,8 +110,6 @@ function _resolveAction(action) {
         return { ok: true };
       }
       return { ok: false, reason: 'bad_direction' };
-    case 'EAT':
-      return _eatOrgan(action.inventoryIndex, action.targetSlotKey ?? null);
     case 'WAIT':
       return { ok: true };
     default:
@@ -173,125 +166,29 @@ function _movePlayer(dir) {
     } else {
       MobGen.spawnForRoom(target, floor, WS.player.floorIdx);
     }
-    // Show intent immediately on entry so player can plan
-    for (const mobId of target.mobIds) {
-      const mob = WS.mobs.get(mobId);
-      if (mob?.lifecycle === 'active') _setMobIntent(mob);
-    }
+    // Intent telegraphs are computed by BattleEngine once combat starts.
   }
 
   return { ok: true };
 }
 
-// --- Phase B ---
+// --- Infection (organs infected by La Flore boss lose 1 HP every 10 ticks) ---
 
-function _mobPhase() {
-  const room = currentRoom();
-  if (!room) return;
-
-  for (const mobId of [...room.mobIds]) {
-    const mob = WS.mobs.get(mobId);
-    if (!mob || mob.lifecycle !== 'active') continue;
-    CombatSystem.mobAttack(mobId);
-    // Set telegraph intent after attacking, if mob is still alive
-    if (WS.mobs.get(mobId)?.lifecycle === 'active') {
-      _setMobIntent(mob);
-    }
-  }
-}
-
-// Set the mob's intent (displayed as telegraph for the player's next turn)
-function _setMobIntent(mob) {
-  if (!mob || mob.lifecycle !== 'active') return;
-  if (mob.isBoss && mob.pattern === 'read_ahead') {
-    const last = WS.player.lastActionType;
-    if (last === 'WAIT')        mob.intent = 'Charge · tu te reposes';
-    else if (last === 'ATTACK') mob.intent = 'Contre-frappe prévue';
-    else if (last === 'MOVE')   mob.intent = 'Repositionnement';
-    else                        mob.intent = 'Guette';
-  } else if (!mob.isBoss) {
-    switch (mob.behavior) {
-      case 'charger':  mob.intent = 'Charge · dmg×1.5 · imparable'; break;
-      case 'fleer':    mob.intent = 'Fuit · frappe légère'; break;
-      case 'ranged':   mob.intent = 'Vise profond · couches internes'; break;
-      case 'ambusher': mob.intent = mob.ambushUsed ? 'Frappe · 1 tick' : 'Embuscade · premier coup×2'; break;
-      case 'swarm':    mob.intent = 'Nuée · 2 frappes légères'; break;
-      default:         mob.intent = 'Frappe · 1 tick'; break;
-    }
-  } else {
-    mob.intent = 'Frappe · 1 tick';
-  }
-
-  // Broadcast telegraph so La Ligne can display it
-  emit({ type: 'MOB_TELEGRAPH', source: mob.id, target: 'player',
-         data: { intent: mob.intent, mobId: mob.id }, priority: PRIORITY.MOB });
-}
-
-// --- Eat organ ---
-
-const _SAT_GAIN = { parfait: 30, intact: 25, 'abîmé': 18, cuit: 10, pourri: 4 };
-
-// Eat in combat: bypasses tick guard. Both satiété and HP transfer fire together.
-export function eatInCombat(idx, targetSlotKey) {
-  const result = _eatOrgan(idx, targetSlotKey);
-  if (result.ok) flush(PRIORITY.ACTION);
-  return result;
-}
-
-function _eatOrgan(idx, targetSlotKey) {
-  const item = WS.player.inventory[idx];
-  if (!item) return { ok: false, reason: 'no_item' };
-
-  const def = organResolver(item.organId);
-  if (!def) return { ok: false, reason: 'unknown_organ' };
-
-  const quality    = def.getQuality(item.hp);
-  const satGain    = _SAT_GAIN[quality.name] ?? 15;
-  const hpTransfer = item.hp ?? def.maxHp;
-
-  WS.player.inventory.splice(idx, 1);
-  WS.player.satiete = Math.min(100, (WS.player.satiete ?? 0) + satGain);
-
+function _tickInfected() {
   const body = WS.player.body;
-  let hpTarget = null;
-
-  if (targetSlotKey) {
-    // HP transfer to player-chosen organ slot
-    const tSlot = body.slots[targetSlotKey];
-    const tDef  = tSlot ? organResolver(tSlot.organId) : null;
-    if (tSlot && tDef && (tSlot.hp === null || tSlot.hp > 0)) {
-      tSlot.hp = Math.min(tDef.maxHp, (tSlot.hp ?? tDef.maxHp) + hpTransfer);
-      hpTarget = targetSlotKey;
-    }
-  } else {
-    // Fallback: repair worst living organ +1 HP
-    let worstSlot = null, worstRatio = 1.0;
-    for (const [slotKey, slot] of Object.entries(body.slots)) {
-      if (!slot || (slot.hp ?? 1) <= 0) continue;
-      const sdef = organResolver(slot.organId);
-      if (!sdef) continue;
-      const ratio = (slot.hp ?? sdef.maxHp) / sdef.maxHp;
-      if (ratio < worstRatio) { worstRatio = ratio; worstSlot = slotKey; }
-    }
-    if (worstSlot && worstRatio < 1.0) {
-      const slot = body.slots[worstSlot];
-      const sdef = organResolver(slot.organId);
-      slot.hp = Math.min(sdef.maxHp, (slot.hp ?? sdef.maxHp) + 1);
-      hpTarget = worstSlot;
-    }
+  if (!body) return;
+  for (const [slotKey, slot] of Object.entries(body.slots)) {
+    if (!slot?.infected || (slot.hp ?? 1) <= 0) continue;
+    slot.hp = Math.max(0, (slot.hp ?? 1) - 1);
+    emit({ type: 'ORGAN_DAMAGED', source: 'infection', target: 'player',
+           data: { slotKey, dmg: 1 }, priority: PRIORITY.TICK });
   }
-
-  emit({ type: 'ORGAN_EATEN', source: 'player', target: 'player',
-         data: { organId: item.organId, satGain, quality: quality.name,
-                 hpTransfer, hpTarget }, priority: PRIORITY.ACTION });
-  return { ok: true };
 }
 
 // --- Torch timer ---
 
 function _scheduleTorchBurn() {
-  // Frissons: torches burn every 25 ticks instead of 40
-  const interval = WS.humeur === 'frissons' ? 25 : 40;
+  const interval = 40;
   const nextTick = WS.tick + interval;
   WS.tickEvents = WS.tickEvents.filter(e => e._isTorch !== true);
 

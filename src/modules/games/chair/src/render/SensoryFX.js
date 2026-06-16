@@ -15,7 +15,6 @@ let _game          = null;
 let _viewport      = null;
 let _visionOverlay = null;
 let _beatOverlay   = null;
-let _hungerOverlay = null;
 let _htlbOverlay   = null;
 let _lichOverlay   = null;
 let _ekgLine       = null;
@@ -31,7 +30,6 @@ export function init() {
 
   _visionOverlay = _inject(_viewport, 'vision-overlay');
   _beatOverlay   = _inject(_viewport, 'beatpulse-overlay');
-  _hungerOverlay = _inject(_viewport, 'hunger-overlay');
   _ekgLine       = _inject(_viewport, 'ekg-line');
   _htlbOverlay   = _inject(_game,     'heart-last-beat-overlay');
   _lichOverlay   = _inject(_game,     'lich-revive-overlay');
@@ -45,8 +43,9 @@ export function init() {
 
 export function onBeat() {
   if (!_game) return;
-  const ryt = _stats()?.ryt ?? 0;
-  _doBeatPulse(ryt);
+  const heart = WS.player.body?.slots?.heart;
+  const pool  = heart ? (organResolver(heart.organId)?.pool ?? 0) : 0;
+  _doBeatPulse(pool);
   _doEkgPulse();
 }
 
@@ -57,17 +56,13 @@ export function applyBodyState() {
   const body = WS.player.body;
   if (!body) return;
   _applyVisionFilter(body);
-  _applyHunger();
   _applyEkgActive(body);
-  _applyBRT(body);
-  _applyLUM(body);
 }
 
-// ── Beat pulse ────────────────────────────────────────────────────────────────
+// ── Beat pulse (intensity scales with the heart's blood pool) ─────────────────
 
-function _doBeatPulse(ryt) {
-  // intensity: 0.12 at ryt=0, 1.0 at ryt≥15
-  const intensity = Math.min(1, 0.12 + ryt * 0.059);
+function _doBeatPulse(pool) {
+  const intensity = Math.min(1, 0.25 + pool * 0.08);
   _game.style.setProperty('--beat-intensity', intensity.toFixed(2));
 
   _beatOverlay.classList.remove('bp-fire');
@@ -114,34 +109,6 @@ function _applyVisionFilter(body) {
   }
 }
 
-// ── Hunger vignette ───────────────────────────────────────────────────────────
-
-function _applyHunger() {
-  if (!_hungerOverlay) return;
-  const sat = WS.player.satiete ?? 100;
-  _hungerOverlay.classList.remove('hun-low', 'hun-crit');
-  if (sat < 15)      _hungerOverlay.classList.add('hun-crit');
-  else if (sat < 35) _hungerOverlay.classList.add('hun-low');
-}
-
-// ── BRT — noise radius (CSS var drives minimap glow, set in MinimapRenderer) ─
-
-function _applyBRT(body) {
-  const brt = Math.max(0, _stats()?.brt ?? 0);
-  _game.style.setProperty('--brt', brt);
-}
-
-// ── LUM — light emission ──────────────────────────────────────────────────────
-
-function _applyLUM(body) {
-  const lum = Math.max(0, _stats()?.lum ?? 0);
-  _game.style.setProperty('--lum', lum);
-  // Apply glow class tiers to .game for CSS
-  _game.classList.remove('lum-low', 'lum-mid', 'lum-high');
-  if      (lum >= 6) _game.classList.add('lum-high');
-  else if (lum >= 3) _game.classList.add('lum-mid');
-  else if (lum >= 1) _game.classList.add('lum-low');
-}
 
 // ── Hit flash ─────────────────────────────────────────────────────────────────
 
@@ -198,8 +165,4 @@ function _inject(parent, cls) {
   el.className = cls;
   parent.appendChild(el);
   return el;
-}
-
-function _stats() {
-  return WS.player.body?.statsWith(organResolver);
 }

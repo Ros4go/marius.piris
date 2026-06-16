@@ -17,18 +17,21 @@ export class Organ {
   get id()        { return this._def.id; }
   get type()      { return this._def.type; }
   get name()      { return this._def.name; }
-  get arcana()    { return this._def.arcana; }
+  get set()       { return this._def.set ?? null; }
   get tier()      { return this._def.tier; }
   get maxHp()     { return this._def.hp; }
   get layer()     { return this._def.layer; }
-  get stats()     { return this._def.stats; }
-  get abilities() { return this._def.abilities; }
-  get triggers()  { return this._def.triggers; }
-  get curses()    { return this._def.curses; }
-  get humanity()  { return this._def.humanity; }
-  get sounds()    { return this._def.sounds; }
-  get harvest()   { return this._def.harvest; }
-  get visual()    { return this._def.visual; }
+  get pool()      { return this._def.pool ?? 0; }          // heart: blood produced
+  get maxBlood()  { return this._def.maxBlood ?? 0; }      // blood capacity
+  get skill()     { return this._def.skill ?? null; }      // { id, values[], charge }
+  get passive()   { return this._def.passive ?? null; }    // { id, values[] }
+  get abilities() { return this._def.abilities ?? []; }
+  get triggers()  { return this._def.triggers ?? []; }
+  get flaw()      { return this._def.flaw ?? null; }
+  get sounds()    { return this._def.sounds ?? {}; }
+  get harvest()   { return this._def.harvest ?? {}; }
+  get visual()    { return this._def.visual ?? {}; }
+  get icon()      { return this._def.icon ?? null; }
   get basePrice() { return this._def.price; }
 
   getQuality(currentHp) {

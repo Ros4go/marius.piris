@@ -63,14 +63,14 @@ export function render() {
     }
     const def     = organResolver(item.organId);
     const quality = def ? def.getQuality(item.hp ?? def.maxHp) : { name: 'pourri' };
-    const arcana  = def?.arcana ?? 0;
 
     let cls = 'cell full';
     if (quality.name === 'pourri' || quality.name === 'destroyed') cls += ' rot';
     else if (quality.name === 'parfait' || quality.name === 'intact') cls += ' glow';
 
     const shapeClass = def ? _orgShapeClass(def.type) : 'orgshape';
-    const romanStr   = arcana ? ROMAN[Math.min(arcana, 12)] ?? '?' : '';
+    // Badge = tier initial for rare+ organs (common = none)
+    const romanStr   = (def && def.tier && def.tier !== 'common') ? def.tier[0].toUpperCase() : '';
 
     cell.className = cls;
     cell.innerHTML = `<div class="${shapeClass}"></div>${romanStr ? `<span class="q">${romanStr}</span>` : ''}`;

@@ -2,11 +2,16 @@ import { WS } from '../../WorldState.js';
 import { organResolver, allOrgans } from '../../registry.js';
 import { addLog } from '../HUDRenderer.js';
 
+const PILLARD_STATES = ['human', 'trade', 'hostile', 'dying'];
+
 export function render(container, room, options = {}) {
   const { onRender } = options;
 
-  const hum   = WS.player.body?.humanityWith(organResolver) ?? 100;
-  const state = hum >= 60 ? 'human' : hum >= 30 ? 'trade' : hum >= 15 ? 'hostile' : 'dying';
+  // State is rolled once per room (no longer tied to humanity).
+  if (!room._pillardState) {
+    room._pillardState = PILLARD_STATES[Math.floor(Math.random() * PILLARD_STATES.length)];
+  }
+  const state = room._pillardState;
 
   const LABELS = {
     human:   'Blessé',
@@ -70,7 +75,7 @@ function _renderHuman(body, room, onRender) {
 
 function _renderTrade(body, room, onRender) {
   if (!room._pillardStock) {
-    const pool = allOrgans().filter(o => o.arcana <= 8 && o.tier !== 'epic');
+    const pool = allOrgans().filter(o => o.tier === 'common' || o.tier === 'rare');
     if (pool.length) {
       const pick = pool[Math.floor(Math.random() * pool.length)];
       room._pillardStock = { organId: pick.id, price: Math.round(pick.price * 1.1), sold: false };

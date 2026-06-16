@@ -3,7 +3,7 @@
 import { loadData, organResolver, biome as getBiomeData } from './registry.js';
 import { WS, initRun, currentRoom, toJSON, fromJSON } from './WorldState.js';
 import { on as onTrigger } from './TriggerBus.js';
-import { processTick, descend, advanceTicks, eatInCombat } from './TickEngine.js';
+import { processTick, descend, advanceTicks } from './TickEngine.js';
 import * as BattleEngine from './BattleEngine.js';
 import { init as initInput, on as onInput } from './input/InputHandler.js';
 import * as SceneRenderer     from './render/SceneRenderer.js';
@@ -17,7 +17,7 @@ import * as InspectorPanel    from './render/InspectorPanel.js';
 import * as SoundLine         from './render/SoundLine.js';
 import * as InventoryRenderer from './render/InventoryRenderer.js';
 import * as SensoryFX         from './render/SensoryFX.js';
-import { render as renderSeg } from './render/SegmentBar.js';
+import * as ReactorPanel       from './render/ReactorPanel.js';
 import { addLog } from './render/HUDRenderer.js';
 import { scheduleDecay } from './systems/OrganDecaySystem.js';
 import * as OrganTriggerSystem from './systems/OrganTriggerSystem.js';
@@ -73,7 +73,13 @@ async function boot() {
   _wireTriggers();
   _wireInputs();
   _wireSaveButtons();
-  _wireBodyDots();
+  ReactorPanel.init(document.getElementById('reactor'), {
+    onAlloc: (slotKey, amount) => { BattleEngine.allocateBlood(slotKey, amount); render(); },
+    onInspect: (slotKey) => {
+      const slot = WS.player.body?.slots?.[slotKey];
+      if (slot?.organId) InspectorPanel.showOrgan(slot.organId, slot.hp, slotKey);
+    },
+  });
 
   _showStartScreen();
 }
@@ -102,18 +108,10 @@ function _startGame() {
   _targetedSlot  = null;
   initRun(Date.now() >>> 0);
   descend('gorge', 0);
+  BattleEngine.ensureDefaultAlloc();   // seed a default blood split (editable anytime)
   LoreSystem.checkBiomeEntry('gorge');
   SoundLine.start();
   addLog('Vous descendez dans les entrailles du dieu mort.', 'sys');
-  const HUMEUR_DESC = {
-    fievre:        'Fièvre — les chairs pourrissent vite. La faim s\'accélère.',
-    frissons:      'Frissons — les torches brûlent en deux fois moins de ticks.',
-    bile_montante: 'Bile montante — votre faim descend plus vite.',
-    rigor_mortis:  'Rigor mortis — les mobs sont blindés (+2 ARM).',
-    insomnie:      'Insomnie — le dieu murmure dès que l\'humanité flanche.',
-  };
-  const humDesc = HUMEUR_DESC[WS.humeur];
-  if (humDesc) addLog(`✦ Humeur : ${humDesc}`, 'sys');
   render();
 }
 
@@ -163,16 +161,6 @@ function _wireSaveButtons() {
       }
     });
   }
-}
-
-function _wireBodyDots() {
-  document.querySelectorAll('.slotdot').forEach(dot => {
-    dot.addEventListener('click', () => {
-      const slotKey = dot.dataset.slot;
-      const slot = WS.player.body?.slots[slotKey];
-      if (slot?.organId) InspectorPanel.showOrgan(slot.organId, slot.hp, slotKey);
-    });
-  });
 }
 
 function _saveGame() {
@@ -272,42 +260,6 @@ function _wireTriggers() {
     SoundLine.excite('G', 0.6);
   });
 
-  onTrigger('MOB_TELEGRAPH', (e) => {
-    const intent = e.data?.intent;
-    if (!intent) return;
-    const brief = intent.split('·')[0].trim().toLowerCase();
-    SoundLine.addSound('FACE', brief, 0.55);
-  });
-
-  onTrigger('HALLUCINATION', (e) => {
-    const { intensity, tier } = e.data;
-    const ch = Math.random() < 0.5 ? 'G' : 'D';
-    SoundLine.excite(ch, 0.2 + intensity * 0.008);
-    if (intensity > 15) addLog('Quelque chose... vous entend.', 'sys');
-    if (intensity > 22) {
-      addLog('[HALLUCINATION]', 'death');
-      SoundLine.excite('FACE', 0.25);
-    }
-    if (tier >= 2) {
-      const FAKE = ['pas lourds', 'souffle', 'grattement', '...', 'murmure', 'craquement'];
-      const loudness = tier >= 3 ? 0.4 : 0.2;
-      SoundLine.addSound(ch, FAKE[Math.floor(Math.random() * FAKE.length)], loudness);
-    }
-  });
-
-  onTrigger('ORGAN_EATEN', (e) => {
-    const def    = organResolver(e.data?.organId);
-    const hpPart = e.data?.hpTarget
-      ? ` · +${e.data?.hpTransfer ?? 0} HP → [${e.data.hpTarget}]`
-      : '';
-    addLog(`Mangé : ${def?.name ?? e.data?.organId} [${e.data?.quality ?? '?'}] · +${e.data?.satGain} satiété${hpPart}.`, 'harvest');
-    SoundLine.excite('FACE', 0.12);
-  });
-
-  onTrigger('SKILL_HP_COST', (e) => {
-    addLog(`✦ [${e.data?.slotKey ?? '?'}] -${e.data?.cost ?? 1} HP (skill).`, 'damage');
-  });
-
   onTrigger('SKILL_CANCELLED', (e) => {
     addLog(`✗ ${e.data?.skillName ?? 'Skill'} — interrompu !`, 'sys');
     SoundLine.excite('FACE', 0.45);
@@ -344,21 +296,6 @@ function _wireTriggers() {
     SoundLine.excite('FACE', 0.35);
   });
 
-  const _ECHO_LINES = [
-    'Tu n\'es pas le premier à descendre.',
-    'Je te connais déjà.',
-    'La chair que tu portes était mienne.',
-    'Tu deviens ce que tu dévores.',
-    'Reste encore. Je t\'attends au fond.',
-    'Tes organes me reconnaissent.',
-    'Tu n\'es plus tout à fait toi.',
-  ];
-  onTrigger('ECHO_DU_DIEU', () => {
-    const line = _ECHO_LINES[Math.floor(Math.random() * _ECHO_LINES.length)];
-    addLog(`✦ ${line}`, 'god');
-    SoundLine.addSound('FACE', '...', 0.22);
-  });
-
   onTrigger('INFECTION_PURGED', (e) => {
     addLog(`✦ Infection purgée (×${e.data?.purged ?? 1}).`, 'sys');
   });
@@ -369,8 +306,7 @@ function _wireTriggers() {
   });
 
   onTrigger('BATTLE_STARTED', (e) => {
-    const bpm = Math.round(60000 / (e.data?.interval ?? 1200));
-    addLog(`⚔ Combat — ${bpm} BPM.`, 'sys');
+    addLog(`⚔ Combat — pool de sang : ${e.data?.bloodPool ?? '?'} 💉.`, 'sys');
     _targetedSlot = 'skin';
   });
 
@@ -408,6 +344,7 @@ function _updateBattle() {
   const hasActiveMobs = (room?.mobIds ?? []).some(id => WS.mobs.get(id)?.lifecycle === 'active');
   if (hasActiveMobs && !WS.battle.active) {
     BattleEngine.start(_onBattleBeat, _onBattleEnd);
+    render();  // switch the action bar to the skill/blood layout immediately
   }
 }
 
@@ -452,34 +389,11 @@ function _handleUiAction(act) {
     case 'SKILL':
       BattleEngine.activateSkill(act.slotKey);
       break;
-    case 'BLOOD_INC': {
-      const cur = WS.battle.bloodAlloc?.[act.slotKey] ?? 0;
-      BattleEngine.allocateBlood(act.slotKey, cur + 1);
-      render();
-      break;
-    }
-    case 'BLOOD_DEC': {
-      const cur = WS.battle.bloodAlloc?.[act.slotKey] ?? 0;
-      if (cur > 0) BattleEngine.allocateBlood(act.slotKey, cur - 1);
-      render();
-      break;
-    }
-    case 'ATTACK_AUTO': {
-      if (!_targetedMobId) {
-        const room = currentRoom();
-        _targetedMobId = room?.mobIds.find(id => WS.mobs.get(id)?.lifecycle === 'active') ?? null;
-      }
-      if (_targetedMobId) _tick({ type: 'ATTACK', mobId: _targetedMobId, slotKey: _targetedSlot ?? null });
-      break;
-    }
     case 'WAIT':
       _tick({ type: 'WAIT' });
       break;
     case 'INSPECT_SELF':
       InspectorPanel.showBody(WS.player.body);
-      break;
-    case 'MANGER_OPEN':
-      _openEatUI();
       break;
     case 'HARVEST_OPEN':
       _openHarvestUI();
@@ -563,10 +477,7 @@ function _showEnding() {
 
   const panel = RoomPanel.container();
   const path = WS.player.biomePath ?? 'poumons';
-  const hum  = WS.player.body?.humanityWith(organResolver) ?? 0;
-  const endTitle = hum >= 60  ? 'Fin — L\'Humain'
-                 : path === 'poumons' ? 'Fin — L\'Air'
-                 : 'Fin — La Chair';
+  const endTitle = path === 'poumons' ? 'Fin — L\'Air' : 'Fin — La Chair';
 
   panel.innerHTML = `
     <div class="room-title">${endTitle}</div>
@@ -577,9 +488,7 @@ function _showEnding() {
   const text = document.createElement('div');
   text.className = 'insp-dim';
   text.style.lineHeight = '1.8';
-  text.innerHTML = hum >= 60
-    ? '<p>Vous avez traversé le dieu mort en restant vous-même.</p><p>Trop humain pour être digéré.</p><p>Il vous a recraché dans le monde des vivants.</p>'
-    : path === 'poumons'
+  text.innerHTML = path === 'poumons'
     ? '<p>Vous avez traversé les poumons du dieu mort.</p><p>Vous en êtes sorti par en haut.</p><p>L\'air vous appartient désormais.</p>'
     : '<p>Vous avez traversé ses entrailles.</p><p>Vous êtes devenu sa chair.</p><p>Le fond n\'a plus de fond.</p>';
   body.appendChild(text);
@@ -646,29 +555,7 @@ function render() {
   MinimapRenderer.render();
   InventoryRenderer.render();
 
-  renderSeg(
-    document.getElementById('player-seg'),
-    WS.player.body,
-    {
-      twoLine: true,
-      onAim: (slotKey) => {
-        const slot = WS.player.body.slots[slotKey];
-        if (slot) InspectorPanel.showOrgan(slot.organId, slot.hp, slotKey);
-      },
-    }
-  );
-
-  // Sync body silhouette dots with current organ state
-  document.querySelectorAll('.slotdot').forEach(dot => {
-    const slotKey = dot.dataset.slot;
-    const slot = WS.player.body?.slots[slotKey];
-    dot.classList.remove('on', 'hurt', 'mut');
-    if (!slot?.organId) return;
-    const def = organResolver(slot.organId);
-    const hp  = slot.hp ?? (def?.maxHp ?? 1);
-    if (hp <= 0) return;
-    dot.classList.add(def && hp < def.maxHp ? 'hurt' : 'on');
-  });
+  ReactorPanel.render();
 
   RoomPanel.render({
     targetedMobId:    _targetedMobId,
@@ -863,97 +750,6 @@ function _openAmputateUI() {
   }
 
   _appendBackBtn(body);
-}
-
-// ── Eat UI (two-step: pick organ → pick target slot) ─────────────────────────
-const _EAT_SAT = { parfait: 30, intact: 25, 'abîmé': 18, cuit: 10, pourri: 4 };
-
-function _openEatUI() {
-  const panel = RoomPanel.container();
-  panel.innerHTML = `
-    <div class="room-title">⬡ Manger</div>
-    <div class="room-body" id="_eat-body"></div>`;
-  panel.classList.add('active');
-
-  const body = panel.querySelector('#_eat-body');
-  const inventory = WS.player.inventory;
-
-  if (!inventory.length) {
-    const p = document.createElement('p');
-    p.className = 'insp-dim';
-    p.textContent = 'Besace vide.';
-    body.appendChild(p);
-    _appendBackBtn(body);
-    return;
-  }
-
-  inventory.forEach((item, idx) => {
-    const def = organResolver(item.organId);
-    if (!def) return;
-    const quality = def.getQuality(item.hp);
-    const satGain = _EAT_SAT[quality.name] ?? 15;
-    const hpGain  = item.hp ?? def.maxHp;
-
-    const btn = document.createElement('button');
-    btn.className = 'dealbtn';
-    btn.innerHTML = `${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">[${quality.name}] · +${satGain} satiété · ${hpGain} HP</em>`;
-    btn.addEventListener('click', () => _openEatTransferUI(idx, def, satGain, hpGain));
-    body.appendChild(btn);
-  });
-
-  _appendBackBtn(body);
-}
-
-function _openEatTransferUI(idx, def, satGain, hpGain) {
-  const panel = RoomPanel.container();
-  panel.innerHTML = `
-    <div class="room-title">⬡ ${def.name} — HP vers...</div>
-    <div class="room-body" id="_eat-tr-body"></div>`;
-  panel.classList.add('active');
-
-  const body     = panel.querySelector('#_eat-tr-body');
-  const inCombat = WS.battle?.active;
-
-  const hint = document.createElement('p');
-  hint.className = 'insp-dim';
-  hint.textContent = `+${satGain} satiété · ${hpGain} HP à transférer`;
-  body.appendChild(hint);
-
-  const _doEat = (targetSlotKey) => {
-    if (WS.battle?.active) {
-      eatInCombat(idx, targetSlotKey);
-      render();
-    } else {
-      _tick({ type: 'EAT', inventoryIndex: idx, targetSlotKey: targetSlotKey ?? null });
-      _openEatUI();
-    }
-  };
-
-  for (const [slotKey, slot] of Object.entries(WS.player.body.slots)) {
-    if (!slot || (slot.hp !== null && slot.hp <= 0)) continue;
-    const sdef = organResolver(slot.organId);
-    if (!sdef) continue;
-    const hp = slot.hp ?? sdef.maxHp;
-    if (hp >= sdef.maxHp) continue;
-
-    const btn = document.createElement('button');
-    btn.className = 'dealbtn';
-    btn.innerHTML = `[${slotKey}] ${sdef.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">${hp}/${sdef.maxHp} HP</em>`;
-    btn.addEventListener('click', () => _doEat(slotKey));
-    body.appendChild(btn);
-  }
-
-  const autoBtn = document.createElement('button');
-  autoBtn.className = 'dealbtn';
-  autoBtn.innerHTML = `Auto <em style="font-variant:normal;font-size:.6em;color:var(--bone)">répare l'organe le plus blessé</em>`;
-  autoBtn.addEventListener('click', () => _doEat(null));
-  body.appendChild(autoBtn);
-
-  const backBtn = document.createElement('button');
-  backBtn.className = 'dealbtn';
-  backBtn.textContent = '← Retour';
-  backBtn.addEventListener('click', _openEatUI);
-  body.appendChild(backBtn);
 }
 
 function _appendBackBtn(container) {

@@ -5,177 +5,98 @@
 
 import { WS, currentRoom } from '../WorldState.js';
 import { organResolver } from '../registry.js';
-import { ORGAN_SLOTS } from '../entities/Body.js';
-import { ORGAN_CD } from '../BattleEngine.js';
 
-const _bar      = document.getElementById('action-bar');
-const _bloodBar = document.getElementById('blood-pool-bar');
+const _bar    = document.getElementById('action-bar');
 let _onAction = null;
 
 export function setCallback(fn) { _onAction = fn; }
+
+let _btns = [];    // current button elements (parallel to last actions)
+let _sig  = null;  // structural signature of the current layout
 
 export function render() {
   const room    = currentRoom();
   const actions = _derive(room);
 
-  _bar.innerHTML = '';
+  // Structural signature — changes only when the *set* of buttons changes.
+  const sig = actions.map((a) =>
+    `${a.action}:${a.slotKey ?? ''}:${a.label}:${a.heart ? 1 : 0}`).join('|');
 
-  if (WS.battle?.active) {
-    _updateBloodBar();
-    _bloodBar.style.display = '';
-  } else {
-    _bloodBar.style.display = 'none';
-    _bloodBar.innerHTML = '';
+  // Same structure as last render → update buttons in place.
+  // Combat re-renders ~10×/s; a full teardown would replace a button between
+  // mousedown and mouseup, swallowing the click (and flickering the bar).
+  if (sig === _sig && _btns.length === actions.length) {
+    actions.forEach((act, i) => _updateBtn(_btns[i], act, i));
+    return;
   }
 
+  // Structure changed → full rebuild.
+  _sig  = sig;
+  _btns = [];
+  _bar.innerHTML = '';
   actions.forEach((act, i) => {
-    const isBattleSkill = WS.battle?.active && act.action === 'SKILL';
-
-    const btn = document.createElement('button');
-    btn.className = 'act'
-      + (act.heart ? ' heartact' : '')
-      + (act.disabled && !isBattleSkill ? ' empty' : '')
-      + (isBattleSkill ? ' charging' : '')
-      + (isBattleSkill && act.ready ? ' ready' : '');
-
-    if (act.disabled && !isBattleSkill) btn.disabled = true;
-    btn.dataset.action = act.action;
-
-    if (isBattleSkill) {
-      btn.style.setProperty('--charge', `${act.chargePct ?? 0}%`);
-    }
-
-    const key = document.createElement('span');
-    key.className = 'key';
-    key.textContent = `${i + 1}`;
-
-    const label = document.createElement('b');
-    label.textContent = act.label;
-
-    const sub = document.createElement('em');
-    sub.textContent = act.sub ?? '';
-
-    btn.append(key, label, sub);
-
-    if (isBattleSkill) {
-      btn.appendChild(_renderBloodCtrl(act));
-    }
-
-    btn.addEventListener('click', () => {
-      if (isBattleSkill && !act.ready) return;  // can't fire if not charged
-      _onAction?.(act);
-    });
-    btn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (isBattleSkill && !act.ready) return;
-      _onAction?.(act);
-    }, { passive: false });
-
+    const btn = _buildBtn(act, i);
+    _btns.push(btn);
     _bar.appendChild(btn);
   });
 }
 
-function _updateBloodBar() {
-  const pool  = WS.battle.bloodPool ?? 0;
-  const alloc = Object.values(WS.battle.bloodAlloc ?? {}).reduce((s, n) => s + n, 0);
-  const free  = pool - alloc;
-
-  const pips = Array.from({ length: pool }, (_, i) =>
-    `<span class="blood-pip${i < alloc ? ' used' : ''}"></span>`
-  ).join('');
-
-  _bloodBar.className = 'blood-pool-bar';
-  _bloodBar.innerHTML = `<span class="blood-label">💉</span>${pips}<span class="blood-free${free <= 0 ? ' empty' : ''}">${free}</span>`;
+// Fire the button's *current* action (read live, never via stale closure).
+function _fire(btn) {
+  const act = btn._act;
+  if (!act) return;
+  if (WS.battle?.active && act.action === 'SKILL' && !act.ready) return;
+  _onAction?.(act);
 }
 
-function _renderBloodCtrl(act) {
-  const ctrl = document.createElement('div');
-  ctrl.className = 'blood-ctrl';
+function _buildBtn(act, i) {
+  const btn = document.createElement('button');
 
-  const minus = document.createElement('button');
-  minus.className = 'blood-btn';
-  minus.textContent = '−';
-  minus.disabled = (act.blood ?? 0) <= 0;
-  minus.addEventListener('click', (e) => {
-    e.stopPropagation();
-    _onAction?.({ action: 'BLOOD_DEC', slotKey: act.slotKey });
-  });
-  minus.addEventListener('touchstart', (e) => {
-    e.stopPropagation(); e.preventDefault();
-    _onAction?.({ action: 'BLOOD_DEC', slotKey: act.slotKey });
-  }, { passive: false });
+  const key = document.createElement('span');
+  key.className = 'key';
+  key.textContent = `${i + 1}`;
 
-  const count = document.createElement('span');
-  count.className = 'blood-count';
-  count.textContent = `${act.blood ?? 0}💉`;
+  const label = document.createElement('b');
+  label.textContent = act.label;
 
-  const plus = document.createElement('button');
-  plus.className = 'blood-btn';
-  plus.textContent = '+';
-  plus.disabled = (act.freeBlood ?? 0) <= 0 || (act.blood ?? 0) >= (act.maxBlood ?? 1);
-  plus.addEventListener('click', (e) => {
-    e.stopPropagation();
-    _onAction?.({ action: 'BLOOD_INC', slotKey: act.slotKey });
-  });
-  plus.addEventListener('touchstart', (e) => {
-    e.stopPropagation(); e.preventDefault();
-    _onAction?.({ action: 'BLOOD_INC', slotKey: act.slotKey });
-  }, { passive: false });
+  const sub = document.createElement('em');
 
-  ctrl.append(minus, count, plus);
-  return ctrl;
+  btn.append(key, label, sub);
+  btn._sub = sub;
+
+  btn.addEventListener('click', () => _fire(btn));
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); _fire(btn); }, { passive: false });
+
+  _updateBtn(btn, act, i);
+  return btn;
 }
 
-// --- Helpers ---
+function _updateBtn(btn, act) {
+  btn._act = act;
+  const isBattleSkill = WS.battle?.active && act.action === 'SKILL';
 
-function _slotAlive(slotKey) {
-  const slot = WS.player.body?.slots?.[slotKey];
-  return slot !== null && slot !== undefined && (slot.hp === null || slot.hp > 0);
-}
+  btn.className = 'act'
+    + (act.heart ? ' heartact' : '')
+    + (act.disabled && !isBattleSkill ? ' empty' : '')
+    + (isBattleSkill ? ' charging' : '')
+    + (isBattleSkill && act.ready ? ' ready' : '');
 
-function _organName(slotKey) {
-  const slot = WS.player.body?.slots?.[slotKey];
-  if (!slot) return null;
-  return organResolver(slot.organId)?.name ?? null;
+  btn.disabled = !!(act.disabled && !isBattleSkill);
+  btn.dataset.action = act.action;
+
+  if (isBattleSkill) btn.style.setProperty('--charge', `${act.chargePct ?? 0}%`);
+  if (btn._sub) btn._sub.textContent = act.sub ?? '';
 }
 
 // --- Battle skill derivation ---
-
-// Returns the active skill for a given slot during battle.
-// Arms and legs always get a skill. Secondary organs (eye, ear, brain, stomach,
-// tongue, skin) only unlock a skill when the organ is at least rare — common
-// variants are too basic to grant an active power.
-function _skillForSlot(slotKey, def) {
-  const type      = ORGAN_SLOTS[slotKey]?.type;
-  const abilities = def.abilities ?? [];
-
-  if (type !== 'arm' && type !== 'legs' && def.tier === 'common') return null;
-  switch (type) {
-    case 'arm':
-      return abilities.includes('pierce_layer') ? { label: 'ESTOC' } : { label: 'FRAPPER' };
-    case 'legs':    return { label: 'ESQUIVER' };
-    case 'tongue':
-      return def.triggers?.some(t => t.do === 'life_steal')
-        ? { label: 'VAMPIRISER' }
-        : { label: 'MORDRE' };
-    case 'brain':   return { label: 'ANALYSER' };
-    case 'eye':     return { label: 'VISER' };
-    case 'ear':     return { label: 'ÉCOUTER' };
-    case 'stomach': return { label: 'DIGÉRER' };
-    case 'skin':    return { label: 'DURCIR' };
-    case 'heart':   return null;  // passive — no clickable skill
-    default:        return null;
-  }
-}
+// The skill is fully defined per organ (organ.skill = { kind, label, … }).
 
 // Priority order of organ slots to show as skill buttons during battle.
 const BATTLE_SLOT_ORDER = ['arm_l','arm_r','legs','tongue','brain','eye_l','eye_r','ear_l','ear_r','stomach','skin'];
 
 function _deriveBattle() {
-  const body      = WS.player.body;
-  const acts      = [];
-  const allocSum  = Object.values(WS.battle?.bloodAlloc ?? {}).reduce((s, n) => s + n, 0);
-  const freeBlood = (WS.battle?.bloodPool ?? 0) - allocSum;
+  const body = WS.player.body;
+  const acts = [];
 
   for (const slotKey of BATTLE_SLOT_ORDER) {
     if (acts.length >= 6) break;
@@ -184,36 +105,15 @@ function _deriveBattle() {
     if (slot.hp !== null && slot.hp <= 0) continue;  // dead organ
 
     const def = organResolver(slot.organId);
-    if (!def) continue;
-
-    const skill = _skillForSlot(slotKey, def);
-    if (!skill) continue;
+    const sk  = def?.skill;
+    if (!sk?.kind) continue;  // no active skill (purely passive organ)
 
     const prog      = WS.battle?.organProgress?.[slotKey];
-    const blood     = WS.battle?.bloodAlloc?.[slotKey] ?? 0;
     const chargePct = prog ? Math.round((prog.chargedMs / Math.max(1, prog.totalMs)) * 100) : 0;
     const ready     = prog?.ready ?? false;
-    const slotType  = ORGAN_SLOTS[slotKey]?.type;
-    const maxBlood  = ORGAN_CD[slotType]?.maxBlood ?? 1;
+    const sub       = !prog ? 'inactif' : ready ? '▶ PRÊT' : `${chargePct}%`;
 
-    const sub = !prog ? 'inactif' : ready ? '▶ PRÊT' : `${chargePct}%`;
-
-    acts.push({
-      action:    'SKILL',
-      slotKey,
-      label:     skill.label,
-      sub,
-      disabled:  !ready,
-      ready,
-      chargePct,
-      blood,
-      maxBlood,
-      freeBlood,
-    });
-  }
-
-  if (acts.length < 6 && (WS.player.inventory?.length ?? 0) > 0) {
-    acts.push({ action: 'MANGER_OPEN', label: 'MANGER', sub: 'organe · combat' });
+    acts.push({ action: 'SKILL', slotKey, label: sk.label || sk.kind.toUpperCase(), sub, disabled: !ready, ready, chargePct });
   }
 
   return acts;
@@ -222,66 +122,30 @@ function _deriveBattle() {
 // --- Action derivation ---
 
 function _derive(room) {
+  // Combat is real-time: as soon as a room has active mobs, BattleEngine starts
+  // and WS.battle.active drives the skill bar. This branch handles exploration only.
   if (WS.battle?.active) return _deriveBattle();
 
   const acts = [];
-  const hasMobs = room?.mobIds?.some(id => WS.mobs.get(id)?.lifecycle === 'active');
+  const { floorIdx, pos } = WS.player;
 
-  if (hasMobs) {
-    // ── Combat slots ──────────────────────────────────────────────────────────
-    // Bras gauche → FRAPPER (ou ··· si perdu)
-    if (_slotAlive('arm_l')) {
-      acts.push({ label: 'FRAPPER', sub: _organName('arm_l') ?? 'bras G', action: 'ATTACK_AUTO' });
-    } else {
-      acts.push({ label: '···', sub: 'bras gauche perdu', action: 'NOOP', disabled: true });
-    }
+  const hasCadavers = [...WS.cadavers.values()].some(c =>
+    (c.lifecycle === 'fresh' || c.lifecycle === 'decaying') &&
+    c.pos?.floorIdx === floorIdx && c.pos?.x === pos.x && c.pos?.y === pos.y
+  );
+  if (hasCadavers) acts.push({ label: 'RÉCOLTER', sub: 'cadavre', action: 'HARVEST_OPEN' });
 
-    // Bras droit → FRAPPER (ou ···)
-    if (_slotAlive('arm_r')) {
-      acts.push({ label: 'FRAPPER', sub: _organName('arm_r') ?? 'bras D', action: 'ATTACK_AUTO' });
-    } else {
-      acts.push({ label: '···', sub: 'bras droit perdu', action: 'NOOP', disabled: true });
-    }
-
-    // Jambes → ESQUIVER (consomme une charge au combat)
-    if (_slotAlive('legs')) {
-      acts.push({ label: 'ESQUIVER', sub: _organName('legs') ?? 'jambes', action: 'WAIT' });
-    } else {
-      acts.push({ label: '···', sub: 'sans jambes', action: 'NOOP', disabled: true });
-    }
-
-    // Cœur → ULTIME (passif — s'active à la mort imminente ; WAIT en attendant)
-    if (_slotAlive('heart')) {
-      acts.push({ label: 'ULTIME', sub: _organName('heart') ?? 'cœur', action: 'WAIT', heart: true });
-    } else {
-      acts.push({ label: '···', sub: 'sans cœur', action: 'NOOP', disabled: true });
-    }
-
-    acts.push({ label: 'ATTENDRE', sub: '1 tick', action: 'WAIT' });
-
-  } else {
-    // ── Hors combat : boutons contextuels ────────────────────────────────────
-    const { floorIdx, pos } = WS.player;
-
-    const hasCadavers = [...WS.cadavers.values()].some(c =>
-      (c.lifecycle === 'fresh' || c.lifecycle === 'decaying') &&
-      c.pos?.floorIdx === floorIdx && c.pos?.x === pos.x && c.pos?.y === pos.y
-    );
-    if (hasCadavers) acts.push({ label: 'RÉCOLTER', sub: 'cadavre', action: 'HARVEST_OPEN' });
-
-    if (WS.player.inventory.length > 0) {
-      const graftCost = (WS.player?.relics ?? []).includes('relic_suture_noire') ? 3 : 5;
-      acts.push({ label: 'GREFFER', sub: `${graftCost} ticks`, action: 'GRAFT_OPEN' });
-      acts.push({ label: 'MANGER', sub: 'organe · satiété', action: 'MANGER_OPEN' });
-      acts.push({ label: 'AMPUTER', sub: '0 tick', action: 'AMPUTATE_OPEN' });
-    }
-
-    if (room?.defId === 'exit') {
-      acts.push({ label: 'DESCENDRE', sub: '↓', action: 'DESCEND' });
-    }
-
-    acts.push({ label: 'ATTENDRE', sub: '1 tick', action: 'WAIT' });
+  if (WS.player.inventory.length > 0) {
+    const graftCost = (WS.player?.relics ?? []).includes('relic_suture_noire') ? 3 : 5;
+    acts.push({ label: 'GREFFER', sub: `${graftCost} ticks`, action: 'GRAFT_OPEN' });
+    acts.push({ label: 'AMPUTER', sub: '0 tick', action: 'AMPUTATE_OPEN' });
   }
+
+  if (room?.defId === 'exit') {
+    acts.push({ label: 'DESCENDRE', sub: '↓', action: 'DESCEND' });
+  }
+
+  acts.push({ label: 'ATTENDRE', sub: '1 tick', action: 'WAIT' });
 
   return acts.slice(0, 6);
 }

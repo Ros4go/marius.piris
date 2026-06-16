@@ -34,7 +34,7 @@
   <header class="game-h">
     <span class="title"><em>☩ </em>C H A I R<b> †</b></span>
     <span class="hdo" aria-hidden="true"></span>
-    <span class="loc" id="hud-floor">LA GORGE · ÉTAGE <b>1</b> · TICK <b>0</b> · HUMANITÉ <b>▓▓▓▓▓</b></span>
+    <span class="loc" id="hud-floor">LA GORGE · ÉTAGE <b>1</b> · TICK <b>0</b></span>
     <span class="hctl" style="position:relative">
       <button id="settings-btn" aria-pressed="false" title="réglages">⚙</button>
       <button id="save-btn" title="Exporter la sauvegarde (JSON)">⇩ SAVE</button>
@@ -66,7 +66,6 @@
       <div class="counters">
         <span>viande &nbsp;<b id="val-gold">0</b></span>
         <span>torches <span id="val-torches"><b>▮▮▮</b><span class="dim">▮▮</span></span></span>
-        <span>faim &nbsp;&nbsp;<span id="val-satiete"><b>▓▓▓</b><span class="dim">▓▓</span></span></span>
       </div>
       <div id="relic-list" style="display:none"></div>
     </div>
@@ -148,34 +147,10 @@
   <!-- ══ COLONNE DROITE — Ton corps + Inspection ═════════════════════════════ -->
   <aside class="col-r">
 
-    <!-- Ton corps (player body map) -->
+    <!-- Ton corps — bandeau réacteur (sang + organes + PV), rendu par ReactorPanel.js -->
     <div class="panel">
       <h3><i>†</i> Ton corps</h3>
-      <div class="body-wrap">
-        <div class="silh">
-          <div class="s-head"></div>
-          <div class="s-torso"></div>
-          <div class="s-arm l"></div>
-          <div class="s-arm r"></div>
-          <div class="s-leg l"></div>
-          <div class="s-leg r"></div>
-          <!-- Slot dots (positions match the 84×160 silhouette at scale .7) -->
-          <span class="slotdot on"       data-slot="brain"   title="cerveau"    style="left:37px;top:1px"></span>
-          <span class="slotdot"          data-slot="eye_l"   title="œil g."     style="left:26px;top:11px"></span>
-          <span class="slotdot"          data-slot="eye_r"   title="œil d."     style="left:48px;top:11px"></span>
-          <span class="slotdot on"       data-slot="ear_l"   title="oreille g." style="left:15px;top:14px"></span>
-          <span class="slotdot on"       data-slot="ear_r"   title="oreille d." style="left:59px;top:14px"></span>
-          <span class="slotdot on"       data-slot="tongue"  title="langue"     style="left:37px;top:22px"></span>
-          <span class="slotdot on heartdot" data-slot="heart" title="cœur"     style="left:30px;top:44px"></span>
-          <span class="slotdot on"       data-slot="skin"    title="peau"       style="left:56px;top:52px"></span>
-          <span class="slotdot on"       data-slot="stomach" title="estomac"    style="left:44px;top:60px"></span>
-          <span class="slotdot on"       data-slot="arm_l"   title="bras g."    style="left:6px;top:48px"></span>
-          <span class="slotdot on"       data-slot="arm_r"   title="bras d."    style="left:68px;top:48px"></span>
-          <span class="slotdot on"       data-slot="legs"    title="jambes"     style="left:37px;top:108px"></span>
-        </div>
-      </div>
-      <!-- Player segbar (12 slots) -->
-      <div class="segbar youhp" id="player-seg"></div>
+      <div class="reactor" id="reactor"></div>
     </div>
 
     <!-- Inspection panel -->
@@ -190,8 +165,6 @@
 
   <!-- ══ YOUBAR — Actions + Pad ══════════════════════════════════════════════ -->
   <div class="youbar">
-    <!-- Blood pool (combat only, rendered by ActionBar.js) -->
-    <div id="blood-pool-bar" style="display:none"></div>
     <!-- Action buttons (rendered by ActionBar.js) -->
     <div id="action-bar" style="display:flex;flex:1;gap:5px;max-width:none"></div>
     <!-- Suture divider -->

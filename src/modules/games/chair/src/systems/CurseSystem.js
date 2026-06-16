@@ -19,11 +19,6 @@ export function playerHasCurse(curseId) {
   return getActiveCurses().has(curseId);
 }
 
-// Called by HungerSystem — multiply hunger drain when hunger_x2 is active.
-export function hungerMult() {
-  return playerHasCurse('hunger_x2') ? 2 : 1;
-}
-
 // Called by RelicSystem / RestPanel — healing becomes damage when active.
 export function healHurts() {
   return playerHasCurse('heal_hurts');

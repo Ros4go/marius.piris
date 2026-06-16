@@ -8,17 +8,10 @@ export function render(container, room, options = {}) {
 
   if (!room.stock) room.stock = _generateStock();
 
-  const hum       = WS.player.body?.humanityWith(organResolver) ?? 100;
-  const priceMult = hum < 30 ? 1.5 : hum < 60 ? 1.25 : 1.0;
-  const humNote   = hum < 30 ? '⚠ Méfiance — prix ×1.5'
-                  : hum < 60 ? 'Hésitation — prix ×1.25'
-                  : null;
-
   const gold = WS.player.gold ?? 0;
 
   container.innerHTML = `
     <div class="trade-name">⚖ Le Marchand d'en-bas</div>
-    ${humNote ? `<div style="font:.56rem var(--mono);color:var(--blood);margin-bottom:5px;text-shadow:0 0 8px #000">${humNote}</div>` : ''}
     <div class="trade-cols">
       <div class="trade-col" id="trade-buy-col">
         <div class="trade-h">il vend</div>
@@ -39,14 +32,14 @@ export function render(container, room, options = {}) {
     for (const item of forSale) {
       const def          = organResolver(item.organId);
       if (!def) continue;
-      const price        = Math.round(item.price * priceMult);
+      const price        = item.price;
       const canAfford    = gold >= price;
       const full         = WS.player.inventory.length >= inventoryCapacity();
       const btn          = document.createElement('button');
       btn.className      = 'ware' + (!canAfford || full ? ' off' : '');
       btn.disabled       = !canAfford || full;
       btn.innerHTML      = `<span class="ware-ic ${_icClass(def.type)}"></span>
-                            <span class="ware-n">${def.name} <em>· ${def.arcana ? `${def.arcana}` : '0'}</em></span>
+                            <span class="ware-n">${def.name} <em>· ${def.tier}</em></span>
                             <span class="ware-p">${price}</span>`;
       btn.addEventListener('click', () => {
         if (WS.player.gold < price || WS.player.inventory.length >= inventoryCapacity()) return;
@@ -101,7 +94,7 @@ function _icClass(type) {
 }
 
 function _generateStock() {
-  const pool   = allOrgans().filter(o => o.arcana <= 8);
+  const pool   = allOrgans().filter(o => o.tier !== 'legendary');
   if (!pool.length) return [];
   const stock  = [];
   const picked = new Set();
