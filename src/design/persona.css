@@ -1624,13 +1624,23 @@ body {
 .roster-title {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   font-family: 'Anton', sans-serif;
   text-transform: uppercase;
   font-size: clamp(18px, 2.1vw, 26px);
   letter-spacing: 0.03em;
   color: var(--cream);
-  transform: skewX(-6deg);
+  transform: skewX(-9deg);
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.55);
+}
+/* barre rouge anguleuse façon Persona, à la place de l'emoji */
+.roster-title::before {
+  content: '';
+  width: 8px;
+  align-self: stretch;
+  margin: 2px 0;
+  background: var(--red);
+  box-shadow: 0 0 14px rgba(236, 0, 22, 0.55);
 }
 .roster-title i {
   font-style: normal;
@@ -1638,9 +1648,10 @@ body {
   font-size: 13px;
   background: var(--red);
   color: #fff;
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 3px 9px 1px;
-  transform: skewX(6deg);
+  box-shadow: 0 0 12px rgba(236, 0, 22, 0.45);
+  transform: skewX(9deg); /* contre-skew : chiffre droit */
 }
 /* libellé de carrousel (mobile uniquement) */
 .carlabel {
@@ -1784,8 +1795,22 @@ body {
 .rpanel-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
   margin-top: 10px;
+}
+/* tags « juicy » : dégradé rouge vif + gloss + glow */
+.rpanel-chips .chip {
+  background: linear-gradient(150deg, #ff2740, #c2000f);
+  border-color: rgba(255, 150, 160, 0.55);
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 9px -3px rgba(236, 0, 22, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.rpanel:hover .rpanel-chips .chip {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px -3px rgba(236, 0, 22, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 .rpanel-tagline {
   font-family: 'Inter', sans-serif;
