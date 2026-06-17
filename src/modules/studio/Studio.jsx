@@ -111,8 +111,9 @@ function Panel({ item, num }) {
           style={item.image ? { backgroundImage: `url(${item.image})` } : undefined}
         >
           {!item.image && <span className="rpanel-emoji" aria-hidden="true">{item.icon || '▣'}</span>}
-          <span className="rpanel-num" aria-hidden="true">{num}</span>
         </div>
+        {/* numéro hors de l'image → non affecté par le Ken Burns */}
+        <span className="rpanel-num" aria-hidden="true">{num}</span>
         <div className="rpanel-body">
           <div className="rpanel-title">{item.title}</div>
           <div className="rpanel-chips">
@@ -135,9 +136,9 @@ function Roster({ jeux, outils }) {
   return (
     <div>
       <div className="roster-head">
-        <span className="roster-title">🎮 Jeux<i>{jeux.length}</i></span>
+        <span className="roster-title">Jeux<i>{jeux.length}</i></span>
         <span className="roster-head-sep" aria-hidden="true" />
-        <span className="roster-title">🛠️ Outils<i>{outils.length}</i></span>
+        <span className="roster-title">Outils<i>{outils.length}</i></span>
       </div>
       <div className="roster">
         <span className="carlabel" aria-hidden="true">Jeux</span>
