@@ -1,0 +1,786 @@
+/* ============================================================================
+   Frometons Clicker — refonte UI immersive « nuit lunaire / cheese cosmique »
+   Pensé mobile-first. Tout est scopé sous .fc-stage.
+   ========================================================================== */
+
+.fc-stage {
+  position: relative;
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  color: #eef0ff;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #2a2552 0%, #171238 38%, #0b0820 72%, #070512 100%);
+  font-family: 'Oswald', 'Inter', sans-serif;
+}
+/* Champ d'étoiles statique (perf : pas d'animation lourde). */
+.fc-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.9;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 27% 8%, #cdd6ff, transparent),
+    radial-gradient(1px 1px at 41% 22%, #fff, transparent),
+    radial-gradient(2px 2px at 63% 12%, #fff, transparent),
+    radial-gradient(1px 1px at 78% 26%, #b9c4ff, transparent),
+    radial-gradient(1.5px 1.5px at 88% 9%, #fff, transparent),
+    radial-gradient(1px 1px at 8% 44%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 33% 52%, #d7deff, transparent),
+    radial-gradient(1px 1px at 55% 41%, #fff, transparent),
+    radial-gradient(1px 1px at 72% 56%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 92% 48%, #cdd6ff, transparent),
+    radial-gradient(1px 1px at 18% 72%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 47% 82%, #fff, transparent),
+    radial-gradient(1px 1px at 67% 76%, #c7d0ff, transparent),
+    radial-gradient(1px 1px at 84% 88%, #fff, transparent);
+  animation: fcTwinkle 5.5s ease-in-out infinite;
+}
+@keyframes fcTwinkle {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+.fc-inner {
+  position: relative;
+  z-index: 1;
+  padding: clamp(16px, 4vw, 36px);
+}
+
+/* ---- Titre ---------------------------------------------------------------- */
+.fc-title {
+  text-align: center;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: clamp(26px, 6vw, 46px);
+  line-height: 1;
+  background: linear-gradient(180deg, #fff6c8, #ffcf4d 55%, #f2a83a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(255, 190, 60, 0.25));
+  margin-bottom: clamp(12px, 3vw, 22px);
+}
+
+/* ---- HUD (stats en pastilles) -------------------------------------------- */
+.fc-hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: clamp(14px, 3vw, 24px);
+}
+.fc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(4px);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fc-pill .ic { font-size: 17px; line-height: 1; }
+.fc-pill .val { font-family: 'Anton', sans-serif; letter-spacing: 0.02em; }
+.fc-pill.frometons .val { color: #ffe27a; }
+.fc-pill.money .val { color: #7ee0a0; }
+.fc-pill.croutes .val { color: #ffc24d; }
+.fc-pill-sub {
+  font-size: 12px;
+  color: #aab0d8;
+  text-align: center;
+  width: 100%;
+  margin-top: -4px;
+  margin-bottom: 6px;
+}
+
+/* ---- Gacha : ouverture de booster ---------------------------------------- */
+.fc-gacha {
+  position: fixed;
+  inset: 0;
+  z-index: 88;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(4, 3, 12, 0.82);
+  animation: fcCineIn 0.3s ease both;
+}
+/* roulette (style CS:GO) avant la révélation */
+.fc-roulette {
+  background: #14101f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  max-width: 94vw;
+  text-align: center;
+}
+.fc-roulette-title { color: #c8cdf0; font-weight: 700; margin-bottom: 12px; }
+.fc-roulette-view {
+  position: relative;
+  width: min(360px, 84vw);
+  height: 96px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.fc-roulette-marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1.5px;
+  z-index: 2;
+  background: #ffd166;
+  box-shadow: 0 0 12px #ffd166;
+}
+.fc-roulette-strip {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  display: flex;
+  gap: 8px;
+  will-change: transform;
+  animation: rouletteSpin 2.75s cubic-bezier(0.09, 0.72, 0.12, 1) forwards;
+}
+.fc-roulette-cell {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  border-radius: 12px;
+  border: 2px solid;
+  background: rgba(255, 255, 255, 0.04);
+}
+@keyframes rouletteSpin { from { transform: translateX(0); } to { transform: translateX(var(--end)); } }
+@media (prefers-reduced-motion: reduce) {
+  .fc-roulette-strip { animation-duration: 0.5s; }
+}
+
+/* révélation simple (1 booster) */
+.fc-gacha-card {
+  position: relative;
+  text-align: center;
+  padding: 26px 24px 20px;
+  border-radius: 20px;
+  background: #14101f;
+  border: 2px solid var(--rc);
+  box-shadow: 0 0 50px var(--rg);
+  max-width: 330px;
+  overflow: hidden;
+  animation: fcGachaCard 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fc-gacha-card.legendary { animation: fcGachaCard 0.4s cubic-bezier(0.22, 1, 0.36, 1), fcLegGlow 1.5s ease-in-out 0.5s infinite; }
+@keyframes fcGachaCard { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fcLegGlow { 0%, 100% { box-shadow: 0 0 40px var(--rg); } 50% { box-shadow: 0 0 78px var(--rg); } }
+.fc-gacha-rays {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 230px;
+  height: 230px;
+  margin-left: -115px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.14;
+  background: conic-gradient(from 0deg, transparent 0 6%, var(--rc) 7% 9%, transparent 10% 22%, var(--rc) 23% 25%, transparent 26% 39%, var(--rc) 40% 42%, transparent 43%);
+  animation: fcRaysSpin 8s linear infinite;
+}
+.fc-gacha-burst {
+  position: absolute;
+  top: 78px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, #fff 0%, var(--rc) 45%, transparent 70%);
+  animation: fcFlash 0.6s ease 0.05s;
+}
+.fc-gacha-rarity { position: relative; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 800; color: var(--rc); margin-bottom: 4px; animation: fcUp 0.4s ease 0.28s both; }
+.fc-gacha-ic { position: relative; font-size: 64px; line-height: 1; filter: drop-shadow(0 0 14px var(--rg)); animation: relicPop 0.6s ease 0.1s both; }
+.fc-gacha-name { position: relative; font-size: 19px; font-weight: 800; color: #fff; margin-top: 6px; animation: fcUp 0.4s ease 0.38s both; }
+.fc-gacha-desc { position: relative; font-size: 13px; color: #c2c7ea; margin-top: 4px; animation: fcUp 0.4s ease 0.48s both; }
+.fc-gacha-dup { position: relative; font-size: 12px; color: #9aa0c8; margin-top: 6px; animation: fcUp 0.4s ease 0.55s both; }
+.fc-gacha-btn { position: relative; margin-top: 16px; }
+/* multi-pull (grille) */
+.fc-gacha-multi {
+  text-align: center;
+  background: #14101f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 22px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: fcGachaCard 0.35s ease;
+}
+.fc-gacha-title { font-family: 'Anton', sans-serif; text-transform: uppercase; font-size: clamp(20px, 4vw, 30px); color: #ffd166; margin-bottom: 14px; }
+.fc-gacha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 8px; }
+.fc-gacha-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid var(--rc);
+  box-shadow: 0 0 9px var(--rg);
+  animation: fcCellPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes fcCellPop { from { transform: scale(0) rotate(-15deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+.fc-gacha-cell .ic { font-size: 26px; line-height: 1; }
+.fc-gacha-cell .rar { font-size: 9px; text-transform: uppercase; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .fc-gacha-rays, .fc-gacha-burst { animation: none; opacity: 0.1; }
+  .fc-gacha-ic, .fc-gacha-rarity, .fc-gacha-name, .fc-gacha-desc, .fc-gacha-dup, .fc-gacha-cell { animation-duration: 0.01ms !important; }
+}
+
+/* ---- Cinématique de victoire (la Lune devient un frometon géant) --------- */
+.fc-cine {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 42%, #1c1746 0%, #0b0820 65%, #050310 100%);
+  animation: fcCineIn 0.5s ease both;
+}
+@keyframes fcCineIn { from { opacity: 0; } to { opacity: 1; } }
+.fc-cine-stage {
+  position: relative;
+  width: clamp(190px, 62vw, 300px);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fc-cine-rays {
+  position: absolute;
+  inset: -45%;
+  border-radius: 50%;
+  opacity: 0;
+  background: conic-gradient(from 0deg,
+    transparent 0 7%, rgba(255, 220, 120, 0.16) 8% 10%, transparent 11% 20%,
+    rgba(255, 220, 120, 0.16) 21% 23%, transparent 24% 33%, rgba(255, 220, 120, 0.16) 34% 36%,
+    transparent 37% 47%, rgba(255, 220, 120, 0.16) 48% 50%, transparent 51%);
+  animation: fcRaysSpin 7s linear infinite, fcFade 0.8s ease 1.2s both;
+}
+@keyframes fcRaysSpin { to { transform: rotate(360deg); } }
+.fc-cine-moon {
+  position: absolute;
+  width: 70%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff, #d7d8e6 40%, #9a9bb6 72%, #6a6b88 100%);
+  box-shadow: inset -14px -10px 30px rgba(8, 6, 24, 0.6);
+  animation: fcMoonIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) both, fcMoonOut 0.5s ease 1.3s forwards;
+}
+@keyframes fcMoonIn { from { transform: scale(0.5) rotate(-30deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes fcMoonOut { to { opacity: 0; transform: scale(1.15); } }
+.fc-cine-flash {
+  position: absolute;
+  width: 10px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 240, 180, 0.6) 40%, transparent 70%);
+  animation: fcFlash 0.7s ease 1.1s;
+}
+@keyframes fcFlash {
+  0% { opacity: 0; transform: scale(0); }
+  40% { opacity: 1; transform: scale(34); }
+  100% { opacity: 0; transform: scale(48); }
+}
+.fc-cine-coin {
+  position: absolute;
+  width: 80%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  opacity: 0;
+  filter: drop-shadow(0 0 32px rgba(255, 200, 70, 0.75));
+  animation: fcCoinIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1.35s both, fcCoinFloat 3s ease-in-out 2.2s infinite;
+}
+@keyframes fcCoinIn { from { opacity: 0; transform: scale(0) rotate(-40deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes fcCoinFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.fc-cine-title {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: clamp(26px, 7vw, 52px);
+  line-height: 1.05;
+  background: linear-gradient(180deg, #fff6c8, #ffcf4d 55%, #f2a83a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 12px rgba(255, 190, 60, 0.3));
+  opacity: 0;
+  animation: fcUp 0.6s ease 1.9s both;
+}
+.fc-cine-sub { max-width: 460px; color: #c8cdf0; opacity: 0; animation: fcUp 0.6s ease 2.4s both; }
+.fc-cine-btn { opacity: 0; animation: fcUp 0.6s ease 2.85s both; }
+@keyframes fcUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fcFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .fc-cine *, .fc-cine { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  .fc-cine-moon { opacity: 0; }
+  .fc-cine-coin, .fc-cine-title, .fc-cine-sub, .fc-cine-btn, .fc-cine-rays { opacity: 1; }
+}
+
+/* ---- Encart d'event actif (bonus / malus / frenzy) ----------------------- */
+.fc-event {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: 460px;
+  margin: 0 auto clamp(12px, 2.5vw, 18px);
+  padding: 9px 14px;
+  border-radius: 14px;
+  border: 1px solid;
+  animation: fcEventPulse 1.6s ease-in-out infinite;
+}
+.fc-event.bonus {
+  background: linear-gradient(180deg, rgba(52, 184, 107, 0.22), rgba(52, 184, 107, 0.08));
+  border-color: rgba(120, 230, 160, 0.55);
+}
+.fc-event.malus {
+  background: linear-gradient(180deg, rgba(216, 68, 63, 0.22), rgba(216, 68, 63, 0.08));
+  border-color: rgba(255, 130, 130, 0.55);
+}
+.fc-event-ic { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.fc-event-body { display: flex; flex-direction: column; line-height: 1.2; text-align: left; min-width: 0; flex: 1; }
+.fc-event-title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.fc-event.bonus .fc-event-title { color: #7ee0a0; }
+.fc-event.malus .fc-event-title { color: #ff9a9a; }
+.fc-event-desc { font-weight: 700; color: #fff; font-size: 15px; }
+.fc-event-time {
+  flex-shrink: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: 18px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+@keyframes fcEventPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 18px rgba(255, 255, 255, 0.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-event { animation: none; }
+}
+
+/* ---- La Lune = jauge de Fromification (objectif, non cliquable) ----------- */
+.fc-objective {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: clamp(4px, 1.5vw, 10px) 0 clamp(12px, 2.5vw, 18px);
+}
+/* anneau = progression vers le prochain palier ; lune au centre = fromification */
+.fc-moon-ring {
+  --prog: 0;
+  --cheese: 0;
+  width: clamp(108px, 29vw, 152px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  padding: 5px;
+  flex-shrink: 0;
+  background: conic-gradient(#ffd166 calc(var(--prog) * 1%), rgba(255, 255, 255, 0.12) 0);
+  box-shadow: 0 0 calc(12px + var(--cheese) * 34px) rgba(255, 210, 90, calc(0.12 + var(--cheese) * 0.55));
+  transition: box-shadow 0.5s ease;
+}
+.fc-moon {
+  /* --cheese hérité de .fc-moon-ring (défini en inline style) — NE PAS le
+     redéclarer ici, sinon il repasse à 0 et la Lune ne se fromage jamais. */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  /* la teinte de base vire au jaune avec la fromification */
+  background:
+    radial-gradient(circle at 34% 30%,
+      hsl(calc(230deg - var(--cheese) * 185deg) calc(8% + var(--cheese) * 78%) 96%) 0%,
+      hsl(calc(232deg - var(--cheese) * 190deg) calc(10% + var(--cheese) * 70%) calc(82% - var(--cheese) * 10%)) 40%,
+      hsl(calc(235deg - var(--cheese) * 195deg) calc(12% + var(--cheese) * 65%) calc(64% - var(--cheese) * 8%)) 72%,
+      hsl(calc(238deg - var(--cheese) * 195deg) calc(14% + var(--cheese) * 55%) calc(46% + var(--cheese) * 6%)) 100%);
+  box-shadow: inset -10px -8px 22px rgba(8, 6, 24, 0.55), inset 8px 6px 16px rgba(255, 255, 255, 0.28);
+  transition: background 0.55s ease;
+}
+/* cratères rocheux (s'effacent en fromifiant) */
+.fc-moon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: calc(1 - var(--cheese));
+  transition: opacity 0.55s ease;
+  background:
+    radial-gradient(circle at 62% 32%, rgba(60, 58, 86, 0.55) 0 5%, transparent 6%),
+    radial-gradient(circle at 38% 60%, rgba(60, 58, 86, 0.5) 0 7%, transparent 8%),
+    radial-gradient(circle at 72% 66%, rgba(60, 58, 86, 0.45) 0 5%, transparent 6%),
+    radial-gradient(circle at 24% 40%, rgba(60, 58, 86, 0.38) 0 3%, transparent 4%);
+}
+/* trous de fromage : de plus en plus nombreux/marqués avec la fromification */
+.fc-moon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: var(--cheese);
+  transition: opacity 0.55s ease;
+  background:
+    radial-gradient(circle at 64% 30%, rgba(140, 92, 18, 0.7) 0 5%, transparent 6%),
+    radial-gradient(circle at 33% 58%, rgba(140, 92, 18, 0.65) 0 7%, transparent 8%),
+    radial-gradient(circle at 74% 66%, rgba(140, 92, 18, 0.6) 0 5.5%, transparent 6.5%),
+    radial-gradient(circle at 47% 40%, rgba(140, 92, 18, 0.6) 0 4%, transparent 5%),
+    radial-gradient(circle at 24% 33%, rgba(140, 92, 18, 0.55) 0 3.5%, transparent 4.5%),
+    radial-gradient(circle at 55% 76%, rgba(140, 92, 18, 0.55) 0 4.5%, transparent 5.5%),
+    radial-gradient(circle at 82% 44%, rgba(140, 92, 18, 0.5) 0 3%, transparent 4%),
+    radial-gradient(circle at 14% 56%, rgba(140, 92, 18, 0.5) 0 3%, transparent 4%);
+}
+.fc-obj-info { text-align: left; max-width: 220px; }
+.fc-obj-info .t { font-weight: 700; font-size: 14px; color: #eef0ff; }
+.fc-obj-info .rate { color: #ffd166; font-weight: 700; font-size: 13px; }
+.fc-obj-info .next { font-size: 12px; color: #aab0d8; margin-top: 2px; }
+.fc-obj-info .next b { color: #eef0ff; }
+
+/* ---- Le Frometon = centre cliquable -------------------------------------- */
+.fc-coin-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: clamp(12px, 3vw, 20px);
+}
+.fc-coin {
+  position: relative;
+  width: clamp(150px, 46vw, 236px);
+  aspect-ratio: 1 / 1;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  filter: drop-shadow(0 0 26px rgba(255, 200, 70, 0.45));
+  transition: transform 0.12s ease;
+}
+.fc-coin img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.fc-coin:active { transform: scale(0.95); }
+.fc-coin.animate-click-pop { animation: clickPop 0.26s ease-out; }
+.fc-moon-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c8cdf0;
+  opacity: 0.7;
+}
+.fc-moon-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #c2c7ea;
+}
+.fc-moon-stats b { color: #fff; font-weight: 700; }
+
+/* ---- Jauge Fromification -------------------------------------------------- */
+.fc-luna {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto clamp(14px, 3vw, 22px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+.fc-luna-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 7px;
+}
+.fc-luna-head .name { font-weight: 700; color: #eef0ff; }
+.fc-luna-head .rate { color: #ffd166; font-weight: 700; }
+.fc-luna-track {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.fc-luna-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffe9a3, #ffc94d 60%, #f0a830);
+  box-shadow: 0 0 14px rgba(255, 200, 80, 0.6);
+  transition: width 0.5s ease;
+}
+.fc-luna-foot {
+  font-size: 12px;
+  color: #aab0d8;
+  margin-top: 6px;
+}
+.fc-luna-foot b { color: #eef0ff; }
+.fc-luna-foot .lune { color: #ffd166; font-weight: 700; }
+
+/* ---- Onglets -------------------------------------------------------------- */
+.fc-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 6px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.fc-tabs::-webkit-scrollbar { display: none; }
+.fc-tab {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  padding: 9px 15px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  color: #c2c7ea;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+.fc-tab:hover { background: rgba(255, 255, 255, 0.1); }
+.fc-tab.active {
+  color: #1a1430;
+  background: linear-gradient(180deg, #ffe27a, #f5b932);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(245, 185, 50, 0.35);
+}
+
+/* ---- Sélecteur d'achat x1/x10/Max ---------------------------------------- */
+.fc-qty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.fc-qty .lbl { font-size: 13px; color: #aab0d8; margin-right: 4px; }
+.fc-qty button {
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #c2c7ea;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.15s;
+}
+.fc-qty button.active {
+  color: #1a1430;
+  background: linear-gradient(180deg, #ffe27a, #f5b932);
+  border-color: transparent;
+}
+
+/* ---- Boutons réutilisables ----------------------------------------------- */
+.fc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: #1a1430;
+  background: linear-gradient(180deg, #ffe27a, #f5b932);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 16px rgba(245, 185, 50, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s;
+}
+.fc-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 9px 22px rgba(245, 185, 50, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
+.fc-btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.fc-btn:disabled { filter: grayscale(0.7) brightness(0.7); cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+.fc-btn.green { background: linear-gradient(180deg, #7ce0a0, #34b86b); color: #08200f; box-shadow: 0 6px 16px rgba(52, 184, 107, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+.fc-btn.green:hover:not(:disabled) { box-shadow: 0 9px 22px rgba(52, 184, 107, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+.fc-btn.blue { background: linear-gradient(180deg, #8ab4ff, #4b7be8); color: #fff; box-shadow: 0 6px 16px rgba(75, 123, 232, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+.fc-btn.red { background: linear-gradient(180deg, #ff8a8a, #d8443f); color: #fff; box-shadow: 0 6px 16px rgba(216, 68, 63, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+.fc-btn.ghost { background: rgba(255, 255, 255, 0.07); color: #dfe3ff; border-color: rgba(255, 255, 255, 0.14); box-shadow: none; }
+.fc-btn.ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.13); }
+.fc-btn.sm { padding: 7px 13px; font-size: 13px; border-radius: 10px; }
+.fc-btn.block { width: 100%; }
+
+/* ---- Cartes / panneaux ---------------------------------------------------- */
+.fc-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px;
+  transition: border-color 0.2s, transform 0.12s;
+}
+.fc-card.hl { border-color: rgba(255, 210, 80, 0.55); }
+.fc-card.glow:hover { border-color: rgba(255, 210, 80, 0.6); transform: translateY(-2px); }
+.fc-sec-title {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: clamp(18px, 3.5vw, 26px);
+  color: #eef0ff;
+  margin-bottom: 14px;
+}
+.fc-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .fc-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .fc-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---- Mobile ajustements --------------------------------------------------- */
+@media (max-width: 640px) {
+  .fc-pill { padding: 6px 11px; font-size: 14px; }
+  .fc-stage { border-radius: 18px; }
+  /* le drawer console flottant masque le bas : on réserve de la place */
+  .fc-inner { padding-bottom: 84px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-stars { animation: none; opacity: 0.8; }
+  .fc-moon, .fc-luna-fill { transition: none; }
+}
+
+/* ============================================================================
+   Reskin en masse des panneaux internes (scopé .fc-stage) pour la cohérence.
+   ========================================================================== */
+/* Cartes & conteneurs gris Tailwind → verre translucide. */
+.fc-stage [class*='bg-gray-7'],
+.fc-stage [class*='bg-gray-8'] {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.fc-stage [class*='border-gray-6'] { border-color: rgba(255, 255, 255, 0.1) !important; }
+.fc-stage [class*='text-gray-3'] { color: #c2c7ea !important; }
+.fc-stage [class*='text-gray-4'] { color: #9aa0c8 !important; }
+.fc-stage select {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.fc-stage select option { color: #1a1430; }
+
+/* Boutons d'action colorés → dégradés cohérents + relief. */
+.fc-stage button[class*='bg-blue-6'] { background: linear-gradient(180deg, #8ab4ff, #4b7be8) !important; color: #fff !important; }
+.fc-stage button[class*='bg-red-6'] { background: linear-gradient(180deg, #ff8a8a, #d8443f) !important; color: #fff !important; }
+.fc-stage button[class*='bg-orange-6'] { background: linear-gradient(180deg, #ffc07a, #f0892f) !important; color: #fff !important; }
+.fc-stage button[class*='bg-yellow-5'] { background: linear-gradient(180deg, #ffe27a, #f5b932) !important; color: #1a1430 !important; }
+.fc-stage button[class*='bg-purple-5'] { background: linear-gradient(180deg, #c9a0ff, #8b5cf6) !important; color: #fff !important; }
+.fc-stage button[class*='bg-green-6'] { background: linear-gradient(180deg, #7ce0a0, #34b86b) !important; color: #08200f !important; }
+.fc-stage button[class*='bg-amber-6'] { background: linear-gradient(180deg, #ffd27a, #ec9a1e) !important; color: #1a1430 !important; }
+.fc-stage button:not(:disabled)[class*='rounded'] { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
+/* Boutons désactivés : ternes (on neutralise le verre des bg-gray). */
+.fc-stage button:disabled { opacity: 0.55; box-shadow: none; }
+
+/* Section headings colorés restent lisibles ; on uniformise la graisse. */
+.fc-stage h3,
+.fc-stage h4 { font-family: 'Anton', sans-serif; letter-spacing: 0.02em; }
+
+/* Console (hors .fc-stage) — habillage cosmique assorti. */
+.fc-console {
+  background: linear-gradient(180deg, rgba(23, 18, 56, 0.92), rgba(11, 8, 32, 0.92)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.fcc-tabs { display: flex; gap: 6px; flex-shrink: 0; margin-bottom: 12px; }
+.fcc-tab {
+  flex: 1;
+  padding: 7px 6px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c2c7ea;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.15s, color 0.15s;
+}
+.fcc-tab:hover { background: rgba(255, 255, 255, 0.1); }
+.fcc-tab.active { color: #1a1430; background: linear-gradient(180deg, #ffe27a, #f5b932); border-color: transparent; }
+.fcc-sec {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #c084fc;
+  margin: 13px 0 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.fcc-sec:first-child { margin-top: 0; }
+.fcc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+  padding: 2px 0;
+}
+.fcc-row-l { color: #9aa0c8; }
+.fcc-row-v { font-weight: 700; color: #eef0ff; }
+.fcc-foot {
+  flex-shrink: 0;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.fcc-foot-stats { display: flex; flex-direction: column; gap: 1px; font-size: 14px; font-weight: 700; line-height: 1.25; }
+.fcc-foot-btn {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: #1a1430;
+  background: linear-gradient(180deg, #ffe27a, #f5b932);
+  box-shadow: 0 4px 12px rgba(245, 185, 50, 0.3);
+  transition: transform 0.12s;
+}
+.fcc-foot-btn:hover { transform: translateY(-1px); }
+.fcc-foot-btn:active { transform: scale(0.97); }
