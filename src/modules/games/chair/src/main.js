@@ -2,9 +2,12 @@
 
 import { loadData, organResolver, biome as getBiomeData } from './registry.js';
 import { WS, initRun, currentRoom, toJSON, fromJSON } from './WorldState.js';
-import { on as onTrigger } from './TriggerBus.js';
+import { on as onTrigger, emit, flush, PRIORITY } from './TriggerBus.js';
 import { processTick, descend, advanceTicks } from './TickEngine.js';
 import * as BattleEngine from './BattleEngine.js';
+import * as TurnCombat from './TurnCombat.js';
+import * as CombatHand from './render/CombatHand.js';
+import { ORGAN_SLOTS } from './entities/Body.js';
 import { init as initInput, on as onInput } from './input/InputHandler.js';
 import * as SceneRenderer     from './render/SceneRenderer.js';
 import * as MobRenderer       from './render/MobRenderer.js';
@@ -37,6 +40,7 @@ const _dir       = () => WS.player.dir ?? 'S';
 // ── State ─────────────────────────────────────────────────────────────────────
 let _targetedMobId = null;
 let _targetedSlot  = null;
+let _inspect       = null;   // inspector focus: {kind:'organ',slot} | {kind:'item',index} | null (= body overview)
 let _gameOver      = false;
 let _graveyard     = null;   // persists between runs (loaded from localStorage)
 let _heritage      = [];     // organs kept between runs via Consigne
@@ -74,11 +78,10 @@ async function boot() {
   _wireInputs();
   _wireSaveButtons();
   ReactorPanel.init(document.getElementById('reactor'), {
-    onAlloc: (slotKey, amount) => { BattleEngine.allocateBlood(slotKey, amount); render(); },
-    onInspect: (slotKey) => {
-      const slot = WS.player.body?.slots?.[slotKey];
-      if (slot?.organId) InspectorPanel.showOrgan(slot.organId, slot.hp, slotKey);
-    },
+    onInspect: (slotKey) => { _inspect = { kind: 'organ', slot: slotKey }; render(); },
+  });
+  InventoryRenderer.init({
+    onInspect: (index) => { _inspect = { kind: 'item', index }; render(); },
   });
 
   _showStartScreen();
@@ -342,22 +345,21 @@ function _updateBattle() {
   if (_gameOver) return;
   const room = currentRoom();
   const hasActiveMobs = (room?.mobIds ?? []).some(id => WS.mobs.get(id)?.lifecycle === 'active');
-  if (hasActiveMobs && !WS.battle.active) {
-    BattleEngine.start(_onBattleBeat, _onBattleEnd);
-    render();  // switch the action bar to the skill/blood layout immediately
+  if (hasActiveMobs && !TurnCombat.isActive()) {
+    TurnCombat.start(render, _onCombatEnd, addLog);
+    render();
   }
 }
 
-function _onBattleBeat() {
-  if (_gameOver) return;
-  SensoryFX.onBeat();
-  render();
-}
-
-function _onBattleEnd(explCost) {
-  advanceTicks(explCost);
+function _onCombatEnd(reason) {
+  if (reason === 'dead') {
+    emit({ type: 'PLAYER_DIED', source: 'combat', target: 'player', data: {}, priority: PRIORITY.MOB });
+    flush(PRIORITY.MOB);
+    return;
+  }
   _targetedMobId = null;
   _targetedSlot  = null;
+  advanceTicks(1);
   render();
 }
 
@@ -386,14 +388,20 @@ function _handleUiAction(act) {
   if (_gameOver) return;
 
   switch (act.action) {
-    case 'SKILL':
-      BattleEngine.activateSkill(act.slotKey);
+    case 'CARD':
+      TurnCombat.play(act.organKey, act.skillId, TurnCombat.state.targetMobId, TurnCombat.state.targetSlot);
+      render();
+      break;
+    case 'END_TURN':
+      TurnCombat.endTurn();
+      render();
       break;
     case 'WAIT':
       _tick({ type: 'WAIT' });
       break;
     case 'INSPECT_SELF':
-      InspectorPanel.showBody(WS.player.body);
+      _inspect = null;
+      render();
       break;
     case 'HARVEST_OPEN':
       _openHarvestUI();
@@ -550,7 +558,15 @@ function _choosePath(biomeId, nextIdx) {
 // ── Main render ───────────────────────────────────────────────────────────────
 function render() {
   SceneRenderer.render();
-  MobRenderer.render();
+  MobRenderer.render({
+    focusedMobId: _targetedMobId,
+    onFocus: (mobId) => {
+      _targetedMobId = mobId;
+      _targetedSlot  = null;
+      if (TurnCombat.isActive()) TurnCombat.setTarget(mobId, null);
+      render();
+    },
+  });
   HUDRenderer.render();
   MinimapRenderer.render();
   InventoryRenderer.render();
@@ -563,7 +579,7 @@ function render() {
     onAimMob: (mobId, slotKey) => {
       _targetedMobId = mobId;
       _targetedSlot  = slotKey;
-      if (WS.battle?.active) BattleEngine.setTarget(slotKey);
+      if (TurnCombat.isActive()) TurnCombat.setTarget(mobId, slotKey);
       render();
     },
     onTick:           (action) => _tick(action),
@@ -574,18 +590,86 @@ function render() {
     onHeritageChange: _saveHeritage,
   });
 
-  // Default inspector view: body stats. Overridden when user clicks a segment/item.
-  InspectorPanel.showBody(WS.player.body);
+  // Inspector: an organ or a picked-up item (each with a back button) if one is
+  // selected and still present, else the body overview.
+  const _back = () => { _inspect = null; render(); };
+  if (_inspect?.kind === 'organ') {
+    const s = WS.player.body?.slots?.[_inspect.slot];
+    if (s?.organId) InspectorPanel.showOrgan(s.organId, s.hp, _inspect.slot, _back);
+    else { _inspect = null; InspectorPanel.showBody(WS.player.body); }
+  } else if (_inspect?.kind === 'item') {
+    const it = WS.player.inventory?.[_inspect.index];
+    if (it?.organId) InspectorPanel.showOrgan(it.organId, it.hp, null, _back);
+    else { _inspect = null; InspectorPanel.showBody(WS.player.body); }
+  } else {
+    InspectorPanel.showBody(WS.player.body);
+  }
 
   ActionBar.render();
+  _renderCombatHand();
   BodyFX.apply();
   SensoryFX.applyBodyState();
 
   const _curFloor = WS.floors[WS.player.floorIdx];
   if (_curFloor) {
     const _app = document.getElementById('chair-app');
-    if (_app) _app.dataset.biome = _curFloor.biomeId;
+    if (_app) {
+      _app.dataset.biome = _curFloor.biomeId;
+      _applyBiomePalette(_app, _curFloor.biomeId);
+    }
   }
+}
+
+// Drive the biome colours from biomes.json (the single source of truth) by
+// writing the palette onto the game element's CSS custom properties.
+function _applyBiomePalette(el, biomeId) {
+  const p = getBiomeData(biomeId)?.palette;
+  if (!p) return;
+  const map = { '--meat': p.meat, '--blood': p.blood, '--thread': p.thread, '--torch': p.torch, '--torch-hot': p.torchHot };
+  for (const [k, v] of Object.entries(map)) if (v) el.style.setProperty(k, v);
+}
+
+// ── Combat hand (drag-and-drop cards) ──────────────────────────────────────────
+function _renderCombatHand() {
+  if (!TurnCombat.isActive()) { CombatHand.hide(); return; }
+  const room   = currentRoom();
+  const active = (room?.mobIds ?? []).map(id => WS.mobs.get(id)).filter(m => m?.lifecycle === 'active');
+  const mob    = active.find(m => m.id === _targetedMobId) ?? active[0];
+
+  // Targets for EVERY enemy (each cluster is drawn over its own silhouette), so
+  // you can drop a card straight on the mob you want — no pre-selection needed.
+  const organs = [];
+  for (const mb of active) {
+    const reach = new Set(TurnCombat.targetable(mb.id, false));
+    for (const k of Object.keys(ORGAN_SLOTS)) {
+      const s = mb.body.slots[k];
+      if (!s?.organId) continue;
+      const def = organResolver(s.organId);
+      const maxHp = def?.maxHp ?? 1;
+      const hp = s.hp ?? maxHp;
+      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer, name: def?.name ?? k, hp, maxHp, locked: !reach.has(k), dead: hp <= 0 });
+    }
+  }
+
+  const cards = TurnCombat.hand().map(c => ({
+    organKey:   c.organKey,
+    skillId:    c.skill.id,
+    label:      c.skill.label,
+    cost:       c.skill.cost ?? 0,
+    desc:       c.skill.desc ?? '',
+    organName:  organResolver(c.organId)?.name ?? '',
+    playable:   c.playable,
+    needsTarget: ['damage', 'heal', 'retrigger'].includes(c.skill.effect?.kind),
+    layerHint:  ORGAN_SLOTS[c.organKey]?.layer ?? 'x',
+  }));
+
+  CombatHand.render(cards, {
+    blood:  TurnCombat.blood(),
+    mobId:  mob?.id ?? null,
+    organs,
+    onPlay: (organKey, skillId, mobId, slot, isSelf) => { TurnCombat.play(organKey, skillId, mobId, slot, isSelf); render(); },
+    onEndTurn: () => { TurnCombat.endTurn(); render(); },
+  });
 }
 
 // ── Harvest UI ────────────────────────────────────────────────────────────────

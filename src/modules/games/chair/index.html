@@ -86,6 +86,12 @@
       </div>
     </div>
 
+    <!-- Journal (combat / événements) -->
+    <div class="panel" id="log-panel">
+      <h3><i>✶</i> Journal</h3>
+      <div class="log" id="combat-log" aria-live="polite" aria-atomic="false"></div>
+    </div>
+
   </aside>
 
   <!-- ══ CENTRE — Viewport + Log + Room panel ════════════════════════════════ -->
@@ -104,6 +110,10 @@
         <div class="rib rib1" aria-hidden="true"></div>
         <div class="rib rib2" aria-hidden="true"></div>
         <div class="rib rib3" aria-hidden="true"></div>
+        <!-- Directional exits (shown by SceneRenderer when a passage exists) -->
+        <div class="exit exit-l" id="exit-l" aria-hidden="true"><span class="ex-arrow">‹</span></div>
+        <div class="exit exit-r" id="exit-r" aria-hidden="true"><span class="ex-arrow">›</span></div>
+        <div class="exit exit-f" id="exit-f" aria-hidden="true"><span class="ex-arrow">▲</span></div>
         <!-- Mob silhouette (dynamic, managed by MobRenderer) -->
         <div class="creature" id="mob-display">
           <div class="c-mass"></div>
@@ -139,25 +149,22 @@
       </div>
     </div>
 
-    <!-- Combat / event log -->
-    <div class="log" id="combat-log" aria-live="polite" aria-atomic="false"></div>
-
   </main>
 
   <!-- ══ COLONNE DROITE — Ton corps + Inspection ═════════════════════════════ -->
   <aside class="col-r">
 
-    <!-- Ton corps — bandeau réacteur (sang + organes + PV), rendu par ReactorPanel.js -->
-    <div class="panel">
+    <!-- Ton corps — silhouette humanoïde + organes (PV en un coup d'œil), ReactorPanel.js -->
+    <div class="panel grow">
       <h3><i>†</i> Ton corps</h3>
       <div class="reactor" id="reactor"></div>
     </div>
 
-    <!-- Inspection panel -->
-    <div class="panel grow inspector" id="inspector-panel">
+    <!-- Inspection panel (compact) -->
+    <div class="panel inspector" id="inspector-panel">
       <h3><i>✦</i> Inspection</h3>
       <div id="insp-content">
-        <div class="hint">← clique un segment</div>
+        <div class="hint">clique un organe</div>
       </div>
     </div>
 

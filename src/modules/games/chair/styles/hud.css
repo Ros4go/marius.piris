@@ -544,8 +544,80 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .blood-btn:disabled { opacity: .3; cursor: default; }
 .blood-count { font: .56rem var(--mono); color: #8a6840; min-width: 22px; text-align: center; }
 
+/* ── "Ton corps" — humanoid silhouette + organ nodes (legacy .r* rules below
+      are unused now; kept harmless). ───────────────────────────────────────── */
+.reactor {
+  position: relative; flex: 1 1 0; width: 100%; min-height: 150px; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+/* fixed-aspect frame (matches the svg viewBox 100×132) → no vertical stretch */
+.bodymap { position: relative; width: 100%; aspect-ratio: 100 / 132; max-height: 100%; margin: auto; }
+
+.bodymap .sil {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
+  filter: drop-shadow(0 3px 5px #000) drop-shadow(0 0 2px #3d201c66);
+}
+
+.bodymap-nodes { position: absolute; inset: 0; }
+.organ-node {
+  position: absolute; transform: translate(-50%, -50%);
+  background: none; border: 0; padding: 0; cursor: pointer; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+}
+.organ-node:hover, .organ-node:focus-visible { z-index: 5; outline: none; }
+/* organ bead: dark/fleshy (recessed into the body), HP severity shown only by a
+   thin coloured rim + the number's tint — discreet, not a loud filled disc */
+.on-bead {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 40% 32%, #2d1a14, #140b08);
+  border: 1px solid #170d0a;
+  /* HP colour is only a faint inner halo now — present but not flagrant */
+  box-shadow: inset 0 1px 2px #ffffff10, inset 0 -3px 5px #00000055,
+              inset 0 0 7px -3px var(--hpcol, var(--torch)), 0 2px 5px #000a;
+  transition: transform .12s, box-shadow .12s;
+}
+.organ-node:hover .on-bead { transform: scale(1.13); box-shadow: inset 0 1px 2px #ffffff16, inset 0 0 8px -2px var(--hpcol, var(--torch)), 0 0 9px -1px var(--hpcol, var(--torch)); }
+.on-hp { font: bold .64rem var(--mono); color: #e9ddcd; text-shadow: 0 1px 2px #000; letter-spacing: .01em; }
+.on-name {
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  margin-top: 3px; white-space: nowrap; pointer-events: none;
+  font: .58rem var(--mono); color: var(--bone); letter-spacing: .03em;
+  background: #0c0807ee; padding: 1px 6px; border-radius: 3px; z-index: 6;
+  opacity: 0; transition: opacity .12s;
+}
+.organ-node:hover .on-name, .organ-node:focus-visible .on-name { opacity: 1; }
+.organ-node.vital .on-bead {
+  box-shadow: inset 0 1px 2px #ffffff10, inset 0 -3px 5px #00000055,
+              inset 0 0 7px -3px var(--hpcol, var(--torch)), 0 0 6px #8a2f2a44;
+}
+.organ-node.dead .on-bead {
+  border-color: #241712; background: radial-gradient(circle at 40% 32%, #20130f, #0d0706);
+  box-shadow: inset 0 1px 2px #ffffff08, inset 0 -3px 5px #00000055, 0 1px 3px #000a;
+}
+.organ-node.dead .on-hp { color: #6a5d48; text-shadow: none; }
+.organ-node.dead { filter: grayscale(.4) brightness(.88); }
+.organ-node.empty { cursor: default; opacity: .4; }
+.organ-node.empty .on-bead { background: none; border: 1px dashed #3a2a18; box-shadow: none; }
+.organ-node.empty .on-hp, .organ-node.empty .on-name { display: none; }
+
+/* inspector back button */
+.ins-back {
+  display: inline-flex; align-items: center; gap: 5px;
+  font: .58rem var(--mono); color: var(--torch); letter-spacing: .04em;
+  background: #160d08; border: 1px solid #3a2a18; border-radius: 4px;
+  padding: 3px 9px; margin-bottom: 8px; cursor: pointer;
+}
+.ins-back:hover { color: var(--torch-hot); border-color: var(--torch); background: #1d1109; }
+
+/* inspector — FIXED height (content-independent), scrolls internally */
+#inspector-panel {
+  flex: 0 0 clamp(190px, 34vh, 290px);
+  display: flex; flex-direction: column; min-height: 0;
+}
+#inspector-panel #insp-content { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+
 /* ── Reactor panel (col-r) — heart reactor (left) + anatomical body map ─────── */
-.reactor { display: flex; gap: 11px; align-items: stretch; }
 
 /* Heart = the reactor: it produces the blood pool */
 .rheart { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -703,3 +775,195 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .inline-organ-row .harvest-btn { padding: 2px 7px; font-size: .76rem; }
 .inline-back { margin-top: 8px; }
 .stub-panel  { color: #564b39; font-style: italic; font-size: .82rem; font-family: var(--mono); }
+
+/* ── Turn-based combat: card hand ───────────────────────────────────────────── */
+#action-bar { flex-wrap: wrap; align-content: center; gap: 5px 6px; }
+.act.cbt {
+  flex: 1 1 132px; max-width: none; min-width: 116px;
+  align-items: flex-start; text-align: left; gap: 3px;
+  padding: 15px 9px 7px;
+}
+.act.cbt b { letter-spacing: .1em; font-size: .8rem; color: var(--torch); }
+.act.cbt em {
+  text-align: left; white-space: normal; line-height: 1.22;
+  color: #8c7d63; font-size: .57rem; letter-spacing: 0;
+}
+.act.cbt .key {
+  left: auto; right: 6px; top: 4px;
+  font-size: .62rem; color: var(--torch-hot); font-weight: bold;
+}
+.act.cbt.empty { opacity: .42; }
+.act.cbt.empty b { color: var(--bone-dim); }
+.act.cbt.endturn {
+  flex: 1 1 100%; align-items: center; text-align: center;
+  background: linear-gradient(#241405, #140b04); border-color: var(--torch);
+  padding: 6px 9px;
+}
+.act.cbt.endturn b  { color: var(--torch-hot); letter-spacing: .22em; }
+.act.cbt.endturn em { text-align: center; color: var(--bone-dim); }
+.act.cbt.endturn .key { color: var(--torch-hot); right: 8px; top: 50%; transform: translateY(-50%); }
+
+/* ════ Drag-and-drop combat hand + targeting overlay ════════════════════════ */
+#combat-ui { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
+
+/* the hand: real cards along the bottom */
+#combat-hand {
+  position: absolute; left: 0; right: 0; bottom: 12px;
+  display: flex; justify-content: center; align-items: flex-end; gap: 12px;
+  padding: 0 18px; pointer-events: none; flex-wrap: wrap;
+}
+.ccard {
+  pointer-events: auto; touch-action: none; cursor: grab; user-select: none;
+  position: relative; width: 148px; min-height: 196px;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 24px 12px 10px; border-radius: 10px;
+  background:
+    radial-gradient(120% 70% at 50% -8%, #321f13, transparent 62%),
+    linear-gradient(168deg, #261810, #0e0805 78%);
+  border: 1px solid #3a2a18;
+  box-shadow: 0 9px 22px #000b, inset 0 0 0 1px #00000055, inset 0 1px 0 #ffffff10, inset 0 -26px 30px #0009;
+  transition: transform .12s, box-shadow .14s, border-color .14s;
+}
+.ccard::before { content: ''; position: absolute; inset: 5px; border: 1px solid #ffffff0c; border-radius: 6px; pointer-events: none; }
+.ccard:hover { transform: translateY(-14px) rotate(-.4deg); border-color: var(--torch); box-shadow: 0 18px 34px #000d, 0 0 18px #cf9a3a3a, inset 0 1px 0 #ffffff16; z-index: 2; }
+/* while aiming, the card stays in place (lifted + glowing) and an arrow points
+   from it to the cursor — the organs behind stay fully visible */
+.ccard.aiming {
+  transform: translateY(-16px); z-index: 3; cursor: grabbing;
+  border-color: var(--torch-hot);
+  box-shadow: 0 20px 38px #000d, 0 0 24px #e8b25c66, inset 0 1px 0 #ffffff16;
+}
+.ccard.aiming:hover { transform: translateY(-16px); }
+.ccard.disabled { filter: grayscale(.7) brightness(.55); cursor: default; }
+.cc-cost { position: absolute; top: 8px; left: 9px; display: flex; align-items: center; gap: 3px; }
+.cc-cost i {
+  width: 8px; height: 11px;
+  background: radial-gradient(circle at 38% 28%, #e8584e, #7a1813);
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  box-shadow: 0 1px 2px #000a, inset 0 1px 1px #ffffff33;
+}
+.cc-cost u { font: .5rem var(--mono); color: #6a5d48; text-decoration: none; letter-spacing: .05em; }
+.cc-name { font: .92rem var(--serif); font-variant: small-caps; letter-spacing: .1em; color: var(--torch-hot); text-shadow: 0 1px 4px #000; }
+.cc-desc { font: .68rem/1.42 var(--mono); color: #b6a786; flex: 1; margin-top: 2px; }
+.cc-tag  { font: .54rem var(--mono); color: #6a5d48; letter-spacing: .04em; text-align: right; margin-top: auto; opacity: .85; font-style: italic; }
+.ccard.targeted-card::after { content: '⤴ glisse sur un organe'; position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font: .5rem var(--mono); color: var(--torch); opacity: 0; transition: opacity .12s; }
+.ccard.targeted-card:hover::after { opacity: .8; }
+
+#combat-end {
+  pointer-events: auto; cursor: pointer; align-self: flex-end;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 112px; min-height: 196px; padding: 14px 11px;
+  border-radius: 10px; border: 1px solid var(--torch);
+  background: linear-gradient(165deg, #2a1606, #150b04);
+  color: var(--torch-hot); font: .82rem var(--serif); font-variant: small-caps; letter-spacing: .16em;
+  box-shadow: 0 9px 22px #000b, inset 0 1px 0 #ffffff10;
+  transition: transform .12s, background .14s;
+}
+#combat-end em { font: .56rem var(--mono); font-style: normal; color: var(--bone-dim); letter-spacing: .02em; margin-top: auto; text-align: center; line-height: 1.4; }
+#combat-end:hover { background: linear-gradient(165deg, #3a1f08, #1d0e05); transform: translateY(-6px); }
+
+/* the dragged ghost */
+#combat-ghost {
+  position: fixed; top: 0; left: 0; z-index: 60; pointer-events: none;
+  padding: 7px 12px; border-radius: 6px; margin: -16px 0 0 -40px;
+  background: linear-gradient(165deg, #3a2410, #1a0f07);
+  border: 1px solid var(--torch); box-shadow: 0 0 18px #cf9a3a66, 0 8px 18px #000a;
+  font: .78rem var(--serif); font-variant: small-caps; letter-spacing: .14em; color: var(--torch-hot);
+}
+
+/* targeting mode: dim the scene, reveal the enemy organs over its body */
+#chair-app.targeting .viewport .scene { filter: brightness(.32) saturate(.55) blur(.6px); transition: filter .15s; }
+/* dim the OTHER cards individually (not the container) so the lifted card,
+   a child of #combat-hand, isn't caught in a group-opacity and greyed out */
+#chair-app.targeting #combat-hand > *:not(.aiming) { opacity: .22; }
+#combat-targets { display: none; }
+#chair-app.targeting #combat-targets {
+  display: block; position: absolute; inset: 0; z-index: 50; pointer-events: none;
+}
+/* one cluster per enemy, centred on its silhouette */
+.ctmob {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 7px; pointer-events: none;
+}
+.ctrow { display: flex; justify-content: center; gap: 8px; pointer-events: none; }
+.ctrow.l-deep  { order: 1; }
+.ctrow.l-mid   { order: 2; }
+.ctrow.l-outer { order: 3; }
+.ctarget {
+  pointer-events: auto; cursor: pointer; position: relative;
+  width: 64px; padding: 7px 5px 6px; border-radius: 6px; text-align: center;
+  background: radial-gradient(circle at 50% 30%, #3a2410cc, #140b07ee);
+  border: 1px solid var(--torch);
+  box-shadow: 0 0 14px #cf9a3a55, inset 0 0 10px #0008;
+  animation: ctpulse 1.6s ease-in-out infinite;
+}
+@keyframes ctpulse { 50% { box-shadow: 0 0 22px #cf9a3a88, inset 0 0 10px #0006; } }
+.ctarget.hot { transform: scale(1.14); border-color: #ffd98a; box-shadow: 0 0 28px #ffce6e, inset 0 0 12px #0006; }
+.ctarget.locked { border-color: #4a3a24; box-shadow: none; opacity: .5; filter: grayscale(.6); animation: none; cursor: not-allowed; }
+.ctarget.locked::after { content: '🔒'; position: absolute; top: 1px; right: 3px; font-size: .6rem; }
+.ctarget.dead { opacity: .25; animation: none; }
+.ct-name { display: block; font: .56rem var(--mono); color: var(--bone); letter-spacing: .03em; text-shadow: 0 1px 3px #000; }
+.ct-hp { display: block; height: 4px; margin-top: 4px; background: #160c0c; border: 1px solid #2a1414; }
+.ct-hp > span { display: block; height: 100%; background: linear-gradient(90deg, #5d1f1f, #b5453c); }
+
+/* ── Journal moved to the left column, under the map ───────────────────── */
+/* journal — FIXED height (content-independent), scrolls internally */
+#log-panel { flex: 0 0 clamp(120px, 22vh, 180px); display: flex; flex-direction: column; min-height: 0; }
+#log-panel .log {
+  /* inside a .panel already framed — drop the heavy box, just keep the rail */
+  flex: 1 1 0; min-height: 0; max-height: none; border: none; background: #060403;
+  box-shadow: inset 0 0 18px #000; padding: 6px 11px;
+  font-size: .62rem; line-height: 1.6;
+  overflow-y: auto;
+}
+
+/* ── Self-targeting: your own organs (reactor) glow while you drag a card ── */
+#chair-app.targeting #reactor [data-organ] {
+  cursor: copy; border-radius: 5px;
+  box-shadow: 0 0 0 1px #cf9a3a55, 0 0 12px #cf9a3a30;
+  transition: box-shadow .1s, background .1s;
+}
+#chair-app.targeting #reactor [data-organ].hot {
+  background: #2a1a0c66;
+  box-shadow: 0 0 0 2px var(--torch-hot), 0 0 18px #e8b25c88;
+}
+#chair-app.targeting #reactor [data-organ].dead {
+  box-shadow: none; opacity: .4; cursor: not-allowed;
+}
+
+/* ── Targeting arrow (drawn from the aimed card to the cursor) ──────────── */
+#combat-arrow {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  z-index: 64; pointer-events: none; overflow: visible;
+}
+.arrow-line {
+  fill: none; stroke: var(--torch-hot); stroke-width: 4;
+  stroke-linecap: round; stroke-dasharray: 2 11;
+  filter: drop-shadow(0 0 6px #cf9a3aaa);
+  animation: arrowflow .55s linear infinite;
+}
+@keyframes arrowflow { to { stroke-dashoffset: -26; } }
+.arrow-head { fill: var(--torch-hot); filter: drop-shadow(0 0 6px #cf9a3a); }
+
+/* ── Blood drops, top-left (this turn's spendable Sang) ─────────────────── */
+#combat-blood {
+  position: absolute; top: 12px; left: 14px; z-index: 42;
+  display: flex; align-items: center; gap: 7px; pointer-events: none;
+  padding: 5px 11px 5px 8px; border-radius: 999px;
+  background: linear-gradient(#160b0bcc, #0c0606cc);
+  border: 1px solid #4a1f1c; box-shadow: 0 3px 10px #000a, inset 0 1px 0 #ffffff0c;
+}
+#combat-blood .cb-drops { display: flex; gap: 3px; }
+#combat-blood .cb-drops i {
+  width: 10px; height: 14px;
+  background: radial-gradient(circle at 38% 28%, #f0655a, #7a1813);
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  box-shadow: 0 1px 2px #000a, inset 0 1px 1px #ffffff40;
+}
+#combat-blood .cb-num {
+  font: bold .9rem var(--mono); color: #f0a098; text-shadow: 0 1px 3px #000;
+}
+#combat-blood .cb-cap {
+  font: .54rem var(--mono); color: #8a6f5a; letter-spacing: .14em;
+  text-transform: uppercase;
+}

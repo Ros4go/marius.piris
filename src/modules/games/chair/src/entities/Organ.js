@@ -23,8 +23,11 @@ export class Organ {
   get layer()     { return this._def.layer; }
   get pool()      { return this._def.pool ?? 0; }          // heart: blood produced
   get maxBlood()  { return this._def.maxBlood ?? 0; }      // blood capacity
-  get skill()     { return this._def.skill ?? null; }      // { id, values[], charge }
-  get passive()   { return this._def.passive ?? null; }    // { id, values[] }
+  // New schema: arrays of skills/passives. Old code reads .skill/.passive (first one).
+  get skills()    { return this._def.skills ?? (this._def.skill ? [this._def.skill] : []); }
+  get passives()  { return this._def.passives ?? (this._def.passive ? [this._def.passive] : []); }
+  get skill()     { return this._def.skill ?? this._def.skills?.[0] ?? null; }
+  get passive()   { return this._def.passive ?? this._def.passives?.[0] ?? null; }
   get abilities() { return this._def.abilities ?? []; }
   get triggers()  { return this._def.triggers ?? []; }
   get flaw()      { return this._def.flaw ?? null; }

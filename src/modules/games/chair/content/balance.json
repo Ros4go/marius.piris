@@ -1,0 +1,15 @@
+{
+  "tierCost":        { "common": 1, "rare": 2, "epic": 4, "legendary": 8 },
+  "tierUnlockFloor": { "common": 0, "rare": 1, "epic": 4, "legendary": 8 },
+  "mob": {
+    "budgetBase": 5,
+    "budgetPerFloor": 2,
+    "eliteMult": 1.7,
+    "eliteChance": 0.04
+  },
+  "combat": {
+    "damageScalePerFloor": 0.2,
+    "actionBudgetBase": 1,
+    "actionBudgetPerFloor": 1
+  }
+}

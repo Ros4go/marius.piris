@@ -6,16 +6,9 @@ import { organResolver } from '../registry.js';
 import { WS } from '../WorldState.js';
 import * as Blood from '../BattleEngine.js';
 import { armorOf, evasionOf } from '../systems/CombatSystem.js';
+import { SLOT_FULL, TYPE_NOUN } from '../labels.js';
 
 const _content = document.getElementById('insp-content');
-
-const SLOT_FR = {
-  arm_l: 'Bras gauche',    arm_r: 'Bras droit',
-  eye_l: 'Œil gauche',     eye_r: 'Œil droit',
-  ear_l: 'Oreille gauche', ear_r: 'Oreille droite',
-  legs: 'Jambes', heart: 'Cœur', skin: 'Peau',
-  brain: 'Cerveau', stomach: 'Estomac', tongue: 'Langue',
-};
 const TIER_FR = { common: 'commun', rare: 'rare', epic: 'épique', legendary: 'légendaire' };
 const PASSIVE_FR = { armor: 'Armure (réduction)', dodge: 'Esquive %', regen: 'Régénération', glow: 'Lueur' };
 const ABILITY_FR = {
@@ -42,14 +35,14 @@ const _row  = (l, v, cls='') => `<div class="ins-row ${cls}"><span>${l}</span><s
 const _desc = (t, cls='insp-pos') => `<div class="ins-row ${cls}" style="flex-wrap:wrap"><span style="white-space:normal;line-height:1.4;flex:1">${t}</span></div>`;
 const _chargeStr = (ch) => Array.isArray(ch) ? ch.map(v=>(v/1000).toFixed(1)).join(' / ')+' s' : (ch/1000).toFixed(1)+' s';
 
-export function showOrgan(organId, currentHp, slotKey) {
+export function showOrgan(organId, currentHp, slotKey, onBack) {
   if (!organId) return;
   const def = organResolver(organId);
   if (!def) return;
 
   const hp        = currentHp ?? def.maxHp;
   const quality   = def.getQuality(hp);
-  const slotLabel = slotKey ? (SLOT_FR[slotKey] ?? slotKey) : (SLOT_FR[def.type] ?? def.type);
+  const slotLabel = slotKey ? (SLOT_FULL[slotKey] ?? slotKey) : (TYPE_NOUN[def.type] ?? def.type);
   const setStr    = def.set ? ` · ${def.set}` : '';
 
   let body = '';
@@ -78,12 +71,15 @@ export function showOrgan(organId, currentHp, slotKey) {
   const flaw = def.flaw ? _desc(`⚠ ${FLAW_FR[def.flaw] ?? def.flaw}`, 'insp-neg') : '';
   if (abil || trig || flaw) body += `<div class="ins-section-head">Effets</div>${abil}${trig}${flaw}`;
 
+  const back = onBack ? '<button class="ins-back" id="ins-back-btn">← retour au corps</button>' : '';
   _content.innerHTML = `
+    ${back}
     <div class="ins-name">${def.name}</div>
     <div class="ins-arc">${slotLabel} · ${TIER_FR[def.tier] ?? def.tier}${setStr}</div>
     <div class="ins-row"><span>État</span><span>${hp}/${def.maxHp} PV <span style="color:${_qualColor(quality.name)}">[${quality.name}]</span></span></div>
     ${body}
     <div class="ins-row insp-dim"><span>Revente</span><span>${def.getSellPrice(hp)} 💀</span></div>`;
+  if (onBack) document.getElementById('ins-back-btn')?.addEventListener('click', onBack);
 }
 
 export function showBody(body) {

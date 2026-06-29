@@ -19,7 +19,7 @@
   /* ── Typography ───────────────────────────────────────────────────────────── */
   --mono:  "Courier New", ui-monospace, monospace;
   --serif: Georgia, "Palatino Linotype", serif;
-  --fz:    clamp(10px, 1.15vw, 13px);
+  --fz:    clamp(11px, 1.32vw, 15px);
 
   /* ── Spacing ──────────────────────────────────────────────────────────────── */
   --gap:     9px;
@@ -49,32 +49,7 @@
   --c-deep:  #0c0a0b;
 }
 
-/* ── Biome overrides ─────────────────────────────────────────────────────────── */
-.game[data-biome="poumons"] {
-  --meat:      #1a2a1e;
-  --blood:     #3a7a4a;
-  --thread:    #224e2e;
-  --torch:     #6fc48a;
-  --torch-hot: #a6dca8;
-}
-.game[data-biome="coeur"] {
-  --meat:      #3a0e14;
-  --blood:     #b5333a;
-  --thread:    #5a181c;
-  --torch:     #d8484a;
-  --torch-hot: #ff7a6e;
-}
-.game[data-biome="estomac"] {
-  --meat:      #182430;
-  --blood:     #3a6a72;
-  --thread:    #1e4048;
-  --torch:     #6fb0c4;
-  --torch-hot: #a6dcea;
-}
-.game[data-biome="entrailles"] {
-  --meat:      #382010;
-  --blood:     #9a5a26;
-  --thread:    #563818;
-  --torch:     #cf9a3a;
-  --torch-hot: #f0c468;
-}
+/* ── Biome palettes are data-driven ──────────────────────────────────────────────
+   The per-biome colours live in content/biomes.json (palette field) and are
+   written onto the .game element's CSS vars at runtime (see main.js
+   _applyBiomePalette). The :root values above are the default/fallback (gorge). */

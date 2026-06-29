@@ -5,6 +5,7 @@
 
 import { WS, currentRoom } from '../WorldState.js';
 import { organResolver } from '../registry.js';
+import * as TurnCombat from '../TurnCombat.js';
 
 const _bar    = document.getElementById('action-bar');
 let _onAction = null;
@@ -44,8 +45,7 @@ export function render() {
 // Fire the button's *current* action (read live, never via stale closure).
 function _fire(btn) {
   const act = btn._act;
-  if (!act) return;
-  if (WS.battle?.active && act.action === 'SKILL' && !act.ready) return;
+  if (!act || act.disabled) return;
   _onAction?.(act);
 }
 
@@ -54,15 +54,12 @@ function _buildBtn(act, i) {
 
   const key = document.createElement('span');
   key.className = 'key';
-  key.textContent = `${i + 1}`;
 
   const label = document.createElement('b');
-  label.textContent = act.label;
-
   const sub = document.createElement('em');
 
   btn.append(key, label, sub);
-  btn._sub = sub;
+  btn._key = key; btn._lbl = label; btn._sub = sub;
 
   btn.addEventListener('click', () => _fire(btn));
   btn.addEventListener('touchstart', (e) => { e.preventDefault(); _fire(btn); }, { passive: false });
@@ -71,60 +68,52 @@ function _buildBtn(act, i) {
   return btn;
 }
 
-function _updateBtn(btn, act) {
+function _updateBtn(btn, act, i) {
   btn._act = act;
-  const isBattleSkill = WS.battle?.active && act.action === 'SKILL';
-
   btn.className = 'act'
+    + (act.combat ? ' cbt' : '')
+    + (act.action === 'END_TURN' ? ' endturn' : '')
     + (act.heart ? ' heartact' : '')
-    + (act.disabled && !isBattleSkill ? ' empty' : '')
-    + (isBattleSkill ? ' charging' : '')
-    + (isBattleSkill && act.ready ? ' ready' : '');
-
-  btn.disabled = !!(act.disabled && !isBattleSkill);
+    + (act.disabled ? ' empty' : '');
+  btn.disabled = !!act.disabled;
   btn.dataset.action = act.action;
-
-  if (isBattleSkill) btn.style.setProperty('--charge', `${act.chargePct ?? 0}%`);
+  btn.title = act.desc ?? act.label ?? '';
+  if (btn._key) btn._key.textContent = act.keyText ?? `${(i ?? 0) + 1}`;
+  if (btn._lbl) btn._lbl.textContent = act.label ?? '';
   if (btn._sub) btn._sub.textContent = act.sub ?? '';
 }
 
 // --- Battle skill derivation ---
 // The skill is fully defined per organ (organ.skill = { kind, label, … }).
 
-// Priority order of organ slots to show as skill buttons during battle.
-const BATTLE_SLOT_ORDER = ['arm_l','arm_r','legs','tongue','brain','eye_l','eye_r','ear_l','ear_r','stomach','skin'];
-
+// Turn-based hand: one button per playable organ skill (card) + END TURN.
 function _deriveBattle() {
-  const body = WS.player.body;
   const acts = [];
-
-  for (const slotKey of BATTLE_SLOT_ORDER) {
-    if (acts.length >= 6) break;
-    const slot = body?.slots?.[slotKey];
-    if (!slot) continue;
-    if (slot.hp !== null && slot.hp <= 0) continue;  // dead organ
-
-    const def = organResolver(slot.organId);
-    const sk  = def?.skill;
-    if (!sk?.kind) continue;  // no active skill (purely passive organ)
-
-    const prog      = WS.battle?.organProgress?.[slotKey];
-    const chargePct = prog ? Math.round((prog.chargedMs / Math.max(1, prog.totalMs)) * 100) : 0;
-    const ready     = prog?.ready ?? false;
-    const sub       = !prog ? 'inactif' : ready ? '▶ PRÊT' : `${chargePct}%`;
-
-    acts.push({ action: 'SKILL', slotKey, label: sk.label || sk.kind.toUpperCase(), sub, disabled: !ready, ready, chargePct });
+  for (const c of TurnCombat.hand()) {
+    if (acts.length >= 5) break;
+    const cost = c.skill.cost ?? 0;
+    const note = c.blocked === 'no_meat' ? ' (pas de viande)' : c.blocked === 'used' ? ' (épuisé)' : '';
+    acts.push({
+      action: 'CARD', organKey: c.organKey, skillId: c.skill.id,
+      label: c.skill.label, keyText: `${cost}💉`,
+      sub: (c.skill.desc ?? '') + note, desc: c.skill.desc ?? '',
+      disabled: !c.playable, combat: true,
+    });
   }
-
+  acts.push({
+    action: 'END_TURN', label: 'FIN DU TOUR', keyText: '⏎',
+    sub: `${TurnCombat.blood()}💉 restant — l'ennemi joue`,
+    desc: 'Termine ton tour : les ennemis exécutent leur action télégraphiée.', combat: true,
+  });
   return acts;
 }
 
 // --- Action derivation ---
 
 function _derive(room) {
-  // Combat is real-time: as soon as a room has active mobs, BattleEngine starts
-  // and WS.battle.active drives the skill bar. This branch handles exploration only.
-  if (WS.battle?.active) return _deriveBattle();
+  // During combat the bottom bar is empty — the drag-and-drop card hand
+  // (CombatHand) takes over. This bar is exploration-only.
+  if (TurnCombat.isActive()) return [];
 
   const acts = [];
   const { floorIdx, pos } = WS.player;

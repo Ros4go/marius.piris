@@ -176,10 +176,47 @@ html, body {
   transition: opacity .15s;
 }
 
-/* Door arch: shown when forward passage exists */
+/* Door arch: lit doorway when a forward passage exists (warm light from beyond) */
 .g-end.has-door {
-  background: radial-gradient(ellipse 46% 52% at 50% 78%, #030101 0%, #1b0c0d 60%, #050202 100%);
+  background: radial-gradient(ellipse 46% 56% at 50% 72%, #2a1408 0%, #120808 52%, #050202 100%);
+  box-shadow: 0 0 30px -6px var(--torch), inset 0 0 26px #000;
 }
+
+/* ── Directional exits (passages) ──────────────────────────────────────────────
+   Glowing archways cut into the walls + a chevron, shown only where you can go.
+   Far clearer than dimming a wall — the corridor stops looking "straight only". */
+.exit { position: absolute; display: none; z-index: 4; pointer-events: none; }
+.exit.open { display: block; }
+
+/* Side passages are doorways CARVED into the wall: a full-viewport element with a
+   viewport-% clip-path (same coordinate space as the .geo walls), so each edge is
+   parallel to the wall's edges — the bottom runs exactly along the floor line, the
+   top along the ceiling line. Glow follows the silhouette via drop-shadow. */
+.exit-l, .exit-r {
+  inset: 0;
+  background: radial-gradient(ellipse 24% 44% at var(--cx) 56%, #000 32%, #160a0b 82%, #200e0f 100%);
+  animation: exit-pulse 2.6s ease-in-out infinite;
+}
+.exit-l { --cx: 11%; clip-path: polygon(3% 20%, 11% 13%, 20% 34%, 20% 81%, 3% 97%); }
+.exit-r { --cx: 89%; clip-path: polygon(97% 20%, 89% 13%, 80% 34%, 80% 81%, 97% 97%); }
+@keyframes exit-pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px var(--torch-hot)) drop-shadow(0 0 4px var(--torch)); }
+  50%      { filter: drop-shadow(0 0 18px var(--torch-hot)) drop-shadow(0 0 8px var(--torch)); }
+}
+
+/* forward chevron, floating just above the back doorway */
+.exit-f { left: 0; right: 0; top: 22.5%; height: 7%; text-align: center; }
+
+.ex-arrow {
+  font: 1.5rem/1 var(--serif); color: var(--torch-hot);
+  text-shadow: 0 0 11px var(--torch), 0 1px 2px #000; opacity: .92;
+  animation: exit-arrow 2.6s ease-in-out infinite;
+}
+.exit-l .ex-arrow, .exit-r .ex-arrow { position: absolute; top: 55%; transform: translate(-50%, -50%); }
+.exit-l .ex-arrow { left: 10.5%; }
+.exit-r .ex-arrow { left: 89.5%; }
+.exit-f .ex-arrow { font-size: 1.2rem; }
+@keyframes exit-arrow { 50% { opacity: .45; } }
 
 /* Rib arches */
 .rib {
@@ -193,16 +230,45 @@ html, body {
 .rib2 { width: 62%; height: 62%; top: 16%; border-color: #39301f; }
 .rib3 { width: 42%; height: 42%; top: 25%; border-color: #272013; border-width: 5px 4px 0 4px; }
 
-/* Creature silhouette (mob display) — hidden when no mob present */
+/* Creature display (mobs) — a centered row so several enemies sit side by side */
 .creature {
-  position: absolute; left: 43.5%; top: 42%;
-  width: 13%; aspect-ratio: 1 / 1.1;
+  position: absolute; left: 0; right: 0; top: 34%;
+  display: none; justify-content: center; align-items: flex-end;
+  gap: clamp(18px, 5vw, 80px);
   animation: breath 4.2s ease-in-out infinite;
   filter: blur(.4px);
-  display: none;
 }
-.creature.visible { display: block; }
-@keyframes breath { 50% { transform: scale(1.05) translateY(-2%); } }
+.creature.visible { display: flex; }
+/* legacy placeholder blob from index.html — superseded by procedural silhouettes */
+.creature > .c-mass, .creature > .c-eye { display: none; }
+@keyframes breath { 50% { transform: scale(1.03) translateY(-2%); } }
+
+/* Each mob: clickable, focus-highlighted, with a name + intent bubble above it */
+.mobwrap { position: relative; cursor: pointer; transition: filter .12s, transform .12s; }
+.mobwrap:hover { transform: translateY(-3px); }
+.mobwrap.focused { filter: drop-shadow(0 0 11px #e8b25c99); }
+.mob-tag {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  margin-bottom: 9px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  white-space: nowrap; pointer-events: none;
+}
+.mob-name {
+  font-variant: small-caps; letter-spacing: .22em; font-size: .62rem;
+  color: #8d7e63; text-shadow: 0 1px 4px #000;
+}
+.mobwrap.focused .mob-name { color: var(--torch-hot); }
+.mob-name::before { content: "☙ "; color: #3d3322; letter-spacing: 0; }
+.mob-name::after  { content: " ❧"; color: #3d3322; letter-spacing: 0; }
+.mi {
+  display: inline-flex; align-items: center; gap: 5px;
+  font: .56rem var(--mono); color: #c9b79a; letter-spacing: .03em;
+  padding: 1px 8px; border-radius: 999px;
+  border: 1px solid #5a2a26; background: #1c0d0bdd; text-shadow: 0 1px 3px #000;
+}
+.mi em { font-style: normal; color: #e0867c; }
+.mi b  { font-weight: normal; color: #ddc9a8; }
+.mi.vague em { color: #8d7e63; }
+.mi.mi-wait { color: #5a4f3d; border-color: #2a1f14; }
 .c-mass {
   position: absolute; inset: 0;
   border-radius: 46% 54% 44% 46% / 60% 58% 40% 42%;
@@ -253,11 +319,11 @@ html, body {
 .foe-name::before { content: "☙ "; color: #3d3322; letter-spacing: 0; }
 .foe-name::after  { content: " ❧"; color: #3d3322; letter-spacing: 0; }
 .foe-intent {
-  margin-top: 5px; font: .58rem var(--mono); color: #7a6c54;
-  letter-spacing: .08em; text-shadow: 0 0 6px #000;
+  margin-top: 6px; font: .6rem var(--mono); letter-spacing: .04em;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  flex-wrap: nowrap; white-space: nowrap; text-shadow: 0 0 6px #000;
 }
-.foe-intent b { color: #b5453c; font-weight: normal; animation: intblink 1.4s steps(2) infinite; }
-@keyframes intblink { 50% { opacity: .4; } }
+@keyframes intblink { 50% { opacity: .45; } }
 
 /* Enemy reactor: parallel organ charges (FTL-style threat table) */
 .foe-reactor { display: flex; justify-content: center; align-items: flex-end; gap: 7px; flex-wrap: wrap; }
@@ -589,3 +655,39 @@ html, body {
 /* LUM also brightens grain to simulate glow noise */
 .game.lum-mid  .grain { opacity: .14; }
 .game.lum-high .grain { opacity: .22; animation-duration: .28s; }
+
+/* ── Turn-based combat: clearer clickable enemy organs ──────────────────────── */
+.foe { width: 80%; top: 3%; }
+.foe-reactor { gap: 6px 9px; }
+.fcell {
+  position: relative; width: 46px; padding: 4px 3px 5px;
+  border: 1px solid #2a1f1455; border-radius: 4px; background: #0c0807cc;
+  transition: border-color .12s, transform .08s, background .12s;
+}
+.fcell:hover:not(.locked):not(.dead) { border-color: var(--torch-hot); background: #1a0f08e0; transform: translateY(-1px); }
+.fcell.targeted { border-color: var(--torch-hot); box-shadow: 0 0 0 2px var(--torch-hot), 0 0 12px #cf9a3a55; }
+.fcell.locked { opacity: .5; cursor: not-allowed; filter: grayscale(.5); }
+.fcell.locked::after { content: '🔒'; position: absolute; top: 1px; right: 2px; font-size: .52rem; opacity: .85; }
+.fcell.dead { opacity: .28; cursor: default; }
+.fhp { width: 100%; }
+/* "Ton tour" pill */
+.turn-you {
+  color: var(--torch-hot); font-variant: small-caps; font-weight: bold;
+  letter-spacing: .16em; padding: 2px 10px; border-radius: 999px;
+  border: 1px solid #6e4a1f; background: #1c130acc;
+}
+/* Enemy intent pill: "⚠ Morsure sur Peau −2" */
+.foe-intent .tg {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: #c9b79a; padding: 2px 6px 2px 9px; border-radius: 999px;
+  border: 1px solid #5a2a26; background: #1c0d0bcc;
+}
+.foe-intent .tg em  { font-style: normal; color: #e0867c; }
+.foe-intent .tg b   { font-weight: normal; color: #ddc9a8; }
+.foe-intent .tg.vague em { color: #8d7e63; animation: intblink 1.4s steps(2) infinite; }
+.tg-dmg {
+  font-weight: bold; color: #fff5ee; background: var(--blood);
+  border-radius: 5px; padding: 0 6px; font-size: .92em;
+  box-shadow: inset 0 1px 0 #ffffff22, 0 1px 3px #000;
+}
+.tg-more { color: #6a5d48; font-size: .92em; opacity: .8; }

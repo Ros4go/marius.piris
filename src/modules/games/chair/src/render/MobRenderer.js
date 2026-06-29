@@ -1,13 +1,38 @@
-// Procedural mob silhouette from mob.body organs.
+// Procedural mob silhouettes from mob.body organs. Multiple mobs are laid out
+// side by side on the scene, each with its NAME and its telegraphed INTENT in a
+// bubble above it, and each clickable to make it your focused target.
 // DOM nodes are cached per mobId and rebuilt only on first appearance.
 
 import { WS, currentRoom } from '../WorldState.js';
 import { organResolver } from '../registry.js';
+import { ORGAN_SLOTS } from '../entities/Body.js';
+import { SLOT_SHORT as ORGAN_NAMES } from '../labels.js';
+import * as TurnCombat from '../TurnCombat.js';
 
 const _display = document.getElementById('mob-display');
 const _cache   = new Map(); // mobId → HTMLElement
 
-export function render() {
+function _playerHasBrain() {
+  const b = WS.player.body;
+  return Object.keys(ORGAN_SLOTS).some((k) => {
+    if (ORGAN_SLOTS[k].type !== 'brain') return false;
+    const s = b.slots[k]; return s?.organId && (s.hp == null || s.hp > 0);
+  });
+}
+
+// The mob's telegraphed plan, as stacked mini-pills above its silhouette.
+function _intentHTML(mobId) {
+  if (!TurnCombat.isActive()) return '';
+  const plan = TurnCombat.telegraphOf(mobId);
+  if (!plan.length) return '<span class="mi mi-wait">∅</span>';
+  if (!_playerHasBrain()) return '<span class="mi vague">⚠ <em>prépare un coup…</em></span>';
+  return plan.map((a) =>
+    `<span class="mi">⚠ <em>${a.label}</em> → <b>${ORGAN_NAMES[a.target] ?? a.target}</b> <span class="tg-dmg">−${a.amount}</span></span>`
+  ).join('');
+}
+
+export function render(opts = {}) {
+  const { focusedMobId, onFocus } = opts;
   const room = currentRoom();
   const activeMobIds = (room?.mobIds ?? []).filter(id => {
     const m = WS.mobs.get(id);
@@ -23,18 +48,32 @@ export function render() {
   }
 
   _display.classList.toggle('visible', activeMobIds.length > 0);
+  _display.classList.toggle('multi', activeMobIds.length > 1);
 
   for (const mobId of activeMobIds) {
     const mob = WS.mobs.get(mobId);
     if (!mob) continue;
 
-    if (!_cache.has(mobId)) {
-      const el = _build(mob);
+    let el = _cache.get(mobId);
+    if (!el) {
+      el = _build(mob);
+      el.classList.add('mobwrap');
+      el.addEventListener('click', () => el._onFocus?.(mobId));
+      const tag = document.createElement('div');
+      tag.className = 'mob-tag';
+      el.appendChild(tag);
+      el._tag = tag;
       _display.appendChild(el);
       _cache.set(mobId, el);
     }
 
-    _applyDamage(_cache.get(mobId), mob);
+    el._onFocus = onFocus;
+    _applyDamage(el, mob);
+    el.classList.toggle('focused', TurnCombat.isActive() && mobId === focusedMobId);
+    if (el._tag) {
+      el._tag.innerHTML =
+        `<span class="mob-name">${(mob.isElite ? '★ ' : '') + mob.name}</span>` + _intentHTML(mobId);
+    }
   }
 }
 

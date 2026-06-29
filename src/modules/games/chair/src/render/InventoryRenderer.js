@@ -1,8 +1,10 @@
 import { WS } from '../WorldState.js';
 import { organResolver } from '../registry.js';
-import * as InspectorPanel from './InspectorPanel.js';
 
 const _grid = document.getElementById('inventory-grid');
+let _onInspect = null;
+
+export function init({ onInspect } = {}) { _onInspect = onInspect; }
 
 const ROMAN = ['', 'I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 
@@ -75,8 +77,6 @@ export function render() {
     cell.className = cls;
     cell.innerHTML = `<div class="${shapeClass}"></div>${romanStr ? `<span class="q">${romanStr}</span>` : ''}`;
     cell.title     = def ? `${def.name} [${quality.name}]` : '?';
-    cell.onclick   = () => {
-      if (def) InspectorPanel.showOrgan(item.organId, item.hp, null);
-    };
+    cell.onclick   = () => { if (def) _onInspect?.(invIdx); };
   });
 }
