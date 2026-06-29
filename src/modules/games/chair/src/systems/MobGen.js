@@ -1,18 +1,14 @@
 import { WS, rng } from '../WorldState.js';
-import { biome as getBiome, roomDef as getRoomDef, allOrgans, organResolver, mob as getMobDef } from '../registry.js';
+import { biome as getBiome, roomDef as getRoomDef, allOrgans, organResolver, mob as getMobDef, balance as getBalance } from '../registry.js';
 import { pick, shuffle } from '../rng.js';
 import { Body, ORGAN_SLOTS } from '../entities/Body.js';
+import { TYPE_NOUN } from '../labels.js';
 
-const TIER_COST = { common: 1, rare: 2, epic: 4, legendary: 8 };
 const TIER_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
 
-// Which tiers may appear, by depth (replaces the old arcana cap).
+// Which tiers may appear, by depth (tuning: balance.json tierUnlockFloor).
 function _tierAllowed(tier, floorIdx) {
-  if (tier === 'common')    return true;
-  if (tier === 'rare')      return floorIdx >= 1;
-  if (tier === 'epic')      return floorIdx >= 4;
-  if (tier === 'legendary') return floorIdx >= 8;
-  return true;
+  return floorIdx >= (getBalance().tierUnlockFloor[tier] ?? 0);
 }
 
 const THEME_NAMES = {
@@ -22,11 +18,6 @@ const THEME_NAMES = {
   spore:       { adj: ['Sporeux','Pulvérulent','Émetteur','Sporal'],     noun: 'Fongique'     },
   crystalline: { adj: ['Cristallin','Prismatique','Fracturé','Éclat'],   noun: 'de Pierre'    },
   burning:     { adj: ['Ardent','Embrasé','Consumé','Incandescent'],     noun: 'de Braise'    },
-};
-
-const TYPE_NOUN = {
-  eye: 'Œil', ear: 'Oreille', arm: 'Bras', legs: 'Jambes',
-  heart: 'Cœur', skin: 'Peau', brain: 'Cerveau', stomach: 'Estomac', tongue: 'Langue',
 };
 
 // Spawn procedural mobs for a hostile room on first entry.
@@ -41,9 +32,10 @@ export function spawnForRoom(room, floor, floorIdx) {
   if (maxMobs === 0) return;
 
   const count = minMobs + Math.floor(rng() * (maxMobs - minMobs + 1));
+  const eliteChance = getBalance().mob.eliteChance;
 
   for (let i = 0; i < count; i++) {
-    const isElite = elite || rng() < 0.04;
+    const isElite = elite || rng() < eliteChance;
     const theme   = pick(rng, biome.themes);
     const mob     = _createMob(biome, theme, floorIdx, room, i, isElite);
     WS.mobs.set(mob.id, mob);
@@ -145,7 +137,8 @@ export function spawnGraveyardMob(room, floorIdx) {
 function _createMob(biome, theme, floorIdx, room, idx, isElite) {
   const id = `mob_${floorIdx}_${room.id}_${idx}`;
 
-  let budget = Math.floor((5 + floorIdx * 2) * (isElite ? 1.7 : 1));
+  const B = getBalance();
+  let budget = Math.floor((B.mob.budgetBase + floorIdx * B.mob.budgetPerFloor) * (isElite ? B.mob.eliteMult : 1));
 
   const pool = allOrgans().filter(o => _tierAllowed(o.tier, floorIdx));
   const body = Body.empty(id);
@@ -153,11 +146,11 @@ function _createMob(biome, theme, floorIdx, room, idx, isElite) {
   let attempts = 0;
   while (budget > 0 && attempts < 30) {
     attempts++;
-    const candidates = pool.filter(o => (TIER_COST[o.tier] ?? 1) <= budget);
+    const candidates = pool.filter(o => (B.tierCost[o.tier] ?? 1) <= budget);
     if (!candidates.length) break;
 
     const organDef = pick(rng, candidates);
-    const cost     = TIER_COST[organDef.tier] ?? 1;
+    const cost     = B.tierCost[organDef.tier] ?? 1;
 
     const slotKey = Object.keys(ORGAN_SLOTS).find(k =>
       ORGAN_SLOTS[k].type === organDef.type && body.slots[k] === null

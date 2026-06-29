@@ -6,6 +6,9 @@ const _app   = document.querySelector('.game');
 const _end   = document.getElementById('scene-end');
 const _wl    = document.getElementById('scene-wl');
 const _wr    = document.getElementById('scene-wr');
+const _exitL = document.getElementById('exit-l');
+const _exitR = document.getElementById('exit-r');
+const _exitF = document.getElementById('exit-f');
 
 const DIR_ORDER = ['N', 'E', 'S', 'W'];
 const DIR_DELTA = { N:{dx:0,dy:-1}, E:{dx:1,dy:0}, S:{dx:0,dy:1}, W:{dx:-1,dy:0} };
@@ -27,11 +30,14 @@ export function render() {
   const hasLeft  = !!floor.cell(x + left.dx,  y + left.dy);
   const hasRight = !!floor.cell(x + right.dx, y + right.dy);
 
-  // Side walls: fully visible when no passage, dimmed when passage exists
-  _wl.style.opacity = hasLeft  ? '0.18' : '1';
-  _wr.style.opacity = hasRight ? '0.18' : '1';
+  // Walls stay solid; passages are shown as explicit glowing archways instead.
+  _wl.style.opacity = '1';
+  _wr.style.opacity = '1';
+  _exitL?.classList.toggle('open', hasLeft);
+  _exitR?.classList.toggle('open', hasRight);
+  _exitF?.classList.toggle('open', hasFwd);
 
-  // Back wall: door arch when forward passage exists
+  // Back wall: lit door arch when forward passage exists
   _end.classList.toggle('has-door', hasFwd);
   _end.style.opacity = '1';
 

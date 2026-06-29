@@ -10,6 +10,16 @@ const _relics  = new Map();
 const _lore    = new Map();
 const _mobs    = new Map();
 
+// Balance/tuning knobs — overwritten by content/balance.json on load. The values
+// here are only a pre-load safety fallback; balance.json is the editable source.
+const DEFAULT_BALANCE = {
+  tierCost:        { common: 1, rare: 2, epic: 4, legendary: 8 },
+  tierUnlockFloor: { common: 0, rare: 1, epic: 4, legendary: 8 },
+  mob:    { budgetBase: 5, budgetPerFloor: 2, eliteMult: 1.7, eliteChance: 0.04 },
+  combat: { damageScalePerFloor: 0.2, actionBudgetBase: 1, actionBudgetPerFloor: 1 },
+};
+let _balance = DEFAULT_BALANCE;
+
 let _loaded = false;
 let _loadPromise = null;
 
@@ -31,13 +41,14 @@ export function loadData(basePath = '') {
 }
 
 async function _doLoad(base) {
-  const [organs, biomes, rooms, relics, lore, mobs] = await Promise.all([
+  const [organs, biomes, rooms, relics, lore, mobs, balance] = await Promise.all([
     _fetchJSON(`${base}/content/organs.json`),
     _fetchJSON(`${base}/content/biomes.json`),
     _fetchJSON(`${base}/content/rooms.json`),
     _fetchJSON(`${base}/content/relics.json`),
     _fetchJSON(`${base}/content/lore.json`),
     _fetchJSON(`${base}/content/mobs.json`),
+    _fetchJSON(`${base}/content/balance.json`),
   ]);
   // clear before populating to stay idempotent after hot reloads
   _organs.clear(); _biomes.clear(); _rooms.clear();
@@ -49,12 +60,13 @@ async function _doLoad(base) {
   for (const def of relics)  { _relics.set(def.id, def); }
   for (const def of lore)    { _lore.set(def.id,   def); }
   for (const def of mobs)    { _mobs.set(def.id,   def); }
+  if (balance) _balance = balance;
 
   _loaded = true;
 }
 
 // For test harness: inject data directly without fetch
-export function loadDataRaw({ organs = [], biomes = [], rooms = [], relics = [], lore = [], mobs = [] } = {}) {
+export function loadDataRaw({ organs = [], biomes = [], rooms = [], relics = [], lore = [], mobs = [], balance = null } = {}) {
   _organs.clear(); _biomes.clear(); _rooms.clear();
   _relics.clear(); _lore.clear();   _mobs.clear();
 
@@ -64,6 +76,7 @@ export function loadDataRaw({ organs = [], biomes = [], rooms = [], relics = [],
   for (const def of relics)  { _relics.set(def.id, def); }
   for (const def of lore)    { _lore.set(def.id,   def); }
   for (const def of mobs)    { _mobs.set(def.id,   def); }
+  if (balance) _balance = balance;
 
   _loaded = true;
 }
@@ -78,6 +91,7 @@ export function roomDef(id){ return _rooms.get(id)   ?? null; }
 export function relic(id)  { return _relics.get(id)  ?? null; }
 export function loreEntry(id){ return _lore.get(id)  ?? null; }
 export function mob(id)    { return _mobs.get(id)    ?? null; }
+export function balance()  { return _balance; }
 
 export function allOrgans() { return [..._organs.values()]; }
 export function allBiomes() { return [..._biomes.values()]; }
@@ -97,7 +111,7 @@ function _validateOrgan(def) {
 }
 
 function _validateBiome(def) {
-  const req = ['id','name','strateIndex','floorRange','arcanaCap','themes','gridSize'];
+  const req = ['id','name','strateIndex','floorRange','themes','gridSize'];
   for (const f of req) {
     if (def[f] === undefined) throw new Error(`Biome "${def.id}" missing field: ${f}`);
   }

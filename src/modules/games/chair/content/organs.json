@@ -1,112 +1,160 @@
 [
-  { "id": "arm_human", "type": "arm", "name": "Bras humain", "set": "human", "tier": "common",
-    "hp": 12, "layer": "outer", "maxBlood": 3,
-    "skill": { "kind": "attack", "label": "FRAPPER", "values": [3, 5, 8], "charge": 4000 },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 10,
-    "harvest": { "fragileTo": ["fire"] } },
-
-  { "id": "legs_human", "type": "legs", "name": "Jambes humaines", "set": "human", "tier": "common",
-    "hp": 9, "layer": "outer", "maxBlood": 2,
-    "passive": { "id": "dodge", "values": [12, 20] },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 10,
-    "harvest": { "fragileTo": [] } },
-
-  { "id": "heart_human", "type": "heart", "name": "Cœur humain", "set": "human", "tier": "common",
-    "hp": 12, "layer": "deep", "pool": 5, "maxBlood": 0,
-    "abilities": ["heart_ultimate"],
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 15,
-    "harvest": { "fragileTo": ["fire"] } },
-
-  { "id": "skin_human", "type": "skin", "name": "Peau humaine", "set": "human", "tier": "common",
-    "hp": 6, "layer": "outer", "maxBlood": 3,
-    "passive": { "id": "armor", "values": [1, 2, 3] },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 12,
-    "harvest": { "fragileTo": ["fire"] } },
-
   { "id": "eye_human", "type": "eye", "name": "Œil humain", "set": "human", "tier": "common",
-    "hp": 9, "layer": "mid", "maxBlood": 1,
-    "skill": { "kind": "aim", "label": "VISER", "values": [0], "charge": 2000 },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 8,
+    "hp": 8, "layer": "mid", "price": 8,
+    "passives": [
+      { "id": "vue", "label": "Vue", "desc": "Chaque œil affiche une moitié d'écran : organes et télégraphes ennemis de ce côté. Deux yeux = vue complète, un seul = moitié aveugle, aucun = noir." }
+    ],
+    "skills": [],
     "harvest": { "fragileTo": [] } },
 
   { "id": "ear_human", "type": "ear", "name": "Oreille humaine", "set": "human", "tier": "common",
-    "hp": 6, "layer": "mid", "maxBlood": 2,
-    "skill": { "kind": "stall", "label": "ÉCOUTER", "values": [1, 2], "charge": 4000 },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 8,
+    "hp": 6, "layer": "mid", "price": 8,
+    "passives": [
+      { "id": "ouie", "label": "Ouïe", "desc": "Perçois au son les ennemis des salles adjacentes (révélés sur la carte) et entends une attaque se préparer même sans la voir." }
+    ],
+    "skills": [],
     "harvest": { "fragileTo": [] } },
 
   { "id": "brain_human", "type": "brain", "name": "Cerveau humain", "set": "human", "tier": "common",
-    "hp": 9, "layer": "deep", "maxBlood": 1,
-    "skill": { "kind": "analyse", "label": "ANALYSER", "values": [0], "charge": 4000 },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 30,
+    "hp": 9, "layer": "deep", "price": 30,
+    "passives": [
+      { "id": "lucidite", "label": "Lucidité", "desc": "Tu vois le point faible de l'ennemi et lis ses télégraphes en clair (quoi + cible)." }
+    ],
+    "skills": [],
     "harvest": { "fragileTo": ["crush"] } },
 
-  { "id": "stomach_human", "type": "stomach", "name": "Estomac humain", "set": "human", "tier": "common",
-    "hp": 9, "layer": "mid", "maxBlood": 3,
-    "skill": { "kind": "heal", "label": "DIGÉRER", "values": [3, 5, 7], "charge": 8000 },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 20,
+  { "id": "skin_human", "type": "skin", "name": "Peau humaine", "set": "human", "tier": "common",
+    "hp": 6, "layer": "outer", "price": 12,
+    "passives": [
+      { "id": "armor", "label": "Cuir", "desc": "Réduit de 1 chaque dégât subi.", "value": 1 }
+    ],
+    "skills": [],
+    "harvest": { "fragileTo": ["fire"] } },
+
+  { "id": "legs_human", "type": "legs", "name": "Jambes humaines", "set": "human", "tier": "common",
+    "hp": 9, "layer": "outer", "price": 10,
+    "passives": [
+      { "id": "dodge", "label": "Agilité", "desc": "20% de chance d'esquiver chaque attaque ennemie.", "value": 20 }
+    ],
+    "skills": [],
     "harvest": { "fragileTo": [] } },
+
+  { "id": "arm_human", "type": "arm", "name": "Bras humain", "set": "human", "tier": "common",
+    "hp": 12, "layer": "outer", "price": 10,
+    "passives": [],
+    "skills": [
+      { "id": "strike", "label": "Frappe", "cost": 1, "desc": "Inflige 4 dégâts à un organe ciblé.",
+        "effect": { "kind": "damage", "amount": 4, "target": "enemy_organ" } }
+    ],
+    "harvest": { "fragileTo": ["fire"] } },
 
   { "id": "tongue_human", "type": "tongue", "name": "Langue humaine", "set": "human", "tier": "common",
-    "hp": 6, "layer": "mid", "maxBlood": 2,
-    "skill": { "kind": "attack", "label": "MORDRE", "values": [2, 4], "charge": 3000 },
-    "visual": { "color": "#9a7a5a", "overlay": null, "dot": "hum" }, "price": 12,
+    "hp": 6, "layer": "mid", "price": 12,
+    "passives": [],
+    "skills": [
+      { "id": "bite", "label": "Morsure", "cost": 1, "desc": "Inflige 2 dégâts. Si l'organe meurt, tu récupères 1 viande.",
+        "effect": { "kind": "damage", "amount": 2, "target": "enemy_organ", "meatOnKill": 1 } }
+    ],
     "harvest": { "fragileTo": [] } },
 
-  { "id": "arm_troll", "type": "arm", "name": "Bras de Troll", "set": "troll", "tier": "common",
-    "hp": 18, "layer": "outer", "maxBlood": 3,
-    "skill": { "kind": "attack", "label": "FRAPPER", "values": [5, 9, 16], "charge": 4500 },
-    "flaw": "slow_charge",
-    "visual": { "color": "#7a4a1a", "overlay": null, "dot": "mut" }, "price": 30,
+  { "id": "stomach_human", "type": "stomach", "name": "Estomac humain", "set": "human", "tier": "common",
+    "hp": 9, "layer": "mid", "price": 20,
+    "passives": [],
+    "skills": [
+      { "id": "digest", "label": "Digérer", "cost": 1, "desc": "Consomme 1 viande pour soigner 4 PV à l'organe ciblé (le tien ou l'ennemi).",
+        "effect": { "kind": "heal", "amount": 4, "target": "organ", "costMeat": 1 } }
+    ],
+    "harvest": { "fragileTo": [] } },
+
+  { "id": "heart_human", "type": "heart", "name": "Cœur humain", "set": "human", "tier": "common",
+    "hp": 12, "layer": "deep", "pool": 3, "price": 15,
+    "passives": [
+      { "id": "pump", "label": "Pompe", "desc": "Au début de chaque tour : produit 3 Sang et purge le Sang non dépensé (il ne se cumule pas).", "value": 3 }
+    ],
+    "skills": [
+      { "id": "surge", "label": "Sursaut", "cost": 0, "once": true, "desc": "Gratuit, une fois par combat : cible un organe (le tien ou l'ennemi) et redéclenche son effet — un bras frappe, un estomac soigne…",
+        "effect": { "kind": "retrigger" } }
+    ],
     "harvest": { "fragileTo": ["fire"] } },
 
-  { "id": "skin_stone", "type": "skin", "name": "Peau de Pierre", "set": "stone", "tier": "rare",
-    "hp": 18, "layer": "outer", "maxBlood": 3,
-    "passive": { "id": "armor", "values": [3, 6, 9] },
-    "flaw": "heavy",
-    "visual": { "color": "#6a6a5a", "overlay": "stone-crack", "dot": "mut" }, "price": 65,
+  { "id": "eye_beast", "type": "eye", "name": "Œil de bête", "set": "beast", "tier": "rare",
+    "hp": 7, "layer": "mid", "price": 28,
+    "passives": [
+      { "id": "nightsight", "label": "Vision nocturne", "desc": "Tu vois dans le noir (l'écran se teinte d'ambre) et tu repères les ennemis invisibles. Une moitié d'écran par œil, comme tout œil." }
+    ],
+    "skills": [],
+    "harvest": { "fragileTo": [] } },
+
+  { "id": "ear_beast", "type": "ear", "name": "Oreille de bête", "set": "beast", "tier": "rare",
+    "hp": 6, "layer": "mid", "price": 28,
+    "passives": [
+      { "id": "keen_ear", "label": "Ouïe fine", "desc": "Comme l'Ouïe, mais portée doublée : tu entends deux salles plus loin et tu localises le cœur ennemi à son battement (il scintille à l'écran)." }
+    ],
+    "skills": [],
+    "harvest": { "fragileTo": [] } },
+
+  { "id": "brain_beast", "type": "brain", "name": "Cerveau de bête", "set": "beast", "tier": "rare",
+    "hp": 7, "layer": "deep", "price": 40,
+    "passives": [
+      { "id": "instinct", "label": "Instinct", "desc": "Tu vois le point faible de l'ennemi ; à chaque organe ennemi tué, tu regagnes 1 Sang (frénésie).", "value": 1 }
+    ],
+    "skills": [],
     "harvest": { "fragileTo": ["crush"] } },
 
-  { "id": "legs_beast", "type": "legs", "name": "Pattes de Bête", "set": "beast", "tier": "rare",
-    "hp": 15, "layer": "outer", "maxBlood": 2,
-    "passive": { "id": "dodge", "values": [22, 34] },
-    "visual": { "color": "#5a3a1a", "overlay": null, "dot": "mut" }, "price": 60,
-    "harvest": { "fragileTo": [] } },
-
-  { "id": "eye_beast", "type": "eye", "name": "Œil de Bête", "set": "beast", "tier": "common",
-    "hp": 9, "layer": "mid", "maxBlood": 1,
-    "skill": { "kind": "aim", "label": "VISER", "values": [0], "charge": 1800 },
-    "visual": { "color": "#6a3a1a", "overlay": null, "dot": "mut" }, "price": 14,
-    "harvest": { "fragileTo": [] } },
-
-  { "id": "heart_beast", "type": "heart", "name": "Cœur de Bête", "set": "beast", "tier": "rare",
-    "hp": 15, "layer": "deep", "pool": 7, "maxBlood": 0,
-    "abilities": ["heart_ultimate"],
-    "visual": { "color": "#5a1a1a", "overlay": null, "dot": "mut" }, "price": 75,
+  { "id": "skin_beast", "type": "skin", "name": "Pelage", "set": "beast", "tier": "rare",
+    "hp": 5, "layer": "outer", "price": 22,
+    "passives": [
+      { "id": "armor", "label": "Pelage", "desc": "Réduit de 1 chaque dégât subi, mais inflammable (×2 dégâts de feu).", "value": 1 }
+    ],
+    "skills": [],
     "harvest": { "fragileTo": ["fire"] } },
 
-  { "id": "tongue_beast", "type": "tongue", "name": "Langue de Bête", "set": "beast", "tier": "common",
-    "hp": 9, "layer": "mid", "maxBlood": 2,
-    "skill": { "kind": "attack", "label": "MORDRE", "values": [3, 5], "charge": 3000 },
-    "visual": { "color": "#5a1a1a", "overlay": null, "dot": "mut" }, "price": 18,
+  { "id": "legs_beast", "type": "legs", "name": "Pattes de bête", "set": "beast", "tier": "rare",
+    "hp": 12, "layer": "outer", "price": 60,
+    "passives": [
+      { "id": "dodge", "label": "Bondissant", "desc": "35% de chance d'esquiver chaque attaque ennemie.", "value": 35 }
+    ],
+    "skills": [
+      { "id": "leap", "label": "Bondir", "cost": 1, "desc": "Esquive garantie la prochaine attaque ennemie, et ta prochaine Frappe inflige +50%.",
+        "effect": { "kind": "dodge", "charges": 1, "empower": 0.5 } }
+    ],
     "harvest": { "fragileTo": [] } },
 
-  { "id": "brain_beast", "type": "brain", "name": "Cerveau de Bête", "set": "beast", "tier": "common",
-    "hp": 9, "layer": "deep", "maxBlood": 1,
-    "skill": { "kind": "analyse", "label": "ANALYSER", "values": [0], "charge": 4000 },
-    "visual": { "color": "#5a3a1a", "overlay": null, "dot": "mut" }, "price": 18,
-    "harvest": { "fragileTo": ["crush"] } },
+  { "id": "arm_beast", "type": "arm", "name": "Griffes", "set": "beast", "tier": "rare",
+    "hp": 14, "layer": "outer", "price": 35,
+    "passives": [],
+    "skills": [
+      { "id": "lacerate", "label": "Lacérer", "cost": 1, "desc": "Inflige 3 dégâts et applique Saignement (2 dégâts au prochain tour).",
+        "effect": { "kind": "damage", "amount": 3, "target": "enemy_organ", "bleed": 2 } }
+    ],
+    "harvest": { "fragileTo": ["fire"] } },
 
-  { "id": "arm_pierce", "type": "arm", "name": "Bras d'Os", "set": "bone", "tier": "rare",
-    "hp": 12, "layer": "outer", "maxBlood": 2,
-    "skill": { "kind": "attack", "label": "ESTOC", "pierce": true, "values": [4, 7], "charge": 4000 },
-    "abilities": ["pierce_layer"],
-    "visual": { "color": "#b8a880", "overlay": null, "dot": "mut" }, "price": 70,
-    "harvest": { "fragileTo": ["crush"] } },
+  { "id": "tongue_beast", "type": "tongue", "name": "Crocs", "set": "beast", "tier": "rare",
+    "hp": 8, "layer": "mid", "price": 30,
+    "passives": [],
+    "skills": [
+      { "id": "fang", "label": "Croc", "cost": 2, "desc": "Inflige 5 dégâts et vole 3 PV (rends ton organe le plus faible).",
+        "effect": { "kind": "damage", "amount": 5, "target": "enemy_organ", "lifesteal": 3 } }
+    ],
+    "harvest": { "fragileTo": [] } },
 
-  { "id": "tongue_lich", "type": "tongue", "name": "Langue de Liche", "set": "lich", "tier": "epic",
-    "hp": 12, "layer": "mid", "maxBlood": 2,
-    "skill": { "kind": "attack", "label": "VAMPIRISER", "lifesteal": true, "values": [4, 7], "charge": 3500 },
-    "visual": { "color": "#5a2a7a", "overlay": "lich-pulse", "dot": "mut" }, "price": 145,
-    "harvest": { "fragileTo": [] } }
+  { "id": "stomach_beast", "type": "stomach", "name": "Panse", "set": "beast", "tier": "rare",
+    "hp": 9, "layer": "mid", "price": 35,
+    "passives": [],
+    "skills": [
+      { "id": "devour", "label": "Dévorer", "cost": 1, "desc": "Consomme 2 viandes pour soigner 6 PV à TOUS les organes blessés de la cible (toi ou l'ennemi).",
+        "effect": { "kind": "heal", "amount": 6, "target": "all", "costMeat": 2 } }
+    ],
+    "harvest": { "fragileTo": [] } },
+
+  { "id": "heart_beast", "type": "heart", "name": "Cœur de bête", "set": "beast", "tier": "rare",
+    "hp": 14, "layer": "deep", "pool": 4, "price": 75,
+    "passives": [
+      { "id": "wild_pulse", "label": "Pouls sauvage", "desc": "Au début de chaque tour : produit 4 Sang et purge le Sang non dépensé. Mais ton cœur bat fort : les ennemis t'entendent de plus loin.", "value": 4, "loud": true }
+    ],
+    "skills": [
+      { "id": "surge", "label": "Sursaut", "cost": 0, "once": true, "desc": "Gratuit, une fois par combat : cible un organe (le tien ou l'ennemi) et redéclenche son effet — un bras frappe, un estomac soigne…",
+        "effect": { "kind": "retrigger" } }
+    ],
+    "harvest": { "fragileTo": ["fire"] } }
 ]

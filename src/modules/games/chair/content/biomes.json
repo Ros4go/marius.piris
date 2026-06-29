@@ -3,22 +3,41 @@
     "id": "gorge",
     "name": "La Gorge",
     "strateIndex": 0,
-    "floorRange": [1, 5],
-    "arcanaCap": 5,
+    "floorRange": [
+      1,
+      5
+    ],
     "bossId": "boss_langue",
-    "themes": ["putrid", "crawling"],
+    "themes": [
+      "putrid",
+      "crawling"
+    ],
     "themeDetails": {
       "putrid": {
         "phototropism": "repelled",
         "deathSpasm": "cloud",
-        "behaviors": ["stalker", "fleer"],
-        "preferredTypes": ["skin", "stomach", "tongue"]
+        "behaviors": [
+          "stalker",
+          "fleer"
+        ],
+        "preferredTypes": [
+          "skin",
+          "stomach",
+          "tongue"
+        ]
       },
       "crawling": {
         "phototropism": "neutral",
         "deathSpasm": "none",
-        "behaviors": ["stalker", "ambusher"],
-        "preferredTypes": ["legs", "arm", "skin"]
+        "behaviors": [
+          "stalker",
+          "ambusher"
+        ],
+        "preferredTypes": [
+          "legs",
+          "arm",
+          "skin"
+        ]
       }
     },
     "palette": {
@@ -28,29 +47,50 @@
       "torch": "#c47f33",
       "torchHot": "#e8b25c"
     },
-    "thematicRooms": ["cordes_vocales", "salle_derniers_mots"],
+    "thematicRooms": [
+      "cordes_vocales",
+      "salle_derniers_mots"
+    ],
     "gridSize": 7
   },
   {
     "id": "poumons",
     "name": "Les Poumons",
     "strateIndex": 1,
-    "floorRange": [6, 10],
-    "arcanaCap": 12,
+    "floorRange": [
+      6,
+      10
+    ],
     "bossId": "boss_souffle",
-    "themes": ["flying", "spore"],
+    "themes": [
+      "flying",
+      "spore"
+    ],
     "themeDetails": {
       "flying": {
         "phototropism": "neutral",
         "deathSpasm": "burst",
-        "behaviors": ["ranged", "ambusher"],
-        "preferredTypes": ["eye", "arm", "legs"]
+        "behaviors": [
+          "ranged",
+          "ambusher"
+        ],
+        "preferredTypes": [
+          "eye",
+          "arm",
+          "legs"
+        ]
       },
       "spore": {
         "phototropism": "attracted",
         "deathSpasm": "cloud",
-        "behaviors": ["swarm", "stalker"],
-        "preferredTypes": ["skin", "stomach"]
+        "behaviors": [
+          "swarm",
+          "stalker"
+        ],
+        "preferredTypes": [
+          "skin",
+          "stomach"
+        ]
       }
     },
     "palette": {
@@ -60,29 +100,51 @@
       "torch": "#6fc48a",
       "torchHot": "#a6dca8"
     },
-    "thematicRooms": ["alveoles", "bronchioles"],
+    "thematicRooms": [
+      "alveoles",
+      "bronchioles"
+    ],
     "gridSize": 9
   },
   {
     "id": "coeur",
     "name": "Le Cœur",
     "strateIndex": 2,
-    "floorRange": [11, 15],
-    "arcanaCap": 18,
+    "floorRange": [
+      11,
+      15
+    ],
     "bossId": "boss_coeur",
-    "themes": ["crystalline", "burning"],
+    "themes": [
+      "crystalline",
+      "burning"
+    ],
     "themeDetails": {
       "crystalline": {
         "phototropism": "attracted",
         "deathSpasm": "shatter",
-        "behaviors": ["charger", "stalker"],
-        "preferredTypes": ["skin", "heart", "eye"]
+        "behaviors": [
+          "charger",
+          "stalker"
+        ],
+        "preferredTypes": [
+          "skin",
+          "heart",
+          "eye"
+        ]
       },
       "burning": {
         "phototropism": "attracted",
         "deathSpasm": "fire",
-        "behaviors": ["charger", "ranged"],
-        "preferredTypes": ["arm", "skin", "eye"]
+        "behaviors": [
+          "charger",
+          "ranged"
+        ],
+        "preferredTypes": [
+          "arm",
+          "skin",
+          "eye"
+        ]
       }
     },
     "palette": {
@@ -92,29 +154,49 @@
       "torch": "#d8484a",
       "torchHot": "#ff7a6e"
     },
-    "thematicRooms": ["ventricules", "salle_pression"],
+    "thematicRooms": [
+      "ventricules",
+      "salle_pression"
+    ],
     "gridSize": 9
   },
   {
     "id": "estomac",
     "name": "L'Estomac",
     "strateIndex": 1,
-    "floorRange": [6, 10],
-    "arcanaCap": 12,
+    "floorRange": [
+      6,
+      10
+    ],
     "bossId": "boss_faim",
-    "themes": ["putrid", "crawling"],
+    "themes": [
+      "putrid",
+      "crawling"
+    ],
     "themeDetails": {
       "putrid": {
         "phototropism": "repelled",
         "deathSpasm": "acid",
-        "behaviors": ["stalker", "fleer"],
-        "preferredTypes": ["skin", "stomach"]
+        "behaviors": [
+          "stalker",
+          "fleer"
+        ],
+        "preferredTypes": [
+          "skin",
+          "stomach"
+        ]
       },
       "crawling": {
         "phototropism": "neutral",
         "deathSpasm": "none",
-        "behaviors": ["swarm", "ambusher"],
-        "preferredTypes": ["legs", "arm"]
+        "behaviors": [
+          "swarm",
+          "ambusher"
+        ],
+        "preferredTypes": [
+          "legs",
+          "arm"
+        ]
       }
     },
     "palette": {
@@ -124,29 +206,50 @@
       "torch": "#6fb0c4",
       "torchHot": "#a6dcea"
     },
-    "thematicRooms": ["bains_acide", "sphincters"],
+    "thematicRooms": [
+      "bains_acide",
+      "sphincters"
+    ],
     "gridSize": 9
   },
   {
     "id": "entrailles",
     "name": "Les Entrailles",
     "strateIndex": 2,
-    "floorRange": [11, 15],
-    "arcanaCap": 22,
+    "floorRange": [
+      11,
+      15
+    ],
     "bossId": "boss_flore",
-    "themes": ["burning", "putrid"],
+    "themes": [
+      "burning",
+      "putrid"
+    ],
     "themeDetails": {
       "burning": {
         "phototropism": "attracted",
         "deathSpasm": "fire",
-        "behaviors": ["charger", "ranged"],
-        "preferredTypes": ["arm", "skin"]
+        "behaviors": [
+          "charger",
+          "ranged"
+        ],
+        "preferredTypes": [
+          "arm",
+          "skin"
+        ]
       },
       "putrid": {
         "phototropism": "repelled",
         "deathSpasm": "acid",
-        "behaviors": ["stalker", "swarm"],
-        "preferredTypes": ["skin", "stomach", "tongue"]
+        "behaviors": [
+          "stalker",
+          "swarm"
+        ],
+        "preferredTypes": [
+          "skin",
+          "stomach",
+          "tongue"
+        ]
       }
     },
     "palette": {
@@ -156,29 +259,51 @@
       "torch": "#cf9a3a",
       "torchHot": "#f0c468"
     },
-    "thematicRooms": ["bains_acide", "sphincters"],
+    "thematicRooms": [
+      "bains_acide",
+      "sphincters"
+    ],
     "gridSize": 11
   },
   {
     "id": "le-fond",
     "name": "Le Fond",
     "strateIndex": 3,
-    "floorRange": [16, 20],
-    "arcanaCap": 28,
+    "floorRange": [
+      16,
+      20
+    ],
     "bossId": null,
-    "themes": ["crystalline", "burning"],
+    "themes": [
+      "crystalline",
+      "burning"
+    ],
     "themeDetails": {
       "crystalline": {
         "phototropism": "attracted",
         "deathSpasm": "shatter",
-        "behaviors": ["charger", "stalker"],
-        "preferredTypes": ["skin", "heart", "eye"]
+        "behaviors": [
+          "charger",
+          "stalker"
+        ],
+        "preferredTypes": [
+          "skin",
+          "heart",
+          "eye"
+        ]
       },
       "burning": {
         "phototropism": "attracted",
         "deathSpasm": "fire",
-        "behaviors": ["charger", "ranged"],
-        "preferredTypes": ["arm", "skin", "eye"]
+        "behaviors": [
+          "charger",
+          "ranged"
+        ],
+        "preferredTypes": [
+          "arm",
+          "skin",
+          "eye"
+        ]
       }
     },
     "palette": {
