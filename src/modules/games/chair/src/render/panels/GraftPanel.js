@@ -1,6 +1,9 @@
 import { WS } from '../../WorldState.js';
 import { organResolver, relic as getRelic } from '../../registry.js';
 
+// The consigne keeps a single item safe between runs.
+const CONSIGNE_CAP = 1;
+
 // Display label for a besace/consigne item — organ (with quality) or relic.
 function _itemLabel(item) {
   if (item.relicId) {
@@ -62,6 +65,16 @@ function _renderConsigne(el, heritage, onHeritageChange, onRender) {
     el.appendChild(p);
   }
 
+  // The consigne holds a single item — once it's occupied, no more deposits.
+  if (heritage.length >= CONSIGNE_CAP) {
+    const note = document.createElement('p');
+    note.className = 'insp-dim';
+    note.style.cssText = 'text-align:center;margin:8px 0 4px;border-top:1px solid var(--edge);padding-top:6px';
+    note.textContent = 'Consigne pleine — un seul objet à la fois.';
+    el.appendChild(note);
+    return;
+  }
+
   if (WS.player.inventory.length > 0) {
     const sep = document.createElement('p');
     sep.className = 'insp-dim';
@@ -80,6 +93,7 @@ function _renderConsigne(el, heritage, onHeritageChange, onRender) {
       btn.style.cssText = 'margin-top:4px;max-width:none;width:100%';
       btn.innerHTML = '<b>Déposer</b>';
       btn.addEventListener('click', () => {
+        if (heritage.length >= CONSIGNE_CAP) return;
         heritage.push({ ...item });
         WS.player.inventory.splice(iIdx, 1);
         onHeritageChange?.();

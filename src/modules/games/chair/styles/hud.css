@@ -132,7 +132,12 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 }
 /* Relics carried in the besace: a pale, faceted shard distinct from fleshy organs. */
 .cell.relic { border-color: #6a5a2a; box-shadow: inset 0 0 8px #c9a44022; }
-.cell.relic .q { color: var(--torch-hot, #e8b25c); }
+/* "Not yet inspected" marker — small + muted so it hints without shouting. */
+.cell .newmark {
+  position: absolute; top: 0; left: 2px; z-index: 2;
+  font-size: .5rem; line-height: 1; color: var(--torch); opacity: .7;
+  text-shadow: 0 0 4px #000; pointer-events: none;
+}
 .orgshape.relicshape {
   border-radius: 46% 54% 50% 50% / 56% 46% 54% 44%;
   background: radial-gradient(circle at 38% 30%, #f0dca0, #9a7a3a 55%, #3a2c12);
@@ -246,7 +251,7 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
   background: repeating-linear-gradient(0deg, var(--thread) 0 5px, transparent 5px 9px);
 }
 .log div::before { content: "▸ "; color: #33291c; }
-.log .sys   { color: #5f5440; }
+.log .sys   { color: #9a8c6c; }
 .log .warn  { color: var(--torch); }
 .log .god   { color: var(--whisper); font-style: italic; letter-spacing: .3em; opacity: .85; }
 .log .damage { color: #c86020; }
@@ -930,12 +935,12 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 
 /* ── Journal moved to the left column, under the map ───────────────────── */
 /* journal — FIXED height (content-independent), scrolls internally */
-#log-panel { flex: 0 0 clamp(120px, 22vh, 180px); display: flex; flex-direction: column; min-height: 0; }
+#log-panel { flex: 0 0 clamp(150px, 28vh, 240px); display: flex; flex-direction: column; min-height: 0; }
 #log-panel .log {
   /* inside a .panel already framed — drop the heavy box, just keep the rail */
   flex: 1 1 0; min-height: 0; max-height: none; border: none; background: #060403;
-  box-shadow: inset 0 0 18px #000; padding: 6px 11px;
-  font-size: .62rem; line-height: 1.6;
+  box-shadow: inset 0 0 18px #000; padding: 7px 12px;
+  font-size: .72rem; line-height: 1.7; color: var(--bone);
   overflow-y: auto;
 }
 
