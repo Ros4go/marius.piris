@@ -70,3 +70,30 @@ export function removeOrgan(slotKey) {
 
   return { ok: true, organId: displaced.organId, hp, id };
 }
+
+// Sacrifice an organ at the altar: the organ is truly destroyed (not banked
+// intact like a clean amputation). All that remains is a drained husk at 0 HP,
+// dropped into the besace if there's room — otherwise it's gone for good.
+export function sacrificeOrgan(slotKey) {
+  const body       = WS.player.body;
+  const displaced  = body.removeOrgan(slotKey);
+  if (!displaced) return { ok: false, reason: 'slot_empty' };
+
+  const organDef = organResolver(displaced.organId);
+  let husk = null;
+  if (WS.player.inventory.length < inventoryCapacity()) {
+    const quality = organDef ? organDef.getQuality(0).name : 'ruine';
+    husk = { id: `inv_${WS.tick}_${++_counter}`, organId: displaced.organId, hp: 0, quality };
+    WS.player.inventory.push(husk);
+  }
+
+  emit({
+    type:     'ORGAN_SACRIFICED',
+    source:   'player',
+    target:   slotKey,
+    data:     { organId: displaced.organId, husk: husk?.id ?? null },
+    priority: PRIORITY.ACTION,
+  });
+
+  return { ok: true, organId: displaced.organId, husk: husk?.id ?? null };
+}

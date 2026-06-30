@@ -44,13 +44,12 @@ function runCombat(seed) {
   const rng = mulberry(seed);
   const player = humanBody();
   const mob = genMob(rng);
-  const FLOOR_SCALE = 1; // floor 0
 
   const pstate = { blood: 0, guard: 0, dodgeCharges: 0, empower: 0, onceUsed: new Set(), meat: 0,
     onOrganKillBlood: CR.livingSlots(player).some((k) => organResolver(player.slots[k].organId).passives.some((p) => p.id === 'instinct')) ? 1 : 0 };
 
-  const BUDGET = 1; // floor 0 → 1 action (see TurnCombat._mobBudget)
-  let plan = CR.chooseMobPlan(mob, player, organResolver, rng, FLOOR_SCALE, BUDGET);
+  // Mob plans exactly like the player: its action budget IS its own heart pool.
+  let plan = CR.chooseMobPlan(mob, player, organResolver, rng);
   let turns = 0;
   while (turns < 40) {
     turns++;
@@ -97,7 +96,7 @@ function runCombat(seed) {
     // ----- mob turn -----
     CR.resolveMobPlan(plan, mob, player, pstate, organResolver, rng);
     if (!CR.vitalAlive(player)) return { win: false, turns, playerHpPct: 0 };
-    plan = CR.chooseMobPlan(mob, player, organResolver, rng, FLOOR_SCALE, BUDGET);
+    plan = CR.chooseMobPlan(mob, player, organResolver, rng);
   }
   return { win: false, turns, playerHpPct: 0, timeout: true };
 }

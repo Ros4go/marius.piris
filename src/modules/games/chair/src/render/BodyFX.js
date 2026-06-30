@@ -52,10 +52,13 @@ export function apply() {
   if (!eyeR) _game?.classList.add('eye-r-dead');
   if (!eyeL && !eyeR) _game?.classList.add('no-eye');
 
-  // Heartbeat pulse — alive heart drives CSS lub-dub animation
+  // Heartbeat pulse — alive heart drives CSS lub-dub animation, at the beat
+  // period defined on the heart organ (data-oriented: organs.json "pulse").
   const heartSlot = body.slots['heart'];
   if (heartSlot && (heartSlot.hp === null || heartSlot.hp > 0)) {
     _game?.classList.add('heart-alive');
+    const beat = organResolver(heartSlot.organId)?.pulse ?? 1.1;
+    _game?.style.setProperty('--hb-dur', `${beat}s`);
   }
 
   // Torch exhaustion: total darkness

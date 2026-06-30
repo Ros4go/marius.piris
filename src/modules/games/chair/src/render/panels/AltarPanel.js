@@ -1,6 +1,7 @@
-import { WS } from '../../WorldState.js';
-import { organResolver, relic as getRelicDef } from '../../registry.js';
+import { WS, inventoryCapacity } from '../../WorldState.js';
+import { organResolver, relic as getRelicDef, allRelics } from '../../registry.js';
 import { addLog } from '../HUDRenderer.js';
+import { SLOT_FULL } from '../../labels.js';
 
 const BLESSINGS = [
   'Votre prochaine récolte sera parfaite.',
@@ -8,14 +9,6 @@ const BLESSINGS = [
   'Un organe perdu revient en rêve.',
   'Le dieu mort a entendu.',
   'Votre chair vous remercie.',
-];
-
-const ALL_RELICS = [
-  'relic_sang_cristal',
-  'relic_suture_noire',
-  'relic_cartilage_fossile',
-  'relic_membrane_epaisse',
-  'relic_nerf_expose',
 ];
 
 export function render(container, room, options = {}) {
@@ -52,13 +45,13 @@ export function render(container, room, options = {}) {
 
     const btn = document.createElement('button');
     btn.className = 'dealbtn danger';
-    btn.innerHTML = `Sacrifier [${slotKey}] <em style="font-variant:normal;margin-left:6px;font-size:.6em;color:var(--bone)">${def.name} · ${quality.name}</em>`;
+    btn.innerHTML = `Sacrifier <b>${SLOT_FULL[slotKey] ?? slotKey}</b> <em style="font-variant:normal;margin-left:6px;font-size:.6em;color:var(--bone)">${def.name} · ${quality.name}</em>`;
     btn.addEventListener('click', () => {
       room._sacrificeDone = true;
       room.cleared = true;
-      onTick?.({ type: 'REMOVE_ORGAN', slotKey });
+      onTick?.({ type: 'SACRIFICE_ORGAN', slotKey });
       const msg = BLESSINGS[Math.floor(Math.random() * BLESSINGS.length)];
-      addLog(`✝ Sacrifice accepté — "${msg}"`, 'sys');
+      addLog(`✝ ${def.name} consumé sur l'autel — "${msg}"`, 'sys');
     });
     body.appendChild(btn);
   }
@@ -73,12 +66,12 @@ function _offerRelic(body, room, onRender) {
     return;
   }
 
-  const owned = WS.player.relics ?? [];
-  const pool  = ALL_RELICS.filter(id => !owned.includes(id));
+  const owned = (WS.player.inventory ?? []).filter(i => i?.relicId).map(i => i.relicId);
+  const pool  = allRelics().map(d => d.id).filter(id => !owned.includes(id));
   if (!pool.length) {
     const p = document.createElement('p');
     p.className = 'insp-dim';
-    p.textContent = 'Vous possédez déjà toutes les reliques.';
+    p.textContent = 'Vous portez déjà toutes les reliques connues.';
     body.appendChild(p);
     return;
   }
@@ -101,14 +94,26 @@ function _offerRelic(body, room, onRender) {
   desc.textContent = relicDef.description ?? '';
   body.appendChild(desc);
 
+  const full = (WS.player.inventory?.length ?? 0) >= inventoryCapacity();
+
   const btn = document.createElement('button');
   btn.className = 'dealbtn';
-  btn.textContent = 'Prendre la relique';
+  btn.disabled = full;
+  btn.textContent = full ? 'Besace pleine' : 'Prendre la relique';
   btn.addEventListener('click', () => {
-    WS.player.relics = [...(WS.player.relics ?? []), room._offeredRelicId];
+    if ((WS.player.inventory?.length ?? 0) >= inventoryCapacity()) return;
+    WS.player.inventory.push({ id: `relic_${room._offeredRelicId}_${WS.tick}`, relicId: room._offeredRelicId });
     room._relicTaken = true;
-    addLog(`✦ Relique acquise : ${relicDef.name}.`, 'sys');
+    addLog(`✦ Relique acquise : ${relicDef.name} (rangée dans la besace).`, 'sys');
     onRender?.();
   });
   body.appendChild(btn);
+
+  if (full) {
+    const note = document.createElement('p');
+    note.className = 'insp-dim';
+    note.style.cssText = 'margin-top:4px;font-size:.85em';
+    note.textContent = 'Faites de la place dans votre besace pour l\'emporter.';
+    body.appendChild(note);
+  }
 }

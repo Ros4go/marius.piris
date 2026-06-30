@@ -67,7 +67,7 @@
     "harvest": { "fragileTo": [] } },
 
   { "id": "heart_human", "type": "heart", "name": "Cœur humain", "set": "human", "tier": "common",
-    "hp": 12, "layer": "deep", "pool": 3, "price": 15,
+    "hp": 12, "layer": "deep", "pool": 3, "price": 15, "pulse": 1.0,
     "passives": [
       { "id": "pump", "label": "Pompe", "desc": "Au début de chaque tour : produit 3 Sang et purge le Sang non dépensé (il ne se cumule pas).", "value": 3 }
     ],
@@ -148,7 +148,7 @@
     "harvest": { "fragileTo": [] } },
 
   { "id": "heart_beast", "type": "heart", "name": "Cœur de bête", "set": "beast", "tier": "rare",
-    "hp": 14, "layer": "deep", "pool": 4, "price": 75,
+    "hp": 14, "layer": "deep", "pool": 4, "price": 75, "pulse": 1.7,
     "passives": [
       { "id": "wild_pulse", "label": "Pouls sauvage", "desc": "Au début de chaque tour : produit 4 Sang et purge le Sang non dépensé. Mais ton cœur bat fort : les ennemis t'entendent de plus loin.", "value": 4, "loud": true }
     ],

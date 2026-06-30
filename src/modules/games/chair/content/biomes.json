@@ -51,7 +51,8 @@
       "cordes_vocales",
       "salle_derniers_mots"
     ],
-    "gridSize": 7
+    "gridSize": 7,
+    "gen": { "pathBias": 0.5, "branchSeeds": 0.6, "branchLen": [1, 2] }
   },
   {
     "id": "poumons",
@@ -104,7 +105,8 @@
       "alveoles",
       "bronchioles"
     ],
-    "gridSize": 9
+    "gridSize": 9,
+    "gen": { "pathBias": 0.55, "branchSeeds": 0.6, "branchLen": [2, 3] }
   },
   {
     "id": "coeur",
@@ -158,7 +160,8 @@
       "ventricules",
       "salle_pression"
     ],
-    "gridSize": 9
+    "gridSize": 9,
+    "gen": { "pathBias": 0.6, "branchSeeds": 0.5, "branchLen": [1, 3] }
   },
   {
     "id": "estomac",
@@ -210,7 +213,8 @@
       "bains_acide",
       "sphincters"
     ],
-    "gridSize": 9
+    "gridSize": 9,
+    "gen": { "pathBias": 0.5, "branchSeeds": 0.7, "branchLen": [1, 3] }
   },
   {
     "id": "entrailles",
@@ -263,7 +267,8 @@
       "bains_acide",
       "sphincters"
     ],
-    "gridSize": 11
+    "gridSize": 11,
+    "gen": { "pathBias": 0.55, "branchSeeds": 0.6, "branchLen": [2, 4] }
   },
   {
     "id": "le-fond",
@@ -314,6 +319,7 @@
       "torchHot": "#c06030"
     },
     "thematicRooms": [],
-    "gridSize": 11
+    "gridSize": 11,
+    "gen": { "pathBias": 0.6, "branchSeeds": 0.5, "branchLen": [2, 4] }
   }
 ]

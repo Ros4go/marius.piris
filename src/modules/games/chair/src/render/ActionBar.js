@@ -5,6 +5,7 @@
 
 import { WS, currentRoom } from '../WorldState.js';
 import { organResolver } from '../registry.js';
+import { graftCost as relicGraftCost } from '../systems/RelicSystem.js';
 import * as TurnCombat from '../TurnCombat.js';
 
 const _bar    = document.getElementById('action-bar');
@@ -125,7 +126,7 @@ function _derive(room) {
   if (hasCadavers) acts.push({ label: 'RÉCOLTER', sub: 'cadavre', action: 'HARVEST_OPEN' });
 
   if (WS.player.inventory.length > 0) {
-    const graftCost = (WS.player?.relics ?? []).includes('relic_suture_noire') ? 3 : 5;
+    const graftCost = relicGraftCost();
     acts.push({ label: 'GREFFER', sub: `${graftCost} ticks`, action: 'GRAFT_OPEN' });
     acts.push({ label: 'AMPUTER', sub: '0 tick', action: 'AMPUTATE_OPEN' });
   }

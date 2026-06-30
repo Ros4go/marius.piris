@@ -1,5 +1,5 @@
 import { WS } from '../../WorldState.js';
-import { allOrgans, organResolver } from '../../registry.js';
+import { allOrgans, organResolver, relic as getRelic } from '../../registry.js';
 import { addLog } from '../HUDRenderer.js';
 import { inventoryCapacity } from '../../WorldState.js';
 
@@ -62,6 +62,26 @@ export function render(container, room, options = {}) {
   // Sell from besace
   if (WS.player.inventory.length) {
     WS.player.inventory.forEach((item, idx) => {
+      // Relics are sellable too — flat half of their listed price.
+      if (item.relicId) {
+        const rdef = getRelic(item.relicId);
+        if (!rdef) return;
+        const price = Math.round((rdef.price ?? 60) * 0.5);
+        const btn   = document.createElement('button');
+        btn.className = 'ware sell';
+        btn.innerHTML = `<span class="ware-ic relic"></span>
+                         <span class="ware-n">✦ ${rdef.name}</span>
+                         <span class="ware-p sell">+${price}</span>`;
+        btn.addEventListener('click', () => {
+          WS.player.gold += price;
+          WS.player.inventory.splice(idx, 1);
+          addLog(`Vendu : ${rdef.name} +${price}💀.`, 'sys');
+          onRender?.();
+        });
+        sellScroll.appendChild(btn);
+        return;
+      }
+
       const def     = organResolver(item.organId);
       if (!def) return;
       const quality = def.getQuality(item.hp ?? def.maxHp);

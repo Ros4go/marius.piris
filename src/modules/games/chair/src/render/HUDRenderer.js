@@ -1,15 +1,13 @@
 // HUD strip + combat log. Diff-based: only writes to DOM when data changed.
 
 import { WS, currentFloor } from '../WorldState.js';
-import { relic as getRelicDef } from '../registry.js';
 
 const _elFloor   = document.getElementById('hud-floor');
 const _elGold    = document.getElementById('val-gold');
 const _elTorches = document.getElementById('val-torches');
-const _elRelics  = document.getElementById('relic-list');
 const _elLog     = document.getElementById('combat-log');
 
-let _prev = { floor: null, gold: null, torches: null, relics: null };
+let _prev = { floor: null, gold: null, torches: null };
 
 function _blocks(n, max, filled, empty) {
   const f = Math.max(0, Math.min(max, Math.round(n)));
@@ -39,20 +37,6 @@ export function render() {
     _prev.torches = torches;
   }
 
-  const relics = WS.player.relics ?? [];
-  const relicKey = relics.join(',');
-  if (_prev.relics !== relicKey && _elRelics) {
-    if (relics.length) {
-      _elRelics.style.display = '';
-      _elRelics.textContent = relics.map(id => {
-        const def = getRelicDef(id);
-        return `✦ ${def?.name ?? id}`;
-      }).join('  ');
-    } else {
-      _elRelics.style.display = 'none';
-    }
-    _prev.relics = relicKey;
-  }
 }
 
 export function addLog(text, cls = '') {

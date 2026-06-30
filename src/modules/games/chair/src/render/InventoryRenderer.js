@@ -1,5 +1,5 @@
 import { WS } from '../WorldState.js';
-import { organResolver } from '../registry.js';
+import { organResolver, relic as getRelic } from '../registry.js';
 
 const _grid = document.getElementById('inventory-grid');
 let _onInspect = null;
@@ -63,6 +63,16 @@ export function render() {
       cell.onclick   = null;
       return;
     }
+    // Relics share the besace with organs — render them with a distinct ✦ mark.
+    if (item.relicId) {
+      const rdef = getRelic(item.relicId);
+      cell.className = 'cell full relic';
+      cell.innerHTML = `<div class="orgshape relicshape"></div><span class="q">✦</span>`;
+      cell.title     = rdef ? `✦ ${rdef.name}\n${rdef.description ?? ''}` : '✦ relique';
+      cell.onclick   = null;
+      return;
+    }
+
     const def     = organResolver(item.organId);
     const quality = def ? def.getQuality(item.hp ?? def.maxHp) : { name: 'pourri' };
 

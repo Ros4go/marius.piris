@@ -23,8 +23,7 @@ export const WS = {
     floorIdx:       0,
     gold:           0,
     torches:        3,
-    inventory:      [],
-    relics:         [],
+    inventory:      [],     // organs to graft + relics carried (items with a relicId)
     statusIds:      [],
     bloodAlloc:     {},     // slotKey → blood allocated (persistent, editable in & out of combat)
     lastAction:      null,
@@ -104,7 +103,6 @@ export function initRun(seed) {
     gold:           0,
     torches:        3,
     inventory:      [],
-    relics:         [],
     statusIds:      [],
     bloodAlloc:     {},
     lastAction:       null,
@@ -180,7 +178,6 @@ export function toJSON() {
       gold:           WS.player.gold,
       torches:        WS.player.torches,
       inventory:      deepCopy(WS.player.inventory),
-      relics:         [...(WS.player.relics ?? [])],
       statusIds:      [...WS.player.statusIds],
       bloodAlloc:     { ...(WS.player.bloodAlloc ?? {}) },
       biomePath:        WS.player.biomePath,
@@ -215,7 +212,6 @@ export function fromJSON(data) {
     gold:           data.player.gold,
     torches:        data.player.torches ?? 3,
     inventory:      deepCopy(data.player.inventory),
-    relics:         [...(data.player.relics ?? [])],
     statusIds:      [...data.player.statusIds],
     bloodAlloc:     { ...(data.player.bloodAlloc ?? {}) },
     lastAction:       null,
@@ -227,9 +223,17 @@ export function fromJSON(data) {
 
   WS.floors = data.floors.map(f => Floor.fromJSON(f, Room));
 
-  WS.mobs      = new Map(data.mobs.map(({ id, mob }) => [id, mob]));
-  WS.cadavers  = new Map(data.cadavers.map(({ id, cad }) => [id, cad]));
-  WS.lootPiles = new Map(data.lootPiles.map(({ id, pile }) => [id, pile]));
+  // Rebuild mob/cadaver bodies as Body instances (JSON.stringify flattened them
+  // to plain objects, losing the methods the renderer/combat rely on).
+  WS.mobs = new Map((data.mobs ?? []).map(({ id, mob }) => {
+    if (mob?.body) mob.body = Body.fromJSON(mob.body);
+    return [id, mob];
+  }));
+  WS.cadavers = new Map((data.cadavers ?? []).map(({ id, cad }) => {
+    if (cad?.body) cad.body = Body.fromJSON(cad.body);
+    return [id, cad];
+  }));
+  WS.lootPiles = new Map((data.lootPiles ?? []).map(({ id, pile }) => [id, pile]));
 
   WS.ligne      = { events: deepCopy(data.ligne.events) };
   WS.combat     = deepCopy(data.combat);

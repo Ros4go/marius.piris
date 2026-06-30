@@ -62,6 +62,7 @@ export function render(cards, ctx) {
   for (const c of cards) {
     const el = document.createElement('div');
     el.className = 'ccard l-' + (c.layerHint ?? 'x') + (c.playable ? '' : ' disabled') + (c.needsTarget ? ' targeted-card' : '');
+    if (c.color) el.style.setProperty('--card-accent', c.color);   // organ/set colour (matches the mob)
     const beads = c.cost > 0 ? '<i></i>'.repeat(Math.min(c.cost, 4)) : '<u>libre</u>';
     el.innerHTML =
       `<span class="cc-cost" title="${c.cost} Sang">${beads}</span>` +
@@ -150,54 +151,89 @@ function _allTargets() {
   return document.querySelectorAll('#combat-targets .ctarget, #reactor [data-organ]');
 }
 
-// One cluster of organs PER enemy, anchored over that enemy's silhouette and
-// arranged by layer (deep at top, outer at bottom). Drop on any one to target it.
-function _buildTargets() {
+// Press-and-hold a mob to reveal its organs (inspection), without a card. Release
+// to hide. Reuses the same target clusters as a card drag.
+export function peek(on, mobId) {
+  _ensure();
+  if (!_ctx || _aim) return;                 // ignore while a card is being aimed
+  if (on) { _game().classList.add('peeking'); _buildTargets(mobId); }
+  else    { _game()?.classList.remove('peeking'); if (_targetsEl) _targetsEl.innerHTML = ''; }
+}
+
+const LAYER_FR = { outer: 'Externe', mid: 'Médian', deep: 'Profond' };
+
+// One PANEL per enemy: a backdrop card with the organs grouped by layer
+// (front → back), each layer labelled. Locked layers (behind an intact layer)
+// are dimmed + barricaded so it's clear why they can't be hit yet. Panels are
+// anchored over each mob then spread apart so neighbours never overlap.
+function _buildTargets(onlyMob = null) {
   _targetsEl.innerHTML = '';
   const tRect = _targetsEl.getBoundingClientRect();
 
   const byMob = new Map();
   for (const o of _ctx.organs ?? []) {
+    if (onlyMob && o.mobId !== onlyMob) continue;
     if (!byMob.has(o.mobId)) byMob.set(o.mobId, []);
     byMob.get(o.mobId).push(o);
   }
-  const mobIds = [...byMob.keys()];
 
-  mobIds.forEach((mobId, idx) => {
-    const cluster = document.createElement('div');
-    cluster.className = 'ctmob';
-
-    // anchor over the mob's silhouette; fall back to even spacing if absent
-    const sil = document.querySelector(`#mob-display .mobwrap[data-mob-id="${mobId}"]`);
-    let cx, cy;
+  // anchor each panel over its mob, then push apart to avoid overlap
+  const CW = 200, GAP = 14;
+  const items = [...byMob.keys()].map((id, idx) => {
+    const sil = document.querySelector(`#mob-display .mobwrap[data-mob-id="${id}"]`);
     if (sil) {
       const r = sil.getBoundingClientRect();
-      cx = r.left + r.width / 2 - tRect.left;
-      cy = r.top + r.height * 0.45 - tRect.top;
-    } else {
-      cx = tRect.width * ((idx + 1) / (mobIds.length + 1));
-      cy = tRect.height * 0.42;
+      return { id, cx: r.left + r.width / 2 - tRect.left, cy: r.top + r.height * 0.42 - tRect.top };
     }
+    return { id, cx: tRect.width * ((idx + 1) / (byMob.size + 1)), cy: tRect.height * 0.42 };
+  });
+  items.sort((a, b) => a.cx - b.cx);
+  for (let i = 1; i < items.length; i++) {
+    const min = items[i - 1].cx + CW + GAP;
+    if (items[i].cx < min) items[i].cx = min;
+  }
+  if (items.length) {
+    const over = items[items.length - 1].cx - (tRect.width - CW / 2 - 6);
+    if (over > 0) items.forEach((it) => (it.cx -= over));
+    const under = (CW / 2 + 6) - items[0].cx;
+    if (under > 0) items.forEach((it) => (it.cx += under));
+  }
+
+  for (const { id, cx, cy } of items) {
+    const cluster = document.createElement('div');
+    cluster.className = 'ctmob';
     cluster.style.left = `${cx}px`;
     cluster.style.top = `${cy}px`;
 
-    const byLayer = { deep: [], mid: [], outer: [] };
-    for (const o of byMob.get(mobId)) (byLayer[o.layer] ?? byLayer.outer).push(o);
-    for (const layer of ['deep', 'mid', 'outer']) {
-      if (!byLayer[layer].length) continue;
+    const byLayer = { outer: [], mid: [], deep: [] };
+    for (const o of byMob.get(id)) (byLayer[o.layer] ?? byLayer.outer).push(o);
+
+    for (const layer of ['outer', 'mid', 'deep']) {   // front → back
+      const list = byLayer[layer];
+      if (!list.length) continue;
+      const reachable = list.some((o) => !o.locked && !o.dead);
+      const sec = document.createElement('div');
+      sec.className = 'ctlayer l-' + layer + (reachable ? '' : ' locked');
+      sec.innerHTML = `<div class="ctl-head"><span class="ctl-name">${LAYER_FR[layer]}</span>` +
+        (reachable ? '' : '<span class="ctl-lock">🔒 protégé</span>') + '</div>';
+
       const row = document.createElement('div');
-      row.className = 'ctrow l-' + layer;
-      for (const o of byLayer[layer]) {
+      row.className = 'ctrow';
+      for (const o of list) {
         const n = document.createElement('div');
         n.className = 'ctarget' + (o.locked ? ' locked' : '') + (o.dead ? ' dead' : '');
         n.dataset.organ = o.slotKey;
         n.dataset.mob = o.mobId;
+        if (o.color) n.style.setProperty('--ct-accent', o.color);
+        if (o.locked && !o.dead) n.title = 'Inaccessible — détruis un organe de la couche au-dessus';
+        const pct = Math.max(0, Math.round(100 * o.hp / o.maxHp));
         n.innerHTML = `<span class="ct-name">${o.name}</span>` +
-          `<span class="ct-hp"><span style="width:${Math.max(0, Math.round(100 * o.hp / o.maxHp))}%"></span></span>`;
+          `<span class="ct-hp"><span style="width:${pct}%"></span></span>`;
         row.appendChild(n);
       }
-      cluster.appendChild(row);
+      sec.appendChild(row);
+      cluster.appendChild(sec);
     }
     _targetsEl.appendChild(cluster);
-  });
+  }
 }

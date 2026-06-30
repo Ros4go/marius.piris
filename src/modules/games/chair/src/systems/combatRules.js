@@ -267,11 +267,14 @@ function _pickPlayerTarget(playerBody, organResolver, rng, hasBrain, pierce) {
   return targetable[Math.floor(rng() * targetable.length)];
 }
 
-// Build the mob's PLAN for next turn: a sequence of attacks. Like the player,
-// the mob has a Blood budget (its heart pool, capped by `budget`) and spends it
-// firing its attacking organs — one skill per organ, biggest first if it has a
-// brain. So two arms + enough Blood = two strikes. floorScale multiplies damage.
-export function chooseMobPlan(mob, playerBody, organResolver, rng, floorScale = 1, budget = null) {
+// Build the mob's PLAN for next turn: a sequence of attacks. A mob is exactly
+// like the player — its Blood budget is its own heart pool (residual pulse of 3
+// if it has no heart), and it spends that Blood firing its attacking organs,
+// one skill per organ, biggest first if it has a brain. So two arms + enough
+// Blood = two strikes. Damage is whatever the organ's skill deals — no floor
+// multiplier. Difficulty scales only through the organ BUDGET mobs are built
+// with (deeper floors → more / better organs → bigger heart → more attacks).
+export function chooseMobPlan(mob, playerBody, organResolver, rng, budget = null) {
   const atks = mobAttackSkills(mob, organResolver);
   if (!atks.length) return [];
   const hasBrain = organAlive(mob.body, 'brain');
@@ -287,7 +290,7 @@ export function chooseMobPlan(mob, playerBody, organResolver, rng, floorScale = 
     const target = _pickPlayerTarget(playerBody, organResolver, rng, hasBrain, !!a.skill.effect.pierce);
     if (!target) break;                   // nothing reachable on the player
     pool -= cost;
-    const amount = Math.max(1, Math.round((a.skill.effect.amount ?? 1) * floorScale));
+    const amount = a.skill.effect.amount ?? 1;
     plan.push({ organKey: a.key, skillId: a.skill.id, target, amount, label: a.skill.label, pierce: !!a.skill.effect.pierce });
     if (pool <= 0) break;
   }

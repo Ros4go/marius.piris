@@ -1,12 +1,14 @@
 // Entry point — imports everything, boots the game.
 
-import { loadData, organResolver, biome as getBiomeData } from './registry.js';
+import { loadData, organResolver, organColor, biome as getBiomeData } from './registry.js';
 import { WS, initRun, currentRoom, toJSON, fromJSON } from './WorldState.js';
 import { on as onTrigger, emit, flush, PRIORITY } from './TriggerBus.js';
 import { processTick, descend, advanceTicks } from './TickEngine.js';
+import { graftCost as relicGraftCost } from './systems/RelicSystem.js';
 import * as BattleEngine from './BattleEngine.js';
 import * as TurnCombat from './TurnCombat.js';
 import * as CombatHand from './render/CombatHand.js';
+import { SLOT_SHORT, SLOT_FULL } from './labels.js';
 import { ORGAN_SLOTS } from './entities/Body.js';
 import { init as initInput, on as onInput } from './input/InputHandler.js';
 import * as SceneRenderer     from './render/SceneRenderer.js';
@@ -42,6 +44,7 @@ let _targetedMobId = null;
 let _targetedSlot  = null;
 let _inspect       = null;   // inspector focus: {kind:'organ',slot} | {kind:'item',index} | null (= body overview)
 let _gameOver      = false;
+let _transitioning = false;  // a room transition is playing (locks movement briefly)
 let _graveyard     = null;   // persists between runs (loaded from localStorage)
 let _heritage      = [];     // organs kept between runs via Consigne
 
@@ -120,12 +123,12 @@ function _startGame() {
 
 // ── Input wiring ──────────────────────────────────────────────────────────────
 function _wireInputs() {
-  onInput('MOVE_FORWARD',  () => _tick({ type: 'MOVE', direction: _dir() }));
-  onInput('MOVE_BACK',     () => _tick({ type: 'MOVE', direction: _opposite(_dir()) }));
-  onInput('TURN_LEFT',     () => _tick({ type: 'TURN', direction: _turnLeft(_dir()) }));
-  onInput('TURN_RIGHT',    () => _tick({ type: 'TURN', direction: _turnRight(_dir()) }));
-  onInput('STRAFE_LEFT',   () => _tick({ type: 'MOVE', direction: _turnLeft(_dir()) }));
-  onInput('STRAFE_RIGHT',  () => _tick({ type: 'MOVE', direction: _turnRight(_dir()) }));
+  onInput('MOVE_FORWARD',  () => _tick({ type: 'MOVE', direction: _dir(),              screenDir: 'forward' }));
+  onInput('MOVE_BACK',     () => _tick({ type: 'MOVE', direction: _opposite(_dir()),   screenDir: 'back' }));
+  onInput('TURN_LEFT',     () => _tick({ type: 'TURN', direction: _turnLeft(_dir()),  turnDir: 'left' }));
+  onInput('TURN_RIGHT',    () => _tick({ type: 'TURN', direction: _turnRight(_dir()), turnDir: 'right' }));
+  onInput('STRAFE_LEFT',   () => _tick({ type: 'MOVE', direction: _turnLeft(_dir()),   screenDir: 'left' }));
+  onInput('STRAFE_RIGHT',  () => _tick({ type: 'MOVE', direction: _turnRight(_dir()),  screenDir: 'right' }));
 
   document.getElementById('padmini')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
@@ -168,8 +171,19 @@ function _wireSaveButtons() {
 
 function _saveGame() {
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(toJSON()));
-    addLog('Sauvegarde exportée.', 'sys');
+    const json = JSON.stringify(toJSON());
+    // local backup (quick), then download a file — the file is what Import reads.
+    try { localStorage.setItem(SAVE_KEY, json); } catch (_) {}
+    const blob = new Blob([json], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `chair-save-etage${(WS.player.floorIdx ?? 0) + 1}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    addLog('Sauvegarde téléchargée (fichier JSON).', 'sys');
   } catch (e) {
     addLog('Échec de la sauvegarde.', 'warn');
   }
@@ -365,7 +379,7 @@ function _onCombatEnd(reason) {
 
 // ── Tick ──────────────────────────────────────────────────────────────────────
 function _tick(action) {
-  if (_gameOver) return;
+  if (_gameOver || _transitioning) return;
   const result = processTick(action);
   if (!result.ok) {
     if (result.reason !== 'no_room' && result.reason !== 'in_combat') {
@@ -379,13 +393,59 @@ function _tick(action) {
       WS.player.runStats.floorReached ?? 0, WS.player.floorIdx
     );
   }
-  render();
-  _updateBattle();
+  // A directional MOVE/descent plays the door transition (which renders the new
+  // room mid-way, hidden behind black); everything else renders immediately.
+  if (action?.screenDir) {
+    _transitionTo(action.screenDir);
+  } else {
+    render();
+    _updateBattle();
+    if (action?.turnDir) _playTurn(action.turnDir);   // quick camera yaw on a turn
+  }
+}
+
+// Quick camera yaw nudge when turning (same cell — just a feel-good rotation).
+let _tnTimer = null;
+function _playTurn(dir) {
+  const vp = document.querySelector('.viewport');
+  if (!vp) return;
+  vp.classList.remove('tn-left', 'tn-right');
+  void vp.offsetWidth;
+  vp.classList.add(`tn-${dir}`);
+  clearTimeout(_tnTimer);
+  _tnTimer = setTimeout(() => vp.classList.remove(`tn-${dir}`), 360);
+}
+
+// ── Door transition: zoom toward the door + fade to black, swap the room behind
+//    the black, then fade the new room in. processTick already committed state,
+//    but the DOM still shows the OLD room until we call render(). ───────────────
+const _RT_DIRS = ['forward', 'back', 'left', 'right', 'down', 'up'];
+const _RT_OUT = 500, _RT_IN = 340;
+function _transitionTo(dir) {
+  const vp = document.querySelector('.viewport');
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (!vp || reduce || !_RT_DIRS.includes(dir)) { render(); _updateBattle(); return; }
+  _transitioning = true;
+  for (const d of _RT_DIRS) vp.classList.remove(`rt-${d}`);
+  vp.classList.remove('rt-in');
+  void vp.offsetWidth;
+  vp.classList.add('rt-out', `rt-${dir}`);
+
+  setTimeout(() => {
+    render();                 // swap to the new room while the screen is black
+    _updateBattle();
+    vp.classList.remove('rt-out');
+    vp.classList.add('rt-in');
+    setTimeout(() => {
+      vp.classList.remove('rt-in', `rt-${dir}`);
+      _transitioning = false;
+    }, _RT_IN);
+  }, _RT_OUT);
 }
 
 // ── UI action dispatch ────────────────────────────────────────────────────────
 function _handleUiAction(act) {
-  if (_gameOver) return;
+  if (_gameOver || _transitioning) return;
 
   switch (act.action) {
     case 'CARD':
@@ -438,7 +498,7 @@ function _handleUiAction(act) {
       }
       _targetedMobId = null;
       _targetedSlot  = null;
-      render();
+      _transitionTo('down');   // renders the new floor mid-transition
       break;
     }
   }
@@ -559,13 +619,8 @@ function _choosePath(biomeId, nextIdx) {
 function render() {
   SceneRenderer.render();
   MobRenderer.render({
-    focusedMobId: _targetedMobId,
-    onFocus: (mobId) => {
-      _targetedMobId = mobId;
-      _targetedSlot  = null;
-      if (TurnCombat.isActive()) TurnCombat.setTarget(mobId, null);
-      render();
-    },
+    // press-and-hold a mob → reveal its organs (inspection); release → hide
+    onPeek: (on, mobId) => CombatHand.peek(on, mobId),
   });
   HUDRenderer.render();
   MinimapRenderer.render();
@@ -647,7 +702,7 @@ function _renderCombatHand() {
       const def = organResolver(s.organId);
       const maxHp = def?.maxHp ?? 1;
       const hp = s.hp ?? maxHp;
-      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer, name: def?.name ?? k, hp, maxHp, locked: !reach.has(k), dead: hp <= 0 });
+      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer, name: SLOT_SHORT[k] ?? def?.name ?? k, hp, maxHp, color: organColor(s.organId), locked: !reach.has(k), dead: hp <= 0 });
     }
   }
 
@@ -658,6 +713,7 @@ function _renderCombatHand() {
     cost:       c.skill.cost ?? 0,
     desc:       c.skill.desc ?? '',
     organName:  organResolver(c.organId)?.name ?? '',
+    color:      organColor(c.organId),
     playable:   c.playable,
     needsTarget: ['damage', 'heal', 'retrigger'].includes(c.skill.effect?.kind),
     layerHint:  ORGAN_SLOTS[c.organKey]?.layer ?? 'x',
@@ -736,7 +792,7 @@ function _openHarvestUI() {
 // ── Graft UI ──────────────────────────────────────────────────────────────────
 function _openGraftUI() {
   const panel = RoomPanel.container();
-  const cost = (WS.player?.relics ?? []).includes('relic_suture_noire') ? 3 : 5;
+  const cost = relicGraftCost();
   panel.innerHTML = `
     <div class="room-title">✂ Greffe · <span style="font-size:.7em;letter-spacing:.1em">${cost} ticks</span></div>
     <div class="room-body" id="_graft-body"></div>`;
@@ -776,7 +832,7 @@ function _openGraftUI() {
         const btn = document.createElement('button');
         btn.className = 'act';
         btn.style.cssText = 'flex:none;max-width:none;padding:4px 8px';
-        btn.innerHTML = `<b>→ ${slotKey}</b>`;
+        btn.innerHTML = `<b>→ ${SLOT_FULL[slotKey] ?? slotKey}</b>`;
         btn.addEventListener('click', () => {
           _tick({ type: 'GRAFT', inventoryIndex: idx, slotKey });
           _openGraftUI();
@@ -825,7 +881,7 @@ function _openAmputateUI() {
 
     const btn = document.createElement('button');
     btn.className = 'dealbtn danger';
-    btn.innerHTML = `[${slotKey}] ${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">${quality.name}</em>`;
+    btn.innerHTML = `<b>${SLOT_FULL[slotKey] ?? slotKey}</b> — ${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">${quality.name}</em>`;
     btn.addEventListener('click', () => {
       _tick({ type: 'REMOVE_ORGAN', slotKey });
       _openAmputateUI();

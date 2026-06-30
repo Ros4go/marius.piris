@@ -14,8 +14,9 @@ import * as LoreSystem          from './systems/LoreSystem.js';
 // SPEC tick costs: GRAFT=5 ticks in dungeon, REMOVE_ORGAN=0 (amputation gratuite), else=1
 // relic_suture_noire reduces GRAFT to 3. MOVE without legs costs 2.
 function _actionCost(action) {
-  if (action.type === 'GRAFT')        return RelicSystem.graftCost();
-  if (action.type === 'REMOVE_ORGAN') return 0;
+  if (action.type === 'GRAFT')           return RelicSystem.graftCost();
+  if (action.type === 'REMOVE_ORGAN')    return 0;
+  if (action.type === 'SACRIFICE_ORGAN') return 0;
   if (action.type === 'MOVE') {
     const legs = WS.player.body?.slots?.['legs'];
     if (!legs || (legs.hp !== null && legs.hp <= 0)) return 2;
@@ -104,6 +105,8 @@ function _resolveAction(action) {
       return GraftSystem.graft(action.inventoryIndex, action.slotKey);
     case 'REMOVE_ORGAN':
       return GraftSystem.removeOrgan(action.slotKey);
+    case 'SACRIFICE_ORGAN':
+      return GraftSystem.sacrificeOrgan(action.slotKey);
     case 'TURN':
       if (['N', 'E', 'S', 'W'].includes(action.direction)) {
         WS.player.dir = action.direction;

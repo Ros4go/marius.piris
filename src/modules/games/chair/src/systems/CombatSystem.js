@@ -4,7 +4,6 @@ import { emit, PRIORITY } from '../TriggerBus.js';
 import { ORGAN_SLOTS } from '../entities/Body.js';
 import * as BossSystem    from './BossSystem.js';
 import * as AbilitySystem from './AbilitySystem.js';
-import * as RelicSystem   from './RelicSystem.js';
 
 // New model: organs are self-contained. The magnitude of a skill/passive comes
 // from organ.skill.values[blood-1] (player: allocated blood; mob: full tier).
@@ -84,7 +83,7 @@ export function playerSkill(slotKey, mobId, targetSlotKey) {
         return { ok: true, miss: true };
       }
 
-      const armApplies   = !pierce && RelicSystem.armAppliesToLayer(ORGAN_SLOTS[aimed].layer);
+      const armApplies   = !pierce && ORGAN_SLOTS[aimed].layer === 'outer';
       const armReduction = armApplies ? (armorOf(mob.body, false) + (mob.buffArm ?? 0)) : 0;
       const dmg = Math.max(1, value - armReduction);
 
@@ -200,7 +199,7 @@ function _doMobSkillEffect(mob, slotKey, def) {
       }
 
       const pierce     = !!sk.pierce || (def.abilities ?? []).includes('pierce_layer');
-      const armApplies = !pierce && RelicSystem.armAppliesToLayer(ORGAN_SLOTS[tk].layer);
+      const armApplies = !pierce && ORGAN_SLOTS[tk].layer === 'outer';
       let dmg = Math.max(1, value - (armApplies ? armorOf(playerBody, true) : 0));
 
       if (dmg > 0 && (WS.battle?.buffAbsorb ?? 0) > 0) {

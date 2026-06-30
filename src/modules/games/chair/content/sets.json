@@ -1,0 +1,4 @@
+[
+  { "id": "human", "name": "Humain", "color": "#c47c6e" },
+  { "id": "beast", "name": "Bête",   "color": "#9a2f24" }
+]
