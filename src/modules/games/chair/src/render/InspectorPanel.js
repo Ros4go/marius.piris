@@ -2,7 +2,7 @@
 // New model: organs are self-contained — skill/passive values scale per blood level,
 // the heart produces the blood pool, armor/evasion come from passives.
 
-import { organResolver } from '../registry.js';
+import { organResolver, relic as getRelic } from '../registry.js';
 import { WS } from '../WorldState.js';
 import * as Blood from '../BattleEngine.js';
 import { armorOf, evasionOf } from '../systems/CombatSystem.js';
@@ -79,6 +79,33 @@ export function showOrgan(organId, currentHp, slotKey, onBack) {
     <div class="ins-row"><span>État</span><span>${hp}/${def.maxHp} PV <span style="color:${_qualColor(quality.name)}">[${quality.name}]</span></span></div>
     ${body}
     <div class="ins-row insp-dim"><span>Revente</span><span>${def.getSellPrice(hp)} 💀</span></div>`;
+  if (onBack) document.getElementById('ins-back-btn')?.addEventListener('click', onBack);
+}
+
+// Describe a relic effect in French from its data-driven `kind`.
+function _relicEffectStr(e) {
+  switch (e.kind) {
+    case 'graft_cost':  return `Greffe : ${e.value} ticks au lieu de 5`;
+    case 'auto_repair': return `Auto-réparation : +${e.amount ?? 1} PV tous les ${e.everyTicks ?? 20} ticks`;
+    default:            return e.kind;
+  }
+}
+
+export function showRelic(relicId, onBack) {
+  const def = getRelic(relicId);
+  if (!def) return;
+
+  const effects = (def.effects ?? []).map(e => _desc(_relicEffectStr(e))).join('');
+  const sell    = def.price != null ? Math.round(def.price * 0.5) : null;
+  const back    = onBack ? '<button class="ins-back" id="ins-back-btn">← retour au corps</button>' : '';
+
+  _content.innerHTML = `
+    ${back}
+    <div class="ins-name">✦ ${def.name}</div>
+    <div class="ins-arc">relique · besace</div>
+    ${effects ? `<div class="ins-section-head">Effets</div>${effects}` : ''}
+    ${def.description ? _desc(def.description, 'insp-dim') : ''}
+    ${sell != null ? `<div class="ins-row insp-dim"><span>Revente</span><span>${sell} 💀</span></div>` : ''}`;
   if (onBack) document.getElementById('ins-back-btn')?.addEventListener('click', onBack);
 }
 

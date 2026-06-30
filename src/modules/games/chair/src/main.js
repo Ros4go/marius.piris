@@ -84,7 +84,12 @@ async function boot() {
     onInspect: (slotKey) => { _inspect = { kind: 'organ', slot: slotKey }; render(); },
   });
   InventoryRenderer.init({
-    onInspect: (index) => { _inspect = { kind: 'item', index }; render(); },
+    onInspect: (index) => {
+      const it = WS.player.inventory?.[index];
+      if (it) it.seen = true;          // clears the "not yet inspected" ✦ marker
+      _inspect = { kind: 'item', index };
+      render();
+    },
   });
 
   _showStartScreen();
@@ -654,7 +659,8 @@ function render() {
     else { _inspect = null; InspectorPanel.showBody(WS.player.body); }
   } else if (_inspect?.kind === 'item') {
     const it = WS.player.inventory?.[_inspect.index];
-    if (it?.organId) InspectorPanel.showOrgan(it.organId, it.hp, null, _back);
+    if (it?.organId)      InspectorPanel.showOrgan(it.organId, it.hp, null, _back);
+    else if (it?.relicId) InspectorPanel.showRelic(it.relicId, _back);
     else { _inspect = null; InspectorPanel.showBody(WS.player.body); }
   } else {
     InspectorPanel.showBody(WS.player.body);

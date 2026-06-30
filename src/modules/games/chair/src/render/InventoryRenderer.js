@@ -63,13 +63,16 @@ export function render() {
       cell.onclick   = null;
       return;
     }
-    // Relics share the besace with organs — render them with a distinct ✦ mark.
+    // A faint ✦ marks an item never inspected yet; it vanishes after first inspect.
+    const newMark = item.seen ? '' : '<span class="newmark">✦</span>';
+
+    // Relics share the besace with organs — distinct gold shard, also inspectable.
     if (item.relicId) {
       const rdef = getRelic(item.relicId);
       cell.className = 'cell full relic';
-      cell.innerHTML = `<div class="orgshape relicshape"></div><span class="q">✦</span>`;
+      cell.innerHTML = `<div class="orgshape relicshape"></div>${newMark}`;
       cell.title     = rdef ? `✦ ${rdef.name}\n${rdef.description ?? ''}` : '✦ relique';
-      cell.onclick   = null;
+      cell.onclick   = () => _onInspect?.(invIdx);
       return;
     }
 
@@ -85,7 +88,7 @@ export function render() {
     const romanStr   = (def && def.tier && def.tier !== 'common') ? def.tier[0].toUpperCase() : '';
 
     cell.className = cls;
-    cell.innerHTML = `<div class="${shapeClass}"></div>${romanStr ? `<span class="q">${romanStr}</span>` : ''}`;
+    cell.innerHTML = `<div class="${shapeClass}"></div>${romanStr ? `<span class="q">${romanStr}</span>` : ''}${newMark}`;
     cell.title     = def ? `${def.name} [${quality.name}]` : '?';
     cell.onclick   = () => { if (def) _onInspect?.(invIdx); };
   });
