@@ -5,11 +5,10 @@
     "budgetBase": 5,
     "budgetPerFloor": 2,
     "eliteMult": 1.7,
-    "eliteChance": 0.04
-  },
-  "combat": {
-    "damageScalePerFloor": 0.2,
-    "actionBudgetBase": 1,
-    "actionBudgetPerFloor": 1
+    "eliteChance": 0.04,
+    "packFloor": 3,
+    "extraMobChanceBase": 0.32,
+    "extraMobChancePerFloor": 0.05,
+    "supportBudgetMult": 0.55
   }
 }

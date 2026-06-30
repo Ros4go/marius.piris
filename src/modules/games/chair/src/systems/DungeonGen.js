@@ -4,6 +4,25 @@ import { weighted, shuffle } from '../rng.js';
 import { Floor } from '../entities/Floor.js';
 import { Room }  from '../entities/Room.js';
 
+// Layout tunables. Each biome may override any of these via a `gen` block in
+// biomes.json; anything omitted falls back to these defaults. Keeping the knobs
+// in data lets each strate feel different (tight winding gorge vs. sprawling
+// branchy depths) without touching this file.
+const DEFAULT_GEN = {
+  pathBias:    0.55,   // chance each step heads toward the exit (lower = windier spine)
+  branchSeeds: 0.6,    // number of side-branch roots, as a fraction of the spine length
+  branchLen:   [1, 3], // each side branch grows this many cells (inclusive range)
+};
+
+function _gen(biome) {
+  const g = biome.gen ?? {};
+  return {
+    pathBias:    g.pathBias    ?? DEFAULT_GEN.pathBias,
+    branchSeeds: g.branchSeeds ?? DEFAULT_GEN.branchSeeds,
+    branchLen:   g.branchLen   ?? DEFAULT_GEN.branchLen,
+  };
+}
+
 // Generate a complete Floor from a biome definition.
 // On boss floors (last floor of biome strate), the exit is replaced by a boss room.
 export function generateFloor(biomeId, floorIndex) {
@@ -11,14 +30,18 @@ export function generateFloor(biomeId, floorIndex) {
   if (!biome) throw new Error(`DungeonGen: unknown biome "${biomeId}"`);
 
   const size  = biome.gridSize;
+  const gen   = _gen(biome);
   const floor = new Floor(size, floorIndex, biomeId);
 
   const ex = Math.floor(size / 2);
   floor.entrance = { x: ex, y: size - 1 };
   floor.exit     = { x: Math.floor(rng() * size), y: 0 };
 
-  const { cells, visited } = _carvePath(ex, size - 1, floor.exit.x, floor.exit.y, size);
-  const branches  = _addBranches(cells, visited, size, Math.floor(size * 0.7));
+  // The spine is the critical path entrance → exit; branches are optional
+  // dead-end side corridors the player may explore or skip.
+  const { cells, visited } = _carvePath(ex, size - 1, floor.exit.x, floor.exit.y, size, gen.pathBias);
+  const seedCount = Math.max(1, Math.round(cells.length * gen.branchSeeds));
+  const branches  = _addBranches(cells, visited, size, seedCount, gen.branchLen);
   const allCells  = [...cells, ...branches];
 
   const eligibleDefs = allRooms()
@@ -50,7 +73,7 @@ export function generateFloor(biomeId, floorIndex) {
 
 // --- Path carving ---
 
-function _carvePath(sx, sy, ex, ey, size) {
+function _carvePath(sx, sy, ex, ey, size, pathBias) {
   const visited = new Set();
   const cells   = [];
   let cx = sx, cy = sy;
@@ -72,7 +95,7 @@ function _carvePath(sx, sy, ex, ey, size) {
       { x: cx, y: cy + 1 }, { x: cx - 1, y: cy },
     ];
 
-    const pool = (rng() < 0.65 && primary.length) ? primary : all;
+    const pool = (rng() < pathBias && primary.length) ? primary : all;
     const valid = pool.filter(p =>
       p.x >= 0 && p.y >= 0 && p.x < size && p.y < size && !visited.has(`${p.x},${p.y}`)
     );
@@ -105,22 +128,27 @@ function _carvePath(sx, sy, ex, ey, size) {
   return { cells, visited };
 }
 
-function _addBranches(path, visited, size, maxCount) {
+// Grow optional side branches off the spine. Each seed cell sprouts a short
+// corridor that winds into unvisited cells, creating real dead ends the player
+// can choose to explore rather than a single straight line of rooms.
+function _addBranches(spine, visited, size, seedCount, lenRange) {
   const branches = [];
   const dirs     = [{ dx:0,dy:-1 },{ dx:1,dy:0 },{ dx:0,dy:1 },{ dx:-1,dy:0 }];
-  const pathCopy = shuffle(rng, path);
+  const seeds    = shuffle(rng, spine).slice(0, seedCount);
+  const [lmin, lmax] = lenRange;
 
-  for (const cell of pathCopy) {
-    if (branches.length >= maxCount) break;
-    for (const d of shuffle(rng, dirs)) {
-      const nx = cell.x + d.dx;
-      const ny = cell.y + d.dy;
-      const k  = `${nx},${ny}`;
-      if (nx >= 0 && ny >= 0 && nx < size && ny < size && !visited.has(k)) {
-        visited.add(k);
-        branches.push({ x: nx, y: ny });
-        break;
-      }
+  for (const seed of seeds) {
+    let cx = seed.x, cy = seed.y;
+    const len = lmin + Math.floor(rng() * (lmax - lmin + 1));
+    for (let step = 0; step < len; step++) {
+      const opts = shuffle(rng, dirs)
+        .map(d => ({ x: cx + d.dx, y: cy + d.dy }))
+        .filter(p => p.x >= 0 && p.y >= 0 && p.x < size && p.y < size && !visited.has(`${p.x},${p.y}`));
+      if (!opts.length) break;
+      const next = opts[0];
+      visited.add(`${next.x},${next.y}`);
+      branches.push(next);
+      cx = next.x; cy = next.y;
     }
   }
   return branches;

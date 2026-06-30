@@ -31,16 +31,46 @@ export function spawnForRoom(room, floor, floorIdx) {
   const { minMobs, maxMobs, elite = false } = def.spawns;
   if (maxMobs === 0) return;
 
-  const count = minMobs + Math.floor(rng() * (maxMobs - minMobs + 1));
-  const eliteChance = getBalance().mob.eliteChance;
+  const B     = getBalance().mob;
+  const count = _spawnCount(minMobs, maxMobs, floorIdx);
+
+  // At most ONE strong mob per pack. A room may force elites (combat_elite);
+  // otherwise we roll a single elite chance for the whole group and pick one
+  // member to be it. The other members are built on a reduced budget so a pack
+  // is never three heavyweights at once — the elite leads, the rest support.
+  const hasElite = elite || rng() < (B.eliteChance ?? 0.04);
+  const eliteIdx = hasElite ? Math.floor(rng() * count) : -1;
 
   for (let i = 0; i < count; i++) {
-    const isElite = elite || rng() < eliteChance;
-    const theme   = pick(rng, biome.themes);
-    const mob     = _createMob(biome, theme, floorIdx, room, i, isElite);
+    const isElite    = elite ? true : (i === eliteIdx);
+    const budgetMult = (hasElite && !isElite) ? (B.supportBudgetMult ?? 0.55) : 1;
+    const theme      = pick(rng, biome.themes);
+    const mob        = _createMob(biome, theme, floorIdx, room, i, isElite, budgetMult);
     WS.mobs.set(mob.id, mob);
     room.addMob(mob.id);
   }
+}
+
+// How many mobs to spawn within [minMobs, maxMobs]. Each slot above the minimum
+// fills with a probability that climbs with depth, so early floors stay sparse
+// (mostly 1) while deep floors lean toward full packs. Groups of 3+ only appear
+// from `mob.packFloor` onward (tunable in balance.json) — before that the count
+// is capped at 2. Difficulty is still driven mainly by the organ BUDGET each mob
+// is built with; this only decides how many of them show up.
+function _spawnCount(minMobs, maxMobs, floorIdx) {
+  const B   = getBalance().mob;
+  const fi  = floorIdx ?? 0;
+  let   cap = maxMobs;
+  if (fi < (B.packFloor ?? 3)) cap = Math.min(maxMobs, 2);
+  if (cap <= minMobs) return cap;
+
+  const addChance = Math.min(0.85, (B.extraMobChanceBase ?? 0.32) + fi * (B.extraMobChancePerFloor ?? 0.05));
+  let count = minMobs;
+  for (let i = minMobs; i < cap; i++) {
+    if (rng() < addChance) count++;
+    else break;
+  }
+  return count;
 }
 
 // Spawn a named boss from registry into a boss room.
@@ -134,11 +164,11 @@ export function spawnGraveyardMob(room, floorIdx) {
 
 // --- Procedural mob creation ---
 
-function _createMob(biome, theme, floorIdx, room, idx, isElite) {
+function _createMob(biome, theme, floorIdx, room, idx, isElite, budgetMult = 1) {
   const id = `mob_${floorIdx}_${room.id}_${idx}`;
 
   const B = getBalance();
-  let budget = Math.floor((B.mob.budgetBase + floorIdx * B.mob.budgetPerFloor) * (isElite ? B.mob.eliteMult : 1));
+  let budget = Math.max(1, Math.floor((B.mob.budgetBase + floorIdx * B.mob.budgetPerFloor) * (isElite ? B.mob.eliteMult : 1) * budgetMult));
 
   const pool = allOrgans().filter(o => _tierAllowed(o.tier, floorIdx));
   const body = Body.empty(id);
@@ -216,5 +246,6 @@ function _mobName(theme, body) {
   const firstOrgan = body.equippedOrgans()[0];
   const organType  = firstOrgan ? organResolver(firstOrgan.organId)?.type : null;
   const noun       = (organType && TYPE_NOUN[organType]) ? TYPE_NOUN[organType] : info.noun;
-  return `${adj} ${noun}`;
+  // Noun first, then the qualifier in lowercase → "Œil nécrotique", not "Nécrotique Œil".
+  return `${noun} ${adj.toLowerCase()}`;
 }

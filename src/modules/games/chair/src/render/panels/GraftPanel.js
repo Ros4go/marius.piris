@@ -1,95 +1,46 @@
 import { WS } from '../../WorldState.js';
-import { organResolver } from '../../registry.js';
-import * as RelicSystem from '../../systems/RelicSystem.js';
+import { organResolver, relic as getRelic } from '../../registry.js';
 
-export function render(container, room, options = {}) {
-  const { onTick, heritage = [], onHeritageChange, onRender } = options;
-  const cost = RelicSystem.graftCost();
-
-  // Tab state persisted on room object
-  if (!room._graftTab) room._graftTab = 'greffer';
-
-  container.innerHTML = `
-    <div class="graft-name">✂ La Couturière</div>
-    <div class="graft-bar">
-      <button class="gtab${room._graftTab === 'greffer'  ? ' on' : ''}" data-tab="greffer">Greffer</button>
-      <button class="gtab${room._graftTab === 'consigne' ? ' on' : ''}" data-tab="consigne">Consigne</button>
-      <span class="graft-cost">coût <b>${cost} ticks</b></span>
-    </div>
-    <div id="graft-content" class="graft-section"></div>`;
-
-  container.querySelectorAll('.gtab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      room._graftTab = btn.dataset.tab;
-      onRender?.();
-    });
-  });
-
-  const content = container.querySelector('#graft-content');
-  if (room._graftTab === 'greffer') _renderGreffer(content, onTick);
-  else                               _renderConsigne(content, heritage, onHeritageChange, onRender);
+// Display label for a besace/consigne item — organ (with quality) or relic.
+function _itemLabel(item) {
+  if (item.relicId) {
+    const r = getRelic(item.relicId);
+    return r ? `✦ ${r.name}` : '✦ relique';
+  }
+  const def = organResolver(item.organId);
+  if (!def) return null;
+  const quality = def.getQuality(item.hp ?? def.maxHp);
+  return `${def.name} [${quality.name}]`;
 }
 
-function _renderGreffer(el, onTick) {
-  const inv = WS.player.inventory;
-  if (!inv.length) {
-    el.innerHTML = '<p class="insp-dim" style="text-align:center">Besace vide.</p>';
-    return;
-  }
+export function render(container, room, options = {}) {
+  const { heritage = [], onHeritageChange, onRender } = options;
 
-  inv.forEach((item, idx) => {
-    const def     = organResolver(item.organId);
-    if (!def) return;
-    const quality = def.getQuality(item.hp ?? def.maxHp);
-    const compat  = Object.keys(WS.player.body.slots).filter(
-      sk => WS.player.body.canFitOrgan(sk, item.organId, organResolver)
-    );
+  // The Couturière keeps organs safe between runs (the Consigne). Grafting is
+  // always available from the action bar, so it has no redundant "Greffer" tab.
+  container.innerHTML = `
+    <div class="graft-name">✂ La Couturière</div>
+    <div id="graft-content" class="graft-section"></div>`;
 
-    const card = document.createElement('div');
-    card.className = 'graft-card';
-    const nameEl = document.createElement('div');
-    nameEl.className = 'graft-card-name';
-    nameEl.textContent = `${def.name} [${quality.name}]`;
-    card.appendChild(nameEl);
-
-    if (compat.length) {
-      const slots = document.createElement('div');
-      slots.className = 'graft-slots';
-      for (const slotKey of compat) {
-        const btn = document.createElement('button');
-        btn.className = 'act';
-        btn.style.cssText = 'flex:none;max-width:none;padding:4px 8px';
-        btn.innerHTML = `<b>→ ${slotKey}</b>`;
-        btn.addEventListener('click', () => onTick?.({ type: 'GRAFT', inventoryIndex: idx, slotKey }));
-        slots.appendChild(btn);
-      }
-      card.appendChild(slots);
-    } else {
-      const p = document.createElement('p');
-      p.className = 'insp-dim';
-      p.textContent = 'Aucun slot compatible.';
-      card.appendChild(p);
-    }
-    el.appendChild(card);
-  });
+  const content = container.querySelector('#graft-content');
+  _renderConsigne(content, heritage, onHeritageChange, onRender);
 }
 
 function _renderConsigne(el, heritage, onHeritageChange, onRender) {
   const hdr = document.createElement('p');
   hdr.className = 'insp-dim';
   hdr.style.cssText = 'text-align:center;margin-bottom:6px';
-  hdr.textContent = 'Consigne — organes entre les runs';
+  hdr.textContent = 'Consigne — organes & reliques gardés entre les runs';
   el.appendChild(hdr);
 
   if (heritage.length) {
     for (let hIdx = 0; hIdx < heritage.length; hIdx++) {
-      const item    = heritage[hIdx];
-      const def     = organResolver(item.organId);
-      if (!def) continue;
-      const quality = def.getQuality(item.hp ?? def.maxHp);
-      const row     = document.createElement('div');
+      const item  = heritage[hIdx];
+      const label = _itemLabel(item);
+      if (!label) continue;
+      const row   = document.createElement('div');
       row.className = 'graft-card';
-      row.innerHTML = `<div class="graft-card-name">${def.name} [${quality.name}]</div>`;
+      row.innerHTML = `<div class="graft-card-name">${label}</div>`;
       const btn     = document.createElement('button');
       btn.className = 'act';
       btn.style.cssText = 'margin-top:4px;max-width:none;width:100%';
@@ -119,12 +70,11 @@ function _renderConsigne(el, heritage, onHeritageChange, onRender) {
     el.appendChild(sep);
 
     WS.player.inventory.forEach((item, iIdx) => {
-      const def     = organResolver(item.organId);
-      if (!def) return;
-      const quality = def.getQuality(item.hp ?? def.maxHp);
-      const row     = document.createElement('div');
+      const label = _itemLabel(item);
+      if (!label) return;
+      const row   = document.createElement('div');
       row.className = 'graft-card';
-      row.innerHTML = `<div class="graft-card-name">${def.name} [${quality.name}]</div>`;
+      row.innerHTML = `<div class="graft-card-name">${label}</div>`;
       const btn     = document.createElement('button');
       btn.className = 'act';
       btn.style.cssText = 'margin-top:4px;max-width:none;width:100%';

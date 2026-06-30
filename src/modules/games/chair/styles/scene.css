@@ -62,7 +62,7 @@ html, body {
   transition: opacity .34s;
 }
 .game.hb .heartpulse { opacity: 1; transition: opacity .05s; }
-.game.heart-alive .heartpulse { animation: hbpulse 1.1s ease-in-out infinite; }
+.game.heart-alive .heartpulse { animation: hbpulse var(--hb-dur, 1.1s) ease-in-out infinite; }
 @keyframes hbpulse {
   0%   { opacity: 0; }
   7%   { opacity: 0.38; }
@@ -170,53 +170,73 @@ html, body {
   clip-path: polygon(100% 0%, 64% 30%, 64% 66%, 100% 100%);
   transition: opacity .15s;
 }
+/* Back wall — a frontal textured wall (same meat stripes as the sides, but
+   vertical), always present. The forward passage is the exit-f door carved in
+   front of it. A translucent vignette adds depth WITHOUT hiding the stripes. */
 .g-end {
   position: absolute; left: 36%; top: 30%; width: 28%; height: 36%;
-  background: radial-gradient(circle at 50% 60%, #1b0c0d, #050202 85%);
-  transition: opacity .15s;
-}
-
-/* Door arch: lit doorway when a forward passage exists (warm light from beyond) */
-.g-end.has-door {
-  background: radial-gradient(ellipse 46% 56% at 50% 72%, #2a1408 0%, #120808 52%, #050202 100%);
-  box-shadow: 0 0 30px -6px var(--torch), inset 0 0 26px #000;
+  background:
+    radial-gradient(ellipse 95% 85% at 50% 38%, transparent 42%, #000000b8 100%),
+    repeating-linear-gradient(90deg, #1c0b0c 0 7px, var(--meat) 7px 11px, #240e0f 11px 19px);
+  transition: opacity .15s, filter .15s;
 }
 
 /* ── Directional exits (passages) ──────────────────────────────────────────────
    Glowing archways cut into the walls + a chevron, shown only where you can go.
    Far clearer than dimming a wall — the corridor stops looking "straight only". */
-.exit { position: absolute; display: none; z-index: 4; pointer-events: none; }
+/* z-index 2: above the walls/ribs (the opening) but BELOW the entities
+   (mobs z3, npc z3) so a PNJ/mob standing in the doorway is drawn in front. */
+.exit { position: absolute; inset: 0; display: none; z-index: 2; pointer-events: none; }
 .exit.open { display: block; }
 
-/* Side passages are doorways CARVED into the wall: a full-viewport element with a
-   viewport-% clip-path (same coordinate space as the .geo walls), so each edge is
-   parallel to the wall's edges — the bottom runs exactly along the floor line, the
-   top along the ceiling line. Glow follows the silhouette via drop-shadow. */
-.exit-l, .exit-r {
-  inset: 0;
-  background: radial-gradient(ellipse 24% 44% at var(--cx) 56%, #000 32%, #160a0b 82%, #200e0f 100%);
-  animation: exit-pulse 2.6s ease-in-out infinite;
+/* Each doorway is an SVG polygon: a dark void fill + a thin golden border that
+   gently pulses. The viewBox (0 0 100 100) + preserveAspectRatio none puts the
+   points in the same viewport-% space as the .geo walls, so every edge stays
+   parallel to the wall — identical treatment for the three doors. */
+.exit-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.exit-svg polygon {
+  fill: #0b0607;
+  stroke: var(--torch); stroke-width: 1; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  animation: door-edge 4.5s ease-in-out infinite;
 }
-.exit-l { --cx: 11%; clip-path: polygon(3% 20%, 11% 13%, 20% 34%, 20% 81%, 3% 97%); }
-.exit-r { --cx: 89%; clip-path: polygon(97% 20%, 89% 13%, 80% 34%, 80% 81%, 97% 97%); }
-@keyframes exit-pulse {
-  0%, 100% { filter: drop-shadow(0 0 10px var(--torch-hot)) drop-shadow(0 0 4px var(--torch)); }
-  50%      { filter: drop-shadow(0 0 18px var(--torch-hot)) drop-shadow(0 0 8px var(--torch)); }
+/* discreet: thin dim line, no glow, barely-there pulse */
+@keyframes door-edge {
+  0%, 100% { stroke-opacity: .28; }
+  50%      { stroke-opacity: .45; }
 }
 
-/* forward chevron, floating just above the back doorway */
-.exit-f { left: 0; right: 0; top: 22.5%; height: 7%; text-align: center; }
-
-.ex-arrow {
-  font: 1.5rem/1 var(--serif); color: var(--torch-hot);
-  text-shadow: 0 0 11px var(--torch), 0 1px 2px #000; opacity: .92;
-  animation: exit-arrow 2.6s ease-in-out infinite;
+/* "behind you" — no arrow, just warm light spilling up from the bottom edge,
+   as if the passage you came from is lit just out of frame. */
+.exit-back {
+  position: absolute; left: 0; right: 0; bottom: -4%; height: 30%;
+  display: none; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse 42% 115% at 50% 100%, var(--torch-hot) 0%, var(--torch) 24%, transparent 62%);
+  opacity: .32; mix-blend-mode: screen;
+  animation: back-glow 3.4s ease-in-out infinite;
 }
-.exit-l .ex-arrow, .exit-r .ex-arrow { position: absolute; top: 55%; transform: translate(-50%, -50%); }
-.exit-l .ex-arrow { left: 10.5%; }
-.exit-r .ex-arrow { left: 89.5%; }
-.exit-f .ex-arrow { font-size: 1.2rem; }
-@keyframes exit-arrow { 50% { opacity: .45; } }
+.exit-back.open { display: block; }
+@keyframes back-glow { 50% { opacity: .52; } }
+
+/* Descent room — a dark pit sunk into the floor, irradiating an eldritch glow. */
+/* a flat, foreshortened ellipse sitting low on the receding floor plane */
+.floor-pit {
+  position: absolute; display: none; z-index: 1; pointer-events: none;
+  left: 31%; right: 31%; top: 76%; bottom: 11%; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 44%, #000 32%, #140a1f 58%, #2a1340 76%, transparent 88%);
+  animation: pit-irradiate 3.2s ease-in-out infinite;
+}
+.floor-pit.open { display: block; }
+.floor-pit::before {
+  content: ''; position: absolute; left: 50%; bottom: 28%; transform: translateX(-50%);
+  width: 72%; height: 320%; pointer-events: none;
+  background: radial-gradient(ellipse 50% 58% at 50% 100%, var(--whisper) 0%, transparent 70%);
+  opacity: .22; mix-blend-mode: screen;
+}
+@keyframes pit-irradiate {
+  0%, 100% { filter: drop-shadow(0 0 16px var(--whisper)) drop-shadow(0 0 5px #b59ee0); }
+  50%      { filter: drop-shadow(0 0 32px var(--whisper)) drop-shadow(0 0 13px #b59ee0); }
+}
 
 /* Rib arches */
 .rib {
@@ -232,13 +252,19 @@ html, body {
 
 /* Creature display (mobs) — a centered row so several enemies sit side by side */
 .creature {
-  position: absolute; left: 0; right: 0; top: 34%;
+  position: absolute; left: 0; right: 0; top: 34%; z-index: 3;
   display: none; justify-content: center; align-items: flex-end;
   gap: clamp(18px, 5vw, 80px);
-  animation: breath 4.2s ease-in-out infinite;
   filter: blur(.4px);
 }
+/* breath now lives per-mob (MobRenderer inner layer) with a seeded phase delay
+   so multiple mobs never bob in lockstep. */
 .creature.visible { display: flex; }
+/* Tighten spacing as the scene fills up so 3 mobs fit without overflowing. */
+.creature.multi { gap: clamp(10px, 3vw, 44px); }
+.creature.crowd { gap: clamp(6px, 2vw, 22px); }
+.creature.crowd .mobwrap { transform: scale(.82); transform-origin: bottom center; }
+.creature.crowd .mobwrap:hover { transform: scale(.82) translateY(-3px); }
 /* legacy placeholder blob from index.html — superseded by procedural silhouettes */
 .creature > .c-mass, .creature > .c-eye { display: none; }
 @keyframes breath { 50% { transform: scale(1.03) translateY(-2%); } }
@@ -691,3 +717,101 @@ html, body {
   box-shadow: inset 0 1px 0 #ffffff22, 0 1px 3px #000;
 }
 .tg-more { color: #6a5d48; font-size: .92em; opacity: .8; }
+
+/* ── Gore (z1: in front of walls, behind doors/mobs). One rare prop per room. ─── */
+.gore {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  transform: translateX(var(--gore-x, 0));
+}
+.gore-defs { position: absolute; width: 0; height: 0; }
+.gore-organic {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  filter: drop-shadow(0 3px 4px #000a);
+}
+.gut {
+  stroke-width: var(--w, 10); vector-effect: non-scaling-stroke;
+  transform-box: fill-box; transform-origin: 50% 0;
+  animation: gut-sway var(--t, 6s) ease-in-out var(--d, 0s) infinite alternate;
+  opacity: .92;
+}
+@keyframes gut-sway { from { transform: rotate(-1.6deg); } to { transform: rotate(2.2deg); } }
+
+.blood-pool {
+  position: absolute; left: 24%; right: 24%; bottom: 5%; height: 18%;
+  background: radial-gradient(ellipse at 50% 62%, #5c0f0fcc 0%, #380909aa 44%, transparent 80%);
+  filter: blur(2px); opacity: .66;
+}
+
+/* rigid props anchored low / in a corner (undistorted) */
+.gp-skeleton { position: absolute; left: 3%;  bottom: 1%;  width: 16%; height: 50%; filter: drop-shadow(0 2px 3px #000b); }
+.gp-bones    { position: absolute; left: 4%;  bottom: 2%;  width: 27%; height: 20%; filter: drop-shadow(0 2px 3px #000b); }
+.gp-spike    { position: absolute; left: 27%; bottom: 14%; width: 13%; height: 44%; filter: drop-shadow(0 2px 3px #000b); }
+
+/* hidden by default; SceneRenderer reveals exactly one via data-prop */
+.gp, .blood-pool { display: none; }
+.gore[data-prop="guts"]     .gp-guts,
+.gore[data-prop="splatter"] .gp-splatter,
+.gore[data-prop="splatter"] .blood-pool,
+.gore[data-prop="spike"]    .gp-spike,
+.gore[data-prop="spike"]    .blood-pool,
+.gore[data-prop="bones"]    .gp-bones,
+.gore[data-prop="skeleton"] .gp-skeleton { display: block; }
+
+/* heavy splatter also reddens that side of the room a touch */
+.gore[data-prop="splatter"]::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 80% 74% at 28% 42%, transparent 50%, #2a070745 100%);
+  mix-blend-mode: multiply;
+}
+
+/* ── Procedural mob organ animations (built by MobRenderer) ──────────────────── */
+@keyframes mob-heart {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  16%      { transform: translate(-50%, -50%) scale(1.22); }
+  30%      { transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes mob-blink {
+  0%, 93%, 100% { transform: translateX(-50%) scaleY(1); }
+  96%           { transform: translateX(-50%) scaleY(.12); }
+}
+@keyframes mob-tongue {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(22%); }
+}
+
+/* ── Room transitions (direction-driven: forward/back/left/right/down/up) ─────── */
+/* Soft EDGE vignette instead of a full black flash — the room stays visible, only
+   the borders darken to mask the camera move. Easy on the eyes. */
+/* Black fader covering the viewport during a room change (smooth, gradual). */
+#room-fx { position: absolute; inset: 0; z-index: 9; pointer-events: none; opacity: 0; background: #000; }
+
+/* Two-phase door transition (driven by main.js _transitionTo). NO rotation/fold:
+   OUT — the camera ZOOMS toward the chosen door (the door enlarges & centres, as
+         if it comes to face you) while fading to black;
+   IN  — the new room settles into place while the black fades away. */
+.viewport.rt-out .scene   { animation: rt-zoom   .50s ease-out both; }
+.viewport.rt-out #room-fx { animation: rt-blk-in .50s linear   both; }
+.viewport.rt-in  .scene   { animation: rt-settle .34s ease-out both; }
+.viewport.rt-in  #room-fx { animation: rt-blk-out .34s ease-out both; }
+
+/* the zoom focuses on where the door is → that door grows to fill the view */
+.viewport.rt-forward .scene, .viewport.rt-back .scene { transform-origin: 50% 48%; }
+.viewport.rt-left  .scene { transform-origin: 13% 50%; }
+.viewport.rt-right .scene { transform-origin: 87% 50%; }
+.viewport.rt-down  .scene { transform-origin: 50% 76%; }
+.viewport.rt-up    .scene { transform-origin: 50% 26%; }
+.viewport.rt-back.rt-out .scene { animation: rt-zoom-back .50s ease-out both; }
+
+/* zoom is visible EARLY (ease-out), black only covers the 2nd half */
+@keyframes rt-zoom      { from { transform: scale(1); }    to { transform: scale(1.9); } }
+@keyframes rt-zoom-back { from { transform: scale(1); }    to { transform: scale(.66); } }
+@keyframes rt-blk-in    { 0%, 48% { opacity: 0; }          100% { opacity: 1; } }
+@keyframes rt-blk-out   { from { opacity: 1; }             to { opacity: 0; } }
+@keyframes rt-settle    { from { transform: scale(1.08); } to { transform: scale(1); } }
+
+/* TURN: a clean horizontal camera pan (no fold) — the new view (already facing
+   the door after the re-render) slides into place. */
+.viewport.tn-left  .scene { animation: pan-l .30s ease-out both; }
+.viewport.tn-right .scene { animation: pan-r .30s ease-out both; }
+@keyframes pan-l { from { transform: translateX(11%)  scale(1.07); } to { transform: translateX(0) scale(1); } }
+@keyframes pan-r { from { transform: translateX(-11%) scale(1.07); } to { transform: translateX(0) scale(1); } }

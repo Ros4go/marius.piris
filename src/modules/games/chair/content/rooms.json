@@ -4,7 +4,7 @@
     "family": "combat",
     "ui": "combat",
     "weight": 40,
-    "spawns": { "minMobs": 1, "maxMobs": 2 },
+    "spawns": { "minMobs": 1, "maxMobs": 3 },
     "loot": { "organs": true, "relics": false },
     "description": "Une salle de chair et de sang.",
     "cleared": false

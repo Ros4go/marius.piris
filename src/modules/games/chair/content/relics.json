@@ -2,36 +2,15 @@
   {
     "id": "relic_sang_cristal",
     "name": "Sang Cristallisé",
-    "slot_type": "passive",
-    "effect": "auto_repair",
-    "description": "Chaque 20 ticks, répare automatiquement 1HP sur l'organe le plus endommagé. La guérison fait mal si vous portez une malédiction soin-douleur."
+    "price": 120,
+    "effects": [{ "kind": "auto_repair", "everyTicks": 20, "amount": 1 }],
+    "description": "Tant qu'il est dans votre besace : chaque 20 ticks, répare 1 PV sur l'organe le plus endommagé. La guérison fait mal sous une malédiction soin-douleur."
   },
   {
     "id": "relic_suture_noire",
     "name": "Suture Noire",
-    "slot_type": "passive",
-    "effect": "graft_cost_3",
-    "description": "Les greffes ne coûtent que 3 ticks au lieu de 5. La couturière vous reconnaît comme l'un des siens."
-  },
-  {
-    "id": "relic_cartilage_fossile",
-    "name": "Cartilage Fossile",
-    "slot_type": "passive",
-    "effect": "arm_all_layers",
-    "description": "Votre ARM s'applique sur toutes les couches de dégâts, pas uniquement sur la couche extérieure."
-  },
-  {
-    "id": "relic_membrane_epaisse",
-    "name": "Membrane Épaisse",
-    "slot_type": "passive",
-    "effect": "outer_damage_reduction",
-    "description": "Les attaques sur vos organes extérieurs perdent 1 point de dégât. La chair apprend à résister."
-  },
-  {
-    "id": "relic_nerf_expose",
-    "name": "Nerf Exposé",
-    "slot_type": "passive",
-    "effect": "ryt_bonus_2",
-    "description": "+2 RYT effectif. Vos réflexes sont surnaturellement aiguisés — la fenêtre de riposte s'élargit."
+    "price": 100,
+    "effects": [{ "kind": "graft_cost", "value": 3 }],
+    "description": "Tant qu'il est dans votre besace : les greffes ne coûtent que 3 ticks au lieu de 5. La couturière vous reconnaît comme l'un des siens."
   }
 ]

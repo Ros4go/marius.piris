@@ -101,12 +101,6 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .youhp .seg-break ~ .seg { height: 13px; }
 
 /* ── Relics list ────────────────────────────────────────────────────────────── */
-#relic-list {
-  margin-top: 6px;
-  font: .55rem var(--mono); color: var(--whisper);
-  letter-spacing: .03em; line-height: 1.6;
-}
-
 /* ── Inventory / besace grid ─────────────────────────────────────────────────── */
 .inv {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
@@ -135,6 +129,14 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .orgshape.eye {
   background: radial-gradient(circle at 50% 50%, #b3a890 26%, #5d3820 28% 50%, #180a0a 52%);
   border-radius: 50%;
+}
+/* Relics carried in the besace: a pale, faceted shard distinct from fleshy organs. */
+.cell.relic { border-color: #6a5a2a; box-shadow: inset 0 0 8px #c9a44022; }
+.cell.relic .q { color: var(--torch-hot, #e8b25c); }
+.orgshape.relicshape {
+  border-radius: 46% 54% 50% 50% / 56% 46% 54% 44%;
+  background: radial-gradient(circle at 38% 30%, #f0dca0, #9a7a3a 55%, #3a2c12);
+  box-shadow: 0 0 6px #c9a44066, 0 2px 4px #000;
 }
 
 /* Resource counters */
@@ -367,14 +369,14 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 
 /* ── NPC figures (CSS-only) ───────────────────────────────────────────────────── */
 #npc-figure {
-  position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 41%; transform: translateX(-50%);
   z-index: 3; animation: npc-float 6s ease-in-out infinite;
 }
 @keyframes npc-float { 50% { transform: translateX(-50%) translateY(-5%); } }
 #npc-figure:empty { display: none; }
 
 /* Merchant */
-#npc-figure.trade { width: 14%; aspect-ratio: .8/1; }
+#npc-figure.trade { width: 18%; aspect-ratio: .8/1; }
 .m-hood {
   position: absolute; left: 20%; top: 0; width: 60%; height: 40%;
   background: radial-gradient(circle at 50% 30%, #2a2830, #0a0810 80%);
@@ -402,7 +404,7 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 }
 
 /* Couturière / Seamstress */
-#npc-figure.graft { width: 17%; aspect-ratio: 1/1.05; }
+#npc-figure.graft { width: 22%; aspect-ratio: 1/1.05; }
 .ss-lamp {
   position: absolute; left: 56%; top: -10%; width: 40%; height: 40%;
   border-radius: 50%;
@@ -872,39 +874,59 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 }
 
 /* targeting mode: dim the scene, reveal the enemy organs over its body */
-#chair-app.targeting .viewport .scene { filter: brightness(.32) saturate(.55) blur(.6px); transition: filter .15s; }
+/* scene dims while aiming a card OR peeking at a mob (press-and-hold) */
+#chair-app.targeting .viewport .scene,
+#chair-app.peeking   .viewport .scene { filter: brightness(.32) saturate(.55) blur(.6px); transition: filter .15s; }
 /* dim the OTHER cards individually (not the container) so the lifted card,
    a child of #combat-hand, isn't caught in a group-opacity and greyed out */
 #chair-app.targeting #combat-hand > *:not(.aiming) { opacity: .22; }
 #combat-targets { display: none; }
-#chair-app.targeting #combat-targets {
+#chair-app.targeting #combat-targets,
+#chair-app.peeking   #combat-targets {
   display: block; position: absolute; inset: 0; z-index: 50; pointer-events: none;
 }
-/* one cluster per enemy, centred on its silhouette */
+/* one PANEL per enemy: a backdrop card with layers stacked front → back */
 .ctmob {
   position: absolute; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; gap: 7px; pointer-events: none;
+  display: flex; flex-direction: column; gap: 1px; pointer-events: none;
+  min-width: 120px; max-width: 210px;
+  padding: 6px 9px 9px; border-radius: 10px;
+  background: linear-gradient(168deg, #1d120bf3, #0b0605f8);
+  border: 1px solid #4a331d; box-shadow: 0 9px 24px #000c, inset 0 1px 0 #ffffff0e;
 }
-.ctrow { display: flex; justify-content: center; gap: 8px; pointer-events: none; }
-.ctrow.l-deep  { order: 1; }
-.ctrow.l-mid   { order: 2; }
-.ctrow.l-outer { order: 3; }
+/* each layer: a labelled group, separated by a dashed rule */
+.ctlayer { display: flex; flex-direction: column; gap: 5px; padding: 6px 1px; position: relative; }
+.ctlayer + .ctlayer { border-top: 1px dashed #4a331d99; }
+.ctl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ctl-name { font: .58rem var(--mono); letter-spacing: .16em; text-transform: uppercase; color: #8a795c; }
+.ctl-lock { font: .56rem var(--mono); letter-spacing: .03em; color: #c4863f; white-space: nowrap; }
+.ctrow { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; pointer-events: none; }
+
 .ctarget {
   pointer-events: auto; cursor: pointer; position: relative;
-  width: 64px; padding: 7px 5px 6px; border-radius: 6px; text-align: center;
-  background: radial-gradient(circle at 50% 30%, #3a2410cc, #140b07ee);
-  border: 1px solid var(--torch);
-  box-shadow: 0 0 14px #cf9a3a55, inset 0 0 10px #0008;
-  animation: ctpulse 1.6s ease-in-out infinite;
+  width: 72px; padding: 7px 5px; border-radius: 6px; text-align: center;
+  background: radial-gradient(circle at 50% 22%, #2e1c0eee, #120a06f4);
+  border: 1px solid var(--ct-accent, var(--torch));
+  box-shadow: 0 0 9px color-mix(in srgb, var(--ct-accent, var(--torch)) 38%, transparent), inset 0 0 8px #0008;
 }
-@keyframes ctpulse { 50% { box-shadow: 0 0 22px #cf9a3a88, inset 0 0 10px #0006; } }
-.ctarget.hot { transform: scale(1.14); border-color: #ffd98a; box-shadow: 0 0 28px #ffce6e, inset 0 0 12px #0006; }
-.ctarget.locked { border-color: #4a3a24; box-shadow: none; opacity: .5; filter: grayscale(.6); animation: none; cursor: not-allowed; }
-.ctarget.locked::after { content: '🔒'; position: absolute; top: 1px; right: 3px; font-size: .6rem; }
-.ctarget.dead { opacity: .25; animation: none; }
-.ct-name { display: block; font: .56rem var(--mono); color: var(--bone); letter-spacing: .03em; text-shadow: 0 1px 3px #000; }
-.ct-hp { display: block; height: 4px; margin-top: 4px; background: #160c0c; border: 1px solid #2a1414; }
-.ct-hp > span { display: block; height: 100%; background: linear-gradient(90deg, #5d1f1f, #b5453c); }
+.ctlayer:not(.locked) .ctarget { animation: ctpulse 1.7s ease-in-out infinite; }
+@keyframes ctpulse {
+  50% { box-shadow: 0 0 16px color-mix(in srgb, var(--ct-accent, var(--torch)) 60%, transparent), inset 0 0 8px #0006; }
+}
+.ctarget.hot { transform: scale(1.13); border-color: #ffe1a0; box-shadow: 0 0 22px #ffce6e; z-index: 2; }
+
+/* locked layer — dimmed, behind a hatched barrier (label stays readable) */
+.ctlayer.locked .ctrow { filter: grayscale(.55) brightness(.82); opacity: .72; }
+.ctlayer.locked .ctarget { cursor: not-allowed; border-color: #4a3a24; animation: none; box-shadow: inset 0 0 8px #0008; }
+.ctlayer.locked::after {
+  content: ''; position: absolute; left: -2px; right: -2px; bottom: 1px; top: 17px; pointer-events: none; border-radius: 5px;
+  background: repeating-linear-gradient(45deg, transparent 0 5px, #00000066 5px 9px);
+}
+.ctarget.dead { opacity: .3; filter: grayscale(.7); }
+
+.ct-name { display: block; font: .68rem var(--mono); color: var(--bone); letter-spacing: .02em; text-shadow: 0 1px 3px #000; line-height: 1.25; }
+.ct-hp { display: block; height: 5px; margin-top: 5px; background: #160c0c; border: 1px solid #2a1414; border-radius: 2px; overflow: hidden; }
+.ct-hp > span { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--ct-accent, #b5453c) 45%, #2a0e0e), var(--ct-accent, #b5453c)); }
 
 /* ── Journal moved to the left column, under the map ───────────────────── */
 /* journal — FIXED height (content-independent), scrolls internally */
@@ -966,4 +988,14 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 #combat-blood .cb-cap {
   font: .54rem var(--mono); color: #8a6f5a; letter-spacing: .14em;
   text-transform: uppercase;
+}
+
+/* ── Card colour = its organ's set colour (same colour drawn on the mob) ─────── */
+.ccard { border-color: color-mix(in srgb, var(--card-accent, #3a2a18) 50%, #160c07); }
+.ccard .cc-name { color: var(--card-accent, var(--torch-hot)); }
+.ccard:hover {
+  border-color: var(--card-accent, var(--torch));
+  box-shadow: 0 18px 34px #000d,
+              0 0 16px color-mix(in srgb, var(--card-accent, var(--torch)) 45%, transparent),
+              inset 0 1px 0 #ffffff16;
 }

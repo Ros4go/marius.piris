@@ -5,7 +5,7 @@
 // Replaces the old real-time BattleEngine. Kill = drop the enemy's vital organ.
 
 import { WS, currentRoom, rng } from './WorldState.js';
-import { organResolver, balance as getBalance } from './registry.js';
+import { organResolver } from './registry.js';
 import * as CR from './systems/combatRules.js';
 
 let _onChange = null;   // UI refresh callback
@@ -21,16 +21,6 @@ export const state = {
   turn:        0,
 };
 
-function _floorScale() {
-  return 1 + (WS.player.floorIdx ?? 0) * getBalance().combat.damageScalePerFloor;
-}
-// How many actions a mob may chain: its heart pool, capped by floor so the first
-// fights stay 1-attack and ramp up afterwards (tuning: balance.json combat).
-function _mobBudget(mob) {
-  const c = getBalance().combat;
-  const cap = c.actionBudgetBase + (WS.player.floorIdx ?? 0) * c.actionBudgetPerFloor;
-  return Math.max(1, Math.min(CR.bloodPool(mob.body, organResolver), cap));
-}
 function _activeMobs() {
   const room = currentRoom();
   return (room?.mobIds ?? []).map((id) => WS.mobs.get(id)).filter((m) => m && m.lifecycle === 'active');
@@ -164,7 +154,7 @@ export function endTurn() {
 function _retelegraphAll() {
   state.plans = {};
   for (const m of _activeMobs()) {
-    state.plans[m.id] = CR.chooseMobPlan(m, WS.player.body, organResolver, rng, _floorScale(), _mobBudget(m));
+    state.plans[m.id] = CR.chooseMobPlan(m, WS.player.body, organResolver, rng);
   }
 }
 
