@@ -5,9 +5,15 @@ import { WS, initRun, currentRoom, toJSON, fromJSON } from './WorldState.js';
 import { on as onTrigger, emit, flush, PRIORITY } from './TriggerBus.js';
 import { processTick, descend, advanceTicks } from './TickEngine.js';
 import { graftCost as relicGraftCost } from './systems/RelicSystem.js';
+import * as HungerSystem from './systems/HungerSystem.js';
+import * as Faculties from './systems/Faculties.js';
 import * as BattleEngine from './BattleEngine.js';
 import * as TurnCombat from './TurnCombat.js';
 import * as CombatHand from './render/CombatHand.js';
+import * as CombatFX from './render/CombatFX.js';
+import * as SoundBar from './render/SoundBar.js';
+import * as EchoFX from './render/EchoFX.js';
+import * as AmbientFX from './render/AmbientFX.js';
 import { SLOT_SHORT, SLOT_FULL } from './labels.js';
 import { ORGAN_SLOTS } from './entities/Body.js';
 import { init as initInput, on as onInput } from './input/InputHandler.js';
@@ -45,6 +51,7 @@ let _targetedSlot  = null;
 let _inspect       = null;   // inspector focus: {kind:'organ',slot} | {kind:'item',index} | null (= body overview)
 let _gameOver      = false;
 let _transitioning = false;  // a room transition is playing (locks movement briefly)
+let _combatAnimating = false; // the enemy phase animation is playing (locks combat input)
 let _graveyard     = null;   // persists between runs (loaded from localStorage)
 let _heritage      = [];     // organs kept between runs via Consigne
 
@@ -74,6 +81,9 @@ async function boot() {
   ActionBar.setCallback(_handleUiAction);
   InspectorPanel.init();
   SensoryFX.init();
+  SoundBar.init();
+  EchoFX.init();
+  AmbientFX.init();
   initInput();
   OrganTriggerSystem.init();
   LoreSystem.init();
@@ -450,7 +460,7 @@ function _transitionTo(dir) {
 
 // ── UI action dispatch ────────────────────────────────────────────────────────
 function _handleUiAction(act) {
-  if (_gameOver || _transitioning) return;
+  if (_gameOver || _transitioning || _combatAnimating) return;
 
   switch (act.action) {
     case 'CARD':
@@ -458,8 +468,7 @@ function _handleUiAction(act) {
       render();
       break;
     case 'END_TURN':
-      TurnCombat.endTurn();
-      render();
+      _runEnemyPhase();
       break;
     case 'WAIT':
       _tick({ type: 'WAIT' });
@@ -470,6 +479,9 @@ function _handleUiAction(act) {
       break;
     case 'HARVEST_OPEN':
       _openHarvestUI();
+      break;
+    case 'EAT_OPEN':
+      _openEatUI();
       break;
     case 'GRAFT_OPEN':
       _openGraftUI();
@@ -621,6 +633,19 @@ function _choosePath(biomeId, nextIdx) {
 }
 
 // ── Main render ───────────────────────────────────────────────────────────────
+// Hunger HUD readout + the famine screen effect (red vignette + drunk blur).
+let _prevHungerStage = null;
+function _renderHunger() {
+  const st = HungerSystem.stage();
+  const el = document.getElementById('val-hunger');
+  if (el && st !== _prevHungerStage) {
+    el.textContent = HungerSystem.STAGE_FR[st] ?? st;
+    el.className = `hunger-${st}`;
+    _prevHungerStage = st;
+  }
+  document.getElementById('chair-app')?.classList.toggle('famine', st === 'famine');
+}
+
 function render() {
   SceneRenderer.render();
   MobRenderer.render({
@@ -628,6 +653,7 @@ function render() {
     onPeek: (on, mobId) => CombatHand.peek(on, mobId),
   });
   HUDRenderer.render();
+  _renderHunger();
   MinimapRenderer.render();
   InventoryRenderer.render();
 
@@ -708,7 +734,7 @@ function _renderCombatHand() {
       const def = organResolver(s.organId);
       const maxHp = def?.maxHp ?? 1;
       const hp = s.hp ?? maxHp;
-      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer, name: SLOT_SHORT[k] ?? def?.name ?? k, hp, maxHp, color: organColor(s.organId), locked: !reach.has(k), dead: hp <= 0 });
+      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer, name: SLOT_SHORT[k] ?? def?.name ?? k, hp, maxHp, color: organColor(s.organId), locked: !reach.has(k), dead: hp <= 0, weak: TurnCombat.weakRevealed() && TurnCombat.weakSpotOf(mb.id) === k });
     }
   }
 
@@ -726,12 +752,43 @@ function _renderCombatHand() {
   }));
 
   CombatHand.render(cards, {
-    blood:  TurnCombat.blood(),
+    blood:      TurnCombat.blood(),
+    protection: TurnCombat.protection(),
+    frenesie:   TurnCombat.frenesie(),
+    regen:      TurnCombat.regen(),
+    discardCount: TurnCombat.discardCount(),
+    discarded:    TurnCombat.discardedCards(),
     mobId:  mob?.id ?? null,
     organs,
-    onPlay: (organKey, skillId, mobId, slot, isSelf) => { TurnCombat.play(organKey, skillId, mobId, slot, isSelf); render(); },
-    onEndTurn: () => { TurnCombat.endTurn(); render(); },
+    onPlay: (organKey, skillId, mobId, slot, isSelf) => {
+      if (_combatAnimating) return;
+      const kind  = organResolver(WS.player.body.slots[organKey]?.organId)?.skills?.find(s => s.id === skillId)?.effect?.kind;
+      const label = organResolver(WS.player.body.slots[organKey]?.organId)?.skills?.find(s => s.id === skillId)?.label ?? '';
+      const before = { blood: TurnCombat.blood(), protection: TurnCombat.protection(), frenesie: TurnCombat.frenesie(), regen: TurnCombat.regen() };
+      const ok = TurnCombat.play(organKey, skillId, mobId, slot, isSelf);
+      if (ok) {
+        CombatFX.playerCast(isSelf ? null : (mobId ?? _targetedMobId), kind, label, organColor(WS.player.body.slots[organKey]?.organId));
+        CombatFX.resourceDelta('sang', TurnCombat.blood() - before.blood);
+        for (const k of ['protection', 'frenesie', 'regen']) CombatFX.resourceDelta(k, TurnCombat[k]() - before[k]);
+      }
+      render();
+    },
+    onEndTurn: () => { _runEnemyPhase(); },
   });
+}
+
+// Play the enemy phase as a timed sequence so the turn-based flow is legible.
+async function _runEnemyPhase() {
+  if (_combatAnimating || !TurnCombat.isActive()) return;
+  _combatAnimating = true;
+  try {
+    const { timeline } = TurnCombat.endTurn();
+    await CombatFX.playEnemyPhase(timeline, (evs) => TurnCombat.logEvents(evs));
+    TurnCombat.finalizeTurn();
+  } finally {
+    _combatAnimating = false;
+  }
+  render();
 }
 
 // ── Harvest UI ────────────────────────────────────────────────────────────────
@@ -789,9 +846,74 @@ function _openHarvestUI() {
         _openHarvestUI();
       });
       body.appendChild(btn);
+
+      // …or DEVOUR it on the spot: fills hunger + regens (quality scales with your stomach)
+      const eatBtn = document.createElement('button');
+      eatBtn.className = 'dealbtn';
+      eatBtn.style.cssText = 'border-color:#3a5a2a';
+      eatBtn.innerHTML = `🍖 Manger ${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">remplit la faim + régén</em>`;
+      eatBtn.addEventListener('click', () => {
+        HungerSystem.eat(organId);
+        cad.body.removeOrgan(slotKey);
+        _openHarvestUI();
+        render();
+      });
+      body.appendChild(eatBtn);
     }
   }
 
+  _appendBackBtn(body);
+}
+
+// ── Eat UI ────────────────────────────────────────────────────────────────────
+// Devour organs against hunger — from cadavers here or from your own besace.
+function _openEatUI() {
+  const panel = RoomPanel.container();
+  const st = HungerSystem.stage();
+  panel.innerHTML = `
+    <div class="room-title">🍖 Manger</div>
+    <div class="room-body" id="_eat-body">
+      <p class="insp-dim">Faim : <b class="hunger-${st}">${HungerSystem.STAGE_FR[st] ?? st}</b> — dévorer remplit la faim et régénère un organe.</p>
+    </div>`;
+  panel.classList.add('active');
+  const body = panel.querySelector('#_eat-body');
+
+  const { floorIdx, pos } = WS.player;
+  const cadavers = [...WS.cadavers.values()].filter(c =>
+    (c.lifecycle === 'fresh' || c.lifecycle === 'decaying') &&
+    c.pos?.floorIdx === floorIdx && c.pos?.x === pos.x && c.pos?.y === pos.y);
+
+  let any = false;
+  // cadavers on the ground
+  for (const cad of cadavers) {
+    for (const { slot: slotKey, organId } of cad.body.equippedOrgans()) {
+      const def = organResolver(organId); if (!def) continue;
+      any = true;
+      const btn = document.createElement('button');
+      btn.className = 'dealbtn';
+      btn.innerHTML = `🍖 ${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">cadavre</em>`;
+      btn.addEventListener('click', () => { HungerSystem.eat(organId); cad.body.removeOrgan(slotKey); _openEatUI(); render(); });
+      body.appendChild(btn);
+    }
+  }
+  // organs in your besace
+  (WS.player.inventory ?? []).forEach((item, idx) => {
+    if (!item.organId) return;                 // only organs are edible
+    const def = organResolver(item.organId); if (!def) return;
+    any = true;
+    const btn = document.createElement('button');
+    btn.className = 'dealbtn';
+    btn.innerHTML = `🍖 ${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">besace</em>`;
+    btn.addEventListener('click', () => { HungerSystem.eat(item.organId); WS.player.inventory.splice(idx, 1); _openEatUI(); render(); });
+    body.appendChild(btn);
+  });
+
+  if (!any) {
+    const p = document.createElement('p');
+    p.className = 'insp-dim';
+    p.textContent = 'Rien à manger (ni cadavre ici, ni organe dans la besace).';
+    body.appendChild(p);
+  }
   _appendBackBtn(body);
 }
 
@@ -863,7 +985,7 @@ function _openGraftUI() {
 function _openAmputateUI() {
   const panel = RoomPanel.container();
   panel.innerHTML = `
-    <div class="room-title">✂ Amputation</div>
+    <div class="room-title">✂ Arracher</div>
     <div class="room-body" id="_amp-body"></div>`;
   panel.classList.add('active');
 

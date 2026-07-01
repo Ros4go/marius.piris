@@ -63,6 +63,15 @@ export function render() {
       cell.onclick   = null;
       return;
     }
+    // Déchet organique — a gross but valuable trade byproduct of overeating.
+    if (item.dechet) {
+      cell.className = 'cell full dechet';
+      cell.innerHTML = '<div class="orgshape dechetshape"></div>';
+      cell.title     = `Déchet organique — se revend ${item.value ?? 40}💀`;
+      cell.onclick   = null;
+      return;
+    }
+
     // A faint ✦ marks an item never inspected yet; it vanishes after first inspect.
     const newMark = item.seen ? '' : '<span class="newmark">✦</span>';
 

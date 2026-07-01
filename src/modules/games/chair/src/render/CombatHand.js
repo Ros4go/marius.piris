@@ -8,7 +8,7 @@
 
 const SVG = 'http://www.w3.org/2000/svg';
 
-let _root, _handEl, _targetsEl, _end, _blood;
+let _root, _handEl, _targetsEl, _end, _blood, _discard;
 let _arrowSvg, _arrowLine, _arrowHead;
 let _ctx = null;     // last render context
 let _aim = null;     // { card, el } while aiming
@@ -30,6 +30,14 @@ function _ensure() {
   _blood = document.createElement('div'); _blood.id = 'combat-blood'; _blood.setAttribute('aria-hidden', 'true');
   (document.querySelector('.viewport') ?? _root).appendChild(_blood);
 
+  // discard pile — cards you've played this turn fly here (they return next turn).
+  // Click it to see what's inside.
+  _discard = document.createElement('div'); _discard.id = 'combat-discard';
+  _discard.innerHTML = '<span class="cd-n">0</span><span class="cd-cap">défausse</span><div id="combat-discard-view"></div>';
+  (document.querySelector('.viewport') ?? _root).appendChild(_discard);
+  _discard.addEventListener('click', (e) => { e.stopPropagation(); _toggleDiscardView(); });
+  window.addEventListener('pointerdown', (e) => { if (!e.target.closest?.('#combat-discard')) _closeDiscardView(); });
+
   _arrowSvg = document.createElementNS(SVG, 'svg');
   _arrowSvg.id = 'combat-arrow'; _arrowSvg.style.display = 'none';
   _arrowLine = document.createElementNS(SVG, 'path'); _arrowLine.setAttribute('class', 'arrow-line');
@@ -44,7 +52,44 @@ function _ensure() {
 export function hide() {
   if (_root) _root.style.display = 'none';
   if (_blood) _blood.style.display = 'none';
+  if (_discard) _discard.style.display = 'none';
   _endAiming();
+}
+
+function _closeDiscardView() { _discard?.classList.remove('cd-open'); }
+function _fillDiscardView() {
+  const view = _discard?.querySelector('#combat-discard-view');
+  if (!view) return;
+  const list = _ctx?.discarded ?? [];
+  view.innerHTML = '<div class="cdv-title">Défausse — revient au prochain tour</div>' +
+    list.map((c) => `<div class="cdv-card"><b>${c.label}</b>${c.once ? ' <em>· 1×/combat</em>' : ''}` +
+      `<span class="cdv-org">${c.organName}</span><span class="cdv-desc">${c.desc}</span></div>`).join('');
+}
+function _toggleDiscardView() {
+  if (!_discard) return;
+  if (_discard.classList.contains('cd-open')) { _closeDiscardView(); return; }
+  if (!(_ctx?.discarded ?? []).length) return;
+  _fillDiscardView();
+  _discard.classList.add('cd-open');
+}
+
+// Fly a copy of a just-played card into the discard pile.
+function _flyToDiscard(cardEl) {
+  if (!cardEl || !_discard) return;
+  const from = cardEl.getBoundingClientRect();
+  const to   = _discard.getBoundingClientRect();
+  const clone = cardEl.cloneNode(true);
+  clone.classList.add('fx-discard-fly');
+  clone.style.cssText += `position:fixed; left:${from.left}px; top:${from.top}px; width:${from.width}px; height:${from.height}px; margin:0; z-index:70; pointer-events:none;`;
+  document.body.appendChild(clone);
+  const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+  const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+  requestAnimationFrame(() => {
+    clone.style.transition = 'transform .42s cubic-bezier(.5,.1,.7,1), opacity .42s ease-in';
+    clone.style.transform = `translate(${dx}px, ${dy}px) scale(.16) rotate(20deg)`;
+    clone.style.opacity = '0.15';
+  });
+  setTimeout(() => clone.remove(), 470);
 }
 
 export function render(cards, ctx) {
@@ -53,10 +98,23 @@ export function render(cards, ctx) {
   _blood.style.display = '';
   _ctx = ctx;
 
-  // top-left blood drops — the single readout of what you can spend this turn
-  const n = Math.max(0, ctx.blood ?? 0);
-  _blood.innerHTML = `<span class="cb-drops">${'<i></i>'.repeat(Math.min(n, 12))}</span>` +
-    `<span class="cb-num">${n}</span><span class="cb-cap">sang</span>`;
+  // top-left resource readout — one chip per resource, its value inside the icon.
+  // Sang is always leftmost and always shown (even 0); the others only appear
+  // when you actually hold some.
+  const chip = (kind, val, label) =>
+    `<span class="cb-res cb-${kind}" title="${label} : ${val}"><span class="cb-n">${val}</span></span>`;
+  const out = [chip('sang', Math.max(0, ctx.blood ?? 0), 'Sang')];
+  if ((ctx.protection ?? 0) > 0) out.push(chip('protection', ctx.protection, 'Protection'));
+  if ((ctx.frenesie ?? 0)   > 0) out.push(chip('frenesie', ctx.frenesie, 'Frénésie'));
+  if ((ctx.regen ?? 0)      > 0) out.push(chip('regen', ctx.regen, 'Régénération'));
+  _blood.innerHTML = out.join('');
+
+  // discard pile count (and refresh the popup if it's open)
+  _discard.style.display = '';
+  _discard.querySelector('.cd-n').textContent = ctx.discardCount ?? 0;
+  _discard.classList.toggle('cd-empty', !(ctx.discardCount > 0));
+  if (!(ctx.discardCount > 0)) _closeDiscardView();
+  else if (_discard.classList.contains('cd-open')) _fillDiscardView();
 
   _handEl.innerHTML = '';
   for (const c of cards) {
@@ -72,7 +130,7 @@ export function render(cards, ctx) {
     el._card = c;
     if (c.playable) {
       if (c.needsTarget) el.addEventListener('pointerdown', (e) => _onDown(e, el, c));
-      else el.addEventListener('click', () => _ctx.onPlay(c.organKey, c.skillId, _ctx.mobId, null, true));
+      else el.addEventListener('click', () => { _flyToDiscard(el); _ctx.onPlay(c.organKey, c.skillId, _ctx.mobId, null, true); });
     }
     _handEl.appendChild(el);
   }
@@ -110,6 +168,7 @@ function _onUp(e) {
   _endAiming();
   if (t && !t.classList.contains('locked') && !t.classList.contains('dead')) {
     const isSelf = t.dataset.self === '1';
+    _flyToDiscard(aim.el);
     _ctx.onPlay(aim.card.organKey, aim.card.skillId, isSelf ? null : t.dataset.mob, t.dataset.organ, isSelf);
   }
 }
@@ -221,13 +280,14 @@ function _buildTargets(onlyMob = null) {
       row.className = 'ctrow';
       for (const o of list) {
         const n = document.createElement('div');
-        n.className = 'ctarget' + (o.locked ? ' locked' : '') + (o.dead ? ' dead' : '');
+        n.className = 'ctarget' + (o.locked ? ' locked' : '') + (o.dead ? ' dead' : '') + (o.weak ? ' weak' : '');
         n.dataset.organ = o.slotKey;
         n.dataset.mob = o.mobId;
         if (o.color) n.style.setProperty('--ct-accent', o.color);
         if (o.locked && !o.dead) n.title = 'Inaccessible — détruis un organe de la couche au-dessus';
+        if (o.weak) n.title = 'Point faible — dégâts bonus';
         const pct = Math.max(0, Math.round(100 * o.hp / o.maxHp));
-        n.innerHTML = `<span class="ct-name">${o.name}</span>` +
+        n.innerHTML = `<span class="ct-name">${o.weak ? '✦ ' : ''}${o.name}</span>` +
           `<span class="ct-hp"><span style="width:${pct}%"></span></span>`;
         row.appendChild(n);
       }

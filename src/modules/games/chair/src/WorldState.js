@@ -109,6 +109,8 @@ export function initRun(seed) {
     biomePath:        null,
     runStats:         { kills: 0, harvests: 0, floorReached: 0 },
     usedHeartAbility: false,
+    satiety:          90,     // hunger meter (0=famine … 120=gavé); see HungerSystem
+    noise:            0,      // sound you emit (0..1), driven by hunger
   };
   WS.tickEvents = [];
   // Resolve slot HPs from registry now that registry is loaded
@@ -183,6 +185,7 @@ export function toJSON() {
       biomePath:        WS.player.biomePath,
       runStats:         { ...WS.player.runStats },
       usedHeartAbility: WS.player.usedHeartAbility ?? false,
+      satiety:          WS.player.satiety ?? 90,
     },
     floors:    WS.floors.map(f => f.toJSON()),
     mobs:      [...WS.mobs.entries()].map(([id, m]) => ({ id, mob: m })),
@@ -218,6 +221,8 @@ export function fromJSON(data) {
     biomePath:        data.player.biomePath ?? null,
     runStats:         data.player.runStats ?? { kills: 0, harvests: 0, floorReached: 0 },
     usedHeartAbility: data.player.usedHeartAbility ?? false,
+    satiety:          data.player.satiety ?? 90,
+    noise:            0,
   };
   WS.tickEvents = [];
 

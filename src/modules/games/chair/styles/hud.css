@@ -143,6 +143,14 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
   background: radial-gradient(circle at 38% 30%, #f0dca0, #9a7a3a 55%, #3a2c12);
   box-shadow: 0 0 6px #c9a44066, 0 2px 4px #000;
 }
+/* Déchet organique — a lumpy brown byproduct */
+.cell.dechet { border-color: #4a3a20; }
+.orgshape.dechetshape {
+  border-radius: 52% 48% 44% 56% / 60% 52% 48% 40%;
+  background: radial-gradient(circle at 40% 32%, #7a5a30, #3a2a14 60%, #1a1208);
+  box-shadow: inset -2px -3px 5px #0008, 0 2px 4px #000;
+}
+.ware-ic.dechet { border-radius: 52% 48% 44% 56%/60% 52% 48% 40%; background: radial-gradient(circle at 40% 32%, #7a5a30, #2a1e10); }
 
 /* Resource counters */
 .counters {
@@ -261,13 +269,18 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 /* ── Room panel — overlay inside viewport ─────────────────────────────────────── */
 #room-panel {
   display: none;
-  position: absolute; top: 3%; left: 50%; transform: translateX(-50%);
-  width: 64%; max-height: 88%; overflow-y: auto; z-index: 6;
+  position: absolute; top: 60px; left: 50%; transform: translateX(-50%);   /* clears the top sound bar */
+  width: 64%; max-height: 82%; overflow-y: auto; z-index: 6;
   text-align: center;
   font-family: var(--mono); font-size: .78rem; color: var(--bone);
   scrollbar-width: thin; scrollbar-color: #2a1f14 transparent;
 }
 #room-panel.active { display: block; }
+/* Description-only rooms: a discreet line at the BOTTOM (the sound bar moved up). */
+#room-panel.desc-only {
+  top: auto; bottom: 16px; width: 82%; max-height: none; overflow: visible;
+  font-style: italic; color: #8a7e6a;
+}
 /* Override insp-dim reduction inside panel so text stays legible */
 #room-panel .insp-dim { font-size: 1em; color: #8a7e6a; }
 
@@ -379,6 +392,49 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 }
 @keyframes npc-float { 50% { transform: translateX(-50%) translateY(-5%); } }
 #npc-figure:empty { display: none; }
+/* the structure stands centre / left / right of the room */
+#npc-figure.pos-left   { left: 27%; }
+#npc-figure.pos-center { left: 50%; }
+#npc-figure.pos-right  { left: 73%; }
+#npc-figure.on-floor   { top: 66%; }   /* ground pickups sit low */
+
+/* Altar — a low stone block with a faint glow */
+#npc-figure.altar { width: 15%; aspect-ratio: 1/0.85; }
+.al-base { position: absolute; left: 14%; bottom: 0; width: 72%; height: 52%;
+  background: linear-gradient(#3a2f22, #14100a); clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
+  box-shadow: inset 0 4px 8px #0009, 0 4px 10px #000a; }
+.al-top  { position: absolute; left: 4%; bottom: 46%; width: 92%; height: 15%;
+  background: linear-gradient(#4a3d2c, #241c12); box-shadow: 0 3px 6px #000b; }
+.al-glow { position: absolute; left: 30%; top: 2%; width: 40%; height: 42%; border-radius: 50%;
+  background: radial-gradient(circle, var(--whisper) 0%, transparent 68%); mix-blend-mode: screen;
+  animation: npc-float 4.5s ease-in-out infinite; }
+
+/* Pillard — a lurking dark silhouette with a single red eye */
+#npc-figure.pillard { width: 14%; aspect-ratio: .72/1; }
+.pl-hood { position: absolute; left: 22%; top: 0; width: 56%; height: 40%;
+  background: radial-gradient(circle at 50% 42%, #1a1614, #050403 82%);
+  border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%; box-shadow: inset -3px -3px 9px #000; }
+.pl-body { position: absolute; left: 13%; top: 28%; width: 74%; height: 74%;
+  background: linear-gradient(#100e0c, #030202); border-radius: 42% 42% 12% 12% / 28% 28% 12% 12%; }
+.pl-eye  { position: absolute; left: 45%; top: 15%; width: 8%; aspect-ratio: 1;
+  background: #8a2f2a; border-radius: 50%; box-shadow: 0 0 6px #8a2f2a; animation: blink 5s infinite; }
+
+/* Souffle — a small glowing shard on the ground (discreet) */
+#npc-figure.souffle { width: 7%; aspect-ratio: 1/1; }
+.sf-shard { position: absolute; left: 38%; bottom: 12%; width: 24%; height: 72%;
+  background: linear-gradient(var(--whisper), #241a34); clip-path: polygon(50% 0, 74% 46%, 58% 100%, 42% 100%, 26% 46%);
+  box-shadow: 0 0 8px var(--whisper); animation: npc-float 5.5s ease-in-out infinite; }
+.sf-glow  { position: absolute; left: 18%; bottom: 0; width: 64%; height: 34%; border-radius: 50%;
+  background: radial-gradient(circle, var(--whisper) 0%, transparent 70%); mix-blend-mode: screen; }
+
+/* close button injected on click-opened NPC panels */
+.npc-close {
+  position: sticky; top: 0; float: right; z-index: 2;
+  width: 22px; height: 22px; line-height: 20px; text-align: center;
+  font: .8rem var(--mono); color: var(--bone-dim); cursor: pointer;
+  background: #160d08; border: 1px solid #3a2a18; border-radius: 4px;
+}
+.npc-close:hover { color: var(--torch); border-color: var(--torch); }
 
 /* Merchant */
 #npc-figure.trade { width: 18%; aspect-ratio: .8/1; }
@@ -815,10 +871,31 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 
 /* the hand: real cards along the bottom */
 #combat-hand {
-  position: absolute; left: 0; right: 0; bottom: 12px;
+  position: absolute; left: 0; right: 0; bottom: 62px;   /* lifted clear of the sound bar */
   display: flex; justify-content: center; align-items: flex-end; gap: 12px;
   padding: 0 18px; pointer-events: none; flex-wrap: wrap;
 }
+
+/* ── Sound bar (bottom instrument) ─────────────────────────────────────────── */
+/* retire the prototype visualiser ("La Ligne") — replaced by #sound-bar */
+.soundline { display: none !important; }
+
+#sound-bar {
+  position: absolute; left: 6px; right: 6px; top: 8px; height: 44px; z-index: 38;
+  pointer-events: none;
+  background: linear-gradient(#0a060599 45%, #0000);
+}
+#sb-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+#sb-sub {
+  position: absolute; left: 0; right: 0; top: calc(100% + 2px); text-align: center;
+  font: italic .82rem var(--serif); color: var(--whisper); letter-spacing: .04em;
+  text-shadow: 0 1px 5px #000, 0 0 10px #000; padding: 3px 14px;
+  opacity: 0; transition: opacity .4s; pointer-events: none;
+}
+#sb-sub.on { opacity: 1; }
+
+/* Echolocation point-cloud — above the darkness overlay so it shows when blind */
+#echo-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 22; pointer-events: none; }
 .ccard {
   pointer-events: auto; touch-action: none; cursor: grab; user-select: none;
   position: relative; width: 148px; min-height: 196px;
@@ -919,6 +996,9 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
   50% { box-shadow: 0 0 16px color-mix(in srgb, var(--ct-accent, var(--torch)) 60%, transparent), inset 0 0 8px #0006; }
 }
 .ctarget.hot { transform: scale(1.13); border-color: #ffe1a0; box-shadow: 0 0 22px #ffce6e; z-index: 2; }
+/* revealed weak point — a crit target */
+.ctarget.weak { border-color: #ff6ec7; box-shadow: 0 0 14px #ff6ec788, inset 0 0 8px #ff6ec733; }
+.ctarget.weak .ct-name { color: #ffb0e0; }
 
 /* locked layer — dimmed, behind a hatched barrier (label stays readable) */
 .ctlayer.locked .ctrow { filter: grayscale(.55) brightness(.82); opacity: .72; }
@@ -975,25 +1055,146 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 /* ── Blood drops, top-left (this turn's spendable Sang) ─────────────────── */
 #combat-blood {
   position: absolute; top: 12px; left: 14px; z-index: 42;
-  display: flex; align-items: center; gap: 7px; pointer-events: none;
-  padding: 5px 11px 5px 8px; border-radius: 999px;
-  background: linear-gradient(#160b0bcc, #0c0606cc);
-  border: 1px solid #4a1f1c; box-shadow: 0 3px 10px #000a, inset 0 1px 0 #ffffff0c;
+  display: flex; align-items: center; gap: 8px; pointer-events: none;
 }
-#combat-blood .cb-drops { display: flex; gap: 3px; }
-#combat-blood .cb-drops i {
-  width: 10px; height: 14px;
-  background: radial-gradient(circle at 38% 28%, #f0655a, #7a1813);
+/* discard pile — TOP-RIGHT of the play area (symmetric to the resources); click to view */
+#combat-discard {
+  position: absolute; right: 14px; top: 12px; z-index: 44; cursor: pointer;
+  width: 44px; height: 58px; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: linear-gradient(168deg, #1a120bcc, #0b0605dd);
+  border: 1px dashed #4a331d;
+  box-shadow: inset 0 0 12px #000a, 3px 3px 0 -1px #171009cc, 6px 6px 0 -2px #120a08aa;
+  transition: transform .1s, border-color .12s;
+}
+#combat-discard:hover { transform: translateY(1px); border-color: var(--torch); }
+#combat-discard .cd-n   { font: bold 1.05rem var(--mono); color: var(--bone); text-shadow: 0 1px 3px #000; }
+#combat-discard .cd-cap { font: .44rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: #8a795c; }
+#combat-discard.cd-empty { opacity: .5; }
+.fx-discard-fly { transform-origin: center; }
+
+/* discard contents popup (opens below the pile) */
+#combat-discard-view {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 230px;
+  max-height: 60vh; overflow-y: auto; text-align: left; cursor: default;
+  padding: 8px; border-radius: 8px; z-index: 46;
+  background: linear-gradient(168deg, #1d130bf6, #0c0706fb);
+  border: 1px solid #4a331d; box-shadow: 0 10px 26px #000c, inset 0 1px 0 #ffffff0e;
+  scrollbar-width: thin; scrollbar-color: #2a1f14 transparent;
+}
+#combat-discard.cd-open #combat-discard-view { display: block; }
+.cdv-title { font: .52rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #8a795c; margin-bottom: 6px; }
+.cdv-card { padding: 5px 7px; margin-bottom: 5px; border: 1px solid var(--edge); background: #0c070399; box-shadow: inset 0 0 10px #000; }
+.cdv-card b { font: .7rem var(--serif); font-variant: small-caps; letter-spacing: .08em; color: var(--torch-hot); }
+.cdv-card em { font-style: normal; color: var(--bone-dim); font-size: .82em; }
+.cdv-org  { display: block; font: .5rem var(--mono); letter-spacing: .05em; color: #6a5d48; margin: 1px 0 3px; }
+.cdv-desc { display: block; font: .62rem/1.35 var(--mono); color: #b6a786; }
+/* one chip per resource: an icon with the value centred inside it */
+.cb-res {
+  position: relative; width: 30px; height: 34px;
+  display: grid; place-items: center; filter: drop-shadow(0 2px 4px #000a);
+}
+.cb-res::before { content: ''; position: absolute; inset: 0; z-index: 0; }
+.cb-res .cb-n {
+  position: relative; z-index: 1;
+  font: bold .84rem var(--mono); color: #fff;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+}
+/* Sang — blood drop (always leftmost, always shown) */
+.cb-sang::before {
+  background: radial-gradient(circle at 38% 30%, #f0655a, #7a1813 72%);
   border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  box-shadow: 0 1px 2px #000a, inset 0 1px 1px #ffffff40;
+  box-shadow: inset 0 2px 3px #ffffff33, inset 0 -3px 5px #00000066;
 }
-#combat-blood .cb-num {
-  font: bold .9rem var(--mono); color: #f0a098; text-shadow: 0 1px 3px #000;
+/* Protection — steel shield */
+.cb-protection::before {
+  background: radial-gradient(circle at 40% 26%, #9fc0d4, #2a4657 74%);
+  clip-path: polygon(50% 0, 100% 16%, 100% 58%, 50% 100%, 0 58%, 0 16%);
+  box-shadow: inset 0 2px 3px #ffffff30;
 }
-#combat-blood .cb-cap {
-  font: .54rem var(--mono); color: #8a6f5a; letter-spacing: .14em;
-  text-transform: uppercase;
+/* Frénésie — molten spike */
+.cb-frenesie::before {
+  background: radial-gradient(circle at 40% 26%, #ffb057, #a83a12 74%);
+  clip-path: polygon(50% 0, 68% 40%, 100% 50%, 68% 60%, 50% 100%, 32% 60%, 0 50%, 32% 40%);
 }
+/* Régénération — living green bead */
+.cb-regen::before {
+  background: radial-gradient(circle at 40% 30%, #9fe6ad, #1f6a3a 74%);
+  border-radius: 50%;
+  box-shadow: inset 0 2px 3px #ffffff33, inset 0 -3px 5px #00000055;
+}
+/* chip reacts when its value changes */
+.cb-res.cb-bump { animation: cb-bump .38s ease-out; }
+@keyframes cb-bump { 0%,100% { transform: scale(1); } 45% { transform: scale(1.38); } }
+.cb-res.cb-spent { opacity: .4; filter: grayscale(.6); transition: opacity .2s, filter .2s; }
+
+/* ── Hunger HUD label ─────────────────────────────────────────────────────── */
+#val-hunger { font-weight: normal; }
+.hunger-gave     { color: #c9a0e6; }
+.hunger-rassasie { color: #9fe6ad; }
+.hunger-creux    { color: var(--bone); }
+.hunger-faim     { color: var(--torch); }
+.hunger-affame   { color: #e0803a; }
+.hunger-famine   { color: var(--blood); font-weight: bold; }
+
+/* ── Famine: bloodied eyes (red vignette) + drunk blur/wobble ──────────────── */
+#chair-app.famine::after {
+  content: ''; position: fixed; inset: 0; z-index: 90; pointer-events: none;
+  box-shadow: inset 0 0 120px 34px #6a0d0daa, inset 0 0 46px 12px #b5333a66;
+  animation: famine-pulse 2.6s ease-in-out infinite;
+}
+@keyframes famine-pulse { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
+#chair-app.famine .viewport {
+  filter: blur(1px) saturate(1.15) contrast(1.05);
+  animation: famine-wobble 6s ease-in-out infinite;
+}
+@keyframes famine-wobble {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-3px) rotate(-.3deg); }
+  75% { transform: translateX(3px) rotate(.3deg); }
+}
+
+/* ══ Combat FX layer — turn-based legibility (CombatFX.js) ══════════════════ */
+#combat-fx { position: absolute; inset: 0; z-index: 55; pointer-events: none; overflow: hidden; }
+#combat-fx.fx-hitflash::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 72%, #b5333a55, transparent 62%);
+  animation: fx-flash .26s ease-out forwards;
+}
+@keyframes fx-flash { from { opacity: 1; } to { opacity: 0; } }
+
+.fx-float {
+  position: absolute; transform: translate(-50%, -50%);
+  font: bold .95rem var(--mono); white-space: nowrap;
+  text-shadow: 0 1px 3px #000, 0 0 5px #000;
+  animation: fx-rise 1.05s ease-out forwards; will-change: transform, opacity;
+}
+@keyframes fx-rise {
+  0%   { opacity: 0; transform: translate(-50%, -30%) scale(.7); }
+  16%  { opacity: 1; transform: translate(-50%, -52%) scale(1.12); }
+  30%  { transform: translate(-50%, -58%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+}
+.fx-hit .fx-dmg   { color: #ff7a6e; }
+.fx-hit .fx-block { color: #9fc0d4; font-size: .82em; }
+.fx-dodge { color: #e8b25c; font-style: italic; }
+.fx-bile  { color: #9fe6ad; }
+.fx-cast  { color: var(--torch-hot); font-size: .86rem; }
+.fx-cast.fx-heal   { color: #9fe6ad; }
+.fx-cast.fx-shield { color: #9fc0d4; }
+.fx-cast.fx-rage   { color: #ffb057; }
+.fx-cast.fx-bilehit, .fx-cast.fx-bleed { color: #9fe6ad; }
+.fx-cast.fx-vuln   { color: #c9a0e6; }
+.fx-cast.fx-blood  { color: #ff7a6e; }
+.fx-resup   { color: #9fe6ad; font: bold .92rem var(--mono); }
+.fx-resdown { color: #f0a098; font: bold .92rem var(--mono); }
+
+/* mob spotlight / lunge (enemy strikes) / recoil (you hit it) */
+.mobwrap.fx-attacking { z-index: 5; filter: drop-shadow(0 0 14px #e8b25caa) brightness(1.15); }
+.mobwrap.fx-lunge  { animation: fx-lunge .4s ease-out; }
+.mobwrap.fx-struck { animation: fx-struck .42s ease-out; }
+@keyframes fx-lunge  { 0%,100% { transform: translateY(0); } 40% { transform: translateY(18px) scale(1.06); } }
+@keyframes fx-struck { 0%,100% { transform: translateX(0); } 22% { transform: translateX(-7px) rotate(-2deg); } 62% { transform: translateX(6px) rotate(1.5deg); } }
 
 /* ── Card colour = its organ's set colour (same colour drawn on the mob) ─────── */
 .ccard { border-color: color-mix(in srgb, var(--card-accent, #3a2a18) 50%, #160c07); }

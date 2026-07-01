@@ -62,6 +62,24 @@ export function render(container, room, options = {}) {
   // Sell from besace
   if (WS.player.inventory.length) {
     WS.player.inventory.forEach((item, idx) => {
+      // Déchet organique — sells at its full listed value.
+      if (item.dechet) {
+        const price = item.value ?? 40;
+        const btn = document.createElement('button');
+        btn.className = 'ware sell';
+        btn.innerHTML = `<span class="ware-ic dechet"></span>
+                         <span class="ware-n">Déchet organique</span>
+                         <span class="ware-p sell">+${price}</span>`;
+        btn.addEventListener('click', () => {
+          WS.player.gold += price;
+          WS.player.inventory.splice(idx, 1);
+          addLog(`Vendu : déchet organique +${price}💀.`, 'sys');
+          onRender?.();
+        });
+        sellScroll.appendChild(btn);
+        return;
+      }
+
       // Relics are sellable too — flat half of their listed price.
       if (item.relicId) {
         const rdef = getRelic(item.relicId);

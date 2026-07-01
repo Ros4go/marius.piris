@@ -45,7 +45,7 @@ function runCombat(seed) {
   const player = humanBody();
   const mob = genMob(rng);
 
-  const pstate = { blood: 0, guard: 0, dodgeCharges: 0, empower: 0, onceUsed: new Set(), meat: 0,
+  const pstate = { blood: 0, protection: 0, regen: 0, frenesie: 0, empower: 0, onceUsed: new Set(), meat: 0,
     onOrganKillBlood: CR.livingSlots(player).some((k) => organResolver(player.slots[k].organId).passives.some((p) => p.id === 'instinct')) ? 1 : 0 };
 
   // Mob plans exactly like the player: its action budget IS its own heart pool.
@@ -55,7 +55,7 @@ function runCombat(seed) {
     turns++;
     // ----- player turn -----
     pstate.blood = CR.bloodPool(player, organResolver);
-    pstate.guard = 0;
+    CR.produceTurnResources(player, pstate, organResolver);   // Protection from skin, etc.
     // choose target: heart if reachable else shallowest wall organ to breach
     const reach = CR.targetableSlots(mob.body, false);
     let target = reach.find((k) => k === 'heart');
@@ -66,8 +66,8 @@ function runCombat(seed) {
       })[0];
     }
     mob._target = target;
-    // play attack cards greedily; keep Sursaut for emergencies
-    let guard = false;
+    // play attack cards greedily; each card is usable once per turn (discard model)
+    const usedCards = new Set();
     let safety = 0;
     while (pstate.blood > 0 && safety++ < 12) {
       // gather playable attack skills from living organs
@@ -77,9 +77,10 @@ function runCombat(seed) {
         for (const sk of def.skills) {
           if (sk.effect?.kind !== 'damage') continue;
           if ((sk.cost ?? 0) > pstate.blood) continue;
+          if (usedCards.has(k + ':' + sk.id)) continue;      // once per turn
           const r = CR.playCard(pstate, player, def, sk,
             { enemy: mob, target: { body: mob.body, slotKey: mob._target, isSelf: false } }, organResolver, rng);
-          if (r.ok) { played = true; break; }
+          if (r.ok) { usedCards.add(k + ':' + sk.id); played = true; break; }
         }
         if (played) break;
       }
@@ -87,7 +88,7 @@ function runCombat(seed) {
       mob._target = (CR.targetableSlots(mob.body, false).find((x) => x === 'heart')) || mob._target;
       if (!CR.vitalAlive(mob.body)) break;
     }
-    CR.tickBleeds(mob, organResolver);
+    CR.tickEnemyStatus(mob, organResolver, rng);
     if (!CR.vitalAlive(mob.body)) {
       const liv = CR.livingSlots(player);
       const pct = liv.reduce((s, k) => s + player.slots[k].hp, 0) / liv.reduce((s, k) => s + organResolver(player.slots[k].organId).maxHp, 0);

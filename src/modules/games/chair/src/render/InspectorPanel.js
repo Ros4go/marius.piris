@@ -5,12 +5,11 @@
 import { organResolver, relic as getRelic } from '../registry.js';
 import { WS } from '../WorldState.js';
 import * as Blood from '../BattleEngine.js';
-import { armorOf, evasionOf } from '../systems/CombatSystem.js';
 import { SLOT_FULL, TYPE_NOUN } from '../labels.js';
 
 const _content = document.getElementById('insp-content');
 const TIER_FR = { common: 'commun', rare: 'rare', epic: 'épique', legendary: 'légendaire' };
-const PASSIVE_FR = { armor: 'Armure (réduction)', dodge: 'Esquive %', regen: 'Régénération', glow: 'Lueur' };
+const PASSIVE_FR = { armor: 'Armure (réduction)', regen: 'Régénération', glow: 'Lueur' };
 const ABILITY_FR = {
   echolocate:     'Écholocalisation — révèle les salles à 2 cases en explorant',
   see_invisible:  'Vision perçante — détecte et cible les ennemis invisibles',
@@ -23,6 +22,29 @@ const FLAW_FR = {
   slow_charge: 'Charge plus lente', bleeds: 'Saigne à l\'usage', loud: 'Bruyant',
   fragile: 'Fragile', blinding: 'Aveuglant', heavy: 'Lourd (ralentit)',
 };
+
+const RES_FR = { sang: 'Sang', blood: 'Sang', protection: 'Protection', regen: 'Régénération',
+                 frenesie: 'Frénésie', meat: 'Viande', bile: 'Bile', saignement: 'Saignement', vulnerabilite: 'Vulnérabilité' };
+
+// One-line French summary of what a skill's effect does (from the data schema).
+function _effectStr(eff) {
+  if (!eff) return '';
+  const a = eff.amount;
+  switch (eff.kind) {
+    case 'damage':        return `Inflige ${a} dégâts${eff.pierce ? ' (perforant)' : ''}${eff.bleed ? ` + ${eff.bleed} Saignement` : ''}${eff.lifesteal ? ` · vol de vie ${eff.lifesteal}` : ''}`;
+    case 'heal':          return `Soigne ${a} PV${eff.target === 'all' ? ' (tous les organes)' : ''}`;
+    case 'protect':       return `Produit ${a} Protection`;
+    case 'regen':         return `Accorde ${a} Régénération`;
+    case 'frenesie':      return `Accorde ${a} Frénésie (+dégâts permanents)`;
+    case 'blood':         return `Produit ${a} Sang`;
+    case 'bile':          return `Applique ${a} Bile sur l'organe visé`;
+    case 'saignement':    return `Applique ${a} Saignement sur l'organe visé`;
+    case 'vulnerabilite': return `Applique ${a} Vulnérabilité sur l'organe visé`;
+    case 'retrigger':     return `Redéclenche l'effet de l'organe ciblé`;
+    case 'convert':       return `Convertit ${eff.fromAmount} ${RES_FR[eff.from] ?? eff.from} → ${eff.toAmount} ${RES_FR[eff.to] ?? eff.to}`;
+    default:              return '';
+  }
+}
 
 export function init() {}
 export function close() {}
@@ -46,23 +68,27 @@ export function showOrgan(organId, currentHp, slotKey, onBack) {
   const setStr    = def.set ? ` · ${def.set}` : '';
 
   let body = '';
-  if (def.type === 'heart') body += _row('Produit', `${def.pool} 💉 (pool de sang)`);
+  if (def.type === 'heart') body += _row('Produit', `${def.pool} Sang / tour`);
   if (def.maxBlood > 0)     body += _row('Sang max', `${def.maxBlood} 💉`);
 
-  // Active skill
-  if (def.skill && def.skill.kind) {
-    const sk   = def.skill;
-    const flags = [sk.pierce ? 'perforant' : null, sk.lifesteal ? 'vol de vie' : null].filter(Boolean).join(', ');
-    const vals = (sk.values ?? []).map((v,i)=>`${i+1}💉 → ${v}`).join(' · ');
-    body += `<div class="ins-section-head">Skill — ${sk.label || sk.kind}${flags ? ` (${flags})` : ''}</div>`;
-    body += _desc(`Valeurs par sang : ${vals || '—'}`);
-    body += _row('Charge', _chargeStr(sk.charge));
+  // Turn-start resource production (skin → Protection, etc.)
+  for (const p of def.produces ?? []) {
+    body += _row('Produit', `+${p.amount} ${RES_FR[p.resource] ?? p.resource} / tour`);
   }
-  // Passive
-  if (def.passive) {
-    const vals = (def.passive.values ?? []).map((v,i)=>`${i+1}💉 → ${v}`).join(' · ');
-    body += `<div class="ins-section-head">Passif — ${PASSIVE_FR[def.passive.id] ?? def.passive.id}</div>`;
-    body += _desc(`Valeurs par sang : ${vals || '—'}`);
+
+  // Active skills — label, cost, what they do (from the effect) and the flavour text.
+  for (const sk of def.skills ?? []) {
+    const cost = (sk.cost ?? 0) > 0 ? `${sk.cost} Sang` : 'libre';
+    body += `<div class="ins-section-head">${sk.label ?? 'Skill'} · ${cost}${sk.once ? ' · 1×/combat' : ''}</div>`;
+    const effStr = _effectStr(sk.effect);
+    if (effStr) body += _desc(effStr);
+    if (sk.desc) body += _desc(sk.desc, 'insp-dim');
+  }
+
+  // Passives — label + description.
+  for (const p of def.passives ?? []) {
+    body += `<div class="ins-section-head">Passif — ${p.label ?? PASSIVE_FR[p.id] ?? p.id}</div>`;
+    if (p.desc) body += _desc(p.desc, 'insp-dim');
   }
   // Abilities / triggers / flaw
   const abil = (def.abilities ?? []).filter(a => a !== 'strike' && a !== 'dodge')
@@ -113,14 +139,16 @@ export function showBody(body) {
   if (!body) return;
 
   const pool = Blood.bloodPool();
-  const arm  = armorOf(body, true);
-  const eva  = Math.round(evasionOf(body, true) * 100);
+  let prot = 0;
+  for (const s of Object.values(body.slots ?? {})) {
+    if (!s?.organId || (s.hp ?? 1) <= 0) continue;
+    for (const p of organResolver(s.organId)?.produces ?? []) if (p.resource === 'protection') prot += p.amount ?? 0;
+  }
 
   const combat = `
     <div class="ins-section-head">Combat</div>
     ${_row('Pool de sang', `${pool} 💉`)}
-    ${_row('Armure (couche externe)', arm > 0 ? `−${arm} dmg` : '—')}
-    ${_row('Esquive', eva > 0 ? `${eva}%` : '—')}`;
+    ${_row('Protection / tour', prot > 0 ? `+${prot} 🛡` : '—')}`;
 
   const infected = Object.entries(body.slots ?? {}).filter(([,s])=>s?.infected).map(([k])=>k);
   const infHtml = infected.length ? _row('Infecté', infected.join(' · '), 'insp-neg') : '';
@@ -138,7 +166,6 @@ function _battleSection() {
   const spent = Blood.bloodSpent();
 
   const buffs = [];
-  if ((WS.battle.buffDodge ?? 0) > 0)  buffs.push(`esquive ×${WS.battle.buffDodge}`);
   if ((WS.battle.buffAbsorb ?? 0) > 0) buffs.push(`absorb ${WS.battle.buffAbsorb}`);
   if (WS.battle.aimedSlot)             buffs.push(`→ [${WS.battle.aimedSlot}]`);
 

@@ -20,7 +20,22 @@ const THEME_NAMES = {
   burning:     { adj: ['Ardent','Embrasé','Consumé','Incandescent'],     noun: 'de Braise'    },
 };
 
-// Spawn procedural mobs for a hostile room on first entry.
+// Pre-populate an ENTIRE floor with its mobs at generation time, so we know
+// upfront WHERE every mob is and WHICH mob it is (needed for future room-to-room
+// movement). Called once when a floor is generated — never on load.
+export function populateFloor(floor, floorIdx) {
+  const biome = getBiome(floor.biomeId);
+  for (const room of floor.rooms.values()) {
+    if (!room || room.cleared || (room.mobIds?.length ?? 0) > 0) continue;
+    if (!room.isHostile?.()) continue;
+    const def = getRoomDef(room.defId);
+    if (def?.spawns?.graveyard) spawnGraveyardMob(room, floorIdx);
+    else if (def?.spawns?.boss) { if (biome?.bossId) spawnBoss(biome.bossId, room, floorIdx); }
+    else spawnForRoom(room, floor, floorIdx);
+  }
+}
+
+// Spawn procedural mobs for a single hostile room.
 export function spawnForRoom(room, floor, floorIdx) {
   const biome = getBiome(floor.biomeId);
   if (!biome) return;

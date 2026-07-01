@@ -63,6 +63,8 @@ export function render() {
         prop = PROPS[Math.floor(h / 3) % PROPS.length];
       }
       _gore.style.setProperty('--gore-x', `${(h % 7) - 3}px`);
+      // keep the corpse OFF the doorways: hug a doorless side, else sit on the floor centre
+      _gore.style.setProperty('--gore-left', !hasLeft ? '5%' : !hasRight ? '66%' : '36%');
     }
     _gore.dataset.prop = prop;
   }
