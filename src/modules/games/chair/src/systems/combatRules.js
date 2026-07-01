@@ -49,19 +49,114 @@ function passivesOf(body, organResolver, pid) {
   return total;
 }
 export function armorOf(body, organResolver) { return passivesOf(body, organResolver, 'armor'); }
-export function dodgePct(body, organResolver) {
-  // best dodge organ wins (legs), capped
-  let best = 0;
-  for (const key of livingSlots(body)) {
-    const def = organResolver(body.slots[key].organId);
-    for (const p of def?.passives ?? []) if (p.id === 'dodge') best = Math.max(best, p.value ?? 0);
-  }
-  return Math.min(80, best);
-}
 export function bloodPool(body, organResolver) {
   const h = body.slots['heart'];
   if (h?.organId && (h.hp == null || h.hp > 0)) return organResolver(h.organId)?.pool ?? 3;
   return 3; // a pulse remains even with a wrecked heart
+}
+
+// --- Resource verbs & statuses (see TDD §1) --------------------------------
+
+// Design resource name → the pstate field that holds it.
+const RES_FIELD = { sang: 'blood', blood: 'blood', viande: 'meat', meat: 'meat', protection: 'protection', frenesie: 'frenesie' };
+
+// Extra damage a target organ currently takes from Vulnérabilité.
+export function vulnOf(enemy, key) { return enemy?._vuln?.[key] ?? 0; }
+
+// Turn-start production for carryover-model resources (Protection today; any organ
+// `produces:[{resource,amount,carryover}]`) + Régénération. Sang keeps bloodPool()
+// (same model, carryover 0). Call at the start of each player turn.
+export function produceTurnResources(body, pstate, organResolver, ev = []) {
+  for (const res of ['protection']) {
+    let regen = 0, carry = 0;
+    for (const key of livingSlots(body)) {
+      const def = organResolver(body.slots[key].organId);
+      for (const p of def?.produces ?? []) {
+        if (p.resource === res) { regen += p.amount ?? 0; carry = Math.max(carry, p.carryover ?? 0); }
+      }
+    }
+    const leftover = pstate[res] ?? 0;
+    pstate[res] = Math.floor(leftover * carry) + regen;
+  }
+  // Régénération: repair worst organ by its value, then decay by 1.
+  if ((pstate.regen ?? 0) > 0) {
+    healWorst(body, pstate.regen, organResolver, ev, 'player');
+    pstate.regen -= 1;
+  }
+  return ev;
+}
+
+// Bile spreads off a just-killed carrier onto 1–3 other organs (K weighted to 2),
+// same layer favoured, splitting the remaining Bile as evenly as possible. TDD §1.3.
+export function spreadBile(enemy, deadKey, organResolver, rng, ev = []) {
+  const remaining = enemy?._bile?.[deadKey] ?? 0;
+  if (enemy?._bile) delete enemy._bile[deadKey];
+  if (remaining <= 0) return ev;
+
+  const deadLayer = ORGAN_SLOTS[deadKey]?.layer;
+  const pool = livingSlots(enemy.body).filter((k) => k !== deadKey);
+  if (!pool.length) return ev;   // enemy is essentially dead
+
+  const roll = rng();
+  let K = roll < 0.5 ? 2 : roll < 0.75 ? 1 : 3;   // 2 most likely
+  K = Math.min(K, pool.length);
+
+  const picks = [];
+  for (let i = 0; i < K && pool.length; i++) {
+    const weights = pool.map((k) => (ORGAN_SLOTS[k]?.layer === deadLayer ? 3 : 1));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = rng() * total, idx = 0;
+    while (idx < weights.length - 1 && (r -= weights[idx]) >= 0) idx++;
+    picks.push(pool.splice(idx, 1)[0]);
+  }
+
+  enemy._bile = enemy._bile ?? {};
+  const base = Math.floor(remaining / picks.length);
+  let extra = remaining - base * picks.length;
+  for (const k of picks) {
+    const share = base + (extra-- > 0 ? 1 : 0);
+    if (share <= 0) continue;
+    enemy._bile[k] = (enemy._bile[k] ?? 0) + share;
+    ev.push({ t: 'bile_spread', key: k, amount: share });
+  }
+  return ev;
+}
+
+// Bile ticks on an enemy each turn: each poisoned organ takes its Bile, then −1;
+// if it dies, the remainder spreads. Call at end of the player turn.
+export function tickBile(enemy, organResolver, rng) {
+  const ev = [];
+  if (!enemy._bile) return ev;
+  for (const key of Object.keys(enemy._bile)) {
+    const amt = enemy._bile[key];
+    if (amt <= 0 || !organAlive(enemy.body, key)) { delete enemy._bile[key]; continue; }
+    const killed = dealDamage(enemy.body, key, amt, organResolver, ev, 'bile');
+    if (killed) spreadBile(enemy, key, organResolver, rng, ev);
+    else { enemy._bile[key] = amt - 1; if (enemy._bile[key] <= 0) delete enemy._bile[key]; }
+  }
+  return ev;
+}
+
+// Vulnérabilité decays by 1 each turn. Call at end of the player turn.
+export function decayVuln(enemy) {
+  if (!enemy._vuln) return;
+  for (const key of Object.keys(enemy._vuln)) {
+    enemy._vuln[key] -= 1;
+    if (enemy._vuln[key] <= 0) delete enemy._vuln[key];
+  }
+}
+
+// Saignement: when the enemy attacks, each bleeding organ loses its value in PV,
+// then −1. Call once per enemy attack action.
+function tickSaignement(enemy, organResolver, ev) {
+  if (!enemy._bleeds) return;
+  for (const key of Object.keys(enemy._bleeds)) {
+    const amt = enemy._bleeds[key];
+    if (amt <= 0 || !organAlive(enemy.body, key)) { delete enemy._bleeds[key]; continue; }
+    dealDamage(enemy.body, key, amt, organResolver, ev, 'saignement');
+    enemy._bleeds[key] = amt - 1;
+    if (enemy._bleeds[key] <= 0) delete enemy._bleeds[key];
+  }
 }
 
 // --- Targeting & breach ----------------------------------------------------
@@ -147,7 +242,7 @@ function healAll(body, amount, organResolver, ev, who) {
 }
 
 // --- Player plays a card ---------------------------------------------------
-// pstate: { blood, guard, dodgeCharges, empower, onceUsed:Set, meat, onOrganKillBlood }
+// pstate: { blood, protection, regen, frenesie, empower, onceUsed:Set, usedThisTurn:Set, meat, onOrganKillBlood }
 // ctx:    { enemy, target } — `enemy` is the focused mob (routes damage and
 //         default targeting); `target = { body, slotKey, isSelf }` is the organ
 //         the card was dropped on. ANY effect can be aimed at an enemy organ OR
@@ -174,8 +269,15 @@ export function playCard(pstate, playerBody, organ, skill, ctx, organResolver, r
       const who = isSelf ? 'self' : 'player';
       let dmg = eff.amount ?? 0;
       if (pstate.empower) { dmg = Math.round(dmg * (1 + pstate.empower)); pstate.empower = 0; }
+      if (!isSelf) dmg += pstate.frenesie ?? 0;                       // Frénésie: +1 dmg per point to every attack
+      if (!isSelf) dmg = Math.max(1, dmg + (pstate.hungerDmg ?? 0));  // hunger: Fringale (−) / well-fed (+)
+      if (!isSelf && enemy) dmg += vulnOf(enemy, key);               // Vulnérabilité on the target organ
+      // Weak point: bonus ONLY if it's the revealed weak spot (no accidental crits)
+      const isWeak = !isSelf && enemy && enemy._weakSpot === key && (pstate.weakBonus ?? 0) > 0;
+      if (isWeak) { dmg += pstate.weakBonus; ev.push({ t: 'weak', key }); }
       if (!eff.pierce && !isSelf) dmg = Math.max(1, dmg - armorOf(tbody, organResolver));
       const killed = dealDamage(tbody, key, dmg, organResolver, ev, who);
+      if (killed && !isSelf && enemy) spreadBile(enemy, key, organResolver, rng, ev);
       if (eff.splash) for (const adj of adjacentSlots(tbody, key)) dealDamage(tbody, adj, eff.splash, organResolver, ev, who);
       if (eff.bleed && !isSelf && enemy) { enemy._bleeds = enemy._bleeds ?? {}; enemy._bleeds[key] = (enemy._bleeds[key] ?? 0) + eff.bleed; }
       if (eff.lifesteal) healWorst(playerBody, eff.lifesteal, organResolver, ev, 'player');
@@ -209,10 +311,37 @@ export function playCard(pstate, playerBody, organ, skill, ctx, organResolver, r
       for (const e of sr.events) ev.push(e);
       break;
     }
-    case 'guard':  pstate.guard = (pstate.guard ?? 0) + (eff.amount ?? 0); ev.push({ t: 'guard', amount: eff.amount }); break;
-    case 'dodge':  pstate.dodgeCharges = (pstate.dodgeCharges ?? 0) + (eff.charges ?? 1);
-                   if (eff.empower) pstate.empower = eff.empower; ev.push({ t: 'dodge_set', charges: eff.charges ?? 1 }); break;
+    // Protection = the Bloc pool (produce it; consumed 1:1 when hit). 'guard' kept as an alias.
+    case 'guard':
+    case 'protect': pstate.protection = (pstate.protection ?? 0) + (eff.amount ?? 0); ev.push({ t: 'protect', amount: eff.amount }); break;
+    // Régénération = heals your worst organ each turn, then decays (applied at turn start).
+    case 'regen':   pstate.regen = (pstate.regen ?? 0) + (eff.amount ?? 0); ev.push({ t: 'regen_set', amount: eff.amount }); break;
+    // Frénésie = permanent +dmg to all your attacks (Force STS).
+    case 'frenesie': pstate.frenesie = (pstate.frenesie ?? 0) + (eff.amount ?? 0); ev.push({ t: 'frenesie', amount: eff.amount }); break;
+    // Convert one resource into another, e.g. { from:'meat', fromAmount:2, to:'blood', toAmount:3 }.
+    case 'convert': {
+      const from = RES_FIELD[eff.from], to = RES_FIELD[eff.to];
+      const need = eff.fromAmount ?? 0;
+      if (!from || !to) return { ok: false, reason: 'unknown_effect', events: ev };
+      if ((pstate[from] ?? 0) < need) return { ok: false, reason: from === 'meat' ? 'no_meat' : 'no_blood', events: ev };
+      pstate[from] -= need;
+      pstate[to] = (pstate[to] ?? 0) + (eff.toAmount ?? 0);
+      ev.push({ t: 'convert', from: eff.from, to: eff.to, amount: eff.toAmount });
+      break;
+    }
     case 'blood':  pstate.blood += eff.amount ?? 0; break;
+    // Enemy-side statuses — applied to the targeted enemy organ.
+    case 'bile':
+    case 'saignement':
+    case 'vulnerabilite': {
+      const r = _resolveOrganTarget(eff, target, enemy, organResolver);
+      if (!r || r.isSelf || !enemy) return { ok: false, reason: 'no_target', events: ev };
+      const bag = eff.kind === 'bile' ? '_bile' : eff.kind === 'saignement' ? '_bleeds' : '_vuln';
+      enemy[bag] = enemy[bag] ?? {};
+      enemy[bag][r.key] = (enemy[bag][r.key] ?? 0) + (eff.amount ?? 0);
+      ev.push({ t: eff.kind, key: r.key, amount: eff.amount });
+      break;
+    }
     default: return { ok: false, reason: 'unknown_effect', events: ev };
   }
 
@@ -301,7 +430,10 @@ export function chooseMobPlan(mob, playerBody, organResolver, rng, budget = null
 export function resolveMobPlan(plan, mob, playerBody, pstate, organResolver, rng) {
   const ev = [];
   for (const tel of plan ?? []) {
-    // the firing organ may have died this turn → that hit is interrupted
+    // Saignement fires whenever the enemy attacks — it may wound (even kill) the
+    // firing organ before its blow lands.
+    tickSaignement(mob, organResolver, ev);
+    // the firing organ may have died this turn (or from Saignement) → interrupted
     if (!organAlive(mob.body, tel.organKey)) { ev.push({ t: 'interrupted', label: tel.label }); continue; }
     // retarget if the telegraphed player organ is already gone
     let key = tel.target;
@@ -310,33 +442,31 @@ export function resolveMobPlan(plan, mob, playerBody, pstate, organResolver, rng
       if (!tt.length) continue;
       key = tt[Math.floor(rng() * tt.length)];
     }
-    // guaranteed dodge charges, then passive dodge (per hit)
-    if ((pstate.dodgeCharges ?? 0) > 0) { pstate.dodgeCharges--; ev.push({ t: 'dodge', key, label: tel.label }); continue; }
-    if (rng() * 100 < dodgePct(playerBody, organResolver)) { ev.push({ t: 'dodge', key, label: tel.label }); continue; }
     let dmg = tel.amount;
     const raw = dmg;
     if (!tel.pierce) dmg = Math.max(1, dmg - armorOf(playerBody, organResolver));
-    const guarded = pstate.guard > 0;
-    if (pstate.guard) dmg = Math.max(0, dmg - pstate.guard);
+    // Protection = Bloc: consumed 1:1 to soak the hit.
+    let soaked = 0;
+    if (dmg > 0 && (pstate.protection ?? 0) > 0) {
+      soaked = Math.min(pstate.protection, dmg);
+      pstate.protection -= soaked; dmg -= soaked;
+    }
     let dead = false;
     if (dmg > 0) {
       const before = curHp(playerBody, key, organResolver);
       playerBody.slots[key].hp = Math.max(0, before - dmg);
       dead = playerBody.slots[key].hp <= 0;
     }
-    ev.push({ t: 'mob_action', label: tel.label, organKey: tel.organKey, target: key, dmg, raw, guarded, dead });
+    ev.push({ t: 'mob_action', label: tel.label, organKey: tel.organKey, target: key, dmg, raw, soaked, guarded: soaked > 0, dead });
     if (!vitalAlive(playerBody)) break;   // player down → stop the onslaught
   }
   return ev;
 }
 
-// Bleeds tick on an enemy (player-inflicted) — call at end of player turn.
-export function tickBleeds(enemy, organResolver) {
-  const ev = [];
-  if (!enemy._bleeds) return ev;
-  for (const [key, amt] of Object.entries(enemy._bleeds)) {
-    if (organAlive(enemy.body, key)) dealDamage(enemy.body, key, amt, organResolver, ev, 'bleed');
-  }
-  enemy._bleeds = {};
+// End-of-player-turn enemy tick: Bile ticks (+ spreads on kill) and Vulnérabilité
+// decays. Saignement is NOT here — it fires when the enemy attacks (resolveMobPlan).
+export function tickEnemyStatus(enemy, organResolver, rng) {
+  const ev = tickBile(enemy, organResolver, rng);
+  decayVuln(enemy);
   return ev;
 }

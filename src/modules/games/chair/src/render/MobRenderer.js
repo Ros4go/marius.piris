@@ -8,6 +8,7 @@ import { organResolver, organColor } from '../registry.js';
 import { ORGAN_SLOTS } from '../entities/Body.js';
 import { SLOT_SHORT as ORGAN_NAMES } from '../labels.js';
 import * as TurnCombat from '../TurnCombat.js';
+import * as Faculties from '../systems/Faculties.js';
 
 // deterministic per-string pseudo-random (FNV-1a) for organic timing variety
 function _seed(str) {
@@ -19,23 +20,21 @@ function _seed(str) {
 const _display = document.getElementById('mob-display');
 const _cache   = new Map(); // mobId → HTMLElement
 
-function _playerHasBrain() {
-  const b = WS.player.body;
-  return Object.keys(ORGAN_SLOTS).some((k) => {
-    if (ORGAN_SLOTS[k].type !== 'brain') return false;
-    const s = b.slots[k]; return s?.organId && (s.hp == null || s.hp > 0);
-  });
-}
+// The silhouette element for a mob (used by CombatFX to animate strikes).
+export function elementOf(mobId) { return _cache.get(mobId) ?? null; }
 
-// The mob's telegraphed plan, as stacked mini-pills above its silhouette.
+// The mob's telegraphed plan, revealed in more detail the higher your LUCIDITÉ:
+//   0 → vague · 1 → attack + target · 2+ → also exact damage.
 function _intentHTML(mobId) {
   if (!TurnCombat.isActive()) return '';
   const plan = TurnCombat.telegraphOf(mobId);
   if (!plan.length) return '<span class="mi mi-wait">∅</span>';
-  if (!_playerHasBrain()) return '<span class="mi vague">⚠ <em>prépare un coup…</em></span>';
-  return plan.map((a) =>
-    `<span class="mi">⚠ <em>${a.label}</em> → <b>${ORGAN_NAMES[a.target] ?? a.target}</b> <span class="tg-dmg">−${a.amount}</span></span>`
-  ).join('');
+  const p = Faculties.luciditePalier();
+  if (p <= 0) return '<span class="mi vague">⚠ <em>prépare un coup…</em></span>';
+  return plan.map((a) => {
+    const dmg = p >= 2 ? ` <span class="tg-dmg">−${a.amount}</span>` : '';
+    return `<span class="mi">⚠ <em>${a.label}</em> → <b>${ORGAN_NAMES[a.target] ?? a.target}</b>${dmg}</span>`;
+  }).join('');
 }
 
 export function render(opts = {}) {
@@ -92,6 +91,9 @@ export function render(opts = {}) {
     }
 
     el._onPeek = onPeek;
+    // Invisible mobs are a faint shimmer unless you can perceive them (voir_invisible
+    // / echolocation). Still targetable — you just have to squint.
+    el.classList.toggle('mob-veiled', !!mob.invisible && !Faculties.perceivesMob(mob));
     _applyDamage(el, mob);
     if (el._tag) {
       el._tag.innerHTML =

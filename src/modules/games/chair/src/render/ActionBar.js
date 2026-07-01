@@ -125,11 +125,10 @@ function _derive(room) {
   );
   if (hasCadavers) acts.push({ label: 'RÉCOLTER', sub: 'cadavre', action: 'HARVEST_OPEN' });
 
-  if (WS.player.inventory.length > 0) {
-    const graftCost = relicGraftCost();
-    acts.push({ label: 'GREFFER', sub: `${graftCost} ticks`, action: 'GRAFT_OPEN' });
-    acts.push({ label: 'AMPUTER', sub: '0 tick', action: 'AMPUTATE_OPEN' });
-  }
+  // Always available out of combat: eat / graft / tear off.
+  acts.push({ label: 'MANGER',   sub: 'contre la faim', action: 'EAT_OPEN' });
+  acts.push({ label: 'GREFFER',  sub: `${relicGraftCost()} ticks`, action: 'GRAFT_OPEN' });
+  acts.push({ label: 'ARRACHER', sub: '0 tick', action: 'AMPUTATE_OPEN' });
 
   if (room?.defId === 'exit') {
     acts.push({ label: 'DESCENDRE', sub: '↓', action: 'DESCEND' });

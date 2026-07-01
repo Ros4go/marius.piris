@@ -5,12 +5,13 @@
 
 import { WS } from '../WorldState.js';
 import { organResolver } from '../registry.js';
+import * as Faculties from '../systems/Faculties.js';
 
 const _game  = document.querySelector('.game');
 const _scene = document.querySelector('.scene');
 
 // Classes managed on .game
-const GAME_MANAGED = ['no-eye', 'eye-l-dead', 'eye-r-dead', 'limp', 'heart-alive', 'lum-out'];
+const GAME_MANAGED = ['no-eye', 'eye-l-dead', 'eye-r-dead', 'eye-l-dim', 'eye-r-dim', 'limp', 'heart-alive', 'lum-out', 'lum-night'];
 
 // Organ overlay → CSS class on .scene (matches scene.css bfx-* rules)
 const OVERLAY_FX = {
@@ -47,10 +48,13 @@ export function apply() {
     }
   }
 
-  // Per-eye blindness
-  if (!eyeL) _game?.classList.add('eye-l-dead');
-  if (!eyeR) _game?.classList.add('eye-r-dead');
-  if (!eyeL && !eyeR) _game?.classList.add('no-eye');
+  // Per-side VUE by level: 0 = dark half, 1 = penumbra (eye but no torch), 2+ = clear.
+  const vl = Faculties.vue('l'), vr = Faculties.vue('r');
+  if (vl <= 0)      _game?.classList.add('eye-l-dead');
+  else if (vl === 1) _game?.classList.add('eye-l-dim');
+  if (vr <= 0)      _game?.classList.add('eye-r-dead');
+  else if (vr === 1) _game?.classList.add('eye-r-dim');
+  if (vl <= 0 && vr <= 0) _game?.classList.add('no-eye');
 
   // Heartbeat pulse — alive heart drives CSS lub-dub animation, at the beat
   // period defined on the heart organ (data-oriented: organs.json "pulse").
@@ -61,6 +65,9 @@ export function apply() {
     _game?.style.setProperty('--hb-dur', `${beat}s`);
   }
 
-  // Torch exhaustion: total darkness
-  if ((WS.light?.current ?? 1.0) <= 0) _game?.classList.add('lum-out');
+  // Torch exhaustion: total darkness — UNLESS you have vision_nocturne, which
+  // lets you see in the dark (amber tint) instead of going fully black.
+  if ((WS.light?.current ?? 1.0) <= 0) {
+    _game?.classList.add(Faculties.hasKeyword('vision_nocturne') ? 'lum-night' : 'lum-out');
+  }
 }

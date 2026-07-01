@@ -1,7 +1,7 @@
 import { WS, currentFloor } from './WorldState.js';
 import { emit, flush, PRIORITY } from './TriggerBus.js';
 import { generateFloor } from './systems/DungeonGen.js';
-import { roomDef as getRoomDef, biome as getBiome } from './registry.js';
+import { roomDef as getRoomDef } from './registry.js';
 import * as HarvestSystem       from './systems/HarvestSystem.js';
 import * as GraftSystem         from './systems/GraftSystem.js';
 import * as MobGen              from './systems/MobGen.js';
@@ -10,6 +10,9 @@ import * as CurseSystem         from './systems/CurseSystem.js';
 import * as RoomEffectSystem    from './systems/RoomEffectSystem.js';
 import * as RelicSystem         from './systems/RelicSystem.js';
 import * as LoreSystem          from './systems/LoreSystem.js';
+import * as HungerSystem        from './systems/HungerSystem.js';
+import * as Faculties           from './systems/Faculties.js';
+import { addLog }                from './render/HUDRenderer.js';
 
 // SPEC tick costs: GRAFT=5 ticks in dungeon, REMOVE_ORGAN=0 (amputation gratuite), else=1
 // relic_suture_noire reduces GRAFT to 3. MOVE without legs costs 2.
@@ -44,6 +47,22 @@ export function processTick(action) {
   const cost = _actionCost(action);
   _advance(cost);
 
+  // Losing your heart (amputation, famine necrosis, a curse…) isn't instant death:
+  // you get ONE tick of grace to graft a replacement. Still heartless on the NEXT
+  // tick → you die. (A heart with a revive ability triggers it first.)
+  const body = WS.player.body;
+  if (body.isAlive()) {
+    WS.player.heartGrace = false;
+  } else if (!AbilitySystem.checkHeartAbility(body)) {
+    if (WS.player.heartGrace) {
+      emit({ type: 'PLAYER_DIED', source: 'no_heart', target: 'player', data: {}, priority: PRIORITY.MOB });
+      flush(PRIORITY.MOB);
+    } else {
+      WS.player.heartGrace = true;
+      addLog('💔 Ton cœur n\'est plus — greffe-en un AVANT ta prochaine action, ou tu meurs.', 'death');
+    }
+  }
+
   WS.save.dirty = true;
   WS.phase = 'idle';
   return { ok: true };
@@ -57,12 +76,15 @@ export function descend(biomeId, floorIndex) {
   WS.player.pos         = { ...floor.entrance };
   WS.player.dir         = 'N';
 
+  // Instantiate every mob on the floor NOW (positions + which mob), so the whole
+  // floor is populated upfront rather than lazily on room entry.
+  MobGen.populateFloor(floor, floorIndex);
+
   const { x: ex, y: ey } = floor.entrance;
   const startRoom = floor.cell(ex, ey);
   if (startRoom) {
-    floor.reveal(ex, ey);
     startRoom.markVisited();
-    for (const n of floor.neighbors(ex, ey)) floor.reveal(n.x, n.y);
+    _revealLayout(floor, ex, ey);   // entrance layout follows Lucidité, like every move
   }
 
   _scheduleTorchBurn();
@@ -86,6 +108,7 @@ function _advance(n) {
     if (WS.tick % 10 === 0) _tickInfected();
     RelicSystem.tick();
     CurseSystem.tick();
+    HungerSystem.tick();
     RoomEffectSystem.tick();
     _flushEvents(WS.tick);
     flush(PRIORITY.TICK);
@@ -135,7 +158,6 @@ function _movePlayer(dir) {
   if (!target) return { ok: false, reason: 'no_room' };
 
   WS.player.pos = { x: nx, y: ny };
-  floor.reveal(nx, ny);
   target.markVisited();
 
   // Lore: first room entry
@@ -145,34 +167,26 @@ function _movePlayer(dir) {
   const rDef = getRoomDef(target.defId);
   if (rDef?.family === 'safe') LoreSystem.checkRestFound();
 
-  // Always reveal adjacent rooms ("deviné" — player senses nearby corridors)
-  for (const n of floor.neighbors(nx, ny)) {
-    floor.reveal(n.x, n.y);
-  }
+  _revealLayout(floor, nx, ny);
 
-  // Echolocate: bat ears reveal 2-step radius (neighbors of neighbors)
-  if (AbilitySystem.playerHasEcholocate(WS.player.body)) {
-    for (const n of floor.neighbors(nx, ny)) {
-      for (const n2 of floor.neighbors(n.x, n.y)) {
-        floor.reveal(n2.x, n2.y);
-      }
-    }
-  }
-
-  // Lazy mob spawn: combat/boss/grave rooms on first entry
-  if (target.isHostile() && !target.cleared && target.mobIds.length === 0) {
-    if (rDef?.spawns?.graveyard) {
-      MobGen.spawnGraveyardMob(target, WS.player.floorIdx);
-    } else if (rDef?.spawns?.boss) {
-      const biomeDef = getBiome(floor.biomeId);
-      if (biomeDef?.bossId) MobGen.spawnBoss(biomeDef.bossId, target, WS.player.floorIdx);
-    } else {
-      MobGen.spawnForRoom(target, floor, WS.player.floorIdx);
-    }
-    // Intent telegraphs are computed by BattleEngine once combat starts.
-  }
+  // Mobs are pre-spawned at floor generation (MobGen.populateFloor) — nothing to
+  // spawn on entry. Combat starts via _updateBattle when the room has active mobs.
 
   return { ok: true };
+}
+
+// Reveal the LAYOUT (corridor shape, not content — that's Ouïe) around a cell.
+// The cell itself is always revealed (you're standing in it); the rings around it
+// are gated on LUCIDITÉ via Faculties.mapRange (0 rooms below 3, 1 at 3, 2 at 4+).
+// No lucidité → you only ever know rooms you've physically visited.
+function _revealLayout(floor, cx, cy) {
+  floor.reveal(cx, cy);
+  let ring = [{ x: cx, y: cy }];
+  for (let step = 0; step < Faculties.mapRange(); step++) {
+    const next = [];
+    for (const c of ring) for (const n of floor.neighbors(c.x, c.y)) { floor.reveal(n.x, n.y); next.push(n); }
+    ring = next;
+  }
 }
 
 // --- Infection (organs infected by La Flore boss lose 1 HP every 10 ticks) ---

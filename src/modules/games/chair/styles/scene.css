@@ -273,6 +273,32 @@ html, body {
 .mobwrap { position: relative; cursor: pointer; transition: filter .12s, transform .12s; }
 .mobwrap:hover { transform: translateY(-3px); }
 .mobwrap.focused { filter: drop-shadow(0 0 11px #e8b25c99); }
+/* invisible mob you can't properly perceive → a barely-there distortion */
+.mobwrap.mob-veiled { opacity: .1; filter: blur(3px) saturate(.3); }
+
+/* ── Ambient water drips (AmbientFX) ──────────────────────────────────────── */
+.water-drop {
+  position: absolute; top: 6%; width: 3px; height: 10px; margin-left: -1.5px;
+  background: linear-gradient(#cfe4eebb, #6a90a0dd);
+  border-radius: 50% 50% 50% 50% / 34% 34% 66% 66%;
+  box-shadow: 0 0 3px #9fc0d488; pointer-events: none; z-index: 5;
+  animation: water-fall 0.72s cubic-bezier(.5,.05,.9,.6) forwards;
+}
+@keyframes water-fall {
+  0%   { top: 6%;  opacity: 0; }
+  12%  { opacity: .9; }
+  100% { top: 80%; opacity: .55; }
+}
+.water-splash {
+  position: absolute; top: 80%; width: 12px; height: 5px; margin-left: -6px;
+  border: 1px solid #9fc0d466; border-top: none; border-radius: 0 0 50% 50%;
+  pointer-events: none; z-index: 5;
+  animation: water-splash .5s ease-out forwards;
+}
+@keyframes water-splash {
+  0%   { transform: scale(.25); opacity: .85; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
 .mob-tag {
   position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
   margin-bottom: 9px; display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -392,14 +418,19 @@ html, body {
 .eyeblind {
   position: absolute; top: 0; right: 0; bottom: 0;
   width: 0; background: #000; transition: width .55s; z-index: 20;
+  pointer-events: none;   /* darkness hides, but you can still reach (grope toward a sound) */
 }
 .eyeblind-l {
   position: absolute; top: 0; left: 0; bottom: 0;
   width: 0; background: #000; transition: width .55s; z-index: 20;
+  pointer-events: none;
 }
 .game.eye-r-dead .eyeblind   { width: 50%; }
 .game.eye-l-dead .eyeblind-l { width: 50%; }
 .game.no-eye     .eyeblind   { width: 50%; }
+/* penumbra: an eye on that side but no torch → half-dark, not blackout */
+.game.eye-r-dim  .eyeblind   { width: 50%; opacity: .5; }
+.game.eye-l-dim  .eyeblind-l { width: 50%; opacity: .5; }
 
 /* ── Body-FX: scene limp + organ filter effects ──────────────────────────────── */
 .game.limp .scene { transform: rotate(-2.8deg) translateY(1.6%) scale(1.04); }
@@ -545,6 +576,9 @@ html, body {
 /* ── Torch exhaustion — total darkness ──────────────────────────────────────── */
 .game.lum-out .torchlight { opacity: 0 !important; animation: none !important; }
 .game.lum-out .scene      { filter: brightness(0.06) saturate(0) !important; }
+/* vision_nocturne: you see in the dark, tinted amber (instead of lum-out black) */
+.game.lum-night .torchlight { opacity: 0 !important; animation: none !important; }
+.game.lum-night .scene { filter: brightness(0.42) saturate(0.5) sepia(0.55) hue-rotate(-12deg) !important; }
 .game.lum-out .grain      { opacity: .55 !important; animation-duration: .08s !important; }
 
 /* ── SensoryFX: Beat pulse vignette ──────────────────────────────────────────
@@ -742,10 +776,11 @@ html, body {
   filter: blur(2px); opacity: .66;
 }
 
-/* rigid props anchored low / in a corner (undistorted) */
-.gp-skeleton { position: absolute; left: 3%;  bottom: 1%;  width: 16%; height: 50%; filter: drop-shadow(0 2px 3px #000b); }
-.gp-bones    { position: absolute; left: 4%;  bottom: 2%;  width: 27%; height: 20%; filter: drop-shadow(0 2px 3px #000b); }
-.gp-spike    { position: absolute; left: 27%; bottom: 14%; width: 13%; height: 44%; filter: drop-shadow(0 2px 3px #000b); }
+/* rigid props anchored low; their horizontal spot (--gore-left) is chosen by
+   SceneRenderer to avoid the room's doorways */
+.gp-skeleton { position: absolute; left: var(--gore-left, 3%);  bottom: 1%;  width: 16%; height: 50%; filter: drop-shadow(0 2px 3px #000b); }
+.gp-bones    { position: absolute; left: var(--gore-left, 4%);  bottom: 2%;  width: 27%; height: 20%; filter: drop-shadow(0 2px 3px #000b); }
+.gp-spike    { position: absolute; left: var(--gore-left, 27%); bottom: 14%; width: 13%; height: 44%; filter: drop-shadow(0 2px 3px #000b); }
 
 /* hidden by default; SceneRenderer reveals exactly one via data-prop */
 .gp, .blood-pool { display: none; }

@@ -3,6 +3,7 @@
 // Classes are mutually exclusive (proto semantics): player > enemy > hostile > visited > revealed
 
 import { WS, currentFloor } from '../WorldState.js';
+import * as Faculties from '../systems/Faculties.js';
 
 const _grid    = document.getElementById('minimap-grid');
 const _compass = document.getElementById('compass-dir');
@@ -43,10 +44,13 @@ export function render() {
         if (revealed && room) {
           const hasEnemy  = enemyPos.has(`${x},${y}`);
           const isHostile = !room.visited && !room.cleared && room.isHostile();
+          // You KNOW a room's content if you've visited it, or your OUÏE hears it
+          // (palier 3+). Otherwise the brain only reveals the empty corridor shape.
+          const sensed = room.visited || Faculties.ouieMax() >= 3;
 
-          if (hasEnemy) {
+          if (sensed && hasEnemy) {
             cell.classList.add('e');
-          } else if (isHostile) {
+          } else if (sensed && isHostile) {
             cell.classList.add('q');
           } else {
             cell.classList.add('r');
