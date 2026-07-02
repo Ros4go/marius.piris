@@ -287,8 +287,9 @@ function _buildTargets(onlyMob = null) {
         if (o.locked && !o.dead) n.title = 'Inaccessible — détruis un organe de la couche au-dessus';
         if (o.weak) n.title = 'Point faible — dégâts bonus';
         const pct = Math.max(0, Math.round(100 * o.hp / o.maxHp));
+        // masked = sealed deep organ with no `vue-rayons-x`: name is "???", HP hidden
         n.innerHTML = `<span class="ct-name">${o.weak ? '✦ ' : ''}${o.name}</span>` +
-          `<span class="ct-hp"><span style="width:${pct}%"></span></span>`;
+          (o.masked ? '' : `<span class="ct-hp"><span style="width:${pct}%"></span></span>`);
         row.appendChild(n);
       }
       sec.appendChild(row);

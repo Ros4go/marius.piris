@@ -17,12 +17,15 @@ const DEFAULTS = {
   dmgMod: { gave: 0, rassasie: 1, creux: 0, faim: -1, affame: -1, famine: -2 },
   bloodPen: { affame: 1, famine: 2 },
   noise: { rassasie: 0, gave: 0, creux: 0.3, faim: 0.5, affame: 0.75, famine: 1 },
-  regenBonus: 1, digestBase: 0.4, digestPerLevel: 0.3,
+  regenBonus: 1, digestBase: 0.1, digestPerTag: 0.1,
 };
 function cfg() {
   const h = getBalance().hunger ?? {};
   return { ...DEFAULTS, ...h, thresholds: { ...DEFAULTS.thresholds, ...(h.thresholds ?? {}) } };
 }
+
+// Max satiety, raised by the `garde-manger` gauge (+10% per tag, no cap).
+function maxSatiety() { return Math.round(cfg().max * (1 + 0.1 * Faculties.count('garde-manger'))); }
 
 export const STAGE_FR = {
   gave: 'Gavé', rassasie: 'Rassasié', creux: 'Creux', faim: 'Faim', affame: 'Affamé', famine: 'Famine',
@@ -50,7 +53,7 @@ export function noise()          { return cfg().noise[stage()] ?? 0; }
 export function isDeaf()         { return stage() === 'famine'; }   // own din drowns everything
 
 // --- Tick (exploration) ----------------------------------------------------
-function _clamp(v) { const c = cfg(); return Math.max(0, Math.min(c.max + 20, v)); }
+function _clamp(v) { return Math.max(0, Math.min(maxSatiety() + 20, v)); }
 
 export function tick() {
   const c = cfg();
@@ -59,8 +62,11 @@ export function tick() {
   const st = stage();
 
   if (st === 'gave' && WS.tick % c.vomitEvery === 0) {
-    if (rng() < c.dechetChance)      _produceDechet(c);
-    else if (rng() < c.vomitChance)  _vomit(c);
+    // `fermentation` boosts déchet production (+10% chance per tag);
+    // `estomac-de-fer` suppresses vomiting entirely.
+    const dechetChance = c.dechetChance + 0.1 * Faculties.count('fermentation');
+    if (rng() < dechetChance)        _produceDechet(c);
+    else if (!Faculties.has('estomac-de-fer') && rng() < c.vomitChance) _vomit(c);
   }
   if (st === 'famine' && WS.tick % c.famineDamageEvery === 0) _famineDamage(c.famineDamage);
 
@@ -102,11 +108,11 @@ function _famineDamage(amt) {
 }
 
 // --- Eating ----------------------------------------------------------------
-// Digestion faculty (stomach + mouth/tongue) drives nourishment & regen. Human
-// stomach+tongue = 2 → ×1.0; nothing = ×digestBase; special organs push it higher.
+// `digestion` is a GAUGE tag (TDD §2.6): base 10% yield + 10% per tag, NO cap.
+// Human tongue+stomach = 9 tags → ×1.0 (1 HP restored per HP eaten); 15 → ×1.6.
 function digestionMult() {
   const c = cfg();
-  return c.digestBase + c.digestPerLevel * Faculties.digestion();
+  return c.digestBase + c.digestPerTag * Faculties.count('digestion');
 }
 
 // Eat an organ (by id, for the log name). Fills hunger + repairs your worst organ.

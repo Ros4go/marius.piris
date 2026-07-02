@@ -25,16 +25,25 @@ export function elementOf(mobId) { return _cache.get(mobId) ?? null; }
 
 // The mob's telegraphed plan, revealed in more detail the higher your LUCIDITÉ:
 //   0 → vague · 1 → attack + target · 2+ → also exact damage.
-function _intentHTML(mobId) {
+// The VISUAL telegraph channel (§2.4): the brain computes the plan, but you only
+// SEE it if an eye covers the mob's side. (The ouïe channel renders on the sound
+// bar instead — both can coexist.)
+function _intentHTML(mobId, side) {
   if (!TurnCombat.isActive()) return '';
+  if (!Faculties.seesOn(side ?? 'gauche') && !Faculties.seesOn(side ?? 'droite')) return '';
   const plan = TurnCombat.telegraphOf(mobId);
   if (!plan.length) return '<span class="mi mi-wait">∅</span>';
-  const p = Faculties.luciditePalier();
-  if (p <= 0) return '<span class="mi vague">⚠ <em>prépare un coup…</em></span>';
-  return plan.map((a) => {
-    const dmg = p >= 2 ? ` <span class="tg-dmg">−${a.amount}</span>` : '';
-    return `<span class="mi">⚠ <em>${a.label}</em> → <b>${ORGAN_NAMES[a.target] ?? a.target}</b>${dmg}</span>`;
-  }).join('');
+  if (!Faculties.has('plan')) return '<span class="mi vague">⚠ <em>prépare un coup…</em></span>';
+  const showDmg = Faculties.has('plan-degats');
+  const line = (a, pfx = '⚠') => {
+    const dmg = showDmg ? ` <span class="tg-dmg">−${a.amount}</span>` : '';
+    return `<span class="mi">${pfx} <em>${a.label}</em> → <b>${ORGAN_NAMES[a.target] ?? a.target}</b>${dmg}</span>`;
+  };
+  let html = plan.map((a) => line(a)).join('');
+  // `plan-anticipation`: read NEXT turn too (dimmed "puis…" line).
+  const next = TurnCombat.telegraphNextOf(mobId);
+  if (next.length) html += next.map((a) => `<span class="mi mi-next">${line(a, 'puis')}</span>`).join('');
+  return html;
 }
 
 export function render(opts = {}) {
@@ -91,13 +100,27 @@ export function render(opts = {}) {
     }
 
     el._onPeek = onPeek;
-    // Invisible mobs are a faint shimmer unless you can perceive them (voir_invisible
-    // / echolocation). Still targetable — you just have to squint.
-    el.classList.toggle('mob-veiled', !!mob.invisible && !Faculties.perceivesMob(mob));
+    // Entity `invisible` GAUGE (§2.7): each stack = −10% opacity. Fully invisible
+    // (≥10) → veiled shimmer unless perceived (vue-invisible on the mob's side /
+    // echolocation on sound). Partial stacks → plain transparency for everyone.
+    const n = activeMobIds.length, k = activeMobIds.indexOf(mobId);
+    const f = n <= 1 ? 0.5 : (k + 0.5) / n;
+    const side = f < 0.45 ? 'gauche' : f > 0.55 ? 'droite' : null;
+    const stacks = Faculties.invisibleStacksOf(mob);
+    el.classList.toggle('mob-veiled', stacks >= 10 && !Faculties.perceivesMob(mob, side));
+    el.style.opacity = Faculties.mobOpacity(mob, side).toFixed(2);
+    // Property markers, read by the matching Vue tag on the mob's side:
+    const mtags = mob.tags ?? [];
+    el.classList.toggle('mob-arcane',
+      mtags.includes('arcane') && (side ? Faculties.hasOn('vue-arcane', side) : Faculties.has('vue-arcane')));
+    const heat = mtags.filter((t) => t === 'chaud').length - mtags.filter((t) => t === 'froid').length;
+    const thermal = side ? Faculties.hasOn('vue-thermique', side) : Faculties.has('vue-thermique');
+    el.classList.toggle('mob-thermal-hot',  thermal && heat > 0);
+    el.classList.toggle('mob-thermal-cold', thermal && heat < 0);
     _applyDamage(el, mob);
     if (el._tag) {
       el._tag.innerHTML =
-        `<span class="mob-name">${(mob.isElite ? '★ ' : '') + mob.name}</span>` + _intentHTML(mobId);
+        `<span class="mob-name">${(mob.isElite ? '★ ' : '') + mob.name}</span>` + _intentHTML(mobId, side);
     }
   }
 }

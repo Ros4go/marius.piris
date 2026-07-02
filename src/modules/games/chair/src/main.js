@@ -726,17 +726,27 @@ function _renderCombatHand() {
   // Targets for EVERY enemy (each cluster is drawn over its own silhouette), so
   // you can drop a card straight on the mob you want — no pre-selection needed.
   const organs = [];
-  for (const mb of active) {
+  active.forEach((mb, mbIdx) => {
     const reach = new Set(TurnCombat.targetable(mb.id, false));
+    // `vue-rayons-x` (§2.2): DEEP organs stay hidden ("???", no HP) while sealed
+    // behind the outer layers — unless an x-ray eye covers the mob's side.
+    const f = active.length <= 1 ? 0.5 : (mbIdx + 0.5) / active.length;
+    const mobSide = f < 0.45 ? 'gauche' : f > 0.55 ? 'droite' : null;
+    const xray = mobSide ? Faculties.hasOn('vue-rayons-x', mobSide) : Faculties.has('vue-rayons-x');
     for (const k of Object.keys(ORGAN_SLOTS)) {
       const s = mb.body.slots[k];
       if (!s?.organId) continue;
       const def = organResolver(s.organId);
       const maxHp = def?.maxHp ?? 1;
       const hp = s.hp ?? maxHp;
-      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer, name: SLOT_SHORT[k] ?? def?.name ?? k, hp, maxHp, color: organColor(s.organId), locked: !reach.has(k), dead: hp <= 0, weak: TurnCombat.weakRevealed() && TurnCombat.weakSpotOf(mb.id) === k });
+      const locked = !reach.has(k);
+      const masked = locked && ORGAN_SLOTS[k].layer === 'deep' && !xray && hp > 0;
+      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer,
+        name: masked ? '???' : (SLOT_SHORT[k] ?? def?.name ?? k), hp, maxHp, masked,
+        color: masked ? null : organColor(s.organId), locked, dead: hp <= 0,
+        weak: !masked && TurnCombat.weakRevealed() && TurnCombat.weakSpotOf(mb.id) === k });
     }
-  }
+  });
 
   const cards = TurnCombat.hand().map(c => ({
     organKey:   c.organKey,

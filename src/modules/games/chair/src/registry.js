@@ -29,9 +29,8 @@ const DEFAULT_BALANCE = {
             dmgMod: { gave: 0, rassasie: 1, creux: 0, faim: -1, affame: -1, famine: -2 },
             bloodPen: { affame: 1, famine: 2 },
             noise: { rassasie: 0, gave: 0, creux: 0.3, faim: 0.5, affame: 0.75, famine: 1 },
-            regenBonus: 1, digestBase: 0.4, digestPerLevel: 0.3 },
-  weakPoint: { revealPalier: 3, bonus: 3 },
-  faculties: { torchVue: 1, senseLucidite: 0.25, palierMax: 3 },
+            regenBonus: 1, digestBase: 0.1, digestPerTag: 0.1 },
+  weakPoint: { bonus: 3 },
   ambient:   { dripDivisor: 3, dripMatch: 1, dripMinMs: 1600, dripRangeMs: 3600 },
 };
 let _balance = DEFAULT_BALANCE;
