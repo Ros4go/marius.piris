@@ -1,425 +1,706 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHAIR — Éditeur d'organes</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHAIR · Éditeur d'organes</title>
 <style>
   :root{
-    --bg:#0c0a09; --panel:#15110e; --panel2:#1d1812; --edge:#2e251b; --edge2:#41331f;
-    --bone:#c8b894; --dim:#7d6f56; --dim2:#544733; --torch:#c47f33; --hot:#e8b25c;
-    --blood:#8a2f2a; --ok:#7acd50; --bad:#c8503a;
-    --mono:"Courier New",ui-monospace,monospace; --serif:Georgia,serif;
+    --bg:#100c08; --panel:#1b150e; --panel2:#221a12; --line:#3a2e20;
+    --ink:#d8c8ab; --ink-dim:#9a8a70; --accent:#b9975b;
+    --blood:#8a3128; --ok:#5f7a4a; --warn:#b0742a; --bad:#a3352b;
+    --deep:#2a1f16; --chip:#2c2216;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--bone);font:13px/1.4 var(--mono);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-  button{font:inherit;cursor:pointer;background:var(--panel2);color:var(--bone);border:1px solid var(--edge2);border-radius:3px;padding:5px 10px}
-  button:hover{border-color:var(--torch);color:var(--hot)}
-  button.danger:hover{border-color:var(--bad);color:var(--bad)}
-  button.primary{background:#3a2a14;border-color:var(--torch);color:var(--hot)}
-  input,select,textarea{font:inherit;background:#0a0806;color:var(--bone);border:1px solid var(--edge);border-radius:3px;padding:4px 6px}
-  input:focus,select:focus{outline:none;border-color:var(--torch)}
-  h1{font:600 16px var(--serif);letter-spacing:.25em;margin:0} h1 b{color:var(--blood)}
-  header{display:flex;align-items:center;gap:14px;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--edge)}
-  header .count{color:var(--dim);font-size:12px} header .count b{color:var(--torch)}
-  .toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel2);border-bottom:1px solid var(--edge);flex-wrap:wrap}
-  .toolbar label{color:var(--dim);font-size:11px}
-  .toolbar input[type=search]{width:170px}
-  main{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0}
-  .list{border-right:1px solid var(--edge);overflow-y:auto;padding:6px}
-  .grp{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);margin:12px 6px 4px;border-bottom:1px solid var(--edge)}
-  .item{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer}
-  .item:hover{background:var(--panel2)} .item.sel{background:#241a10;border-color:var(--torch)}
-  .item .sw{width:11px;height:11px;border-radius:50%;border:1px solid #000;flex:0 0 auto}
-  .item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .item .tag{font-size:9.5px;color:var(--dim)}
-  .item .tier{font-size:9px;padding:0 4px;border-radius:2px;border:1px solid var(--edge2);color:var(--dim)}
-  .tier-rare{color:#5fa8d8!important} .tier-epic{color:#b06ad0!important} .tier-legendary{color:var(--hot)!important}
-  .editor{overflow-y:auto;padding:16px 22px}
-  .empty{color:var(--dim);text-align:center;margin-top:18vh;font-size:14px}
-  .sec{margin:0 0 18px}
-  .sec h2{font:600 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--torch);border-bottom:1px solid var(--edge2);padding-bottom:4px;margin:0 0 10px}
-  .row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
-  .f{display:flex;flex-direction:column;gap:3px} .f.grow{flex:1}
-  .f label{font-size:10px;letter-spacing:.06em;color:var(--dim)}
-  .vals{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
-  .vcol{display:flex;flex-direction:column;align-items:center;gap:3px}
-  .vcol label{font-size:9px;color:var(--dim2)}
-  .vcol input{width:50px;text-align:center}
-  .chips{display:flex;gap:6px;flex-wrap:wrap}
-  .chip{display:flex;align-items:center;gap:4px;background:#0a0806;border:1px solid var(--edge2);border-radius:12px;padding:2px 6px 2px 9px;font-size:11px}
-  .chip button{padding:0 4px;border:0;background:none;color:var(--dim)} .chip button:hover{color:var(--bad)}
-  .trg{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-  .frag{display:flex;gap:12px;flex-wrap:wrap} .frag label{display:flex;gap:5px;align-items:center;font-size:12px}
-  .hint{font-size:10.5px;color:var(--dim2);margin:-4px 0 8px}
-  .warn{color:var(--bad);font-size:11px}
-  .preview{position:sticky;top:0;background:var(--panel);border:1px solid var(--edge2);border-radius:4px;padding:10px 12px;margin-bottom:16px;display:flex;gap:14px;align-items:center;z-index:2}
-  .preview .pbar{width:22px;height:34px;background:#0b0606;border:1px solid #2a1414}
-  .preview .pmeta{flex:1;font-size:11px;color:var(--dim);line-height:1.7} .preview .pmeta b{color:var(--bone)}
-  .jsonbox{width:100%;height:240px;font-size:11px;white-space:pre;color:var(--ok)}
-  .muted{opacity:.5}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:13px/1.5 "IBM Plex Mono","Courier New",monospace;
+    display:flex; flex-direction:column; height:100vh;
+  }
+  header{
+    display:flex; align-items:center; gap:10px; padding:8px 14px;
+    background:linear-gradient(180deg,#1d160e,#140f09); border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:14px;letter-spacing:3px;margin:0;color:var(--accent);text-transform:uppercase;font-weight:600}
+  header .sp{flex:1}
+  .tabs{display:flex;gap:2px;margin-left:6px}
+  .tab{border-radius:3px;padding:5px 14px;font-size:12px;letter-spacing:1px}
+  .tab.on{background:var(--deep);border-color:var(--accent);color:var(--accent)}
+  button{
+    background:var(--chip); color:var(--ink); border:1px solid var(--line);
+    padding:6px 11px; border-radius:3px; cursor:pointer; font:inherit; font-size:12px;
+  }
+  button:hover{border-color:var(--accent); color:#fff}
+  button.primary{background:var(--deep); border-color:var(--accent); color:var(--accent)}
+  button.danger{border-color:var(--bad); color:#d98} button.danger:hover{background:var(--bad);color:#fff}
+  button.tiny{padding:2px 7px;font-size:11px}
+  .status{font-size:11px;color:var(--ink-dim)}
+  .status .ok{color:var(--ok)} .status .bad{color:var(--bad)} .status .warn{color:var(--warn)}
+
+  main{display:flex; flex:1; min-height:0}
+  aside{
+    width:280px; border-right:1px solid var(--line); background:var(--panel);
+    display:flex; flex-direction:column; min-height:0;
+  }
+  .search{padding:8px; border-bottom:1px solid var(--line)}
+  .search input{width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:6px 8px; border-radius:3px; font:inherit}
+  .list{overflow:auto; flex:1; padding:6px}
+  .grp{font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); padding:10px 8px 4px; opacity:.8}
+  .item{
+    display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:3px; cursor:pointer;
+    border:1px solid transparent;
+  }
+  .item:hover{background:var(--panel2)}
+  .item.sel{background:var(--deep); border-color:var(--accent)}
+  .item .nm{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .item .id{font-size:10px; color:var(--ink-dim)}
+  .tierdot{width:8px;height:8px;border-radius:50%;flex:none}
+  .t-common{background:#8a8172} .t-rare{background:#5a86a8} .t-epic{background:#9a5aa8} .t-legendary{background:#c79a3a}
+  .addbar{padding:8px;border-top:1px solid var(--line);display:flex;gap:6px}
+
+  .form{flex:1; overflow:auto; padding:16px 22px 60px}
+  .empty{opacity:.4; text-align:center; margin-top:80px; font-size:14px}
+  fieldset{border:1px solid var(--line); border-radius:5px; margin:0 0 16px; padding:12px 14px; background:var(--panel)}
+  legend{color:var(--accent); font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:0 6px}
+  .row{display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end}
+  .fld{display:flex; flex-direction:column; gap:3px; margin-bottom:8px}
+  .fld label{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-dim)}
+  .fld input,.fld select,.fld textarea{
+    background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:5px 7px; border-radius:3px; font:inherit;
+  }
+  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--accent)}
+  .fld.w-sm input{width:74px} .fld.w-md input{width:130px} .fld.w-id input{width:160px}
+  textarea{width:100%; min-height:44px; resize:vertical}
+  .hint{font-size:10px;color:var(--ink-dim);margin-top:2px}
+  .warnline{color:var(--warn);font-size:11px;margin-top:6px}
+
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tagcol{margin-right:16px;margin-bottom:8px}
+  .tagcol h4{margin:6px 0 3px;font-size:10px;letter-spacing:1px;color:var(--ink-dim);text-transform:uppercase}
+  label.chk{display:inline-flex;align-items:center;gap:5px;background:var(--chip);border:1px solid var(--line);border-radius:3px;padding:3px 8px;cursor:pointer;font-size:12px}
+  label.chk.on{background:var(--deep);border-color:var(--accent);color:var(--accent)}
+  label.chk input{accent-color:var(--accent)}
+
+  .sub{border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:10px;background:var(--panel2)}
+  .sub .subhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .sub .subhead .t{flex:1;color:var(--accent);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .addrow{margin-top:4px}
+  code.k{color:var(--accent)}
+  .footnote{opacity:.6;font-size:11px;margin-top:24px}
+  dialog{background:var(--panel);color:var(--ink);border:1px solid var(--accent);border-radius:6px}
+  dialog textarea{width:70vw;height:60vh}
 </style>
 </head>
 <body>
-
 <header>
-  <h1>C H A I R <b>†</b> <span style="font:400 12px var(--mono);letter-spacing:.1em;color:var(--dim)">éditeur d'organes</span></h1>
-  <span class="count" id="count"></span>
-  <span style="flex:1"></span>
-  <button id="btn-load">⟳ Charger organs.json</button>
-  <button id="btn-import">⇧ Importer</button>
-  <button id="btn-export" class="primary">⇩ Exporter</button>
-  <button id="btn-clear" class="danger">Tout vider</button>
-  <input type="file" id="file" accept=".json,application/json" hidden>
+  <h1>Chair</h1>
+  <span class="tabs">
+    <button id="tab-organs" class="tab on">Organes</button>
+    <button id="tab-sets" class="tab">Sets</button>
+  </span>
+  <span class="status" id="status">—</span>
+  <span class="sp"></span>
+  <button id="btn-load">⟳ Charger</button>
+  <button id="btn-copy">⧉ Copier</button>
+  <button id="btn-export" class="primary">⬇ Exporter</button>
+  <button id="btn-save" class="primary" title="Écrit directement dans le fichier (Chrome/Edge)">💾 Enregistrer</button>
 </header>
 
-<div class="toolbar">
-  <input type="search" id="search" placeholder="rechercher…">
-  <label>Grouper</label>
-  <select id="groupby"><option value="type">par type</option><option value="set">par set</option><option value="none">aucun</option></select>
-  <label>Type</label><select id="ftype"></select>
-  <label>Set</label><select id="fset"></select>
-  <label>Tier</label><select id="ftier"></select>
-  <span style="flex:1"></span>
-  <button id="btn-new" class="primary">+ Nouvel organe</button>
-</div>
-
 <main>
-  <div class="list" id="list"></div>
-  <div class="editor" id="editor"><div class="empty">Sélectionne un organe, ou crée-en un.</div></div>
+  <aside>
+    <div class="search"><input id="search" placeholder="filtrer par nom / id / tag…"></div>
+    <div class="list" id="list"></div>
+    <div class="addbar">
+      <button id="btn-add" class="primary tiny" style="flex:1">＋ Nouvel organe</button>
+      <button id="btn-dup" class="tiny">⎘ Dupliquer</button>
+      <button id="btn-del" class="danger tiny">🗑</button>
+    </div>
+  </aside>
+  <section class="form" id="form"><div class="empty">Charge <code class="k">organs.json</code> ou crée un organe.</div></section>
 </main>
 
+<dialog id="jsondlg"><div style="padding:14px"><h3 style="margin-top:0;color:var(--accent)">JSON</h3><textarea id="jsonout" readonly></textarea><div style="text-align:right;margin-top:8px"><button onclick="document.getElementById('jsondlg').close()">Fermer</button></div></div></dialog>
+
 <script>
-const TYPES=['eye','ear','arm','legs','heart','skin','brain','stomach','tongue'];
-const TYPE_FR={eye:'Œil',ear:'Oreille',arm:'Bras',legs:'Jambes',heart:'Cœur',skin:'Peau',brain:'Cerveau',stomach:'Estomac',tongue:'Langue'};
-const TIERS=['common','rare','epic','legendary'];
-const LAYERS=['outer','mid','deep'];
-// skill id → ce que "values" représente (info UI)
-// Skill behaviours (the code primitives). "values" meaning depends on the kind.
-const KINDS={ attack:'dégâts', heal:'PV soignés', shield:'absorption', dodge:'charges d\'esquive',
-              aim:'(aucune valeur)', analyse:'(aucune valeur)', stall:'recul charge ennemie' };
-const KIND_FR={ attack:'Attaque', heal:'Soin', shield:'Bouclier', dodge:'Esquive',
-                aim:'Visée', analyse:'Analyse', stall:'Interruption' };
-// Migration from the old preset-id skills.
-const LEGACY_SKILL={
-  frapper:{kind:'attack',label:'FRAPPER'}, estoc:{kind:'attack',label:'ESTOC',pierce:true},
-  mordre:{kind:'attack',label:'MORDRE'}, vampiriser:{kind:'attack',label:'VAMPIRISER',lifesteal:true},
-  esquiver:{kind:'dodge',label:'ESQUIVER'}, durcir:{kind:'shield',label:'DURCIR'},
-  digerer:{kind:'heal',label:'DIGÉRER'}, analyser:{kind:'analyse',label:'ANALYSER'},
-  viser:{kind:'aim',label:'VISER'}, ecouter:{kind:'stall',label:'ÉCOUTER'},
+"use strict";
+
+// ─── Vocabulaire (miroir du moteur — voir Faculties.js / combatRules.js) ─────
+const TYPES  = ['eye','ear','arm','legs','heart','skin','brain','stomach','tongue'];
+const TIERS  = ['common','rare','epic','legendary'];
+const LAYERS = ['outer','mid','deep'];
+const FRAGILE = ['fire','crush'];
+const OVERLAYS = ['','hex-fragment','lich-pulse','spider-crawl','stone-crack'];
+
+// Vocabulaire des tags (TDD §2). kind: 'marker' = case à cocher · 'gauge' = jauge
+// à compteur (le tag se RÉPÈTE dans le tableau, ±10 % chacun, sans plafond).
+// `req` = prérequis MÊME ORGANE (avertissement si absent).
+const TAG_GROUPS = {
+  'Vue ↔ (latéral)': [
+    {t:'vue'}, {t:'vue-couleur',req:['vue']}, {t:'vue-nocturne',req:['vue']},
+    {t:'vue-invisible',req:['vue']}, {t:'vue-spider',req:['vue']},
+    {t:'vue-rayons-x',req:['vue']}, {t:'vue-arcane',req:['vue']}, {t:'vue-thermique',req:['vue']},
+  ],
+  'Ouïe ↔ (latéral)': [
+    {t:'ouie'},
+    {t:'echolocation-1'}, {t:'echolocation-2'}, {t:'echolocation-3'}, {t:'echolocation-4'},
+    {t:'ouie-identification-1'}, {t:'ouie-identification-2'}, {t:'ouie-identification-3'}, {t:'ouie-identification-4'},
+    {t:'ouie-detection-1'}, {t:'ouie-detection-2'}, {t:'ouie-detection-3'}, {t:'ouie-detection-4'}, {t:'ouie-detection-5'},
+  ],
+  'Lucidité (cerveau)': [
+    {t:'plan'}, {t:'plan-degats',req:['plan']}, {t:'plan-faille',req:['plan']}, {t:'plan-anticipation',req:['plan']},
+    {t:'map-1'}, {t:'map-2'}, {t:'map-3'}, {t:'map-4'}, {t:'memoire'},
+  ],
+  'Jauges (±10 %/tag, répétables)': [
+    {t:'digestion',kind:'gauge'}, {t:'pompe',kind:'gauge'}, {t:'garde-manger',kind:'gauge'},
+    {t:'fermentation',kind:'gauge'},
+    {t:'bruyant',kind:'gauge'}, {t:'calme',kind:'gauge'},
+    {t:'luminescent',kind:'gauge'}, {t:'sombre',kind:'gauge'},
+    {t:'compatible',kind:'gauge'}, {t:'incompatible',kind:'gauge'},
+    {t:'invisible',kind:'gauge'}, {t:'chaud',kind:'gauge'}, {t:'froid',kind:'gauge'},
+  ],
+  'Marqueurs & corps': [
+    {t:'second-souffle'}, {t:'estomac-de-fer'}, {t:'hyper-compatible'}, {t:'photophobe'}, {t:'arcane'},
+  ],
 };
-const PASSIVES={ armor:'armure (réduction dmg)', dodge:'esquive % (defense)', regen:'PV régénérés/tick', glow:'lueur' };
-const ABILITIES=['see_invisible','echolocate','pierce_layer','heart_ultimate','lich_revive','acid_resist'];
-const TRIGGER_ON=['onKill','onTick','onDamaged','onDestroy','onHarvest','onGraft'];
-const FLAWS=['','slow_charge','bleeds','loud','fragile','blinding','heavy'];
-const FRAGILE=['fire','crush','acid','cold'];
-const OVERLAYS=['','hex-fragment','lich-pulse','spider-crawl','stone-crack'];
-const DOTS=['mut','hum'];
-const LS_KEY='chair_organ_editor_v2';
+const ALL_TAGS = Object.values(TAG_GROUPS).flat();
+const KNOWN_TAGS = new Set(ALL_TAGS.map(s=>s.t));
+const SIDE_TAGS = new Set(TAG_GROUPS['Vue ↔ (latéral)'].concat(TAG_GROUPS['Ouïe ↔ (latéral)']).map(s=>s.t));
+// Tags présents sur des organes mais absents du vocabulaire connu → colonne
+// « Autres (dynamiques) », pour que tout nouveau tag apparaisse tout seul.
+function customTags(){ const s=new Set(); for(const o of organs) for(const t of (o.tags||[])) if(!KNOWN_TAGS.has(t)) s.add(t); return [...s].sort(); }
 
-let organs=[], selUid=null, uidSeq=1;
-const filters={search:'',groupby:'type',type:'',set:'',tier:''};
+// Ressources (produces + convert).
+const RESOURCES = ['protection','sang','viande','regen','frenesie','bile','saignement','vulnerabilite'];
+const CONVERT_RES = ['sang','viande','protection','frenesie'];
 
-function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(organs.map(stripUid)));}catch(e){} }
-function load(){ try{const r=localStorage.getItem(LS_KEY); if(r){ingest(JSON.parse(r));return true;}}catch(e){} return false; }
-function ingest(arr){ organs=(arr||[]).map(o=>({_uid:uidSeq++,...normalize(o)})); }
-function stripUid(o){const c={...o};delete c._uid;return c;}
+// Effets de compétence : kind → champs pertinents.
+const EFFECT_FIELDS = {
+  damage:       ['amount','target','meatOnKill','bleed','lifesteal','splash','pierce'],
+  heal:         ['amount','target','costMeat'],
+  protect:      ['amount'],
+  regen:        ['amount'],
+  frenesie:     ['amount'],
+  blood:        ['amount'],
+  bile:         ['amount','target'],
+  saignement:   ['amount','target'],
+  vulnerabilite:['amount','target'],
+  convert:      ['from','fromAmount','to','toAmount'],
+  retrigger:    [],
+};
+const EFFECT_KINDS = Object.keys(EFFECT_FIELDS);
+const TARGETS = ['enemy_organ','organ','all','self'];
+const NUM_FIELDS  = new Set(['amount','meatOnKill','bleed','lifesteal','splash','costMeat','fromAmount','toAmount']);
+const BOOL_FIELDS = new Set(['pierce','once','loud']);
 
-function normalize(o){
-  const type=TYPES.includes(o.type)?o.type:'arm';
-  return {
-    id:o.id||'', type, name:o.name||'', set:o.set||'', tier:TIERS.includes(o.tier)?o.tier:'common',
-    hp:Number(o.hp??10), layer:LAYERS.includes(o.layer)?o.layer:'outer',
-    pool:Number(o.pool??(type==='heart'?5:0)),
-    maxBlood:Number(o.maxBlood??(type==='heart'?0:3)),
-    skill:_normSkill(o.skill),
-    passive:{ id:o.passive?.id||'', values:[...(o.passive?.values||[])] },
-    abilities:[...(o.abilities||[])],
-    triggers:(o.triggers||[]).map(t=>({on:t.on,do:t.do})),
-    flaw:o.flaw||'',
-    visual:Object.assign({color:'#7a4a1a',overlay:'',dot:'mut'},o.visual||{}),
-    icon:o.icon||'', sounds:Object.assign({active:'',passive:''},o.sounds||{}),
-    price:Number(o.price??20), harvest:{fragileTo:[...((o.harvest||{}).fragileTo||[])]},
-  };
-}
-function _normSkill(s){
-  const lg = (s && s.id) ? (LEGACY_SKILL[s.id] || {}) : {};
-  return {
-    kind:  s?.kind  ?? lg.kind  ?? '',
-    label: s?.label ?? lg.label ?? '',
-    pierce:    !!(s?.pierce    ?? lg.pierce),
-    lifesteal: !!(s?.lifesteal ?? lg.lifesteal),
-    values:[...(s?.values||[])],
-    charge:(s && s.charge!=null)?s.charge:4000,
-  };
-}
-function sized(arr,n){ const a=[]; for(let i=0;i<n;i++) a.push(Number(arr[i] ?? arr[arr.length-1] ?? 0)); return a; }
+// ─── État ───────────────────────────────────────────────────────────────────
+let mode = 'organs';  // 'organs' | 'sets'
+let organs = [];      // [{_uid, ...def}]
+let sets   = [];      // [{_uid, id, name, color}]
+let selOrgan = null, selSet = null;   // uids par mode
+let uidSeq = 1;
+const LS_ORGANS = 'chair_organ_editor_v4';
+const LS_SETS   = 'chair_set_editor_v1';
 
-function serialize(o){
-  const out={id:o.id,type:o.type,name:o.name};
-  if(o.set) out.set=o.set;
-  out.tier=o.tier; out.hp=o.hp; out.layer=o.layer;
-  if(o.type==='heart') out.pool=o.pool;
-  out.maxBlood=o.maxBlood;
-  if(o.skill.kind){
-    const sk={kind:o.skill.kind, label:o.skill.label||'', values:sized(o.skill.values,o.maxBlood)};
-    sk.charge = Array.isArray(o.skill.charge) ? sized(o.skill.charge,o.maxBlood) : Number(o.skill.charge);
-    if(o.skill.pierce) sk.pierce=true;
-    if(o.skill.lifesteal) sk.lifesteal=true;
-    out.skill=sk;
+const curArr    = ()=> mode==='organs' ? organs : sets;
+const curSelUid = ()=> mode==='organs' ? selOrgan : selSet;
+const setCurSel = v => { if(mode==='organs') selOrgan=v; else selSet=v; };
+function sel(){ return curArr().find(o=>o._uid===curSelUid()); }
+
+// Couleur d'un set (source vive = tableau sets[], donc l'aperçu suit les éditions).
+function setColorOf(id){ return sets.find(s=>s.id===id)?.color; }
+// Couleur effective d'un organe = son override `color`, sinon la couleur de son set.
+function effColor(o){ return (o.color&&String(o.color).trim()) || setColorOf(o.set) || '#9a8a70'; }
+
+const $  = (s,r=document)=>r.querySelector(s);
+const uid = ()=>'u'+(uidSeq++);
+function el(tag,props={},...kids){
+  const n=document.createElement(tag);
+  for(const[k,v]of Object.entries(props)){
+    if(k==='class')n.className=v;
+    else if(k==='html')n.innerHTML=v;
+    else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);
+    else if(v!=null)n.setAttribute(k,v);
   }
-  if(o.passive.id) out.passive={id:o.passive.id, values:sized(o.passive.values,o.maxBlood)};
-  if(o.abilities.length) out.abilities=o.abilities;
-  if(o.triggers.length) out.triggers=o.triggers.filter(t=>t.on&&t.do);
-  if(o.flaw) out.flaw=o.flaw;
-  out.visual={color:o.visual.color||null,overlay:o.visual.overlay||null,dot:o.visual.dot||'mut'};
-  if(o.icon) out.icon=o.icon;
-  if(o.sounds.active||o.sounds.passive) out.sounds={active:o.sounds.active||null,passive:o.sounds.passive||null};
-  out.price=o.price; out.harvest={fragileTo:o.harvest.fragileTo};
+  for(const c of kids) if(c!=null) n.append(c);
+  return n;
+}
+
+// ─── Chargement / persistance ───────────────────────────────────────────────
+function stripUid(o){ const c={...o}; delete c._uid; return c; }
+function ingestOrgans(arr){ organs = arr.map(o=>({_uid:uid(), ...structuredClone(o)})); }
+function ingestSets(arr){ sets   = arr.map(s=>({_uid:uid(), ...structuredClone(s)})); }
+function persist(){ try{
+  localStorage.setItem(LS_ORGANS, JSON.stringify(organs.map(stripUid)));
+  localStorage.setItem(LS_SETS,   JSON.stringify(sets.map(stripUid)));
+}catch(e){} }
+
+async function fetchJSON(p){ const r=await fetch(p,{cache:'no-store'}); if(!r.ok) throw 0; return r.json(); }
+async function loadOrgans(ask){
+  try{ const arr=await fetchJSON('../content/organs.json');
+    if(ask && organs.length && !confirm('Remplacer les organes par content/organs.json ?')) return;
+    ingestOrgans(arr); selOrgan=organs[0]?._uid??null; persist();
+  }catch(e){ setStatus('Échec fetch organs.json — lance via le serveur Vite.','bad'); }
+}
+async function loadSets(ask){
+  try{ const arr=await fetchJSON('../content/sets.json');
+    if(ask && sets.length && !confirm('Remplacer les sets par content/sets.json ?')) return;
+    ingestSets(arr); selSet=sets[0]?._uid??null; persist();
+  }catch(e){ if(ask) setStatus('Échec fetch sets.json.','bad'); }
+}
+async function loadCurrentFromServer(){
+  if(mode==='organs') await loadOrgans(true); else await loadSets(true);
+  render(); setStatus('Rechargé depuis le serveur.','ok'); setTimeout(refreshStatus,1400);
+}
+function loadOrgansCache(){ try{ const r=localStorage.getItem(LS_ORGANS); if(r){ ingestOrgans(JSON.parse(r)); selOrgan=organs[0]?._uid??null; return true; } }catch(e){} return false; }
+function loadSetsCache(){   try{ const r=localStorage.getItem(LS_SETS);   if(r){ ingestSets(JSON.parse(r));   selSet=sets[0]?._uid??null; return true; } }catch(e){} return false; }
+
+// ─── Sérialisation propre (ordre + champs vides omis) ───────────────────────
+const num = v => (v===''||v==null)?undefined:Number(v);
+function clean(o){ for(const k of Object.keys(o)) if(o[k]===undefined) delete o[k]; return o; }
+function serialize(o){
+  const out={};
+  const put=(k,v)=>{ if(v!==undefined&&v!==null&&v!=='') out[k]=v; };
+  put('id',o.id); put('type',o.type); put('name',o.name); put('set',o.set);
+  put('tier',o.tier); put('hp',num(o.hp)); put('layer',o.layer);
+  if(o.type==='heart') put('pool',num(o.pool));
+  put('price',num(o.price));
+  if(o.type==='heart'){ put('pulse', o.pulse!=null&&o.pulse!==''?Number(o.pulse):undefined); put('maxBlood',num(o.maxBlood)); }
+  if(o.icon) put('icon',o.icon);
+  if(o.color) put('color',o.color);
+  if(o.tags&&o.tags.length) out.tags=[...o.tags];
+  if(o.produces&&o.produces.length) out.produces=o.produces.map(p=>({resource:p.resource,amount:num(p.amount),carryover:num(p.carryover)||0}));
+  out.passives=(o.passives??[]).map(p=>{ const r={id:p.id,label:p.label,desc:p.desc}; if(p.value!=null&&p.value!=='')r.value=Number(p.value); if(p.loud)r.loud=true; return clean(r); });
+  out.skills=(o.skills??[]).map(serializeSkill);
+  out.harvest={fragileTo:[...(o.harvest?.fragileTo??[])]};
+  if(o.visual&&o.visual.overlay) out.visual={overlay:o.visual.overlay};
   return out;
 }
-
-function visible(){
-  return organs.filter(o=>{
-    if(filters.type&&o.type!==filters.type) return false;
-    if(filters.set&&(o.set||'—')!==filters.set) return false;
-    if(filters.tier&&o.tier!==filters.tier) return false;
-    if(filters.search&&!(o.name+o.id+o.set).toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  });
+function serializeSkill(s){
+  const r={id:s.id,label:s.label,cost:num(s.cost)||0,desc:s.desc};
+  if(s.once) r.once=true;
+  r.effect=serializeEffect(s.effect??{kind:'damage'});
+  return clean(r);
 }
-function uniqueSets(){ return [...new Set(organs.map(o=>o.set).filter(Boolean))].sort(); }
+function serializeEffect(e){
+  const r={kind:e.kind||'damage'};
+  for(const f of (EFFECT_FIELDS[r.kind]||[])){
+    let v=e[f];
+    if(v===undefined||v===''||v===false) continue;
+    if(NUM_FIELDS.has(f)) v=Number(v);
+    r[f]=v;
+  }
+  return r;
+}
+function serializeSet(s){ const r={id:s.id,name:s.name}; if(s.color) r.color=s.color; return r; }
+function exportArray(){ return mode==='organs' ? organs.map(serialize) : sets.map(serializeSet); }
+function jsonText(){ return JSON.stringify(exportArray(),null,2); }
+function curFileName(){ return mode==='organs' ? 'organs.json' : 'sets.json'; }
+
+// ─── Validation ─────────────────────────────────────────────────────────────
+function validate(){ return mode==='organs' ? validateOrgans() : validateSets(); }
+function validateOrgans(){
+  const errs=[], warns=[]; const ids=new Set();
+  for(const o of organs){
+    for(const f of ['id','type','name','tier','hp','layer','price'])
+      if(o[f]===undefined||o[f]===''||o[f]==null) errs.push(`${o.id||'(sans id)'} : champ manquant « ${f} »`);
+    if(o.id){ if(ids.has(o.id)) errs.push(`id dupliqué : ${o.id}`); ids.add(o.id); if(!/^[a-z0-9_]+$/.test(o.id)) warns.push(`${o.id} : id devrait être minuscules/underscore`); }
+    if(o.type&&!TYPES.includes(o.type)) warns.push(`${o.id} : type inconnu « ${o.type} »`);
+    if(o.set && !sets.some(s=>s.id===o.set)) warns.push(`${o.id} : set « ${o.set} » introuvable dans sets.json`);
+    for(const w of tagWarnings(o)) warns.push(`${o.id} : ${w}`);
+  }
+  return {errs,warns};
+}
+function validateSets(){
+  const errs=[], warns=[]; const ids=new Set();
+  for(const s of sets){
+    for(const f of ['id','name']) if(!s[f]) errs.push(`${s.id||'(sans id)'} : champ « ${f} » manquant`);
+    if(s.id){ if(ids.has(s.id)) errs.push(`id dupliqué : ${s.id}`); ids.add(s.id); if(!/^[a-z0-9_]+$/.test(s.id)) warns.push(`${s.id} : id devrait être minuscules/underscore`); }
+    if(s.color && !/^#[0-9a-fA-F]{6}$/.test(s.color)) warns.push(`${s.id} : couleur non hexa #rrggbb`);
+  }
+  return {errs,warns};
+}
+function tagWarnings(o){
+  const out=[]; const set=new Set(o.tags||[]);
+  for(const spec of ALL_TAGS) if(set.has(spec.t)) for(const r of (spec.req||[])) if(!set.has(r)) out.push(`« ${spec.t} » nécessite « ${r} »`);
+  return out;
+}
+function setStatus(msg,cls){ $('#status').innerHTML=`<span class="${cls||''}">${msg}</span>`; }
+function refreshStatus(){
+  const {errs,warns}=validate(); const n=curArr().length;
+  const noun = mode==='organs' ? 'organe' : 'set';
+  let html=`${n} ${noun}${n>1?'s':''}`;
+  html += errs.length ? ` · <span class="bad">${errs.length} erreur(s)</span>` : ` · <span class="ok">valide</span>`;
+  if(warns.length) html += ` · <span class="warn">${warns.length} avert.</span>`;
+  const s=$('#status'); s.innerHTML=html;
+  s.title=[...errs.map(e=>'✗ '+e),...warns.map(w=>'⚠ '+w)].join('\n')||'RAS';
+}
+
+// ─── Rendu ──────────────────────────────────────────────────────────────────
+function render(){ renderList(); renderForm(); refreshStatus(); persist(); }
 
 function renderList(){
-  const el=document.getElementById('list'), vis=visible(); el.innerHTML='';
-  document.getElementById('count').innerHTML=`<b>${organs.length}</b> organes`+(vis.length!==organs.length?` · ${vis.length} affichés`:'');
-  let groups;
-  if(filters.groupby==='none') groups=[['',vis]];
-  else{ const k=filters.groupby,map={}; for(const o of vis){const g=o[k]||'—';(map[g]=map[g]||[]).push(o);}
-    const order=k==='type'?TYPES:Object.keys(map).sort(); groups=order.filter(g=>map[g]).map(g=>[g,map[g]]);
-    for(const g of Object.keys(map)) if(!order.includes(g)) groups.push([g,map[g]]); }
-  for(const [g,items] of groups){
-    if(g!==''){const h=document.createElement('div');h.className='grp';h.textContent=(filters.groupby==='type'?(TYPE_FR[g]||g):g)+` (${items.length})`;el.appendChild(h);}
-    items.sort((a,b)=>(a.name||a.id).localeCompare(b.name||b.id));
-    for(const o of items){
-      const it=document.createElement('div'); it.className='item'+(o._uid===selUid?' sel':'');
-      it.innerHTML=`<span class="sw" style="background:${o.visual.color||'#444'}"></span>
-        <span class="nm">${o.name||'<sans nom>'} <span class="tag">${TYPE_FR[o.type]}${o.set?' · '+o.set:''}</span></span>
-        <span class="tier tier-${o.tier}">${o.tier[0].toUpperCase()}</span>`;
-      it.onclick=()=>{selUid=o._uid;render();}; el.appendChild(it);
+  const q=($('#search').value||'').toLowerCase().trim();
+  const list=$('#list'); list.innerHTML='';
+  if(mode==='sets'){
+    for(const s of sets){
+      if(q && !(s.id||'').toLowerCase().includes(q) && !(s.name||'').toLowerCase().includes(q)) continue;
+      list.append(el('div',{class:'item'+(s._uid===selSet?' sel':''),onclick:()=>{selSet=s._uid;render();}},
+        el('span',{class:'tierdot',style:`background:${s.color||'#9a8a70'}`}),
+        el('span',{class:'nm'},s.name||'(sans nom)'),
+        el('span',{class:'id'},s.id||'?'),
+      ));
+    }
+    if(!list.children.length) list.append(el('div',{class:'empty',style:'margin-top:24px'},'aucun set'));
+    return;
+  }
+  const match=o=>!q||(o.id||'').toLowerCase().includes(q)||(o.name||'').toLowerCase().includes(q)||(o.tags||[]).some(t=>t.includes(q));
+  const bySet={};
+  for(const o of organs){ if(!match(o))continue; (bySet[o.set||'—']??=[]).push(o); }
+  for(const s of Object.keys(bySet).sort()){
+    list.append(el('div',{class:'grp'},s));
+    for(const o of bySet[s]){
+      list.append(el('div',{class:'item'+(o._uid===selOrgan?' sel':''),onclick:()=>{selOrgan=o._uid;render();}},
+        el('span',{class:'tierdot t-'+(o.tier||'common')}),
+        el('span',{class:'nm'},o.name||'(sans nom)'),
+        el('span',{class:'id'},o.type||'?'),
+      ));
     }
   }
+  if(!list.children.length) list.append(el('div',{class:'empty',style:'margin-top:24px'},'aucun résultat'));
 }
 
-function cur(){ return organs.find(o=>o._uid===selUid); }
-function esc(s){ return String(s??'').replace(/"/g,'&quot;'); }
-
-function valsRow(prefix,arr,n){
-  if(n<=0) return '<span class="hint">maxBlood = 0 (aucun sang) → pas de valeurs.</span>';
-  let h='<div class="vals">';
-  for(let i=0;i<n;i++) h+=`<div class="vcol"><label>${i+1} sang</label><input data-${prefix}="${i}" type="number" value="${arr[i] ?? (arr[arr.length-1] ?? 0)}"></div>`;
-  return h+'</div>';
+function bind(o,key,inp){
+  inp.addEventListener('input',()=>{
+    o[key] = inp.type==='checkbox' ? inp.checked : inp.value;
+    if(['name','tier','type','set'].includes(key)) renderList();
+    refreshStatus(); persist();
+  });
+}
+function field(o,key,label,opts={}){
+  const wrap=el('div',{class:'fld '+(opts.w||'')});
+  wrap.append(el('label',{},label));
+  let inp;
+  if(opts.options){
+    inp=el('select');
+    for(const opt of opts.options){ const v=typeof opt==='object'?opt.v:opt; const t=typeof opt==='object'?opt.t:opt;
+      inp.append(el('option',{value:v, selected:String(o[key]??'')===String(v)?'':null}, t===''?'(vide)':t)); }
+  } else if(opts.textarea){ inp=el('textarea'); inp.value=o[key]??''; }
+  else { inp=el('input',{type:opts.type||'text'}); inp.value=o[key]??''; if(opts.ph)inp.placeholder=opts.ph; }
+  bind(o,key,inp);
+  wrap.append(inp);
+  if(opts.hint) wrap.append(el('div',{class:'hint'},opts.hint));
+  return wrap;
+}
+function lblChk(o,key,label){
+  const wrap=el('div',{class:'fld'}); wrap.append(el('label',{},' '));
+  const lab=el('label',{class:'chk'+(o[key]?' on':'')}); const cb=el('input',{type:'checkbox'}); cb.checked=!!o[key];
+  cb.addEventListener('change',()=>{o[key]=cb.checked; lab.classList.toggle('on',cb.checked); persist();});
+  lab.append(cb,document.createTextNode(label)); wrap.append(lab); return wrap;
 }
 
-function renderEditor(){
-  const el=document.getElementById('editor'), o=cur();
-  if(!o){ el.innerHTML='<div class="empty">Sélectionne un organe, ou crée-en un.</div>'; return; }
-  const opt=(arr,val,fr)=>arr.map(v=>`<option value="${v}"${v===val?' selected':''}>${fr?(fr[v]||v||'—'):(v||'—')}</option>`).join('');
-  const dupId=organs.some(x=>x!==o&&x.id===o.id&&o.id);
-  const chargeArr=Array.isArray(o.skill.charge);
+function renderForm(){
+  const form=$('#form'); form.innerHTML='';
+  if(mode==='sets') return renderSetForm(form);
+  const o=sel();
+  if(!o){ form.append(el('div',{class:'empty'},'Sélectionne un organe à gauche.')); return; }
 
-  el.innerHTML=`
-    <div class="preview"><div class="pbar" id="pv-bar"></div><div class="pmeta" id="pv-meta"></div>
-      <button id="btn-json" style="font-size:11px">&lt;/&gt; JSON</button></div>
+  // Identité & stats
+  const fsId=el('fieldset'); fsId.append(el('legend',{},'Identité & stats'));
+  fsId.append(el('div',{class:'row'},
+    field(o,'id','id',{w:'w-id',ph:'eye_human',hint:'unique · a-z0-9_'}),
+    field(o,'name','Nom',{w:'w-md'}),
+    field(o,'type','Type',{options:TYPES}),
+    field(o,'set','Set',{w:'w-sm',ph:'human'}),
+    field(o,'tier','Tier',{options:TIERS}),
+    field(o,'icon','Icône',{w:'w-sm',ph:'👁'}),
+  ));
+  fsId.append(el('div',{class:'row'},
+    field(o,'hp','PV',{w:'w-sm',type:'number'}),
+    field(o,'price','Prix',{w:'w-sm',type:'number'}),
+    field(o,'layer','Couche',{options:LAYERS}),
+  ));
+  form.append(fsId);
 
-    <div class="sec"><h2>Identité</h2>
-      <div class="row">
-        <div class="f grow"><label>Nom</label><input id="f-name" value="${esc(o.name)}"></div>
-        <div class="f grow"><label>ID ${dupId?'<span class="warn">⚠ doublon</span>':''}</label><input id="f-id" value="${esc(o.id)}"></div>
-      </div>
-      <div class="row">
-        <div class="f"><label>Type</label><select id="f-type">${opt(TYPES,o.type,TYPE_FR)}</select></div>
-        <div class="f"><label>Set</label><input id="f-set" list="dl-sets" value="${esc(o.set)}" placeholder="troll, stone…"></div>
-        <div class="f"><label>Tier</label><select id="f-tier">${opt(TIERS,o.tier)}</select></div>
-        <div class="f"><label>Prix (viande)</label><input id="f-price" type="number" value="${o.price}"></div>
-      </div>
-    </div>
+  // Cœur
+  if(o.type==='heart'){
+    const fsH=el('fieldset'); fsH.append(el('legend',{},'Cœur'));
+    fsH.append(el('div',{class:'row'},
+      field(o,'pool','Sang / tour',{w:'w-sm',type:'number'}),
+      field(o,'maxBlood','Capacité sang',{w:'w-sm',type:'number'}),
+      field(o,'pulse','Pouls (s)',{w:'w-sm',type:'number',hint:'période battement'}),
+    ));
+    form.append(fsH);
+  }
 
-    <div class="sec"><h2>Corps & sang</h2>
-      <div class="row">
-        <div class="f"><label>PV</label><input id="f-hp" type="number" value="${o.hp}"></div>
-        <div class="f"><label>Couche</label><select id="f-layer">${opt(LAYERS,o.layer)}</select></div>
-        <div class="f"><label>maxBlood (paliers)</label><input id="f-maxblood" type="number" min="0" max="8" value="${o.maxBlood}"></div>
-        ${o.type==='heart'?`<div class="f"><label>Pool produit (cœur)</label><input id="f-pool" type="number" value="${o.pool}"></div>`:''}
-      </div>
-      <div class="hint">maxBlood = combien de sang l'organe peut recevoir (0 = aucun, ex. cœur). Les valeurs de skill/passif sont définies par palier de sang.</div>
-    </div>
+  // Tags de perception
+  o.tags ??= [];
+  const fsT=el('fieldset'); fsT.append(el('legend',{},'Tags de perception'));
+  const tagsWrap=el('div',{style:'display:flex;flex-wrap:wrap'});
+  const tagCount=(t)=>o.tags.filter(x=>x===t).length;
+  const setCount=(t,n)=>{ o.tags=o.tags.filter(x=>x!==t); for(let i=0;i<n;i++)o.tags.push(t); renderForm(); renderList(); refreshStatus(); persist(); };
+  for(const [grp,specs] of Object.entries(TAG_GROUPS)){
+    const col=el('div',{class:'tagcol'}); col.append(el('h4',{},grp));
+    const box=el('div',{class:'tags'});
+    for(const spec of specs){
+      const n=tagCount(spec.t);
+      if(spec.kind==='gauge'){
+        // jauge : le tag se répète — stepper −/n/＋
+        const lab=el('label',{class:'chk'+(n>0?' on':''),style:'gap:3px'});
+        const minus=el('button',{class:'tiny',style:'padding:0 4px;min-width:0'},'−');
+        const plus =el('button',{class:'tiny',style:'padding:0 4px;min-width:0'},'＋');
+        minus.addEventListener('click',(e)=>{e.preventDefault(); if(n>0)setCount(spec.t,n-1);});
+        plus .addEventListener('click',(e)=>{e.preventDefault(); setCount(spec.t,n+1);});
+        lab.append(document.createTextNode(spec.t+' '), minus, el('b',{style:'min-width:14px;text-align:center'},String(n)), plus);
+        lab.title='jauge : ±10 % par tag, sans plafond';
+        box.append(lab);
+      } else {
+        const lab=el('label',{class:'chk'+(n>0?' on':'')});
+        const cb=el('input',{type:'checkbox'}); cb.checked=n>0;
+        cb.addEventListener('change',()=>setCount(spec.t, cb.checked?1:0));
+        lab.append(cb,document.createTextNode(spec.t+(SIDE_TAGS.has(spec.t)?' ↔':'')));
+        if(spec.req) lab.title='nécessite : '+spec.req.join(', ')+' (même organe)';
+        box.append(lab);
+      }
+    }
+    col.append(box); tagsWrap.append(col);
+  }
+  // Colonne dynamique : tags custom déjà utilisés + champ pour en créer un nouveau.
+  const ccol=el('div',{class:'tagcol'}); ccol.append(el('h4',{},'Autres (dynamiques)'));
+  const cbox=el('div',{class:'tags'});
+  for(const t of customTags()){
+    const on=o.tags.includes(t);
+    const lab=el('label',{class:'chk'+(on?' on':'')}); const cb=el('input',{type:'checkbox'}); cb.checked=on;
+    cb.addEventListener('change',()=>{ if(cb.checked){if(!o.tags.includes(t))o.tags.push(t);} else o.tags=o.tags.filter(x=>x!==t); renderForm(); renderList(); refreshStatus(); persist(); });
+    lab.append(cb,document.createTextNode(t)); cbox.append(lab);
+  }
+  const addInp=el('input',{type:'text',placeholder:'nouveau tag…',style:'width:130px;background:var(--bg);border:1px solid var(--line);color:var(--ink);padding:3px 7px;border-radius:3px;font:inherit'});
+  const addTag=()=>{ const t=addInp.value.trim().toLowerCase(); if(!t)return; if(!o.tags.includes(t))o.tags.push(t); renderForm(); renderList(); refreshStatus(); persist(); };
+  addInp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();addTag();} });
+  cbox.append(el('span',{class:'fld',style:'flex-direction:row;gap:4px;align-items:center;margin:0'}, addInp, el('button',{class:'tiny',onclick:addTag},'＋')));
+  ccol.append(cbox); tagsWrap.append(ccol);
+  fsT.append(tagsWrap);
+  fsT.append(el('div',{class:'hint',style:'margin-top:6px'},'↔ = latéralisé : l\'effet ne vaut que du côté du slot (gauche/droite). vue-spider ignore le côté. · Un tag créé ici n\'a d\'effet que si le moteur le lit (sinon il est inerte).'));
+  const tw=tagWarnings(o); if(tw.length) fsT.append(el('div',{class:'warnline'},'⚠ '+tw.join(' · ')));
+  form.append(fsT);
 
-    <div class="sec"><h2>Skill actif <span class="hint" style="margin:0">(se charge puis se déclenche)</span></h2>
-      <div class="row">
-        <div class="f"><label>Comportement</label><select id="f-skind"><option value=""${o.skill.kind?'':' selected'}>— aucun —</option>${opt(Object.keys(KINDS),o.skill.kind,KIND_FR)}</select></div>
-        <div class="f grow"><label>Nom affiché</label><input id="f-slabel" value="${esc(o.skill.label)}" placeholder="FRAPPER, MORSURE TOXIQUE…"></div>
-        <div class="f"><label>Modificateurs</label>
-          <div style="display:flex;gap:12px;align-items:center;height:28px;font-size:11px;color:var(--dim)">
-            <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="f-pierce" ${o.skill.pierce?'checked':''}> perforant</label>
-            <label style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="f-lifesteal" ${o.skill.lifesteal?'checked':''}> vol de vie</label>
-          </div>
-        </div>
-      </div>
-      <div class="f${o.skill.kind?'':' muted'}"><label>Valeurs par palier — <b>${KINDS[o.skill.kind]||'magnitude'}</b></label>${valsRow('sk',o.skill.values,o.maxBlood)}</div>
-      <div class="row" style="margin-top:8px;align-items:flex-end">
-        <label style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--dim)"><input type="checkbox" id="f-chargearr" ${chargeArr?'checked':''}> charge par palier</label>
-        ${chargeArr
-          ? `<div class="f grow"><label>Charge par palier (ms)</label>${valsRow('ch',o.skill.charge,o.maxBlood)}</div>`
-          : `<div class="f"><label>Charge (ms, fixe)</label><input id="f-charge" type="number" step="100" value="${o.skill.charge}"></div>`}
-      </div>
-    </div>
+  // Production
+  o.produces ??= [];
+  const fsP=el('fieldset'); fsP.append(el('legend',{},'Production de ressource (début de tour)'));
+  o.produces.forEach((p,i)=>{
+    fsP.append(el('div',{class:'sub'}, el('div',{class:'row'},
+      field(p,'resource','Ressource',{options:RESOURCES}),
+      field(p,'amount','Quantité',{w:'w-sm',type:'number'}),
+      field(p,'carryover','Report',{w:'w-sm',type:'number',hint:'0 = purgé/tour'}),
+      el('button',{class:'danger tiny',onclick:()=>{o.produces.splice(i,1);renderForm();}},'🗑'),
+    )));
+  });
+  fsP.append(el('button',{class:'tiny addrow',onclick:()=>{o.produces.push({resource:'protection',amount:2,carryover:0});renderForm();}},'＋ production'));
+  form.append(fsP);
 
-    <div class="sec"><h2>Passif <span class="hint" style="margin:0">(toujours actif, scale au sang alloué)</span></h2>
-      <div class="row">
-        <div class="f grow"><label>Passif id (vide = aucun)</label><input id="f-passive" list="dl-passives" value="${esc(o.passive.id)}" placeholder="armor, dodge, regen…"></div>
-      </div>
-      <div class="f${o.passive.id?'':' muted'}"><label>Valeurs par palier — <b>${PASSIVES[o.passive.id]||'magnitude'}</b></label>${valsRow('pa',o.passive.values,o.maxBlood)}</div>
-    </div>
+  // Passifs
+  o.passives ??= [];
+  const fsPa=el('fieldset'); fsPa.append(el('legend',{},'Passifs'));
+  o.passives.forEach((p,i)=>{
+    const box=el('div',{class:'sub'});
+    box.append(el('div',{class:'subhead'}, el('span',{class:'t'},'passif'), el('button',{class:'danger tiny',onclick:()=>{o.passives.splice(i,1);renderForm();}},'🗑')));
+    box.append(el('div',{class:'row'},
+      field(p,'id','id',{w:'w-md'}),
+      field(p,'label','Label',{w:'w-md'}),
+      field(p,'value','Valeur',{w:'w-sm',type:'number',hint:'optionnel'}),
+      lblChk(p,'loud','Bruyant'),
+    ));
+    box.append(field(p,'desc','Description',{textarea:true}));
+    fsPa.append(box);
+  });
+  fsPa.append(el('button',{class:'tiny addrow',onclick:()=>{o.passives.push({id:'',label:'',desc:''});renderForm();}},'＋ passif'));
+  form.append(fsPa);
 
-    <div class="sec"><h2>Effets divers</h2>
-      <div class="f" style="margin-bottom:10px"><label>Capacités passives (flags)</label>
-        <div class="chips" id="ab-chips"></div>
-        <div style="margin-top:5px"><input id="ab-add" list="dl-abilities" placeholder="ajouter + Entrée" style="width:240px"></div>
-      </div>
-      <div class="f" style="margin-bottom:10px"><label>Triggers</label><div id="trg-list"></div><button id="trg-add" style="margin-top:4px">+ trigger</button></div>
-      <div class="row"><div class="f grow"><label>Flaw (contrepartie, descriptif)</label><input id="f-flaw" list="dl-flaws" value="${esc(o.flaw)}" placeholder="slow_charge, bleeds…"></div></div>
-    </div>
+  // Compétences
+  o.skills ??= [];
+  const fsSk=el('fieldset'); fsSk.append(el('legend',{},'Compétences (combat)'));
+  o.skills.forEach((s,i)=>{
+    s.effect ??= {kind:'damage'};
+    const box=el('div',{class:'sub'});
+    box.append(el('div',{class:'subhead'}, el('span',{class:'t'},'compétence · '+(s.label||s.id||'?')), el('button',{class:'danger tiny',onclick:()=>{o.skills.splice(i,1);renderForm();}},'🗑')));
+    box.append(el('div',{class:'row'},
+      field(s,'id','id',{w:'w-md'}),
+      field(s,'label','Label',{w:'w-md'}),
+      field(s,'cost','Coût (sang)',{w:'w-sm',type:'number'}),
+      lblChk(s,'once','1×/combat'),
+    ));
+    box.append(field(s,'desc','Description',{textarea:true}));
+    const efWrap=el('div',{class:'row',style:'margin-top:6px'});
+    const kindSel=field(s.effect,'kind','Effet',{options:EFFECT_KINDS});
+    kindSel.querySelector('select').addEventListener('change',()=>renderForm());
+    efWrap.append(kindSel);
+    for(const f of (EFFECT_FIELDS[s.effect.kind]||[])) efWrap.append(effectField(s.effect,f));
+    box.append(efWrap);
+    fsSk.append(box);
+  });
+  fsSk.append(el('button',{class:'tiny addrow',onclick:()=>{o.skills.push({id:'',label:'',cost:1,desc:'',effect:{kind:'damage',amount:2,target:'enemy_organ'}});renderForm();}},'＋ compétence'));
+  form.append(fsSk);
 
-    <div class="sec"><h2>Présentation & loot</h2>
-      <div class="row">
-        <div class="f"><label>Couleur</label><input id="f-color" type="color" value="${o.visual.color||'#7a4a1a'}" style="width:54px;height:30px;padding:1px"></div>
-        <div class="f"><label>Point</label><select id="f-dot">${opt(DOTS,o.visual.dot)}</select></div>
-        <div class="f"><label>Overlay</label><select id="f-overlay">${opt(OVERLAYS,o.visual.overlay)}</select></div>
-        <div class="f"><label>Icône</label><input id="f-icon" value="${esc(o.icon)}" style="width:60px"></div>
-        <div class="f"><label>Son actif</label><input id="f-sa" value="${esc(o.sounds.active)}"></div>
-        <div class="f"><label>Son passif</label><input id="f-sp" value="${esc(o.sounds.passive)}"></div>
-      </div>
-      <label style="font-size:10px;color:var(--dim)">Fragile à (dégrade la récolte)</label>
-      <div class="frag" id="frag">${FRAGILE.map(f=>`<label><input type="checkbox" data-frag="${f}" ${o.harvest.fragileTo.includes(f)?'checked':''}>${f}</label>`).join('')}</div>
-    </div>
+  // Apparence & animation
+  o.visual ??= {};
+  const fsAp=el('fieldset'); fsAp.append(el('legend',{},'Apparence & animation'));
+  const colWrap=el('div',{class:'fld'});
+  colWrap.append(el('label',{},'Couleur (accent des cartes de skill)'));
+  const colInp=el('input',{type:'text',style:'width:130px'}); colInp.value=o.color??''; colInp.placeholder=(setColorOf(o.set)||'hérite du set');
+  const swatch=el('span',{style:`display:inline-block;width:24px;height:24px;border-radius:3px;border:1px solid var(--line);background:${effColor(o)}`});
+  const picker=el('input',{type:'color',value:effColor(o),style:'width:36px;height:26px;padding:0;border:1px solid var(--line);background:var(--bg);border-radius:3px;cursor:pointer'});
+  colInp.addEventListener('input',()=>{ o.color=colInp.value.trim()||undefined; const c=effColor(o); swatch.style.background=c; picker.value=c; persist(); renderList(); });
+  picker.addEventListener('input',()=>{ o.color=picker.value; colInp.value=picker.value; swatch.style.background=picker.value; persist(); renderList(); });
+  colWrap.append(el('div',{style:'display:flex;gap:8px;align-items:center'}, colInp, picker, swatch));
+  colWrap.append(el('div',{class:'hint'},`Vide = couleur du set (${setColorOf(o.set)||'défaut'}). L'override prime sur le set.`));
+  fsAp.append(el('div',{class:'row'}, colWrap, field(o.visual,'overlay','Overlay FX (animation)',{options:OVERLAYS})));
+  fsAp.append(el('div',{class:'hint',style:'margin-top:4px'}, o.type==='heart'
+    ? 'Battement : règle la période dans le champ « Pouls » (section Cœur).'
+    : 'Overlay = animation CSS ajoutée à la scène quand l\'organe est greffé (hex-fragment, lich-pulse, spider-crawl, stone-crack).'));
+  form.append(fsAp);
 
-    <div class="sec" style="display:flex;gap:10px">
-      <button id="btn-dup">⎘ Dupliquer</button><button id="btn-del" class="danger">✕ Supprimer</button>
-    </div>
-    <div class="sec" id="json-sec" style="display:none"><h2>JSON</h2><textarea class="jsonbox" id="jsonbox" readonly></textarea></div>
+  // Récolte
+  o.harvest ??= {fragileTo:[]}; o.harvest.fragileTo ??= [];
+  const fsHv=el('fieldset'); fsHv.append(el('legend',{},'Récolte'));
+  const fr=el('div',{class:'tags'});
+  fr.append(el('span',{class:'hint',style:'align-self:center;margin-right:6px'},'fragile à :'));
+  for(const f of FRAGILE){
+    const on=o.harvest.fragileTo.includes(f);
+    const lab=el('label',{class:'chk'+(on?' on':'')}); const cb=el('input',{type:'checkbox'}); cb.checked=on;
+    cb.addEventListener('change',()=>{ if(cb.checked)o.harvest.fragileTo.push(f); else o.harvest.fragileTo=o.harvest.fragileTo.filter(x=>x!==f); renderForm(); persist(); });
+    lab.append(cb,document.createTextNode(f)); fr.append(lab);
+  }
+  fsHv.append(fr);
+  form.append(fsHv);
 
-    <datalist id="dl-sets">${uniqueSets().map(s=>`<option value="${s}">`).join('')}</datalist>
-    <datalist id="dl-passives">${Object.keys(PASSIVES).map(s=>`<option value="${s}">`).join('')}</datalist>
-    <datalist id="dl-abilities">${ABILITIES.map(s=>`<option value="${s}">`).join('')}</datalist>
-    <datalist id="dl-flaws">${FLAWS.filter(Boolean).map(s=>`<option value="${s}">`).join('')}</datalist>`;
-
-  wire(o); renderChips(o); renderTriggers(o); updatePreview(o);
+  form.append(el('div',{class:'footnote'},'Champs vides omis à l\'export. « Enregistrer » écrit dans le fichier (Chrome/Edge) ; sinon « Exporter » télécharge organs.json.'));
 }
 
-function wire(o){
-  const $=id=>document.getElementById(id);
-  const touch=()=>{ save(); renderList(); updatePreview(o); refreshJson(o); };
-  const reflow=()=>{ save(); renderEditor(); };  // re-render when array sizes change
-  const b=(id,fn,ev='input')=>{const e=$(id);if(e)e.addEventListener(ev,fn);};
-
-  b('f-name',e=>{o.name=e.target.value;touch();});
-  b('f-id',e=>{o.id=e.target.value;touch();});
-  b('f-type',e=>{o.type=e.target.value; if(o.type==='heart'&&!o.pool)o.pool=5; reflow();},'change');
-  b('f-set',e=>{o.set=e.target.value;touch();});
-  b('f-tier',e=>{o.tier=e.target.value;touch();},'change');
-  b('f-price',e=>{o.price=Number(e.target.value);touch();});
-  b('f-hp',e=>{o.hp=Number(e.target.value);touch();});
-  b('f-layer',e=>{o.layer=e.target.value;touch();},'change');
-  b('f-maxblood',e=>{o.maxBlood=Math.max(0,Number(e.target.value)); reflow();});
-  b('f-pool',e=>{o.pool=Number(e.target.value);touch();});
-  b('f-skind',e=>{o.skill.kind=e.target.value;reflow();},'change');
-  b('f-slabel',e=>{o.skill.label=e.target.value;touch();});
-  b('f-pierce',e=>{o.skill.pierce=e.target.checked;touch();},'change');
-  b('f-lifesteal',e=>{o.skill.lifesteal=e.target.checked;touch();},'change');
-  b('f-passive',e=>{o.passive.id=e.target.value.trim();reflow();});
-  b('f-charge',e=>{o.skill.charge=Number(e.target.value);touch();});
-  b('f-chargearr',e=>{ o.skill.charge = e.target.checked ? sized(Array.isArray(o.skill.charge)?o.skill.charge:[o.skill.charge],o.maxBlood) : (Array.isArray(o.skill.charge)?o.skill.charge[0]||4000:o.skill.charge); reflow(); },'change');
-  b('f-flaw',e=>{o.flaw=e.target.value.trim();touch();});
-  b('f-color',e=>{o.visual.color=e.target.value;touch();});
-  b('f-dot',e=>{o.visual.dot=e.target.value;touch();},'change');
-  b('f-overlay',e=>{o.visual.overlay=e.target.value;touch();},'change');
-  b('f-icon',e=>{o.icon=e.target.value;touch();});
-  b('f-sa',e=>{o.sounds.active=e.target.value;touch();});
-  b('f-sp',e=>{o.sounds.passive=e.target.value;touch();});
-
-  document.querySelectorAll('[data-sk]').forEach(i=>i.addEventListener('input',e=>{o.skill.values[+e.target.dataset.sk]=Number(e.target.value);touch();}));
-  document.querySelectorAll('[data-pa]').forEach(i=>i.addEventListener('input',e=>{o.passive.values[+e.target.dataset.pa]=Number(e.target.value);touch();}));
-  document.querySelectorAll('[data-ch]').forEach(i=>i.addEventListener('input',e=>{ if(!Array.isArray(o.skill.charge))o.skill.charge=[]; o.skill.charge[+e.target.dataset.ch]=Number(e.target.value);touch();}));
-  document.querySelectorAll('[data-frag]').forEach(cb=>cb.addEventListener('change',e=>{const f=e.target.dataset.frag,a=o.harvest.fragileTo; if(e.target.checked){if(!a.includes(f))a.push(f);}else o.harvest.fragileTo=a.filter(x=>x!==f); touch();}));
-
-  $('ab-add').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();if(v&&!o.abilities.includes(v)){o.abilities.push(v);renderChips(o);touch();}e.target.value='';}});
-  $('trg-add').addEventListener('click',()=>{o.triggers.push({on:'onKill',do:''});renderTriggers(o);touch();});
-  $('btn-dup').addEventListener('click',()=>duplicate(o));
-  $('btn-del').addEventListener('click',()=>del(o));
-  $('btn-json').addEventListener('click',()=>{const s=$('json-sec');s.style.display=s.style.display==='none'?'':'none';refreshJson(o);});
+function effectField(e,f){
+  if(f==='target') return field(e,'target','cible',{options:TARGETS});
+  if(f==='from')   return field(e,'from','de',{options:CONVERT_RES});
+  if(f==='to')     return field(e,'to','vers',{options:CONVERT_RES});
+  if(BOOL_FIELDS.has(f)) return lblChk(e,f,f);
+  return field(e,f,f,{w:'w-sm',type:'number'});
 }
 
-function renderChips(o){
-  const box=document.getElementById('ab-chips'); if(!box)return;
-  box.innerHTML=o.abilities.length?o.abilities.map((a,i)=>`<span class="chip">${a}<button data-i="${i}">✕</button></span>`).join(''):'<span style="color:var(--dim2);font-size:11px">aucune</span>';
-  box.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{o.abilities.splice(+bt.dataset.i,1);renderChips(o);save();});
-}
-function renderTriggers(o){
-  const box=document.getElementById('trg-list'); if(!box)return; box.innerHTML='';
-  o.triggers.forEach((t,i)=>{const row=document.createElement('div');row.className='trg';
-    row.innerHTML=`<select data-i="${i}" data-k="on">${TRIGGER_ON.map(v=>`<option${v===t.on?' selected':''}>${v}</option>`).join('')}</select><span style="color:var(--dim)">→</span>
-      <input data-i="${i}" data-k="do" value="${esc(t.do)}" placeholder="effet (life_steal…)" style="flex:1"><button data-i="${i}" class="danger">✕</button>`;
-    box.appendChild(row);});
-  box.querySelectorAll('select,input').forEach(e=>e.addEventListener('input',ev=>{o.triggers[+ev.target.dataset.i][ev.target.dataset.k]=ev.target.value;save();}));
-  box.querySelectorAll('button.danger').forEach(bt=>bt.onclick=()=>{o.triggers.splice(+bt.dataset.i,1);renderTriggers(o);save();});
-}
-function updatePreview(o){
-  const bar=document.getElementById('pv-bar'); if(!bar)return;
-  bar.style.borderColor=o.visual.color||'#2a1414'; bar.style.background=`linear-gradient(transparent 40%, ${o.visual.color||'#8a2f2a'})`;
-  const sk=o.skill.kind?`skill <b>${o.skill.label||o.skill.kind}</b> [${sized(o.skill.values,o.maxBlood).join('/')}]`:'pas de skill';
-  const pa=o.passive.id?` · passif <b>${o.passive.id}</b> [${sized(o.passive.values,o.maxBlood).join('/')}]`:'';
-  const pool=o.type==='heart'?` · pool <b>${o.pool}</b>`:'';
-  document.getElementById('pv-meta').innerHTML=
-    `<b>${o.name||'—'}</b> — ${TYPE_FR[o.type]} · ${o.set||'sans set'} · <span class="tier-${o.tier}">${o.tier}</span><br>
-     ${o.hp} PV · couche ${o.layer} · maxBlood ${o.maxBlood}${pool}<br>${sk}${pa}${o.flaw?' · ⚠ '+o.flaw:''}`;
-}
-function refreshJson(o){const t=document.getElementById('jsonbox'); if(t&&document.getElementById('json-sec').style.display!=='none')t.value=JSON.stringify(serialize(o),null,2);}
+// ─── Actions ────────────────────────────────────────────────────────────────
+function renderSetForm(form){
+  const s=sel();
+  if(!s){ form.append(el('div',{class:'empty'},'Sélectionne un set à gauche, ou crée-en un.')); return; }
+  const fs=el('fieldset'); fs.append(el('legend',{},'Set'));
+  fs.append(el('div',{class:'row'},
+    field(s,'id','id',{w:'w-id',ph:'human',hint:'unique · référencé par organe.set'}),
+    field(s,'name','Nom',{w:'w-md',ph:'Humain'}),
+  ));
+  const colWrap=el('div',{class:'fld'});
+  colWrap.append(el('label',{},'Couleur du set'));
+  const cur=()=> (s.color&&String(s.color).trim())||'#9a8a70';
+  const colInp=el('input',{type:'text',style:'width:130px'}); colInp.value=s.color??''; colInp.placeholder='#c47c6e';
+  const swatch=el('span',{style:`display:inline-block;width:24px;height:24px;border-radius:3px;border:1px solid var(--line);background:${cur()}`});
+  const picker=el('input',{type:'color',value:/^#[0-9a-fA-F]{6}$/.test(cur())?cur():'#000000',style:'width:36px;height:26px;padding:0;border:1px solid var(--line);background:var(--bg);border-radius:3px;cursor:pointer'});
+  colInp.addEventListener('input',()=>{ s.color=colInp.value.trim()||undefined; const c=cur(); swatch.style.background=c; if(/^#[0-9a-fA-F]{6}$/.test(c))picker.value=c; renderList(); refreshStatus(); persist(); });
+  picker.addEventListener('input',()=>{ s.color=picker.value; colInp.value=picker.value; swatch.style.background=picker.value; renderList(); persist(); });
+  colWrap.append(el('div',{style:'display:flex;gap:8px;align-items:center'}, colInp, picker, swatch));
+  colWrap.append(el('div',{class:'hint'},'Couleur par défaut des organes de ce set (accent des cartes de skill). Un organe peut la surcharger via son propre champ « Couleur ».'));
+  fs.append(colWrap);
+  form.append(fs);
 
-function newOrgan(){
-  const t=filters.type||'arm';
-  const o=normalize({type:t,name:'Nouvel organe',id:`${t}_new`,layer:(t==='heart'||t==='brain')?'deep':((t==='eye'||t==='ear'||t==='stomach'||t==='tongue')?'mid':'outer')});
-  o._uid=uidSeq++; organs.push(o); selUid=o._uid; save(); render();
-  const n=document.getElementById('f-name'); if(n){n.focus();n.select();}
+  const members=organs.filter(o=>o.set===s.id);
+  const fsM=el('fieldset'); fsM.append(el('legend',{},`Organes de ce set (${members.length})`));
+  if(members.length){
+    const box=el('div',{class:'tags'});
+    for(const o of members){
+      const chip=el('label',{class:'chk',style:`border-color:${effColor(o)}`});
+      chip.append(el('span',{style:`display:inline-block;width:9px;height:9px;border-radius:50%;background:${effColor(o)};margin-right:5px`}), document.createTextNode(o.name||o.id));
+      box.append(chip);
+    }
+    fsM.append(box);
+  } else fsM.append(el('div',{class:'hint'},'Aucun organe ne référence ce set.'));
+  form.append(fsM);
 }
-function duplicate(o){const c=normalize(stripUid(o));c._uid=uidSeq++;c.id=o.id+'_copy';c.name=o.name+' (copie)';const i=organs.indexOf(o);organs.splice(i+1,0,c);selUid=c._uid;save();render();}
-function del(o){if(!confirm(`Supprimer « ${o.name||o.id} » ?`))return;organs=organs.filter(x=>x!==o);if(selUid===o._uid)selUid=null;save();render();}
-function doExport(){const data=organs.map(serialize);const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='organs.json';a.click();URL.revokeObjectURL(a.href);}
-async function loadFromServer(){try{const r=await fetch('../content/organs.json',{cache:'no-store'});if(!r.ok)throw 0;const arr=await r.json();if(organs.length&&!confirm('Remplacer par content/organs.json ?'))return;ingest(arr);selUid=null;save();render();}catch(e){alert('Impossible de charger ../content/organs.json (lance via le serveur local).');}}
-function importFile(file){const fr=new FileReader();fr.onload=()=>{try{ingest(JSON.parse(fr.result));selUid=null;save();render();}catch(e){alert('JSON invalide.');}};fr.readAsText(file);}
-function clearAll(){if(!confirm('Vider TOUS les organes ?'))return;organs=[];selUid=null;save();render();}
 
-function renderFilters(){
-  const ft=document.getElementById('ftype'),fs=document.getElementById('fset'),fr=document.getElementById('ftier');
-  ft.innerHTML=`<option value="">tous</option>`+TYPES.map(t=>`<option value="${t}"${filters.type===t?' selected':''}>${TYPE_FR[t]}</option>`).join('');
-  fs.innerHTML=`<option value="">tous</option>`+uniqueSets().map(s=>`<option value="${s}"${filters.set===s?' selected':''}>${s}</option>`).join('');
-  fr.innerHTML=`<option value="">tous</option>`+TIERS.map(t=>`<option value="${t}"${filters.tier===t?' selected':''}>${t}</option>`).join('');
+function addOrgan(){
+  const o={_uid:uid(),id:'',type:'arm',name:'Nouvel organe',set:'human',tier:'common',hp:8,layer:'outer',price:10,tags:[],produces:[],passives:[],skills:[],harvest:{fragileTo:[]}};
+  organs.push(o); selOrgan=o._uid; render();
+  setTimeout(()=>$('.form input')?.focus(),0);
 }
-function render(){renderFilters();renderList();renderEditor();}
+function dupOrgan(){
+  const o=sel(); if(!o)return;
+  const c=structuredClone(stripUid(o)); c._uid=uid(); c.id=(o.id||'organ')+'_copy'; c.name=(o.name||'')+' (copie)';
+  const idx=organs.findIndex(x=>x._uid===selOrgan); organs.splice(idx+1,0,c); selOrgan=c._uid; render();
+}
+function delOrgan(){
+  const o=sel(); if(!o)return; if(!confirm(`Supprimer « ${o.name||o.id} » ?`))return;
+  organs=organs.filter(x=>x._uid!==selOrgan); selOrgan=organs[0]?._uid??null; render();
+}
+function addSet(){
+  const s={_uid:uid(),id:'',name:'Nouveau set',color:'#b9975b'};
+  sets.push(s); selSet=s._uid; render(); setTimeout(()=>$('.form input')?.focus(),0);
+}
+function dupSet(){
+  const s=sel(); if(!s)return;
+  const c=structuredClone(stripUid(s)); c._uid=uid(); c.id=(s.id||'set')+'_copy'; c.name=(s.name||'')+' (copie)';
+  const i=sets.findIndex(x=>x._uid===selSet); sets.splice(i+1,0,c); selSet=c._uid; render();
+}
+function delSet(){
+  const s=sel(); if(!s)return;
+  const used=organs.filter(o=>o.set===s.id).length;
+  if(!confirm(`Supprimer le set « ${s.name||s.id} » ?`+(used?`\n${used} organe(s) le référencent encore.`:'')))return;
+  sets=sets.filter(x=>x._uid!==selSet); selSet=sets[0]?._uid??null; render();
+}
+function addItem(){ mode==='organs'?addOrgan():addSet(); }
+function dupItem(){ mode==='organs'?dupOrgan():dupSet(); }
+function delItem(){ mode==='organs'?delOrgan():delSet(); }
+function doExport(){
+  const {errs}=validate(); if(errs.length&&!confirm(`${errs.length} erreur(s) de validation. Exporter quand même ?`))return;
+  const blob=new Blob([jsonText()+'\n'],{type:'application/json'});
+  const a=el('a',{href:URL.createObjectURL(blob),download:curFileName()}); a.click(); URL.revokeObjectURL(a.href);
+}
+async function doCopy(){
+  try{ await navigator.clipboard.writeText(jsonText()); setStatus('JSON copié.','ok'); setTimeout(refreshStatus,1500); }
+  catch(e){ const d=$('#jsondlg'); $('#jsonout').value=jsonText(); d.showModal(); }
+}
+const fileHandles={organs:null,sets:null};
+async function doSave(){
+  const {errs}=validate(); if(errs.length&&!confirm(`${errs.length} erreur(s). Enregistrer quand même ?`))return;
+  if(!window.showSaveFilePicker){ setStatus('Écriture directe non supportée — utilise Exporter.','warn'); return doExport(); }
+  try{
+    if(!fileHandles[mode]) fileHandles[mode]=await window.showSaveFilePicker({suggestedName:curFileName(),types:[{description:'JSON',accept:{'application/json':['.json']}}]});
+    const w=await fileHandles[mode].createWritable(); await w.write(jsonText()+'\n'); await w.close();
+    setStatus(`${curFileName()} enregistré ✔`,'ok'); setTimeout(refreshStatus,1800);
+  }catch(e){ if(e?.name!=='AbortError') setStatus('Échec : '+e.message,'bad'); }
+}
 
-document.getElementById('btn-new').onclick=newOrgan;
-document.getElementById('btn-export').onclick=doExport;
-document.getElementById('btn-load').onclick=loadFromServer;
-document.getElementById('btn-clear').onclick=clearAll;
-document.getElementById('btn-import').onclick=()=>document.getElementById('file').click();
-document.getElementById('file').onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value='';};
-document.getElementById('search').oninput=e=>{filters.search=e.target.value;renderList();};
-document.getElementById('groupby').onchange=e=>{filters.groupby=e.target.value;renderList();};
-document.getElementById('ftype').onchange=e=>{filters.type=e.target.value;renderList();};
-document.getElementById('fset').onchange=e=>{filters.set=e.target.value;renderList();};
-document.getElementById('ftier').onchange=e=>{filters.tier=e.target.value;renderList();};
+// ─── Boot ───────────────────────────────────────────────────────────────────
+function updateChrome(){ $('#btn-add').textContent = mode==='organs' ? '＋ Nouvel organe' : '＋ Nouveau set'; }
+function switchMode(m){
+  if(mode===m) return;
+  mode=m;
+  $('#tab-organs').classList.toggle('on', m==='organs');
+  $('#tab-sets').classList.toggle('on', m==='sets');
+  $('#search').value='';
+  updateChrome(); render();
+}
 
-load(); render();
+$('#tab-organs').addEventListener('click',()=>switchMode('organs'));
+$('#tab-sets').addEventListener('click',()=>switchMode('sets'));
+$('#btn-load').addEventListener('click',loadCurrentFromServer);
+$('#btn-add').addEventListener('click',addItem);
+$('#btn-dup').addEventListener('click',dupItem);
+$('#btn-del').addEventListener('click',delItem);
+$('#btn-export').addEventListener('click',doExport);
+$('#btn-copy').addEventListener('click',doCopy);
+$('#btn-save').addEventListener('click',doSave);
+$('#search').addEventListener('input',renderList);
+
+(async function init(){
+  const oc=loadOrgansCache(), sc=loadSetsCache();
+  if(!sc) await loadSets(false);       // les sets alimentent l'aperçu couleur des organes
+  if(!oc) await loadOrgans(false);
+  if(!sets.length) ingestSets([{id:'human',name:'Humain',color:'#c47c6e'},{id:'beast',name:'Bête',color:'#9a2f24'}]);
+  updateChrome(); render();
+})();
 </script>
 </body>
 </html>

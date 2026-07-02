@@ -235,8 +235,10 @@ function _createMob(biome, theme, floorIdx, room, idx, isElite, budgetMult = 1) 
 
   const [rx, ry] = room.id.split('_').slice(1).map(Number);
 
-  // Flying mobs at floor 3+ may be invisible — requires see_invisible to fight reliably
-  const invisible = theme === 'flying' && floorIdx >= 2 && rng() < 0.25;
+  // Entity property tags (TDD §2.7). Flying mobs at floor 3+ may be FULLY
+  // invisible (10 × `invisible` = opacity 0) — needs vue-invisible/echolocation.
+  const tags = [];
+  if (theme === 'flying' && floorIdx >= 2 && rng() < 0.25) tags.push(...Array(10).fill('invisible'));
 
   return {
     id,
@@ -249,7 +251,7 @@ function _createMob(biome, theme, floorIdx, room, idx, isElite, budgetMult = 1) 
     intent:    null,
     isElite,
     isBoss:    false,
-    invisible,
+    tags,
     body,
     pos: { floorIdx, x: rx, y: ry },
   };

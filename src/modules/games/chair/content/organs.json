@@ -8,16 +8,11 @@
     "hp": 8,
     "layer": "mid",
     "price": 8,
-    "senses": {
-      "vue": 1
-    },
-    "passives": [
-      {
-        "id": "vue",
-        "label": "Vue",
-        "desc": "Chaque œil affiche une moitié d'écran : organes et télégraphes ennemis de ce côté. Deux yeux = vue complète, un seul = moitié aveugle, aucun = noir."
-      }
+    "tags": [
+      "vue",
+      "vue-couleur"
     ],
+    "passives": [],
     "skills": [],
     "harvest": {
       "fragileTo": []
@@ -32,16 +27,12 @@
     "hp": 6,
     "layer": "mid",
     "price": 8,
-    "senses": {
-      "ouie": 2
-    },
-    "passives": [
-      {
-        "id": "ouie",
-        "label": "Ouïe",
-        "desc": "Perçois au son les ennemis des salles adjacentes (révélés sur la carte) et entends une attaque se préparer même sans la voir."
-      }
+    "tags": [
+      "ouie",
+      "echolocation-1",
+      "ouie-identification-1"
     ],
+    "passives": [],
     "skills": [],
     "harvest": {
       "fragileTo": []
@@ -56,16 +47,13 @@
     "hp": 9,
     "layer": "deep",
     "price": 30,
-    "senses": {
-      "lucidite": 2
-    },
-    "passives": [
-      {
-        "id": "lucidite",
-        "label": "Lucidité",
-        "desc": "Tu vois le point faible de l'ennemi et lis ses télégraphes en clair (quoi + cible)."
-      }
+    "tags": [
+      "plan",
+      "plan-degats",
+      "map-2",
+      "memoire"
     ],
+    "passives": [],
     "skills": [],
     "harvest": {
       "fragileTo": [
@@ -167,9 +155,12 @@
     "hp": 6,
     "layer": "mid",
     "price": 12,
-    "senses": {
-      "digestion": 1
-    },
+    "tags": [
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion"
+    ],
     "passives": [],
     "skills": [
       {
@@ -198,9 +189,14 @@
     "hp": 9,
     "layer": "mid",
     "price": 20,
-    "senses": {
-      "digestion": 1
-    },
+    "tags": [
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "bruyant"
+    ],
     "passives": [],
     "skills": [
       {
@@ -218,8 +214,7 @@
     ],
     "harvest": {
       "fragileTo": []
-    },
-    "sonorite": 1
+    }
   },
   {
     "id": "heart_human",
@@ -257,7 +252,9 @@
         "fire"
       ]
     },
-    "sonorite": 1
+    "tags": [
+      "bruyant"
+    ]
   },
   {
     "id": "eye_beast",
@@ -268,20 +265,12 @@
     "hp": 7,
     "layer": "mid",
     "price": 28,
-    "senses": {
-      "vue": 1
-    },
-    "keywords": [
-      "vision_nocturne",
-      "voir_invisible"
+    "tags": [
+      "vue",
+      "vue-nocturne",
+      "vue-invisible"
     ],
-    "passives": [
-      {
-        "id": "nightsight",
-        "label": "Vision nocturne",
-        "desc": "Tu vois dans le noir (l'écran se teinte d'ambre) et tu repères les ennemis invisibles. Une moitié d'écran par œil, comme tout œil."
-      }
-    ],
+    "passives": [],
     "skills": [],
     "harvest": {
       "fragileTo": []
@@ -296,23 +285,17 @@
     "hp": 6,
     "layer": "mid",
     "price": 28,
-    "senses": {
-      "ouie": 3
-    },
-    "passives": [
-      {
-        "id": "keen_ear",
-        "label": "Ouïe fine",
-        "desc": "Comme l'Ouïe, mais portée doublée : tu entends deux salles plus loin et tu localises le cœur ennemi à son battement (il scintille à l'écran)."
-      }
+    "tags": [
+      "ouie",
+      "echolocation-2",
+      "echolocation-3",
+      "ouie-identification-2"
     ],
+    "passives": [],
     "skills": [],
     "harvest": {
       "fragileTo": []
-    },
-    "keywords": [
-      "echolocation"
-    ]
+    }
   },
   {
     "id": "brain_beast",
@@ -323,9 +306,13 @@
     "hp": 7,
     "layer": "deep",
     "price": 40,
-    "senses": {
-      "lucidite": 2
-    },
+    "tags": [
+      "plan",
+      "plan-degats",
+      "plan-faille",
+      "map-3",
+      "memoire"
+    ],
     "passives": [
       {
         "id": "instinct",
@@ -436,9 +423,13 @@
     "hp": 8,
     "layer": "mid",
     "price": 30,
-    "senses": {
-      "digestion": 1
-    },
+    "tags": [
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion"
+    ],
     "passives": [],
     "skills": [
       {
@@ -467,9 +458,16 @@
     "hp": 9,
     "layer": "mid",
     "price": 35,
-    "senses": {
-      "digestion": 2
-    },
+    "tags": [
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "digestion",
+      "bruyant"
+    ],
     "passives": [],
     "skills": [
       {
@@ -487,8 +485,7 @@
     ],
     "harvest": {
       "fragileTo": []
-    },
-    "sonorite": 1
+    }
   },
   {
     "id": "heart_beast",
@@ -527,6 +524,9 @@
         "fire"
       ]
     },
-    "sonorite": 2
+    "tags": [
+      "bruyant",
+      "bruyant"
+    ]
   }
 ]

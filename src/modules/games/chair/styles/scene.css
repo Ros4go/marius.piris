@@ -581,6 +581,41 @@ html, body {
 .game.lum-night .scene { filter: brightness(0.42) saturate(0.5) sepia(0.55) hue-rotate(-12deg) !important; }
 .game.lum-out .grain      { opacity: .55 !important; animation-duration: .08s !important; }
 
+/* net-positive `luminescent` body: a faint organic glow instead of blackness
+   when the torch dies — weaker than vue-nocturne, greenish flesh-light */
+.game.lum-glow .torchlight { opacity: 0 !important; animation: none !important; }
+.game.lum-glow .scene { filter: brightness(0.22) saturate(0.35) hue-rotate(60deg) !important; }
+
+/* `vue-spider` (§2.2 quirk): that half is subdivided into 4 identical facets.
+   APPROXIMATION — a faceted lens overlay (true 4× re-render needs a compositor). */
+.game.spider-l .scene::before, .game.spider-r .scene::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 50%; z-index: 21;
+  pointer-events: none;
+  background:
+    linear-gradient(#0000 calc(50% - 1px), #000c 50%, #0000 calc(50% + 1px)),
+    linear-gradient(90deg, #0000 calc(50% - 1px), #000c 50%, #0000 calc(50% + 1px));
+  box-shadow: inset 0 0 40px #000a;
+  backdrop-filter: contrast(1.15) brightness(.92);
+}
+.game.spider-l .scene::before { left: 0; }
+.game.spider-r .scene::after  { right: 0; }
+
+/* property markers read by Vue tags (§2.7) */
+.mobwrap.mob-arcane { filter: drop-shadow(0 0 10px #8a5ac8) drop-shadow(0 0 22px #8a5ac866); }
+.mobwrap.mob-thermal-hot  { filter: sepia(.6) saturate(2.2) hue-rotate(-28deg) brightness(1.25); }
+.mobwrap.mob-thermal-cold { filter: saturate(.2) brightness(.55) hue-rotate(160deg); }
+
+/* `vue-couleur`, LATERALISED: a half greys out when its eye lacks colour vision.
+   Half-width overlays desaturate what's behind them (below the black eyeblind). */
+.desat, .desat-l {
+  position: absolute; top: 0; bottom: 0; width: 0; z-index: 19; pointer-events: none;
+  transition: width .4s; -webkit-backdrop-filter: saturate(0); backdrop-filter: saturate(0);
+}
+.desat   { right: 0; }
+.desat-l { left: 0; }
+.game.no-color-r .desat   { width: 50%; }
+.game.no-color-l .desat-l { width: 50%; }
+
 /* ── SensoryFX: Beat pulse vignette ──────────────────────────────────────────
    .beatpulse-overlay sits inside .viewport, fires class bp-fire each beat.
    Intensity scales from 0.12 (ryt=0) to 1.0 (ryt≥15) via --beat-intensity. */

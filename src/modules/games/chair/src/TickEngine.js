@@ -1,7 +1,7 @@
 import { WS, currentFloor } from './WorldState.js';
 import { emit, flush, PRIORITY } from './TriggerBus.js';
 import { generateFloor } from './systems/DungeonGen.js';
-import { roomDef as getRoomDef } from './registry.js';
+import { roomDef as getRoomDef, organResolver } from './registry.js';
 import * as HarvestSystem       from './systems/HarvestSystem.js';
 import * as GraftSystem         from './systems/GraftSystem.js';
 import * as MobGen              from './systems/MobGen.js';
@@ -14,10 +14,15 @@ import * as HungerSystem        from './systems/HungerSystem.js';
 import * as Faculties           from './systems/Faculties.js';
 import { addLog }                from './render/HUDRenderer.js';
 
-// SPEC tick costs: GRAFT=5 ticks in dungeon, REMOVE_ORGAN=0 (amputation gratuite), else=1
-// relic_suture_noire reduces GRAFT to 3. MOVE without legs costs 2.
+// SPEC tick costs: GRAFT = base 5 ticks (relic_suture_noire → 3), then the organ's
+// own compatible/incompatible tags adjust it (floor 1; hyper-compatible → 0).
+// REMOVE_ORGAN=0 (amputation gratuite), else=1. MOVE without legs costs 2.
 function _actionCost(action) {
-  if (action.type === 'GRAFT')           return RelicSystem.graftCost();
+  if (action.type === 'GRAFT') {
+    const item = WS.player.inventory[action.inventoryIndex];
+    const def  = item?.organId ? organResolver(item.organId) : null;
+    return Faculties.graftTicks(def, RelicSystem.graftCost());
+  }
   if (action.type === 'REMOVE_ORGAN')    return 0;
   if (action.type === 'SACRIFICE_ORGAN') return 0;
   if (action.type === 'MOVE') {
@@ -48,18 +53,21 @@ export function processTick(action) {
   _advance(cost);
 
   // Losing your heart (amputation, famine necrosis, a curse…) isn't instant death:
-  // you get ONE tick of grace to graft a replacement. Still heartless on the NEXT
-  // tick → you die. (A heart with a revive ability triggers it first.)
+  // you get ONE tick of grace to graft a replacement (+1 per `second-souffle`
+  // organ). Still heartless past the grace → you die. (A heart with a revive
+  // ability triggers it first.)
   const body = WS.player.body;
   if (body.isAlive()) {
-    WS.player.heartGrace = false;
+    WS.player.heartGraceTicks = 0;
   } else if (!AbilitySystem.checkHeartAbility(body)) {
-    if (WS.player.heartGrace) {
+    const allowed = 1 + (Faculties.has('second-souffle') ? 1 : 0);
+    WS.player.heartGraceTicks = (WS.player.heartGraceTicks ?? 0) + 1;
+    if (WS.player.heartGraceTicks > allowed) {
       emit({ type: 'PLAYER_DIED', source: 'no_heart', target: 'player', data: {}, priority: PRIORITY.MOB });
       flush(PRIORITY.MOB);
     } else {
-      WS.player.heartGrace = true;
-      addLog('💔 Ton cœur n\'est plus — greffe-en un AVANT ta prochaine action, ou tu meurs.', 'death');
+      const left = allowed - WS.player.heartGraceTicks + 1;
+      addLog(`💔 Ton cœur n'est plus — greffe-en un (${left} action${left > 1 ? 's' : ''} restante${left > 1 ? 's' : ''}) ou tu meurs.`, 'death');
     }
   }
 
@@ -82,10 +90,8 @@ export function descend(biomeId, floorIndex) {
 
   const { x: ex, y: ey } = floor.entrance;
   const startRoom = floor.cell(ex, ey);
-  if (startRoom) {
-    startRoom.markVisited();
-    _revealLayout(floor, ex, ey);   // entrance layout follows Lucidité, like every move
-  }
+  if (startRoom) startRoom.markVisited();
+  // No reveal calls: the minimap is computed LIVE from the map/memoire tags.
 
   _scheduleTorchBurn();
 }
@@ -167,26 +173,11 @@ function _movePlayer(dir) {
   const rDef = getRoomDef(target.defId);
   if (rDef?.family === 'safe') LoreSystem.checkRestFound();
 
-  _revealLayout(floor, nx, ny);
-
+  // No reveal: the minimap reads the map/memoire/detection tags LIVE (TDD §2.5).
   // Mobs are pre-spawned at floor generation (MobGen.populateFloor) — nothing to
   // spawn on entry. Combat starts via _updateBattle when the room has active mobs.
 
   return { ok: true };
-}
-
-// Reveal the LAYOUT (corridor shape, not content — that's Ouïe) around a cell.
-// The cell itself is always revealed (you're standing in it); the rings around it
-// are gated on LUCIDITÉ via Faculties.mapRange (0 rooms below 3, 1 at 3, 2 at 4+).
-// No lucidité → you only ever know rooms you've physically visited.
-function _revealLayout(floor, cx, cy) {
-  floor.reveal(cx, cy);
-  let ring = [{ x: cx, y: cy }];
-  for (let step = 0; step < Faculties.mapRange(); step++) {
-    const next = [];
-    for (const c of ring) for (const n of floor.neighbors(c.x, c.y)) { floor.reveal(n.x, n.y); next.push(n); }
-    ring = next;
-  }
 }
 
 // --- Infection (organs infected by La Flore boss lose 1 HP every 10 ticks) ---

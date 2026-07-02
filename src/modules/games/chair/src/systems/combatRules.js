@@ -49,10 +49,23 @@ function passivesOf(body, organResolver, pid) {
   return total;
 }
 export function armorOf(body, organResolver) { return passivesOf(body, organResolver, 'armor'); }
+
+// Gauge-tag count across a body's LIVING organs (pure; tags repeat to stack).
+export function gaugeCount(body, organResolver, tag) {
+  let n = 0;
+  for (const key of livingSlots(body)) {
+    for (const t of organResolver(body.slots[key].organId)?.tags ?? []) if (t === tag) n++;
+  }
+  return n;
+}
+
 export function bloodPool(body, organResolver) {
   const h = body.slots['heart'];
-  if (h?.organId && (h.hp == null || h.hp > 0)) return organResolver(h.organId)?.pool ?? 3;
-  return 3; // a pulse remains even with a wrecked heart
+  const base = (h?.organId && (h.hp == null || h.hp > 0))
+    ? (organResolver(h.organId)?.pool ?? 3)
+    : 3; // a pulse remains even with a wrecked heart
+  // `pompe` gauge: +10% blood per turn per tag, anywhere on the body.
+  return Math.round(base * (1 + 0.1 * gaugeCount(body, organResolver, 'pompe')));
 }
 
 // --- Resource verbs & statuses (see TDD §1) --------------------------------

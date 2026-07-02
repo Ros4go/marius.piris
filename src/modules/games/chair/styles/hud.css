@@ -161,6 +161,8 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .counters .dim { opacity: .35; }
 
 /* ── Minimap ─────────────────────────────────────────────────────────────────── */
+/* No `carte` tag → the whole minimap panel is hidden (spatial blindness). */
+.panel.map-blind { display: none; }
 .map-wrap { position: relative; }
 .compass {
   position: absolute; top: -13px; right: 1px;
@@ -203,6 +205,14 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .mc.p.E::after { content: "▶"; }
 .mc.p.S::after { content: "▼"; }
 .mc.p.W::after { content: "◀"; }
+
+/* map tags (TDD §2.5): no `map` tag → LOCKED, greyed grid, no player marker */
+.mc.g { background: #0f0c0a; opacity: .55; }
+.map.map-locked { filter: saturate(0) brightness(.6); }
+.map.map-locked .mc { background: #14100c; opacity: .5; }
+/* ouie-detection ghost: enemy heard in an UNPREDICTED room → red dotted outline */
+.mc.dq { background: transparent; box-shadow: none; outline: 1px dashed #a3352b; outline-offset: -2px; opacity: .85; }
+.mc.dq::after { opacity: .7; }
 .maplegend {
   font: .52rem var(--mono); color: #4d4233; margin-top: 6px;
   display: flex; justify-content: space-between; letter-spacing: .04em;
@@ -894,8 +904,32 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 }
 #sb-sub.on { opacity: 1; }
 
-/* Echolocation point-cloud — above the darkness overlay so it shows when blind */
+/* ouie-identification-4: fine filter buttons atop the bar */
+#sb-filters {
+  position: absolute; top: -2px; right: 4px; display: flex; gap: 3px; z-index: 2;
+  pointer-events: auto;
+}
+.sb-flt {
+  width: 17px; height: 15px; padding: 0; line-height: 1; font-size: 9px;
+  background: #120d0a; border: 1px solid #3a2e20; border-radius: 2px;
+  color: #4a4234; cursor: pointer; opacity: .75;
+}
+.sb-flt.on { color: #8a7658; border-color: #5a4a34; }
+.sb-flt:hover { opacity: 1; }
+
+/* Echolocation shaders — echolocation-3 (scene, above darkness) and -4 (over ALL) */
 #echo-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 22; pointer-events: none; }
+#echo-ui-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9999; pointer-events: none; }
+#echo-toggle {
+  position: absolute; bottom: 8px; right: 8px; z-index: 40; width: 26px; height: 26px;
+  background: #0f0b08; border: 1px solid #3a2e20; border-radius: 50%;
+  color: #4a6a64; font-size: 13px; cursor: pointer; opacity: .8;
+}
+#echo-toggle.on { color: #78e0d6; border-color: #4a8a80; box-shadow: 0 0 8px #78e0d655; }
+
+/* plan-anticipation: next-turn line in the telegraph, dimmed */
+.mi.mi-next { opacity: .55; font-size: .88em; }
+.mi.mi-next em { font-style: normal; }
 .ccard {
   pointer-events: auto; touch-action: none; cursor: grab; user-select: none;
   position: relative; width: 148px; min-height: 196px;

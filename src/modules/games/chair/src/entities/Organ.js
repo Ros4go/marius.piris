@@ -31,9 +31,7 @@ export class Organ {
   get skill()     { return this._def.skill ?? this._def.skills?.[0] ?? null; }
   get passive()   { return this._def.passive ?? this._def.passives?.[0] ?? null; }
   get produces()  { return this._def.produces ?? []; }     // turn-start resource production
-  get senses()    { return this._def.senses ?? {}; }       // faculty contributions (vue/ouie/lucidite/digestion)
-  get keywords()  { return this._def.keywords ?? []; }     // special perception keywords
-  get sonorite()  { return this._def.sonorite ?? 0; }      // noise this organ emits (Sonorité)
+  get tags()      { return this._def.tags ?? []; }         // perception & property tags (TDD §2)
   get abilities() { return this._def.abilities ?? []; }
   get triggers()  { return this._def.triggers ?? []; }
   get flaw()      { return this._def.flaw ?? null; }

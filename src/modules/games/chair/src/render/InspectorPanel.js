@@ -5,7 +5,7 @@
 import { organResolver, relic as getRelic } from '../registry.js';
 import { WS } from '../WorldState.js';
 import * as Blood from '../BattleEngine.js';
-import { SLOT_FULL, TYPE_NOUN } from '../labels.js';
+import { SLOT_FULL, TYPE_NOUN, TAG_FR } from '../labels.js';
 
 const _content = document.getElementById('insp-content');
 const TIER_FR = { common: 'commun', rare: 'rare', epic: 'épique', legendary: 'légendaire' };
@@ -85,7 +85,22 @@ export function showOrgan(organId, currentHp, slotKey, onBack) {
     if (sk.desc) body += _desc(sk.desc, 'insp-dim');
   }
 
-  // Passives — label + description.
+  // Tags — descriptions GENERATED from the tag vocabulary (labels.js TAG_FR).
+  // Gauge tags collapse to one line with their count (`digestion ×5 → +50%`).
+  const tagCounts = new Map();
+  for (const t of def.tags ?? []) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+  if (tagCounts.size) {
+    body += '<div class="ins-section-head">Tags</div>';
+    for (const [t, n] of tagCounts) {
+      const fr = TAG_FR[t];
+      if (!fr) { body += _desc(`${t}${n > 1 ? ` ×${n}` : ''}`, 'insp-dim'); continue; }
+      const head = `<b>${fr.label}</b>${n > 1 ? ` ×${n}` : ''}`;
+      const txt = fr.gauge ? `${head} — ${fr.gauge}${n > 1 ? ` (total ${n * 10} %)` : ''}` : `${head} — ${fr.desc}`;
+      body += _desc(txt, 'insp-dim');
+    }
+  }
+
+  // Passives — only MECHANICAL ones remain in the data (Pompe, Cuir…).
   for (const p of def.passives ?? []) {
     body += `<div class="ins-section-head">Passif — ${p.label ?? PASSIVE_FR[p.id] ?? p.id}</div>`;
     if (p.desc) body += _desc(p.desc, 'insp-dim');

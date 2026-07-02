@@ -10,7 +10,7 @@ import * as CR from './systems/combatRules.js';
 import * as HungerSystem from './systems/HungerSystem.js';
 import * as Faculties from './systems/Faculties.js';
 
-const _weak = () => getBalance().weakPoint ?? { revealPalier: 3, bonus: 3 };
+const _weak = () => getBalance().weakPoint ?? { bonus: 3 };
 
 let _onChange = null;   // UI refresh callback
 let _onEnd    = null;   // called when combat ends
@@ -19,7 +19,8 @@ let _onLog    = null;   // (text, cls) => void
 export const state = {
   active:    false,
   pstate:    null,       // { blood, protection, regen, frenesie, empower, onceUsed, usedThisTurn, meat, onOrganKillBlood }
-  plans:     {},         // mobId → [ telegraphed actions ]
+  plans:     {},         // mobId → [ telegraphed actions ] (this turn)
+  plansNext: {},         // mobId → next turn's plan (read via `plan-anticipation`)
   targetMobId: null,
   targetSlot:  null,
   turn:        0,
@@ -40,6 +41,7 @@ export function start(onChange, onEnd, onLog) {
   const body = WS.player.body;
   state.active = true;
   state.turn = 1;
+  state.plansNext = {};   // never inherit a previous combat's queued plans
   state.pstate = {
     blood: Math.max(0, CR.bloodPool(body, organResolver) - HungerSystem.bloodPenalty()),
     protection: 0, regen: HungerSystem.regenBonus(), frenesie: 0,
@@ -130,8 +132,13 @@ export function targetable(mobId, pierce = false) {
 }
 
 export function enemies() { return _activeMobs(); }
-// The mob's full telegraphed plan for next turn (array of actions; [] if none).
+// The mob's full telegraphed plan for this turn (array of actions; [] if none).
 export function telegraphOf(mobId) { return state.plans[mobId] ?? []; }
+// NEXT turn's plan — only readable with `plan-anticipation` (+ a sense channel).
+export function telegraphNextOf(mobId) {
+  if (!Faculties.has('plan-anticipation') || !Faculties.planActive()) return [];
+  return state.plansNext[mobId] ?? [];
+}
 
 export function setTarget(mobId, slotKey) {
   state.targetMobId = mobId;
@@ -224,11 +231,18 @@ export function logEvents(events) { _emitEvents(events); }
 
 // --- Internals -------------------------------------------------------------
 
+// Mobs plan ONE TURN AHEAD: this turn's plan is last turn's "next" (so what
+// `plan-anticipation` showed you is exactly what happens), and a fresh next-turn
+// plan is queued. Both are always computed → same rng consumption for everyone.
 function _retelegraphAll() {
   state.plans = {};
   for (const m of _activeMobs()) {
-    state.plans[m.id] = CR.chooseMobPlan(m, WS.player.body, organResolver, rng);
+    state.plans[m.id] = state.plansNext[m.id] ?? CR.chooseMobPlan(m, WS.player.body, organResolver, rng);
     m._weakSpot = _pickWeakSpot(m);   // rotates each turn
+  }
+  state.plansNext = {};
+  for (const m of _activeMobs()) {
+    state.plansNext[m.id] = CR.chooseMobPlan(m, WS.player.body, organResolver, rng);
   }
 }
 
@@ -237,8 +251,9 @@ function _pickWeakSpot(mob) {
   return t.length ? t[Math.floor(rng() * t.length)] : null;
 }
 
-// The weak point is only revealed (and only deals its bonus) at high Lucidité.
-export function weakRevealed() { return Faculties.luciditePalier() >= _weak().revealPalier; }
+// The weak point is only revealed (and only deals its bonus) with `plan-faille` —
+// which, like every plan tag, needs a SENSE channel (vue or ouïe) to reach you.
+export function weakRevealed() { return Faculties.has('plan-faille') && Faculties.planActive(); }
 export function weakSpotOf(mobId) { return WS.mobs.get(mobId)?._weakSpot ?? null; }
 
 function _killMob(mob) {
