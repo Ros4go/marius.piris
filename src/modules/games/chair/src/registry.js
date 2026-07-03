@@ -24,7 +24,7 @@ const DEFAULT_BALANCE = {
   hunger: { start: 90, max: 120, decayPerTick: 1,
             thresholds: { gave: 106, rassasie: 76, creux: 56, faim: 36, affame: 16 },
             famineDamageEvery: 4, famineDamage: 1,
-            vomitEvery: 5, vomitChance: 0.55, dechetChance: 0.1, dechetValue: 45,
+            vomitEvery: 5, vomitChance: 0.55, dechetChance: 0.1,
             eatSatiety: 34, eatRegen: 4,
             dmgMod: { gave: 0, rassasie: 1, creux: 0, faim: -1, affame: -1, famine: -2 },
             bloodPen: { affame: 1, famine: 2 },
@@ -147,7 +147,7 @@ function _validateBiome(def) {
 }
 
 function _validateRoom(def) {
-  const req = ['id','family','ui','weight'];
+  const req = ['id','weight'];
   for (const f of req) {
     if (def[f] === undefined) throw new Error(`Room "${def.id}" missing field: ${f}`);
   }

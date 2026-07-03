@@ -1,17 +1,20 @@
 // First-person room view. Reads WS + floor geometry — never writes.
 
 import { WS, currentFloor, currentRoom } from '../WorldState.js';
+import { biome as getBiomeData, roomDef } from '../registry.js';
+import { setScene } from './ViewportDOM.js';
 
+// Sockets (stables, hors décor) — capturés une fois.
 const _app   = document.querySelector('.game');
-const _end   = document.getElementById('scene-end');
-const _wl    = document.getElementById('scene-wl');
-const _wr    = document.getElementById('scene-wr');
 const _exitL = document.getElementById('exit-l');
 const _exitR = document.getElementById('exit-r');
 const _exitF = document.getElementById('exit-f');
 const _exitB = document.getElementById('exit-b');
 const _pit   = document.getElementById('floor-pit');
 const _gore  = document.getElementById('gore');
+
+// Éléments du DÉCOR (recréés à chaque changement de scène) — lookup paresseux.
+const _decorEl = (id) => document.getElementById(id);
 
 function _hash(s) {
   let h = 0;
@@ -22,12 +25,32 @@ function _hash(s) {
 const DIR_ORDER = ['N', 'E', 'S', 'W'];
 const DIR_DELTA = { N:{dx:0,dy:-1}, E:{dx:1,dy:0}, S:{dx:0,dy:1}, W:{dx:-1,dy:0} };
 
+// Couleurs du biome (biomes.json = source unique) posées en variables CSS sur
+// .game. Partagé : appelé par render() ici, utilisé par le jeu ET l'atelier.
+export function applyBiomePalette(biomeId) {
+  const p = getBiomeData(biomeId)?.palette;
+  if (!_app || !p) return;
+  _app.dataset.biome = biomeId;
+  const map = { '--meat': p.meat, '--blood': p.blood, '--thread': p.thread, '--torch': p.torch, '--torch-hot': p.torchHot };
+  for (const [k, v] of Object.entries(map)) if (v) _app.style.setProperty(k, v);
+}
+
+// Quelle scène de décor pour cette salle : override de la salle (rooms.json
+// "scene"), sinon défaut du biome (biomes.json "scene"), sinon le couloir.
+function _resolveScene(floor, room) {
+  return roomDef(room.defId)?.scene
+      ?? getBiomeData(floor.biomeId)?.scene
+      ?? 'gorge_couloir';
+}
+
 export function render() {
   const floor = currentFloor();
   const room  = currentRoom();
 
-  if (floor?.biomeId) _app.dataset.biome = floor.biomeId;
+  if (floor?.biomeId) applyBiomePalette(floor.biomeId);
   if (!floor || !room) return;
+
+  setScene(_resolveScene(floor, room));
 
   const { x, y } = WS.player.pos;
   const dir   = WS.player.dir ?? 'S';
@@ -41,8 +64,10 @@ export function render() {
   const hasBack  = !!floor.cell(x - fwd.dx,   y - fwd.dy);
 
   // Walls stay solid; passages are shown as explicit glowing archways instead.
-  _wl.style.opacity = '1';
-  _wr.style.opacity = '1';
+  // (_wl/_wr/_end appartiennent au décor gorge — lookup paresseux, absents ailleurs.)
+  const wl = _decorEl('scene-wl'), wr = _decorEl('scene-wr'), end = _decorEl('scene-end');
+  if (wl) wl.style.opacity = '1';
+  if (wr) wr.style.opacity = '1';
   _exitL?.classList.toggle('open', hasLeft);
   _exitR?.classList.toggle('open', hasRight);
   _exitF?.classList.toggle('open', hasFwd);
@@ -71,8 +96,7 @@ export function render() {
 
   // Back wall stays a plain textured wall; the forward door is the exit-f overlay.
   // (No red combat tint here — it read as a glowing path, not a wall.)
-  _end.style.opacity = '1';
-  _end.style.filter = '';
+  if (end) { end.style.opacity = '1'; end.style.filter = ''; }
 }
 
 function _rotate(dir, step) {

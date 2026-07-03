@@ -697,23 +697,8 @@ function render() {
   BodyFX.apply();
   SensoryFX.applyBodyState();
 
-  const _curFloor = WS.floors[WS.player.floorIdx];
-  if (_curFloor) {
-    const _app = document.getElementById('chair-app');
-    if (_app) {
-      _app.dataset.biome = _curFloor.biomeId;
-      _applyBiomePalette(_app, _curFloor.biomeId);
-    }
-  }
-}
-
-// Drive the biome colours from biomes.json (the single source of truth) by
-// writing the palette onto the game element's CSS custom properties.
-function _applyBiomePalette(el, biomeId) {
-  const p = getBiomeData(biomeId)?.palette;
-  if (!p) return;
-  const map = { '--meat': p.meat, '--blood': p.blood, '--thread': p.thread, '--torch': p.torch, '--torch-hot': p.torchHot };
-  for (const [k, v] of Object.entries(map)) if (v) el.style.setProperty(k, v);
+  // Palette biome : appliquée par SceneRenderer.applyBiomePalette (source unique),
+  // déjà déclenchée par SceneRenderer.render() en tête de cette fonction.
 }
 
 // ── Combat hand (drag-and-drop cards) ──────────────────────────────────────────
@@ -856,19 +841,6 @@ function _openHarvestUI() {
         _openHarvestUI();
       });
       body.appendChild(btn);
-
-      // …or DEVOUR it on the spot: fills hunger + regens (quality scales with your stomach)
-      const eatBtn = document.createElement('button');
-      eatBtn.className = 'dealbtn';
-      eatBtn.style.cssText = 'border-color:#3a5a2a';
-      eatBtn.innerHTML = `🍖 Manger ${def.name} <em style="font-variant:normal;font-size:.6em;color:var(--bone)">remplit la faim + régén</em>`;
-      eatBtn.addEventListener('click', () => {
-        HungerSystem.eat(organId);
-        cad.body.removeOrgan(slotKey);
-        _openHarvestUI();
-        render();
-      });
-      body.appendChild(eatBtn);
     }
   }
 

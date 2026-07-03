@@ -1,31 +1,34 @@
 // Reads equipped organs → applies/removes CSS classes on .game and .scene.
-// Per-eye support: eye_l dead → .eye-l-dead, eye_r dead → .eye-r-dead
-// Organ overlays: applied to .scene with bfx-* class names matching scene.css
-// HUM visual tiers: .hm-low (HUM<75), .hm-mid (HUM<50), .hm-vlow (HUM<25), .hm-critical (HUM<5)
+// Les visuels PAR TAG (moitié noire de vue, désaturation de vue-couleur, pénombre
+// de vue-nocturne, facettes de vue-spider…) sont définis en DATA dans tags.json
+// ("visuel", modes present/absent) et posés par TagFX.apply() en queue — ici ne
+// restent que les états d'ORGANES (cœur, jambes, overlays fx.json) et les
+// synthèses multi-sources (no-eye, teintes lum-* liées à la torche).
 
 import { WS } from '../WorldState.js';
 import { organResolver } from '../registry.js';
 import * as Faculties from '../systems/Faculties.js';
+import * as FXSystem from './FXSystem.js';
+import * as TagFX from './TagFX.js';
 
-const _game  = document.querySelector('.game');
-const _scene = document.querySelector('.scene');
+// Capture PARESSEUSE : le DOM du viewport peut être injecté après l'import
+// du module (ViewportDOM.build), donc pas de querySelector au chargement.
+let _gameEl = null, _sceneEl = null;
+const gameEl  = () => (_gameEl  ??= document.querySelector('.game'));
+const sceneEl = () => (_sceneEl ??= document.querySelector('.scene'));
 
-// Classes managed on .game
-const GAME_MANAGED = ['no-eye', 'eye-l-dead', 'eye-r-dead', 'eye-l-dim', 'eye-r-dim', 'no-color-l', 'no-color-r',
-                      'limp', 'heart-alive', 'lum-out', 'lum-night', 'lum-glow', 'spider-l', 'spider-r'];
+// Classes managed on .game (celles des tags — eye-*-dead/dim, no-color-*, spider-* —
+// appartiennent à TagFX qui gère son propre diff)
+const GAME_MANAGED = ['no-eye', 'limp', 'heart-alive', 'lum-out', 'lum-night', 'lum-glow'];
 
-// Organ overlay → CSS class on .scene (matches scene.css bfx-* rules)
-const OVERLAY_FX = {
-  'hex-fragment': 'bfx-hex-frag',
-  'lich-pulse':   'bfx-lich-pulse',
-  'spider-crawl': 'bfx-spider-crawl',
-  'stone-crack':  'bfx-stone-crack',
-};
-const OVERLAY_CLASSES = Object.values(OVERLAY_FX);
+// Organ overlay → CSS class on .scene : mapping en data (fx.json "overlays")
+const OVERLAY_CLASSES = FXSystem.OVERLAY_CLASSES;
 
 export function apply() {
   const body = WS.player.body;
   if (!body) return;
+  const _game  = gameEl();
+  const _scene = sceneEl();
 
   // Reset all managed classes
   for (const c of GAME_MANAGED)  _game?.classList.remove(c);
@@ -37,34 +40,21 @@ export function apply() {
 
     if (slotKey === 'legs' && !alive) _game?.classList.add('limp');
 
-    // Organ overlay FX on scene
+    // Organ overlay FX on scene (mapping data : fx.json "overlays")
     if (alive && slot) {
       const def = organResolver(slot.organId);
-      const cls = OVERLAY_FX[def?.visual?.overlay];
+      const cls = FXSystem.overlayClass(def?.visual?.overlay);
       if (cls) _scene?.classList.add(cls);
     }
   }
 
-  // Per-side VUE (tags): no `vue` on that side = dark half; `vue` but no light
-  // (torch out, no `vue-nocturne` there) = penumbra; lit or night-sighted = clear.
-  const lit = (WS.light?.current ?? 1.0) > 0;
+  // Vision par côté : moitié noire (vue absente), pénombre (vue-nocturne absente la
+  // nuit), désaturation (vue-couleur absente), facettes (vue-spider) — tout est en
+  // DATA (tags.json "visuel", modes present/absent), posé par TagFX.apply() en queue.
+  // Ne reste ici que la synthèse no-eye (les DEUX canaux morts à la fois).
   const seesL = Faculties.hasOn('vue', 'gauche');
   const seesR = Faculties.hasOn('vue', 'droite');
-  if (!seesL)                                                    _game?.classList.add('eye-l-dead');
-  else if (!(lit || Faculties.hasOn('vue-nocturne', 'gauche')))  _game?.classList.add('eye-l-dim');
-  if (!seesR)                                                    _game?.classList.add('eye-r-dead');
-  else if (!(lit || Faculties.hasOn('vue-nocturne', 'droite')))  _game?.classList.add('eye-r-dim');
   if (!seesL && !seesR) _game?.classList.add('no-eye');
-
-  // Colour vision, LATERALISED: each half reads in greyscale unless an eye on that
-  // side carries `vue-couleur` (a monochrome eye greys its own half).
-  if (seesL && !Faculties.hasOn('vue-couleur', 'gauche')) _game?.classList.add('no-color-l');
-  if (seesR && !Faculties.hasOn('vue-couleur', 'droite')) _game?.classList.add('no-color-r');
-
-  // `vue-spider` quirk: that half is subdivided into 4 identical facets (visual
-  // approximation — a faceted lens overlay; a true 4× re-render needs a compositor).
-  if (Faculties.hasOn('vue-spider', 'gauche')) _game?.classList.add('spider-l');
-  if (Faculties.hasOn('vue-spider', 'droite')) _game?.classList.add('spider-r');
 
   // `luminescent`/`sombre` net light (§2.7): stored for future stealth; a net
   // NEGATIVE glow converts into invisibility stacks on the player (inert for now).
@@ -86,4 +76,8 @@ export function apply() {
   if ((WS.light?.current ?? 1.0) <= 0) {
     _game?.classList.add(Faculties.has('vue-nocturne') ? 'lum-night' : light > 0 ? 'lum-glow' : 'lum-out');
   }
+
+  // Primitives DATA des tags (tags.json "visuel"/"sonore") — classes, filtres par
+  // côté, shaders custom. Gère son propre diff, ne touche pas à GAME_MANAGED.
+  TagFX.apply();
 }

@@ -11,6 +11,7 @@
 import { WS, currentRoom } from '../WorldState.js';
 import * as Faculties from '../systems/Faculties.js';
 import * as MobRenderer from './MobRenderer.js';
+import * as TagFX from './TagFX.js';
 
 let _canvas, _ctx;          // scene-level canvas (above darkness, below UI)
 let _uiCanvas, _uiCtx;      // viewport-level canvas (above EVERYTHING)
@@ -66,12 +67,14 @@ function _loop(ts) {
   _btn.style.display = any4 ? '' : 'none';
   if (!any4) _uiOn = false;
 
+  // Paramètres du shader définis en DATA (tags.json echolocation-3 "visuel.shader")
+  const P = TagFX.echoParams();
   const level = _soundLevel();
   if (t3.gauche || t3.droite) {
-    _dotField(_ctx, _canvas, ts, level, t3);
-    _mobClouds(_ctx, _canvas, ts);
+    _dotField(_ctx, _canvas, ts, level, t3, false, P);
+    _mobClouds(_ctx, _canvas, ts, P);
   }
-  if (_uiOn && any4) _dotField(_uiCtx, _uiCanvas, ts, level * 1.2, t4, true);
+  if (_uiOn && any4) _dotField(_uiCtx, _uiCanvas, ts, level * P.uiNiveauMult, t4, true, P);
 
   _lastTs = ts;
   requestAnimationFrame(_loop);
@@ -85,13 +88,13 @@ function _fit(c) {
 
 // The dotted field: a sparse pseudo-random grid whose alive fraction ∝ sound.
 // Deterministic per cell (hash) so dots shimmer in place instead of boiling.
-function _dotField(ctx, canvas, ts, level, sideOk, ui = false) {
+function _dotField(ctx, canvas, ts, level, sideOk, ui = false, P = TagFX.echoParams()) {
   const W = canvas.width, H = canvas.height;
   if (!W || !H) return;
   const tSec = ts / 1000;
-  const step = ui ? 26 : 18;
-  const density = Math.min(0.85, 0.06 + level * 0.13);   // fraction of cells lit
-  ctx.fillStyle = ui ? 'rgba(120,224,214,0.5)' : 'rgba(120,224,214,0.30)';
+  const step = ui ? P.stepUI : P.stepScene;
+  const density = Math.min(P.densiteMax, P.densiteBase + level * P.densiteParNiveau);   // fraction of cells lit
+  ctx.fillStyle = `rgba(${P.couleur},${ui ? P.alphaUI : P.alphaScene})`;
   for (let gy = 0; gy < H; gy += step) {
     for (let gx = 0; gx < W; gx += step) {
       const side = gx < W / 2 ? 'gauche' : 'droite';
@@ -109,7 +112,7 @@ function _dotField(ctx, canvas, ts, level, sideOk, ui = false) {
 }
 
 // Dense point-clouds hugging each sound-emitting mob (the old sonar silhouettes).
-function _mobClouds(ctx, canvas, ts) {
+function _mobClouds(ctx, canvas, ts, P = TagFX.echoParams()) {
   const vp = canvas.getBoundingClientRect();
   const tSec = ts / 1000;
   const room = currentRoom();
@@ -127,12 +130,13 @@ function _mobClouds(ctx, canvas, ts) {
     const cy = r.top + r.height / 2 - vp.top;
     const rw = r.width * 0.6, rh = r.height * 0.58;
     const ping = 0.5 + 0.5 * Math.sin(tSec * 2.4 + id.length);
-    for (let i = 0; i < 52; i++) {
-      const a  = (i / 52) * Math.PI * 2 + tSec * 0.25;
+    const N = P.nuageMob.points;
+    for (let i = 0; i < N; i++) {
+      const a  = (i / N) * Math.PI * 2 + tSec * 0.25;
       const rr = 0.55 + 0.45 * Math.sin(i * 3.3 + tSec * 2);
-      ctx.fillStyle = `rgba(120,224,214,${(0.22 + 0.32 * ping).toFixed(3)})`;
+      ctx.fillStyle = `rgba(${P.couleur},${(P.nuageMob.alphaBase + P.nuageMob.alphaPing * ping).toFixed(3)})`;
       ctx.beginPath();
-      ctx.arc(cx + Math.cos(a) * rw * rr, cy + Math.sin(a) * rh * rr, 1.6, 0, Math.PI * 2);
+      ctx.arc(cx + Math.cos(a) * rw * rr, cy + Math.sin(a) * rh * rr, P.nuageMob.rayon, 0, Math.PI * 2);
       ctx.fill();
     }
   }

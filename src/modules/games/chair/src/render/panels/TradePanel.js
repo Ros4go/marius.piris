@@ -2,6 +2,7 @@ import { WS } from '../../WorldState.js';
 import { allOrgans, organResolver, relic as getRelic } from '../../registry.js';
 import { addLog } from '../HUDRenderer.js';
 import { inventoryCapacity } from '../../WorldState.js';
+import { spriteStyle, spriteCalques } from '../InventoryRenderer.js';
 
 export function render(container, room, options = {}) {
   const { onRender } = options;
@@ -38,7 +39,7 @@ export function render(container, room, options = {}) {
       const btn          = document.createElement('button');
       btn.className      = 'ware' + (!canAfford || full ? ' off' : '');
       btn.disabled       = !canAfford || full;
-      btn.innerHTML      = `<span class="ware-ic ${_icClass(def.type)}"></span>
+      btn.innerHTML      = `<span class="ware-ic ${_icClass(def.type)}" style="${spriteStyle(def.sprite, false)}">${spriteCalques(def.sprite)}</span>
                             <span class="ware-n">${def.name} <em>· ${def.tier}</em></span>
                             <span class="ware-p">${price}</span>`;
       btn.addEventListener('click', () => {
@@ -62,32 +63,15 @@ export function render(container, room, options = {}) {
   // Sell from besace
   if (WS.player.inventory.length) {
     WS.player.inventory.forEach((item, idx) => {
-      // Déchet organique — sells at its full listed value.
-      if (item.dechet) {
-        const price = item.value ?? 40;
-        const btn = document.createElement('button');
-        btn.className = 'ware sell';
-        btn.innerHTML = `<span class="ware-ic dechet"></span>
-                         <span class="ware-n">Déchet organique</span>
-                         <span class="ware-p sell">+${price}</span>`;
-        btn.addEventListener('click', () => {
-          WS.player.gold += price;
-          WS.player.inventory.splice(idx, 1);
-          addLog(`Vendu : déchet organique +${price}💀.`, 'sys');
-          onRender?.();
-        });
-        sellScroll.appendChild(btn);
-        return;
-      }
-
       // Relics are sellable too — flat half of their listed price.
+      // (Le Déchet organique du système de faim est une relique inerte : il passe ici.)
       if (item.relicId) {
         const rdef = getRelic(item.relicId);
         if (!rdef) return;
         const price = Math.round((rdef.price ?? 60) * 0.5);
         const btn   = document.createElement('button');
         btn.className = 'ware sell';
-        btn.innerHTML = `<span class="ware-ic relic"></span>
+        btn.innerHTML = `<span class="ware-ic relic" style="${spriteStyle(rdef.sprite, false)}">${spriteCalques(rdef.sprite)}</span>
                          <span class="ware-n">✦ ${rdef.name}</span>
                          <span class="ware-p sell">+${price}</span>`;
         btn.addEventListener('click', () => {
@@ -106,7 +90,7 @@ export function render(container, room, options = {}) {
       const price   = def.getSellPrice ? def.getSellPrice(item.hp ?? def.maxHp) : Math.round((def.price ?? 20) * 0.5);
       const btn     = document.createElement('button');
       btn.className = 'ware sell';
-      btn.innerHTML = `<span class="ware-ic ${_icClass(def.type)}"></span>
+      btn.innerHTML = `<span class="ware-ic ${_icClass(def.type)}" style="${spriteStyle(def.sprite, false)}">${spriteCalques(def.sprite)}</span>
                        <span class="ware-n">${def.name} <em>${quality.name}</em></span>
                        <span class="ware-p sell">+${price}</span>`;
       btn.addEventListener('click', () => {

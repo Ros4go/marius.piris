@@ -1,0 +1,71 @@
+/* ═══ LES POUMONS — alvéoles concentriques, respiration (DA proto v5) ═══ */
+
+[data-scene="poumons_alveoles"] .lung-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 46% 52% at 50% 50%,#2a464d 0%,#16292f 30%,#0a161a 60%,#040b0d 100%)}
+
+[data-scene="poumons_alveoles"] .alvring{position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);border-radius:50%;background:transparent;
+  animation:pou-breath var(--scene-tempo,6.5s) ease-in-out infinite}
+@keyframes pou-breath{50%{transform:translate(-50%,-50%) scale(1.02)}}
+[data-scene="poumons_alveoles"] .alvring.near{width:118%;height:124%;
+  background:
+    radial-gradient(circle at 50% 2%,#3a5d66 0 6%,#16282e 6.4% 11%,transparent 11.4%),
+    radial-gradient(circle at 84% 12%,#36585f 0 5.4%,#15262b 5.8% 10%,transparent 10.4%),
+    radial-gradient(circle at 98% 42%,#3a5d66 0 6.2%,#16282e 6.6% 11.4%,transparent 11.8%),
+    radial-gradient(circle at 88% 78%,#33545d 0 5.6%,#142329 6% 10.4%,transparent 10.8%),
+    radial-gradient(circle at 52% 96%,#2e4d55 0 6%,#11201f 6.4% 11%,transparent 11.4%),
+    radial-gradient(circle at 14% 80%,#33545d 0 5.6%,#142329 6% 10.4%,transparent 10.8%),
+    radial-gradient(circle at 2% 44%,#3a5d66 0 6.2%,#16282e 6.6% 11.4%,transparent 11.8%),
+    radial-gradient(circle at 14% 12%,#36585f 0 5.4%,#15262b 5.8% 10%,transparent 10.4%);
+  filter:drop-shadow(0 3px 6px #0009)}
+[data-scene="poumons_alveoles"] .alvring.mid{width:74%;height:78%;animation-delay:.4s;
+  background:
+    radial-gradient(circle at 50% 4%,#2e4f57 0 4.6%,#101f24 5% 8.6%,transparent 9%),
+    radial-gradient(circle at 86% 24%,#2a474e 0 4.2%,#0e1c20 4.6% 8%,transparent 8.4%),
+    radial-gradient(circle at 92% 64%,#2e4f57 0 4.4%,#101f24 4.8% 8.4%,transparent 8.8%),
+    radial-gradient(circle at 60% 94%,#284149 0 4.6%,#0d1a1d 5% 8.6%,transparent 9%),
+    radial-gradient(circle at 16% 80%,#2a474e 0 4.2%,#0e1c20 4.6% 8%,transparent 8.4%),
+    radial-gradient(circle at 6% 40%,#2e4f57 0 4.4%,#101f24 4.8% 8.4%,transparent 8.8%),
+    radial-gradient(circle at 16% 12%,#284149 0 4%,#0d1a1d 4.4% 7.6%,transparent 8%);
+  filter:blur(.4px) drop-shadow(0 2px 4px #0008);opacity:.92}
+[data-scene="poumons_alveoles"] .alvring.far{width:42%;height:46%;animation-delay:.8s;
+  background:
+    radial-gradient(circle at 50% 8%,#223c43 0 4%,#0c181c 4.4% 7.4%,transparent 7.8%),
+    radial-gradient(circle at 84% 40%,#1f3940 0 3.6%,#0a161a 4% 6.8%,transparent 7.2%),
+    radial-gradient(circle at 64% 90%,#223c43 0 3.8%,#0c181c 4.2% 7.2%,transparent 7.6%),
+    radial-gradient(circle at 14% 64%,#1f3940 0 3.6%,#0a161a 4% 6.8%,transparent 7.2%),
+    radial-gradient(circle at 16% 18%,#1d363d 0 3.2%,#091418 3.6% 6.2%,transparent 6.6%);
+  filter:blur(.7px);opacity:.85}
+
+/* le passage : trou sombre central vers lequel on avance */
+[data-scene="poumons_alveoles"] .lung-passage{position:absolute;left:50%;top:47%;
+  transform:translate(-50%,-50%);width:26%;height:30%;border-radius:50%;
+  background:radial-gradient(circle at 50% 44%,#16292f 0%,#0a171b 46%,#040c0e 80%,#02080a 100%);
+  box-shadow:inset 0 0 26px #000,0 0 22px #0009,inset 0 5px 14px #6fb0c41f;
+  animation:pou-breath var(--scene-tempo,6.5s) ease-in-out infinite}
+[data-scene="poumons_alveoles"] .lung-passage::after{content:"";position:absolute;left:50%;top:52%;
+  transform:translate(-50%,-50%);width:42%;height:34%;border-radius:50%;
+  background:radial-gradient(circle,#03090a,#010506);box-shadow:0 0 14px #000}
+
+[data-scene="poumons_alveoles"] .lung-floor{position:absolute;left:8%;right:8%;bottom:0;height:26%;
+  z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 70% 100% at 50% 100%,#2a474e88,#0e1c2055 45%,transparent 75%);
+  mix-blend-mode:screen;opacity:.5}
+
+[data-scene="poumons_alveoles"] .spore{position:absolute;width:5px;height:5px;border-radius:50%;
+  background:#a6dcea;box-shadow:0 0 6px #6fb0c4;opacity:.5;animation:pou-drift 9s linear infinite;z-index:2}
+@keyframes pou-drift{0%{transform:translateY(20px) translateX(0);opacity:0}
+  20%{opacity:.6}80%{opacity:.5}100%{transform:translateY(-60px) translateX(12px);opacity:0}}
+[data-scene="poumons_alveoles"] .sp1{left:30%;top:58%}
+[data-scene="poumons_alveoles"] .sp2{left:60%;top:52%;animation-delay:2s}
+[data-scene="poumons_alveoles"] .sp3{left:46%;top:64%;animation-delay:4s}
+[data-scene="poumons_alveoles"] .sp4{left:66%;top:60%;animation-delay:1s;width:4px;height:4px}
+[data-scene="poumons_alveoles"] .sp5{left:36%;top:50%;animation-delay:6s;width:3px;height:3px}
+[data-scene="poumons_alveoles"] .sp6{left:54%;top:56%;animation-delay:3.5s}
+
+[data-scene="poumons_alveoles"] .windgust{position:absolute;inset:0;pointer-events:none;
+  mix-blend-mode:screen;opacity:0;z-index:2;
+  background:linear-gradient(100deg,transparent 30%,#6fb0c41f 50%,transparent 70%);
+  animation:pou-gust 7s ease-in-out infinite}
+@keyframes pou-gust{0%,70%,100%{opacity:0;transform:translateX(-20%)}
+  82%{opacity:1;transform:translateX(0)}92%{opacity:0;transform:translateX(20%)}}

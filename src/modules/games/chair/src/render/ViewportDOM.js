@@ -1,0 +1,190 @@
+// ViewportDOM — SOURCE UNIQUE du squelette DOM du viewport première personne.
+// Consommé par index.html (jeu) ET tools/view-sandbox.html (atelier).
+//
+// Architecture scènes (DA proto v5) :
+//   .scene = [ .scene-decor (interchangeable, content/scenes.json) ]
+//          + [ SOCKETS moteur, fixes : gore, exits, pit, mob-display,
+//              torchlight/darkness, desat, eyeblind, npc-figure ]
+// setScene(id) échange le décor sans toucher aux sockets — MobRenderer,
+// RoomPanel, SensoryFX continuent de fonctionner dans n'importe quelle scène.
+
+import SCENES from '../../content/scenes.json';
+
+export function sceneDefs() { return SCENES; }
+
+// ── Sockets standards : TOUT ce que le moteur cible par id/classe ────────────
+const SOCKETS_HTML = `
+        <!-- Gore (La Gorge only): ONE rare prop per room, chosen by SceneRenderer -->
+        <div class="gore" id="gore" data-prop="none" aria-hidden="true">
+          <svg class="gore-defs" width="0" height="0"><defs>
+            <linearGradient id="flesh" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#6a201f"/><stop offset=".55" stop-color="#8a3330"/><stop offset="1" stop-color="#360f10"/>
+            </linearGradient>
+            <linearGradient id="bone" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#bcae8c"/><stop offset="1" stop-color="#574b39"/>
+            </linearGradient>
+          </defs></svg>
+
+          <div class="blood-pool"></div>
+
+          <!-- organic gore (stretches with the room): a tight hanging cluster + wall splatter -->
+          <svg class="gore-organic" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <g class="gp gp-guts" fill="none" stroke="url(#flesh)" stroke-linecap="round">
+              <path class="gut" style="--w:11;--d:0s;--t:5.8s" d="M15,-3 C14,9 18,14 16,24 C14,33 17,37 15,45"/>
+              <path class="gut" style="--w:8;--d:1s;--t:6.6s"  d="M21,-3 C23,10 19,17 22,28 C24,36 21,40 23,49"/>
+              <path class="gut" style="--w:6;--d:.5s;--t:7s"   d="M18,-3 C17,8 21,12 19,20 C17,27 20,30 18,37"/>
+            </g>
+            <g class="gp gp-splatter" fill="#5a1212">
+              <ellipse cx="15" cy="42" rx="9" ry="11" opacity=".62"/>
+              <ellipse cx="23" cy="34" rx="3.4" ry="4.6" opacity=".5"/>
+              <ellipse cx="9" cy="55" rx="2" ry="5.5" opacity=".5"/>
+              <ellipse cx="19" cy="49" rx="1.6" ry="2.6" opacity=".45"/>
+              <path d="M15,52 q1.4,12 0,22" stroke="#5a1212" stroke-width="1.3" fill="none" opacity=".4"/>
+            </g>
+          </svg>
+
+          <!-- rigid props (undistorted, anchored low/corner) -->
+          <svg class="gp gp-skeleton" viewBox="0 0 60 100" preserveAspectRatio="xMidYMax meet">
+            <g fill="url(#bone)" stroke="#241c11" stroke-width=".5" stroke-linejoin="round">
+              <circle cx="30" cy="16" r="11"/>
+              <circle cx="26" cy="16" r="2.4" fill="#160f09" stroke="none"/>
+              <circle cx="34" cy="16" r="2.4" fill="#160f09" stroke="none"/>
+              <rect x="28" y="27" width="4" height="33" rx="2"/>
+              <path d="M22,60 Q30,68 38,60 L35,67 Q30,71 25,67 Z"/>
+              <g fill="none" stroke="url(#bone)" stroke-width="2" stroke-linecap="round">
+                <path d="M19,33 Q30,30 41,33"/><path d="M19,39 Q30,36 41,39"/>
+                <path d="M20,45 Q30,42 40,45"/><path d="M21,51 Q30,49 39,51"/>
+                <path d="M26,60 L18,94"/><path d="M34,60 L42,94"/>
+                <path d="M22,31 L11,50 L15,63"/><path d="M38,31 L49,49 L45,62"/>
+              </g>
+            </g>
+          </svg>
+
+          <svg class="gp gp-bones" viewBox="0 0 100 56" preserveAspectRatio="xMidYMax meet">
+            <g fill="url(#bone)" stroke="#241c11" stroke-width=".5">
+              <rect x="12" y="36" width="62" height="8" rx="4" transform="rotate(-7 43 40)"/>
+              <rect x="20" y="44" width="56" height="8" rx="4" transform="rotate(9 48 48)"/>
+              <rect x="8" y="30" width="44" height="7" rx="3.5" transform="rotate(26 30 34)"/>
+              <circle cx="26" cy="34" r="11"/>
+              <circle cx="22" cy="34" r="2" fill="#160f09" stroke="none"/>
+              <circle cx="30" cy="34" r="2" fill="#160f09" stroke="none"/>
+            </g>
+          </svg>
+
+          <svg class="gp gp-spike" viewBox="0 0 60 100" preserveAspectRatio="xMidYMax meet">
+            <ellipse cx="30" cy="95" rx="20" ry="5" fill="#4a0c0c"/>
+            <polygon points="24,97 30,6 36,97" fill="url(#bone)" stroke="#241c11" stroke-width=".5"/>
+            <polygon points="30,6 33,97 36,97" fill="#00000033"/>
+            <ellipse cx="30" cy="46" rx="10" ry="8" fill="url(#flesh)"/>
+            <path d="M22,52 q3,12 1,22" stroke="#4a0c0c" stroke-width="2" fill="none" opacity=".7"/>
+          </svg>
+        </div>
+        <!-- Directional passage doorways (shown by SceneRenderer when a cell exists) -->
+        <div class="exit exit-l" id="exit-l" aria-hidden="true"><svg class="exit-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="3,20 11,13 20,34 20,81 3,97"/></svg></div>
+        <div class="exit exit-r" id="exit-r" aria-hidden="true"><svg class="exit-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="97,20 89,13 80,34 80,81 97,97"/></svg></div>
+        <div class="exit exit-f" id="exit-f" aria-hidden="true"><svg class="exit-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="42,40 50,34 58,40 58,66 42,66"/></svg></div>
+        <!-- Warm light spilling from the passage behind you (shown when you can step back) -->
+        <div class="exit-back" id="exit-b" aria-hidden="true"></div>
+        <!-- Mysterious irradiating pit in the descent room -->
+        <div class="floor-pit" id="floor-pit" aria-hidden="true"></div>
+        <!-- Mob silhouette (dynamic, managed by MobRenderer) -->
+        <div class="creature" id="mob-display">
+          <div class="c-mass"></div>
+          <div class="c-eye l"></div>
+          <div class="c-eye r"></div>
+        </div>
+        <!-- Ambiance -->
+        <div class="torchlight" aria-hidden="true"></div>
+        <div class="darkness"   aria-hidden="true"></div>
+        <!-- Colour-vision desaturation half-overlays (right / left) — vue-couleur -->
+        <div class="desat"   aria-hidden="true"></div>
+        <div class="desat-l" aria-hidden="true"></div>
+        <!-- Eye blind body-fx overlays (right eye / left eye) -->
+        <div class="eyeblind"   id="body-fx"    aria-hidden="true"></div>
+        <div class="eyeblind-l" aria-hidden="true"></div>
+        <!-- NPC figure (merchant / seamstress / etc.) — managed by RoomPanel -->
+        <div id="npc-figure" aria-hidden="true"></div>
+`;
+
+// ── Chrome du viewport (hors .scene) ─────────────────────────────────────────
+const CHROME_HTML = `
+      <!-- Room-transition flash overlay (direction-driven, see _playTransition) -->
+      <div id="room-fx" aria-hidden="true"></div>
+
+      <!-- Enemy overlay (shown in combat) -->
+      <div class="foe" id="foe-panel">
+        <div class="foe-name" id="foe-name"></div>
+        <div class="segbar"   id="foe-seg"></div>
+        <div class="foe-intent" id="foe-intent"></div>
+      </div>
+
+      <!-- Room-specific overlay (trade / graft / altar / rest / puzzle / pathchoice) -->
+      <div id="room-panel"></div>
+
+      <!-- La Ligne (sound visualizer canvas) -->
+      <div class="soundline" aria-label="La Ligne sonore">
+        <canvas id="slc"></canvas>
+        <div class="sl-axis" aria-hidden="true">
+          <span>◄ G</span><span>FACE</span><span>D ►</span>
+        </div>
+      </div>
+`;
+
+const DEFAULT_SCENE = 'gorge_couloir';
+
+// Injecte le squelette dans un élément .viewport (vide). Idempotent.
+export function build(viewportEl, sceneId = DEFAULT_SCENE) {
+  if (!viewportEl || viewportEl.querySelector('.scene')) return viewportEl;
+  viewportEl.innerHTML =
+    `<div class="scene" id="scene"><div class="scene-decor" aria-hidden="true"></div>${SOCKETS_HTML}</div>${CHROME_HTML}`;
+  setScene(sceneId);
+  return viewportEl;
+}
+
+// Échange le décor de la scène (les sockets restent intacts). No-op si inchangé.
+export function setScene(sceneId) {
+  const scene = document.querySelector('.scene');
+  const decor = scene?.querySelector('.scene-decor');
+  if (!scene || !decor) return;
+  const def = SCENES[sceneId] ?? SCENES[DEFAULT_SCENE];
+  const id = SCENES[sceneId] ? sceneId : DEFAULT_SCENE;
+  if (scene.dataset.scene === id) return;
+  scene.dataset.scene = id;
+  scene.style.setProperty('--scene-tempo', `${def.tempo ?? 8}s`);
+  decor.innerHTML = def.html ?? '';
+}
+
+export function currentScene() {
+  return document.querySelector('.scene')?.dataset.scene ?? DEFAULT_SCENE;
+}
+
+// ── Squelettes des panneaux HUD partagés (jeu + atelier) ─────────────────────
+// InventoryRenderer peuple ces 12 .cell ; MinimapRenderer peuple #minimap-grid.
+
+export const INVENTORY_CELLS_HTML = `
+        <!-- 12 cells: 0-1 base, 2-3 bras gauche, 4-5 bras droit, 6-11 verrouillés -->
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div>
+`;
+
+export const MINIMAP_WRAP_HTML = `
+        <span class="compass" id="compass-dir">N ▴</span>
+        <div class="map" id="minimap-grid">
+          <!-- .mc cells rendered by MinimapRenderer -->
+        </div>
+        <div class="maplegend">
+          <span>▲ toi</span>
+          <span class="le">◌ entendu</span>
+          <span>▒ deviné</span>
+        </div>
+`;
+
+// Remplit un conteneur vide avec un squelette partagé. Idempotent.
+export function buildInto(el, html) {
+  if (el && !el.children.length) el.innerHTML = html;
+  return el;
+}

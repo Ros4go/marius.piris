@@ -1,0 +1,7 @@
+/* Scènes de décor (DA proto v5) — chargées par le jeu ET le sandbox.
+   Chaque fichier est scopé par .scene[data-scene="…"] ; le tempo de la scène
+   est exposé en --scene-tempo (posé par ViewportDOM depuis scenes.json). */
+@import url("scenes/poumons.css");
+@import url("scenes/coeur.css");
+@import url("scenes/estomac.css");
+@import url("scenes/entrailles.css");

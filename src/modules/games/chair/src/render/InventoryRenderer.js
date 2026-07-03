@@ -13,6 +13,79 @@ function _orgShapeClass(type) {
   return 'orgshape';
 }
 
+// Sprite paramétrique (organs/relics.json "sprite") → style inline, PARTAGÉ
+// besace/marchand/atelier. Sans sprite : les formes CSS historiques (hud.css).
+// Champs : forme (border-radius) · degrade {cx,cy,stops:[{c,de?,a?}]} — deux
+// positions sur un stop = anneau net (l'iris de l'œil) · taille (% de la cellule)
+// · ombre (false = sans ombre portée) · eclat {c,alpha,rayon} (halo, cf reliques).
+export function spriteStyle(sp, avecTaille = true) {
+  if (!sp) return '';
+  const out = [];
+  if (sp.forme) out.push(`border-radius:${sp.forme}`);
+  if (sp.degrade?.stops?.length) {
+    const stops = sp.degrade.stops
+      .map((s) => s.c + (s.de != null ? ` ${s.de}%` : '') + (s.a != null ? ` ${s.a}%` : ''))
+      .join(', ');
+    out.push(`background:radial-gradient(circle at ${sp.degrade.cx ?? 50}% ${sp.degrade.cy ?? 50}%, ${stops})`);
+  }
+  if (avecTaille && sp.taille) out.push(`width:${sp.taille}%;height:${sp.taille}%`);
+  if (sp.eclat?.c || sp.ombre === false) {
+    const shadows = [];
+    if (sp.eclat?.c) {
+      const a = Math.round((sp.eclat.alpha ?? 0.4) * 255).toString(16).padStart(2, '0');
+      shadows.push(`0 0 ${sp.eclat.rayon ?? 6}px ${sp.eclat.c}${a}`);
+    }
+    if (sp.ombre !== false) shadows.push('0 2px 4px #000');
+    out.push(`box-shadow:${shadows.join(', ') || 'none'}`);
+  }
+  if (sp.calques?.length) {
+    out.push('position:relative');                    // ancre les calques absolus
+    if (sp.decoupe) out.push('overflow:hidden');      // coupe ce qui dépasse la forme
+  }
+  return out.join(';');
+}
+
+// Calques : petites formes posées PAR-DESSUS la forme de base (points noirs pour
+// des yeux, taches, détails). {c, c2?, x, y, l, h, forme?, rot?, alpha?} — position
+// et taille en % de la forme de base, CENTRÉES sur (x, y). c2 → mini dégradé.
+function _calqueStyle(k) {
+  const l = k.l ?? 20, h = k.h ?? 20;
+  const out = [
+    'position:absolute', 'display:block',
+    `left:${(k.x ?? 50) - l / 2}%`, `top:${(k.y ?? 50) - h / 2}%`,
+    `width:${l}%`, `height:${h}%`,
+    `border-radius:${k.forme ?? '50%'}`,
+    k.c2 ? `background:radial-gradient(circle at 35% 30%, ${k.c ?? '#000'}, ${k.c2})` : `background:${k.c ?? '#000'}`,
+  ];
+  if (k.alpha != null) out.push(`opacity:${k.alpha}`);
+  if (k.rot) out.push(`transform:rotate(${k.rot}deg)`);
+  return out.join(';');
+}
+// HTML interne de la forme (un <i> par calque) — à insérer DANS le div du sprite.
+export function spriteCalques(sp) {
+  return (sp?.calques ?? []).map((k) => `<i style="${_calqueStyle(k)}"></i>`).join('');
+}
+
+// Apparence d'un item de besace — PARTAGÉE jeu/atelier (zone Visuel de l'outil) :
+// classes de cellule, HTML interne (forme CSS + sprite + badge de tier) et tooltip.
+export function itemLook(item) {
+  if (item.relicId) {
+    const rdef = getRelic(item.relicId);
+    return { cls: 'cell full relic', html: `<div class="orgshape relicshape" style="${spriteStyle(rdef?.sprite)}">${spriteCalques(rdef?.sprite)}</div>`,
+             title: rdef ? `✦ ${rdef.name}\n${rdef.description ?? ''}` : '✦ relique' };
+  }
+  const def     = organResolver(item.organId);
+  const quality = def ? def.getQuality(item.hp ?? def.maxHp) : { name: 'pourri' };
+  let cls = 'cell full';
+  if (quality.name === 'pourri' || quality.name === 'destroyed') cls += ' rot';
+  else if (quality.name === 'parfait' || quality.name === 'intact') cls += ' glow';
+  const shape = def ? _orgShapeClass(def.type) : 'orgshape';
+  // Badge = initiale du tier pour rare+ (common = rien)
+  const badge = (def && def.tier && def.tier !== 'common') ? def.tier[0].toUpperCase() : '';
+  return { cls, html: `<div class="${shape}" style="${spriteStyle(def?.sprite)}">${spriteCalques(def?.sprite)}</div>${badge ? `<span class="q">${badge}</span>` : ''}`,
+           title: def ? `${def.name} [${quality.name}]` : '?' };
+}
+
 // Returns a Set of locked cell indices.
 // Cells 0-1: toujours libres.
 // Cells 2-3: bras gauche requis.
@@ -63,42 +136,14 @@ export function render() {
       cell.onclick   = null;
       return;
     }
-    // Déchet organique — a gross but valuable trade byproduct of overeating.
-    if (item.dechet) {
-      cell.className = 'cell full dechet';
-      cell.innerHTML = '<div class="orgshape dechetshape"></div>';
-      cell.title     = `Déchet organique — se revend ${item.value ?? 40}💀`;
-      cell.onclick   = null;
-      return;
-    }
-
     // A faint ✦ marks an item never inspected yet; it vanishes after first inspect.
     const newMark = item.seen ? '' : '<span class="newmark">✦</span>';
 
-    // Relics share the besace with organs — distinct gold shard, also inspectable.
-    if (item.relicId) {
-      const rdef = getRelic(item.relicId);
-      cell.className = 'cell full relic';
-      cell.innerHTML = `<div class="orgshape relicshape"></div>${newMark}`;
-      cell.title     = rdef ? `✦ ${rdef.name}\n${rdef.description ?? ''}` : '✦ relique';
-      cell.onclick   = () => _onInspect?.(invIdx);
-      return;
-    }
-
-    const def     = organResolver(item.organId);
-    const quality = def ? def.getQuality(item.hp ?? def.maxHp) : { name: 'pourri' };
-
-    let cls = 'cell full';
-    if (quality.name === 'pourri' || quality.name === 'destroyed') cls += ' rot';
-    else if (quality.name === 'parfait' || quality.name === 'intact') cls += ' glow';
-
-    const shapeClass = def ? _orgShapeClass(def.type) : 'orgshape';
-    // Badge = tier initial for rare+ organs (common = none)
-    const romanStr   = (def && def.tier && def.tier !== 'common') ? def.tier[0].toUpperCase() : '';
-
-    cell.className = cls;
-    cell.innerHTML = `<div class="${shapeClass}"></div>${romanStr ? `<span class="q">${romanStr}</span>` : ''}${newMark}`;
-    cell.title     = def ? `${def.name} [${quality.name}]` : '?';
-    cell.onclick   = () => { if (def) _onInspect?.(invIdx); };
+    const look = itemLook(item);
+    cell.className = look.cls;
+    cell.innerHTML = look.html + newMark;
+    cell.title     = look.title;
+    const inspectable = !!item.relicId || !!organResolver(item.organId);
+    cell.onclick   = inspectable ? () => _onInspect?.(invIdx) : null;
   });
 }

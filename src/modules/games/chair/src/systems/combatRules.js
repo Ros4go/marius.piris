@@ -262,13 +262,33 @@ function healAll(body, amount, organResolver, ev, who) {
 //         at one of your own organs — same effect either way. Self-targeting
 //         ignores layers, dodge and armor (you can strike your own heart).
 // Returns { ok, events[] }. Mutates pstate and the relevant bodies.
+// Une carte porte UN effet (`effect`) ou une LISTE (`effects`, jouée dans l'ordre).
+// Convention data : `effect` reste le miroir du premier élément de `effects`
+// (les lecteurs simples comme mobAttackSkills ne regardent que lui).
+// La carte réussit si AU MOINS un effet s'applique ; le coût n'est payé qu'alors.
 export function playCard(pstate, playerBody, organ, skill, ctx, organResolver, rng, _depth = 0) {
   const ev = [];
   if (!skill) return { ok: false, events: ev };
   const cost = skill.cost ?? 0;
   if (skill.once && pstate.onceUsed?.has(skill.id)) return { ok: false, reason: 'used', events: ev };
   if (cost > pstate.blood) return { ok: false, reason: 'no_blood', events: ev };
-  const eff    = skill.effect ?? {};
+  const effects = skill.effects ?? (skill.effect ? [skill.effect] : []);
+  if (!effects.length) return { ok: false, reason: 'no_effect', events: ev };
+
+  let applied = 0, firstFail = null;
+  for (const eff of effects) {
+    const r = _applyEffect(eff, pstate, playerBody, organ, ctx, organResolver, rng, _depth, ev);
+    if (r.ok) applied++;
+    else if (!firstFail) firstFail = r.reason ?? 'no_effect';
+  }
+  if (!applied) return { ok: false, reason: firstFail, events: ev };
+
+  pstate.blood -= cost;
+  if (skill.once) { pstate.onceUsed = pstate.onceUsed ?? new Set(); pstate.onceUsed.add(skill.id); }
+  return { ok: true, events: ev };
+}
+
+function _applyEffect(eff, pstate, playerBody, organ, ctx, organResolver, rng, _depth, ev) {
   const target = ctx?.target ?? null;
   const enemy  = ctx?.enemy ?? null;
 
@@ -313,10 +333,11 @@ export function playCard(pstate, playerBody, organ, skill, ctx, organResolver, r
       const key  = target?.slotKey;
       if (!body || !key || !organAlive(body, key)) return { ok: false, reason: 'no_target', events: ev };
       const sub = (organResolver(body.slots[key].organId)?.skills ?? [])[0];
-      if (!sub?.effect || sub.effect.kind === 'retrigger') return { ok: false, reason: 'no_effect', events: ev };
+      const subFx = sub ? (sub.effects ?? (sub.effect ? [sub.effect] : [])) : [];
+      if (!subFx.length || subFx.some((e) => e.kind === 'retrigger')) return { ok: false, reason: 'no_effect', events: ev };
       ev.push({ t: 'retrigger', label: sub.label, key });
       // Re-fire the copied skill for free, on its obvious recipient.
-      const subTarget = sub.effect.kind === 'damage' && enemy
+      const subTarget = subFx[0].kind === 'damage' && enemy
         ? { body: enemy.body, slotKey: enemy._target ?? null, isSelf: false }
         : { body: playerBody, slotKey: target?.isSelf ? key : null, isSelf: true };
       const sr = playCard(pstate, playerBody, organ, { ...sub, cost: 0, once: false },
@@ -357,9 +378,6 @@ export function playCard(pstate, playerBody, organ, skill, ctx, organResolver, r
     }
     default: return { ok: false, reason: 'unknown_effect', events: ev };
   }
-
-  pstate.blood -= cost;
-  if (skill.once) { pstate.onceUsed = pstate.onceUsed ?? new Set(); pstate.onceUsed.add(skill.id); }
   return { ok: true, events: ev };
 }
 

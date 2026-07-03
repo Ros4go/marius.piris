@@ -12,7 +12,7 @@ const DEFAULTS = {
   start: 90, max: 120, decayPerTick: 1,
   thresholds: { gave: 106, rassasie: 76, creux: 56, faim: 36, affame: 16 },
   famineDamageEvery: 4, famineDamage: 1,
-  vomitEvery: 5, vomitChance: 0.55, dechetChance: 0.1, dechetValue: 45,
+  vomitEvery: 5, vomitChance: 0.55, dechetChance: 0.1,
   eatSatiety: 34, eatRegen: 4,
   dmgMod: { gave: 0, rassasie: 1, creux: 0, faim: -1, affame: -1, famine: -2 },
   bloodPen: { affame: 1, famine: 2 },
@@ -87,7 +87,8 @@ function _vomit(c) {
 function _produceDechet(c) {
   WS.player.satiety = c.thresholds.rassasie + 4;
   if ((WS.player.inventory?.length ?? 0) < inventoryCapacity()) {
-    WS.player.inventory.push({ id: `dechet_${WS.tick}_${Math.floor(rng() * 1e4)}`, dechet: true, value: c.dechetValue });
+    // Une vraie RELIQUE (inerte) — sa valeur vient du prix de relics.json (revente 50%).
+    WS.player.inventory.push({ relicId: 'relic_dechet_organique' });
     addLog('💩 Tu expulses un déchet organique — ça se revend cher.', 'harvest');
   } else {
     addLog('💩 Un déchet organique se forme… mais ta besace est pleine, il est perdu.', 'sys');

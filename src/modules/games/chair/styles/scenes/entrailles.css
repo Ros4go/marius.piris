@@ -1,0 +1,72 @@
+/* ═══ LES ENTRAILLES — entonnoir nervuré, excroissances, acide (DA proto v5) ═══ */
+
+[data-scene="entrailles_tunnel"] .tube-funnel{position:absolute;inset:0;background:
+  radial-gradient(ellipse 92% 74% at 50% 58%,
+    #44561f 0%, #2e3c18 12%, #232e12 24%, #18210d 40%,
+    #101707 58%, #0a1006 74%, #050802 100%)}
+[data-scene="entrailles_tunnel"] .tube-ribs{position:absolute;inset:0;
+  background:repeating-conic-gradient(from 0deg at 50% 58%,
+    #00000000 0deg 7deg, #0c120788 7deg 8deg, #00000000 8deg 15deg);
+  -webkit-mask-image:radial-gradient(ellipse 92% 74% at 50% 58%,transparent 6%,#000 22%,#000 100%);
+  mask-image:radial-gradient(ellipse 92% 74% at 50% 58%,transparent 6%,#000 22%,#000 100%);
+  opacity:.7}
+
+/* anneaux sphincters vers la fuite */
+[data-scene="entrailles_tunnel"] .sph{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);
+  border:2px solid;background:transparent;box-shadow:0 1px 2px #00000066;
+  border-radius:50% 50% 44% 44%/58% 58% 42% 42%}
+[data-scene="entrailles_tunnel"] .sph.s1{width:150%;height:128%;border-color:#3e5020aa}
+[data-scene="entrailles_tunnel"] .sph.s2{width:96%;height:80%;border-color:#33421a99}
+[data-scene="entrailles_tunnel"] .sph.s3{width:58%;height:47%;border-color:#2a3614aa}
+[data-scene="entrailles_tunnel"] .sph.s4{width:32%;height:26%;border-color:#202c11aa}
+[data-scene="entrailles_tunnel"] .sph.s5{width:16%;height:14%;border-color:#18230caa}
+[data-scene="entrailles_tunnel"] .tube-throat{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);
+  width:13%;height:11%;border-radius:50% 50% 46% 46%/56% 56% 44% 44%;
+  background:radial-gradient(circle,#0a1006,#020402 75%);
+  box-shadow:0 0 22px #000,0 0 8px #6e7a2433}
+
+/* excroissances de chair éclairées depuis le fond */
+[data-scene="entrailles_tunnel"] .growth{position:absolute;border-radius:54% 46% 60% 40%/56% 60% 40% 44%;
+  background:radial-gradient(ellipse 70% 70% at 62% 40%,#5a6e28 0%,#34431a 34%,#18230d 70%,#0a1006 100%);
+  box-shadow:inset -3px -4px 10px #000000cc,inset 4px 5px 9px #6e7a2a55,0 0 14px 2px #00000099;
+  filter:blur(.4px)}
+[data-scene="entrailles_tunnel"] .growth::after{content:"";position:absolute;inset:-18% -14% -28% -14%;z-index:-1;
+  border-radius:50%;background:radial-gradient(ellipse at 50% 42%,#0a1006bb,transparent 72%);filter:blur(3px)}
+[data-scene="entrailles_tunnel"] .growth.g1{left:6%;top:24%;width:14%;height:20%;transform:rotate(-12deg);
+  background:radial-gradient(ellipse 70% 70% at 78% 46%,#5a6e28,#34431a 34%,#18230d 70%,#0a1006 100%)}
+[data-scene="entrailles_tunnel"] .growth.g2{right:9%;top:32%;width:10%;height:15%;transform:rotate(16deg);
+  filter:brightness(.82) blur(.4px);
+  background:radial-gradient(ellipse 70% 70% at 24% 46%,#5a6e28,#34431a 34%,#18230d 70%,#0a1006 100%)}
+[data-scene="entrailles_tunnel"] .growth.g3{left:17%;top:58%;width:11%;height:14%;transform:rotate(8deg);
+  filter:brightness(.88) blur(.4px);
+  background:radial-gradient(ellipse 70% 70% at 74% 38%,#566a26,#32411a 36%,#16210c 72%,#0a1006 100%)}
+[data-scene="entrailles_tunnel"] .growth.g4{right:15%;top:60%;width:8%;height:11%;filter:brightness(.72) blur(.4px);
+  background:radial-gradient(ellipse 70% 70% at 28% 38%,#566a26,#32411a 36%,#16210c 72%,#0a1006 100%)}
+[data-scene="entrailles_tunnel"] .growth.g5{left:38%;top:21%;width:7%;height:9%;filter:brightness(.62) blur(.5px);
+  background:radial-gradient(ellipse 70% 70% at 50% 30%,#4e6222,#2c3a16 38%,#121a0a 74%,#080e05 100%)}
+
+/* veines lumineuses vers la fuite */
+[data-scene="entrailles_tunnel"] .gvein{position:absolute;height:2px;filter:blur(.5px);opacity:.5;
+  background:linear-gradient(90deg,transparent,#7a8e2e55,transparent)}
+[data-scene="entrailles_tunnel"] .gvein.v1{left:10%;top:38%;width:34%;transform:rotate(14deg)}
+[data-scene="entrailles_tunnel"] .gvein.v2{right:8%;top:54%;width:30%;transform:rotate(-11deg)}
+
+/* pendeloques de chair au plafond */
+[data-scene="entrailles_tunnel"] .hang{position:absolute;top:0;width:0;height:0;border-style:solid;
+  border-color:#1c2610 transparent transparent transparent;filter:drop-shadow(0 2px 3px #000)}
+[data-scene="entrailles_tunnel"] .hang.h1{left:30%;border-width:60px 7px 0 7px}
+[data-scene="entrailles_tunnel"] .hang.h2{left:58%;border-width:38px 5px 0 5px;filter:brightness(.8) drop-shadow(0 2px 3px #000)}
+[data-scene="entrailles_tunnel"] .hang.h3{left:44%;border-width:84px 9px 0 9px;filter:brightness(.9)}
+
+/* bain d'acide */
+[data-scene="entrailles_tunnel"] .acidfloor{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);
+  width:70%;height:24%;z-index:2;pointer-events:none;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 42%,#84982f 0%,#52641f 36%,#283410 62%,transparent 80%);
+  box-shadow:0 0 28px #6e7a2566;mix-blend-mode:screen;
+  animation:ent-acid 4.5s ease-in-out infinite}
+@keyframes ent-acid{50%{opacity:.6}}
+[data-scene="entrailles_tunnel"] .acidfloor::before{content:"";position:absolute;left:44%;top:34%;
+  width:13%;height:20%;background:radial-gradient(circle,#d6e36eaa,transparent 70%);border-radius:50%;
+  animation:ent-bubble 3s ease-in-out infinite}
+@keyframes ent-bubble{0%,100%{opacity:.3;transform:translateY(0) scale(.8)}
+  50%{opacity:.85;transform:translateY(-5px) scale(1.15)}}

@@ -143,15 +143,6 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
   background: radial-gradient(circle at 38% 30%, #f0dca0, #9a7a3a 55%, #3a2c12);
   box-shadow: 0 0 6px #c9a44066, 0 2px 4px #000;
 }
-/* Déchet organique — a lumpy brown byproduct */
-.cell.dechet { border-color: #4a3a20; }
-.orgshape.dechetshape {
-  border-radius: 52% 48% 44% 56% / 60% 52% 48% 40%;
-  background: radial-gradient(circle at 40% 32%, #7a5a30, #3a2a14 60%, #1a1208);
-  box-shadow: inset -2px -3px 5px #0008, 0 2px 4px #000;
-}
-.ware-ic.dechet { border-radius: 52% 48% 44% 56%/60% 52% 48% 40%; background: radial-gradient(circle at 40% 32%, #7a5a30, #2a1e10); }
-
 /* Resource counters */
 .counters {
   font-family: var(--mono); font-size: .64rem; color: #564b39;
@@ -396,20 +387,21 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .dealbtn.danger:hover { border-color: var(--blood); color: #f0b0a8; }
 
 /* ── NPC figures (CSS-only) ───────────────────────────────────────────────────── */
-#npc-figure {
+.npc-figure {
   position: absolute; left: 50%; top: 41%; transform: translateX(-50%);
-  z-index: 3; animation: npc-float 6s ease-in-out infinite;
+  /* empilement : porte (2) < déco (3) < structure (4) < mob (5) */
+  z-index: 4; animation: npc-float 6s ease-in-out infinite;
 }
 @keyframes npc-float { 50% { transform: translateX(-50%) translateY(-5%); } }
-#npc-figure:empty { display: none; }
+.npc-figure:empty { display: none; }
 /* the structure stands centre / left / right of the room */
-#npc-figure.pos-left   { left: 27%; }
-#npc-figure.pos-center { left: 50%; }
-#npc-figure.pos-right  { left: 73%; }
-#npc-figure.on-floor   { top: 66%; }   /* ground pickups sit low */
+.npc-figure.pos-left   { left: 27%; }
+.npc-figure.pos-center { left: 50%; }
+.npc-figure.pos-right  { left: 73%; }
+.npc-figure.on-floor   { top: 66%; }   /* ground pickups sit low */
 
 /* Altar — a low stone block with a faint glow */
-#npc-figure.altar { width: 15%; aspect-ratio: 1/0.85; }
+.npc-figure.altar { width: 15%; aspect-ratio: 1/0.85; }
 .al-base { position: absolute; left: 14%; bottom: 0; width: 72%; height: 52%;
   background: linear-gradient(#3a2f22, #14100a); clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%);
   box-shadow: inset 0 4px 8px #0009, 0 4px 10px #000a; }
@@ -420,7 +412,7 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
   animation: npc-float 4.5s ease-in-out infinite; }
 
 /* Pillard — a lurking dark silhouette with a single red eye */
-#npc-figure.pillard { width: 14%; aspect-ratio: .72/1; }
+.npc-figure.pillard { width: 14%; aspect-ratio: .72/1; }
 .pl-hood { position: absolute; left: 22%; top: 0; width: 56%; height: 40%;
   background: radial-gradient(circle at 50% 42%, #1a1614, #050403 82%);
   border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%; box-shadow: inset -3px -3px 9px #000; }
@@ -430,7 +422,7 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
   background: #8a2f2a; border-radius: 50%; box-shadow: 0 0 6px #8a2f2a; animation: blink 5s infinite; }
 
 /* Souffle — a small glowing shard on the ground (discreet) */
-#npc-figure.souffle { width: 7%; aspect-ratio: 1/1; }
+.npc-figure.souffle { width: 7%; aspect-ratio: 1/1; }
 .sf-shard { position: absolute; left: 38%; bottom: 12%; width: 24%; height: 72%;
   background: linear-gradient(var(--whisper), #241a34); clip-path: polygon(50% 0, 74% 46%, 58% 100%, 42% 100%, 26% 46%);
   box-shadow: 0 0 8px var(--whisper); animation: npc-float 5.5s ease-in-out infinite; }
@@ -447,7 +439,7 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 .npc-close:hover { color: var(--torch); border-color: var(--torch); }
 
 /* Merchant */
-#npc-figure.trade { width: 18%; aspect-ratio: .8/1; }
+.npc-figure.trade { width: 18%; aspect-ratio: .8/1; }
 .m-hood {
   position: absolute; left: 20%; top: 0; width: 60%; height: 40%;
   background: radial-gradient(circle at 50% 30%, #2a2830, #0a0810 80%);
@@ -475,7 +467,7 @@ h3::after { background: linear-gradient(90deg, var(--bone-dark), transparent); }
 }
 
 /* Couturière / Seamstress */
-#npc-figure.graft { width: 22%; aspect-ratio: 1/1.05; }
+.npc-figure.graft { width: 22%; aspect-ratio: 1/1.05; }
 .ss-lamp {
   position: absolute; left: 56%; top: -10%; width: 40%; height: 40%;
   border-radius: 50%;

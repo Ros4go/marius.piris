@@ -1,0 +1,38 @@
+{
+  "_doc": "Scènes de décor (DA proto v5 → data). Une scène = couches de décor pur (html, classes stylées dans styles/scenes/*.css scopées par data-scene), un tempo (s, exposé en --scene-tempo), des sons d'ambiance sur la Ligne. Les sockets moteur (exits, mobs, PNJ, gore, overlays) sont fournis par ViewportDOM et vivent AU-DESSUS du décor. Lien : biomes.json \"scene\" = défaut de la strate, rooms.json \"scene\" = override par salle.",
+
+  "gorge_couloir": {
+    "label": "Couloir de la Gorge",
+    "tempo": 8,
+    "html": "<div class=\"geo g-ceil\" id=\"scene-ceil\"></div><div class=\"geo g-floor\" id=\"scene-floor\"></div><div class=\"geo g-wl\" id=\"scene-wl\"></div><div class=\"geo g-wr\" id=\"scene-wr\"></div><div class=\"g-end\" id=\"scene-end\"></div><div class=\"rib rib1\" aria-hidden=\"true\"></div><div class=\"rib rib2\" aria-hidden=\"true\"></div><div class=\"rib rib3\" aria-hidden=\"true\"></div>",
+    "sons": []
+  },
+
+  "poumons_alveoles": {
+    "label": "Alvéoles des Poumons",
+    "tempo": 6.5,
+    "html": "<div class=\"lung-bg\"></div><div class=\"alvring near\"></div><div class=\"alvring mid\"></div><div class=\"alvring far\"></div><div class=\"lung-passage\"></div><div class=\"lung-floor\"></div><div class=\"spore sp1\"></div><div class=\"spore sp2\"></div><div class=\"spore sp3\"></div><div class=\"spore sp4\"></div><div class=\"spore sp5\"></div><div class=\"spore sp6\"></div><div class=\"windgust\"></div>",
+    "sons": [{ "label": "sifflement d'air", "x": 0.52, "intensite": 0.22 }]
+  },
+
+  "coeur_ventricule": {
+    "label": "Chambre cardiaque",
+    "tempo": 1.4,
+    "html": "<div class=\"heart-bg\"></div><div class=\"chamber ch1\"></div><div class=\"chamber ch2\"></div><div class=\"chamber ch3\"></div><div class=\"heart-valve\"></div><div class=\"hvein-l\"></div><div class=\"hvein-r\"></div><div class=\"cordae c1\"></div><div class=\"cordae c2\"></div><div class=\"cordae c3\"></div><div class=\"bloodfloor\"></div><div class=\"ember e1\"></div><div class=\"ember e2\"></div><div class=\"ember e3\"></div><div class=\"ember e4\"></div><div class=\"ember e5\"></div><div class=\"pulse-veil\"></div>",
+    "sons": [{ "label": "flux du sang", "x": 0.5, "intensite": 0.28 }]
+  },
+
+  "estomac_poche": {
+    "label": "Poche gastrique",
+    "tempo": 7,
+    "html": "<div class=\"gas-bg\"></div><div class=\"rug rugA\"></div><div class=\"rug rugB\"></div><div class=\"rug rugC\"></div><div class=\"rug rugD\"></div><div class=\"pylore\"></div><div class=\"flap fl\"></div><div class=\"flap fr\"></div><div class=\"suclake\"></div><div class=\"sucmist\"></div><div class=\"gbubble b1\"></div><div class=\"gbubble b2\"></div><div class=\"gbubble b3\"></div><div class=\"gbubble b4\"></div><div class=\"gbubble b5\"></div><div class=\"gdebris d1\"></div><div class=\"gdebris d2\"></div><div class=\"gdebris d3\"></div>",
+    "sons": [{ "label": "borborygmes", "x": 0.26, "intensite": 0.26 }, { "label": "goutte de suc", "x": 0.5, "intensite": 0.14 }]
+  },
+
+  "entrailles_tunnel": {
+    "label": "Tunnel des Entrailles",
+    "tempo": 6.5,
+    "html": "<div class=\"tube-funnel\"></div><div class=\"tube-ribs\"></div><div class=\"sph s1\"></div><div class=\"sph s2\"></div><div class=\"sph s3\"></div><div class=\"sph s4\"></div><div class=\"sph s5\"></div><div class=\"tube-throat\"></div><div class=\"growth g1\"></div><div class=\"growth g2\"></div><div class=\"growth g3\"></div><div class=\"growth g4\"></div><div class=\"growth g5\"></div><div class=\"gvein v1\"></div><div class=\"gvein v2\"></div><div class=\"hang h1\"></div><div class=\"hang h2\"></div><div class=\"hang h3\"></div><div class=\"acidfloor\"></div>",
+    "sons": [{ "label": "clapotis", "x": 0.22, "intensite": 0.2 }, { "label": "acide qui ronge", "x": 0.46, "intensite": 0.18 }]
+  }
+}

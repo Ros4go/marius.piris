@@ -1,6 +1,7 @@
 [
   {
     "id": "gorge",
+    "scene": "gorge_couloir",
     "name": "La Gorge",
     "strateIndex": 0,
     "floorRange": [
@@ -56,6 +57,7 @@
   },
   {
     "id": "poumons",
+    "scene": "poumons_alveoles",
     "name": "Les Poumons",
     "strateIndex": 1,
     "floorRange": [
@@ -110,6 +112,7 @@
   },
   {
     "id": "coeur",
+    "scene": "coeur_ventricule",
     "name": "Le Cœur",
     "strateIndex": 2,
     "floorRange": [
@@ -165,6 +168,7 @@
   },
   {
     "id": "estomac",
+    "scene": "estomac_poche",
     "name": "L'Estomac",
     "strateIndex": 1,
     "floorRange": [
@@ -218,6 +222,7 @@
   },
   {
     "id": "entrailles",
+    "scene": "entrailles_tunnel",
     "name": "Les Entrailles",
     "strateIndex": 2,
     "floorRange": [
@@ -272,6 +277,7 @@
   },
   {
     "id": "le-fond",
+    "scene": "coeur_ventricule",
     "name": "Le Fond",
     "strateIndex": 3,
     "floorRange": [

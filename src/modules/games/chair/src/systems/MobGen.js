@@ -47,7 +47,11 @@ export function spawnForRoom(room, floor, floorIdx) {
   if (maxMobs === 0) return;
 
   const B     = getBalance().mob;
-  const count = _spawnCount(minMobs, maxMobs, floorIdx);
+  // 3 emplacements par salle (gauche/centre/droite) → jamais plus de 3 mobs,
+  // spawns périodiques (Nid) compris.
+  const count = Math.min(_spawnCount(minMobs, maxMobs, floorIdx),
+                         Math.max(0, 3 - (room.mobIds?.length ?? 0)));
+  if (count <= 0) return;
 
   // At most ONE strong mob per pack. A room may force elites (combat_elite);
   // otherwise we roll a single elite chance for the whole group and pick one
