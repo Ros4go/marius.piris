@@ -9,10 +9,13 @@
 // nothing is hidden by "the clearest wins".
 
 import { WS, currentRoom } from '../WorldState.js';
+import STRUCTURES_JSON from '../../content/structures.json';
+import SCENES_JSON from '../../content/scenes.json';
 import { organResolver } from '../registry.js';
 import * as Faculties from '../systems/Faculties.js';
 import * as HungerSystem from '../systems/HungerSystem.js';
 import * as TurnCombat from '../TurnCombat.js';
+import * as TagFX from './TagFX.js';
 
 let _bar, _canvas, _ctx, _sub, _filters, _running = false;
 let _sub_until = 0;
@@ -28,16 +31,15 @@ const FILTER_KINDS = [
 ];
 const _filterOff = new Set();
 
-// A room structure makes an ambient sound — more or less discreet by type.
-const STRUCT_CUE = {
-  trade:   { label: 'marchand',   i: 0.42 },
-  graft:   { label: 'couturière', i: 0.42 },
-  pillard: { label: 'pillard',    i: 0.32 },
-  altar:   { label: 'autel',      i: 0.24 },
-  souffle: { tremor: true,        i: 0.18 },
-};
+// A room structure makes an ambient sound — défini en DATA (structures.json "son").
+let _structDefs = STRUCTURES_JSON;
+export function setStructures(data) { if (data) _structDefs = data; }
+function _structCue(kind) {
+  const son = _structDefs[kind]?.son;
+  return son ? { label: son.label, i: son.intensite ?? 0.3, tremor: son.tremor } : null;
+}
 
-const KIND_GROUP = { heart: 'self', hunger: 'self', mob: 'mob', struct: 'struct', tremor: 'struct', ping: 'amb', plan: 'plan' };
+const KIND_GROUP = { heart: 'self', hunger: 'self', mob: 'mob', struct: 'struct', tremor: 'struct', ping: 'amb', plan: 'plan', tag: 'self' };
 
 export function ping(x, label = 'ploc', intensity = 0.5, ttl = 850) {
   _pings.push({ x, label, i0: intensity, ttl, age: 0 });
@@ -106,12 +108,24 @@ function _emitters() {
   }
 
   const room = currentRoom();
-  const cue = STRUCT_CUE[room?._structKind];
-  if (cue) {
-    const side = room?._structSide;
-    const x = side === 'left' ? 0.25 : side === 'right' ? 0.75 : 0.5;
+  // Chaque structure de la salle émet son son (structures.json "son")
+  const kinds = room?._structKinds ?? (room?._structKind ? [room._structKind] : []);
+  const sides = room?._structSides ?? [room?._structSide];
+  kinds.forEach((k, i) => {
+    const cue = _structCue(k);
+    if (!cue) return;
+    const x = sides[i] === 'left' ? 0.25 : sides[i] === 'right' ? 0.75 : 0.5;
     out.push({ x, base: cue.i, kind: cue.tremor ? 'tremor' : 'struct', name: cue.label ?? '' });
+  });
+
+  // Sons d'ambiance de la scène de décor (scenes.json "sons") — data designer.
+  const sceneDef = SCENES_JSON[document.querySelector('.scene')?.dataset?.scene];
+  for (const s of sceneDef?.sons ?? []) {
+    out.push({ x: s.x ?? 0.5, base: s.intensite ?? 0.2, kind: s.tremor ? 'tremor' : 'struct', name: s.label ?? '' });
   }
+
+  // Sons permanents des tags portés par le joueur (tags.json "sonore") — data designer.
+  out.push(...TagFX.soundSources());
 
   // Mobs — their organs make the noise (bruyant/calme).
   const ids = (room?.mobIds ?? []).filter((id) => WS.mobs.get(id)?.lifecycle === 'active');
@@ -119,7 +133,9 @@ function _emitters() {
     const mob = WS.mobs.get(id);
     const son = Faculties.sonorityOf(mob.body);
     if (son <= 0) return;
-    const x = (k + 1) / (ids.length + 1);
+    // Position sonore = emplacement du mob dans la scène (MobRenderer._slot)
+    const x = mob._slot === 'left' ? 0.25 : mob._slot === 'right' ? 0.75
+            : mob._slot === 'center' ? 0.5 : (k + 1) / (ids.length + 1);
     out.push({ x, base: Math.min(1, 0.35 + 0.2 * son), kind: 'mob', name: mob.name ?? 'créature' });
 
     // Plan CHANNELLED BY OUÏE (§2.4): the enemy's telegraph is a sound too.

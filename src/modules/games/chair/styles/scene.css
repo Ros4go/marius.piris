@@ -138,9 +138,11 @@ html, body {
 
 .scene {
   position: absolute; inset: 0;
-  animation: walls-breathe 8s ease-in-out infinite;
+  animation: walls-breathe var(--scene-tempo, 8s) ease-in-out infinite;
 }
 @keyframes walls-breathe { 50% { transform: scale(1.011); } }
+/* Conteneur du décor interchangeable (scenes.json) — les sockets moteur vivent au-dessus */
+.scene-decor { position: absolute; inset: 0; }
 
 /* Corridor geometry — Gorge palette */
 .geo { position: absolute; inset: 0; }
@@ -251,26 +253,32 @@ html, body {
 .rib3 { width: 42%; height: 42%; top: 25%; border-color: #272013; border-width: 5px 4px 0 4px; }
 
 /* Creature display (mobs) — a centered row so several enemies sit side by side */
+/* 3 EMPLACEMENTS de mobs (gauche/centre/droite) : une grille de 3 colonnes,
+   les pieds alignés en bas de rangée (align-items:end = l'ex flex-end). Chaque
+   mobwrap est placé sur SA colonne par MobRenderer (mob._slot). */
 .creature {
-  position: absolute; left: 0; right: 0; top: 34%; z-index: 3;
-  display: none; justify-content: center; align-items: flex-end;
-  gap: clamp(18px, 5vw, 80px);
+  /* empilement : porte (2) < déco (3) < structure (4) < mob (5) */
+  position: absolute; left: 6%; right: 6%; top: 34%; z-index: 5;
+  display: none; grid-template-columns: repeat(3, 1fr);
+  align-items: end; justify-items: center;
   filter: blur(.4px);
 }
 /* breath now lives per-mob (MobRenderer inner layer) with a seeded phase delay
    so multiple mobs never bob in lockstep. */
-.creature.visible { display: flex; }
-/* Tighten spacing as the scene fills up so 3 mobs fit without overflowing. */
-.creature.multi { gap: clamp(10px, 3vw, 44px); }
-.creature.crowd { gap: clamp(6px, 2vw, 22px); }
+.creature.visible { display: grid; }
+/* Scale down as the scene fills up so 3 mobs fit without overflowing. */
+.creature.multi .mobwrap { transform: scale(.92); transform-origin: bottom center; }
+.creature.multi .mobwrap:hover { transform: scale(.92) translateY(-3px); }
 .creature.crowd .mobwrap { transform: scale(.82); transform-origin: bottom center; }
 .creature.crowd .mobwrap:hover { transform: scale(.82) translateY(-3px); }
 /* legacy placeholder blob from index.html — superseded by procedural silhouettes */
 .creature > .c-mass, .creature > .c-eye { display: none; }
 @keyframes breath { 50% { transform: scale(1.03) translateY(-2%); } }
 
-/* Each mob: clickable, focus-highlighted, with a name + intent bubble above it */
-.mobwrap { position: relative; cursor: pointer; transition: filter .12s, transform .12s; }
+/* Each mob: clickable, focus-highlighted, with a name + intent bubble above it.
+   grid-row:1 obligatoire : sans lui, un mob placé sur une colonne "en arrière"
+   de la précédente serait poussé sur une 2e ligne (auto-placement grid). */
+.mobwrap { position: relative; grid-row: 1; cursor: pointer; transition: filter .12s, transform .12s; }
 .mobwrap:hover { transform: translateY(-3px); }
 .mobwrap.focused { filter: drop-shadow(0 0 11px #e8b25c99); }
 /* invisible mob you can't properly perceive → a barely-there distortion */
@@ -632,41 +640,17 @@ html, body {
   100% { opacity: 0; }
 }
 
-/* ── SensoryFX: Eye vision filters (backdrop-filter on overlay div) ──────────
-   vis-* classes on .vision-overlay apply filters to everything rendered below.
-   Multiple classes can coexist (e.g. one beast eye + one void eye). */
+/* ── SensoryFX: Eye vision filters ───────────────────────────────────────────
+   Les VALEURS des filtres vivent dans content/fx.json ("vision"/"visionCombos")
+   et sont posées en backdrop-filter inline par FXSystem. Ici : le support only. */
 .vision-overlay {
   position: absolute; inset: 0; pointer-events: none; z-index: 14;
   /* Must have a background or isolation for backdrop-filter to activate */
   background: rgba(0, 0, 0, 0.001);
 }
-.vision-overlay.vis-beast    { backdrop-filter: sepia(0.35) brightness(0.96); }
-.vision-overlay.vis-spider   { backdrop-filter: grayscale(0.55) hue-rotate(115deg) brightness(1.08); }
-.vision-overlay.vis-void     { backdrop-filter: brightness(0.38) contrast(2.2) hue-rotate(208deg) saturate(2); }
-.vision-overlay.vis-beholder { backdrop-filter: hue-rotate(265deg) saturate(1.5) brightness(1.05); }
-.vision-overlay.vis-lich     { backdrop-filter: invert(1) hue-rotate(178deg) brightness(1.1); }
 
-/* Both eyes different: second class stacks over first */
-.vision-overlay.vis-beast.vis-spider {
-  backdrop-filter: sepia(0.25) grayscale(0.4) hue-rotate(110deg);
-}
-.vision-overlay.vis-void.vis-lich {
-  backdrop-filter: invert(1) brightness(0.4) contrast(2.4);
-}
-
-/* ── SensoryFX: Hit flash (on .viewport) ─────────────────────────────────────
-   Color encodes skin type — red=default, grey=stone, none=carapace,
-   dark purple=lich, green=alchimique/acid. */
-@keyframes hit-red   { 0% { box-shadow: inset 0 0 50px #8a2f2aaa; } 100% {} }
-@keyframes hit-grey  { 0% { box-shadow: inset 0 0 50px #6a6a5088; } 100% {} }
-@keyframes hit-dark  { 0% { box-shadow: inset 0 0 50px #3a0a5888; } 100% {} }
-@keyframes hit-green { 0% { box-shadow: inset 0 0 50px #2a6a1888; } 100% {} }
-
-.viewport.hit-normal   { animation: hit-red   0.21s ease-out; }
-.viewport.hit-stone    { animation: hit-grey  0.21s ease-out; }
-.viewport.hit-lich     { animation: hit-dark  0.21s ease-out; }
-.viewport.hit-acid     { animation: hit-green 0.21s ease-out; }
-.viewport.hit-carapace { /* silent: carapace absorbs — no flash */ }
+/* ── SensoryFX: Hit flash ────────────────────────────────────────────────────
+   Migré en data : content/fx.json ("hitFlash"), joué en Web Animations API. */
 
 /* ── SensoryFX: Hunger vignette ─────────────────────────────────────────────── */
 .hunger-overlay {
@@ -788,8 +772,9 @@ html, body {
 .tg-more { color: #6a5d48; font-size: .92em; opacity: .8; }
 
 /* ── Gore (z1: in front of walls, behind doors/mobs). One rare prop per room. ─── */
+/* Empilement des emplacements : porte (2) < déco (3) < structure (4) < mob (5) */
 .gore {
-  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
   transform: translateX(var(--gore-x, 0));
 }
 .gore-defs { position: absolute; width: 0; height: 0; }

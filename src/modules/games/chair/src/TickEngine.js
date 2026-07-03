@@ -171,7 +171,7 @@ function _movePlayer(dir) {
 
   // Rest room lore
   const rDef = getRoomDef(target.defId);
-  if (rDef?.family === 'safe') LoreSystem.checkRestFound();
+  if (rDef?.ui === 'rest') LoreSystem.checkRestFound();
 
   // No reveal: the minimap reads the map/memoire/detection tags LIVE (TDD §2.5).
   // Mobs are pre-spawned at floor generation (MobGen.populateFloor) — nothing to

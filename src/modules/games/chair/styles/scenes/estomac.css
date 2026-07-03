@@ -1,0 +1,61 @@
+/* ═══ L'ESTOMAC — poche gastrique, lac de suc (DA proto v5) ═══ */
+
+[data-scene="estomac_poche"] .gas-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 90% 64% at 50% 32%,#5a3a18 0%,#3d2710 26%,#241608 52%,#120b04 78%,#070402 100%)}
+
+/* replis concentriques qui barattent */
+[data-scene="estomac_poche"] .rug{position:absolute;left:50%;transform:translateX(-50%);
+  border-radius:50%;background:transparent;border:solid;
+  border-color:#5a3a1a transparent transparent transparent;
+  box-shadow:inset 0 14px 30px #0009;filter:drop-shadow(0 4px 8px #0008);
+  animation:est-churn var(--scene-tempo,7s) ease-in-out infinite}
+@keyframes est-churn{50%{transform:translateX(-50%) scaleY(1.03) translateY(-1%)}}
+[data-scene="estomac_poche"] .rug.rugA{width:150%;height:128%;top:-30%;border-width:60px 40px 0 40px;border-color:#5a3a1a}
+[data-scene="estomac_poche"] .rug.rugB{width:118%;height:104%;top:-14%;border-width:46px 34px 0 34px;border-color:#4a3015;filter:brightness(.9) drop-shadow(0 4px 8px #0008)}
+[data-scene="estomac_poche"] .rug.rugC{width:86%;height:80%;top:2%;border-width:38px 28px 0 28px;border-color:#3a2611;filter:brightness(.78)}
+[data-scene="estomac_poche"] .rug.rugD{width:58%;height:56%;top:16%;border-width:28px 20px 0 20px;border-color:#2c1d0c;filter:brightness(.64)}
+
+/* le pylore : la sortie */
+[data-scene="estomac_poche"] .pylore{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  width:24%;height:30%;border-radius:50% 50% 46% 46%/60% 60% 40% 40%;
+  background:radial-gradient(circle at 50% 40%,#241608 0%,#120b04 48%,#060301 82%);
+  box-shadow:inset 0 0 26px #000,0 0 22px #0009,inset 0 6px 14px #cf9a3a1a}
+[data-scene="estomac_poche"] .pylore::after{content:"";position:absolute;left:50%;top:54%;
+  transform:translate(-50%,-50%);width:46%;height:38%;border-radius:50%;
+  background:radial-gradient(circle,#040201,#020100);box-shadow:0 0 12px #000}
+
+[data-scene="estomac_poche"] .flap{position:absolute;top:30%;width:24%;height:50%;
+  background:radial-gradient(ellipse at 50% 30%,#4a3015,#160d05 78%);
+  box-shadow:inset -4px -6px 16px #000,inset 4px 4px 10px #cf9a3a22;filter:blur(.3px)}
+[data-scene="estomac_poche"] .flap.fl{left:-3%;border-radius:10% 60% 50% 40%/30% 50% 50% 70%;transform:rotate(-6deg)}
+[data-scene="estomac_poche"] .flap.fr{right:-3%;border-radius:60% 10% 40% 50%/50% 30% 70% 50%;transform:rotate(6deg);filter:brightness(.85) blur(.3px)}
+
+/* lac de suc gastrique */
+[data-scene="estomac_poche"] .suclake{position:absolute;left:0;right:0;bottom:0;height:34%;
+  z-index:1;pointer-events:none;
+  background:linear-gradient(#7a5320 0%,#a87a2c 16%,#5a3c18 56%,#2c1d0c 100%);
+  box-shadow:0 -6px 26px #cf9a3a55,inset 0 6px 16px #f0c46844;
+  animation:est-lake 5.5s ease-in-out infinite;border-radius:48% 52% 0 0/30% 30% 0 0}
+@keyframes est-lake{50%{filter:brightness(1.12)}}
+[data-scene="estomac_poche"] .sucmist{position:absolute;left:0;right:0;bottom:20%;height:30%;
+  pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 70% 70% at 50% 100%,#cf9a3a30,transparent 72%);
+  animation:est-glow 5s ease-in-out infinite}
+@keyframes est-glow{50%{opacity:.5}}
+
+[data-scene="estomac_poche"] .gbubble{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 38% 30%,#f0c468,#7a5320);
+  box-shadow:0 0 7px #cf9a3a66;z-index:1;animation:est-bub 4s ease-in-out infinite}
+@keyframes est-bub{0%,100%{transform:translateY(0) scale(.7);opacity:.25}
+  50%{transform:translateY(-9px) scale(1.15);opacity:.75}}
+[data-scene="estomac_poche"] .b1{left:34%;bottom:10%;width:12px;height:12px}
+[data-scene="estomac_poche"] .b2{left:58%;bottom:7%;width:8px;height:8px;animation-delay:1.2s}
+[data-scene="estomac_poche"] .b3{left:46%;bottom:13%;width:6px;height:6px;animation-delay:2.4s}
+[data-scene="estomac_poche"] .b4{left:66%;bottom:11%;width:9px;height:9px;animation-delay:.6s}
+[data-scene="estomac_poche"] .b5{left:26%;bottom:6%;width:7px;height:7px;animation-delay:3.1s}
+
+[data-scene="estomac_poche"] .gdebris{position:absolute;z-index:1;
+  background:linear-gradient(#3a2c14,#1a1006);opacity:.7;filter:blur(.4px)}
+[data-scene="estomac_poche"] .d1{left:30%;bottom:18%;width:22px;height:9px;border-radius:60% 40% 50% 50%;transform:rotate(-12deg)}
+[data-scene="estomac_poche"] .d2{left:60%;bottom:22%;width:14px;height:6px;border-radius:50%;transform:rotate(18deg)}
+[data-scene="estomac_poche"] .d3{left:48%;bottom:15%;width:10px;height:14px;border-radius:40% 40% 50% 50%/60% 60% 40% 40%}

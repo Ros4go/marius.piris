@@ -1,0 +1,66 @@
+/* ═══ LE CŒUR — ventricule qui bat, tout suit la systole (DA proto v5) ═══ */
+
+[data-scene="coeur_ventricule"] .heart-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 78% 76% at 50% 46%,#5a141a 0%,#3a0e13 30%,#20080b 60%,#0c0305 100%)}
+
+/* parois du ventricule : voûtes charnues concentriques qui se contractent */
+[data-scene="coeur_ventricule"] .chamber{position:absolute;left:50%;transform:translateX(-50%);
+  border-radius:50%;background:transparent;border:solid;
+  border-color:#5a1a20 transparent transparent transparent;
+  box-shadow:inset 0 16px 36px #000a;filter:drop-shadow(0 4px 10px #0009);
+  animation:coe-systole var(--scene-tempo,1.4s) ease-in-out infinite}
+@keyframes coe-systole{0%,100%{transform:translateX(-50%) scale(1)}
+  12%{transform:translateX(-50%) scale(.965)}24%{transform:translateX(-50%) scale(1)}}
+[data-scene="coeur_ventricule"] .chamber.ch1{width:148%;height:140%;top:-26%;border-width:64px 44px 0 44px;border-color:#5e1c22}
+[data-scene="coeur_ventricule"] .chamber.ch2{width:112%;height:102%;top:-8%;border-width:48px 34px 0 34px;border-color:#4a151b;filter:brightness(.88) drop-shadow(0 4px 10px #0009)}
+[data-scene="coeur_ventricule"] .chamber.ch3{width:76%;height:70%;top:8%;border-width:38px 26px 0 26px;border-color:#380f14;filter:brightness(.72)}
+
+/* la valve du fond : sortie sombre */
+[data-scene="coeur_ventricule"] .heart-valve{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+  width:22%;height:26%;border-radius:46% 46% 50% 50%/40% 40% 60% 60%;
+  background:radial-gradient(circle at 50% 42%,#2a0a0e 0%,#160508 50%,#060102 84%);
+  box-shadow:inset 0 0 24px #000,0 0 20px #0009,inset 0 5px 14px #d8484a22}
+[data-scene="coeur_ventricule"] .heart-valve::after{content:"";position:absolute;left:50%;top:52%;
+  transform:translate(-50%,-50%);width:44%;height:40%;border-radius:50%;
+  background:radial-gradient(circle,#050102,#020001);box-shadow:0 0 12px #000}
+
+/* grosses veines latérales qui pompent */
+[data-scene="coeur_ventricule"] .hvein-l,
+[data-scene="coeur_ventricule"] .hvein-r{position:absolute;top:24%;width:18%;height:56%;
+  background:radial-gradient(ellipse at 50% 30%,#5a181e,#1a0608 78%);filter:blur(.4px);
+  animation:coe-systole var(--scene-tempo,1.4s) ease-in-out infinite}
+[data-scene="coeur_ventricule"] .hvein-l{left:-4%;border-radius:20% 60% 50% 40%/30% 50% 50% 70%;transform:rotate(-8deg)}
+[data-scene="coeur_ventricule"] .hvein-r{right:-4%;border-radius:60% 20% 40% 50%/50% 30% 70% 50%;transform:rotate(8deg);filter:brightness(.86) blur(.4px)}
+
+/* cordages tendus en travers */
+[data-scene="coeur_ventricule"] .cordae{position:absolute;width:2px;
+  background:linear-gradient(#6a2228,transparent);transform-origin:top;opacity:.5;
+  animation:coe-systole var(--scene-tempo,1.4s) ease-in-out infinite}
+[data-scene="coeur_ventricule"] .cordae.c1{left:36%;top:8%;height:42%;transform:rotate(10deg)}
+[data-scene="coeur_ventricule"] .cordae.c2{left:58%;top:6%;height:48%;transform:rotate(-12deg)}
+[data-scene="coeur_ventricule"] .cordae.c3{left:48%;top:10%;height:38%;transform:rotate(3deg)}
+
+/* sol de sang */
+[data-scene="coeur_ventricule"] .bloodfloor{position:absolute;left:0;right:0;bottom:0;height:30%;
+  z-index:1;pointer-events:none;
+  background:linear-gradient(#5a141a 0%,#7a1c22 16%,#3a0e13 58%,#160508 100%);
+  box-shadow:0 -6px 24px #b5333a55,inset 0 6px 16px #ff7a6e33;
+  animation:coe-bloodwave var(--scene-tempo,1.4s) ease-in-out infinite;
+  border-radius:46% 54% 0 0/26% 26% 0 0}
+@keyframes coe-bloodwave{0%,100%{filter:brightness(1)}12%{filter:brightness(1.2)}24%{filter:brightness(1)}}
+
+/* braises montantes */
+[data-scene="coeur_ventricule"] .ember{position:absolute;width:4px;height:4px;border-radius:50%;
+  background:#ff7a6e;box-shadow:0 0 6px #d8484a;opacity:.6;z-index:1;animation:coe-rise 7s linear infinite}
+@keyframes coe-rise{0%{transform:translateY(18px);opacity:0}20%{opacity:.7}80%{opacity:.6}100%{transform:translateY(-70px);opacity:0}}
+[data-scene="coeur_ventricule"] .e1{left:28%;bottom:24%}
+[data-scene="coeur_ventricule"] .e2{left:60%;bottom:20%;animation-delay:2s}
+[data-scene="coeur_ventricule"] .e3{left:44%;bottom:28%;animation-delay:4s}
+[data-scene="coeur_ventricule"] .e4{left:70%;bottom:22%;animation-delay:1s;width:3px;height:3px}
+[data-scene="coeur_ventricule"] .e5{left:20%;bottom:18%;animation-delay:5.5s;width:3px;height:3px}
+
+/* voile rouge qui pulse à chaque battement */
+[data-scene="coeur_ventricule"] .pulse-veil{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 70% 60% at 50% 46%,#d8484a1f,transparent 68%);
+  animation:coe-veil var(--scene-tempo,1.4s) ease-in-out infinite}
+@keyframes coe-veil{0%,100%{opacity:.25}12%{opacity:.7}24%{opacity:.25}}

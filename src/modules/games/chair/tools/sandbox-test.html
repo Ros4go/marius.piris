@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test</title></head>
+<body>
+<iframe id="f" src="./view-sandbox.html?ui=inv,map,bar" style="width:640px;height:640px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+const HUMAN = { slots: {
+  eye_l:{organId:'eye_human',hp:6}, eye_r:{organId:'eye_human',hp:6},
+  ear_l:{organId:'ear_human',hp:6}, ear_r:{organId:'ear_human',hp:6},
+  arm_l:{organId:'arm_human',hp:12}, arm_r:{organId:'arm_human',hp:12},
+  legs:{organId:'legs_human',hp:12}, heart:{organId:'heart_human',hp:9},
+  skin:{organId:'skin_human',hp:12}, brain:{organId:'brain_human',hp:8},
+  stomach:{organId:'stomach_human',hp:6}, tongue:{organId:'tongue_human',hp:6},
+}};
+let tries = 0;
+const t = setInterval(async () => {
+  const w = document.getElementById('f').contentWindow;
+  tries++;
+  if (w.SANDBOX_ERROR) { out.push('SANDBOX_ERROR: ' + w.SANDBOX_ERROR); finish(); return; }
+  if (!w.SANDBOX) { if (tries > 40) { out.push('TIMEOUT: SANDBOX jamais prêt'); finish(); } return; }
+  clearInterval(t);
+  try {
+    const sb = w.SANDBOX;
+    sb.setBody(JSON.parse(JSON.stringify(HUMAN)));
+    out.push('setBody OK');
+    out.push('kill eye_l → ' + sb.killSlot('eye_l'));
+    sb.setLight(0);
+    out.push('setLight(0) OK');
+    out.push('beat → ' + sb.beat());
+    out.push('loadRoom → ' + (sb.loadRoom?.('alveoles', 'poumons') ?? 'ABSENT'));
+    const app = w.document.getElementById('chair-app');
+    out.push('biome = ' + app?.dataset.biome + ' · --meat = ' + app?.style.getPropertyValue('--meat'));
+    const m1 = sb.spawnMob?.('droite'); out.push('spawnMob → ' + (m1?.msg ?? m1?.err ?? 'ABSENT'));
+    const s1 = sb.addStructure?.('altar', 'gauche'); out.push('addStructure 1 → ' + (s1?.msg ?? s1?.err ?? 'ABSENT'));
+    const s2 = sb.addStructure?.('trade', 'droite'); out.push('addStructure 2 → ' + (s2?.msg ?? s2?.err ?? 'ABSENT'));
+    const s3 = sb.addStructure?.('graft', 'droite'); out.push('addStructure même slot → ' + (s3?.msg ?? s3?.err ?? 'ABSENT'));
+    const s4 = sb.addStructure?.('altar', 'centre'); out.push('addStructure même type → ' + (s4?.msg ?? s4?.err ?? 'ABSENT'));
+    const m2 = sb.spawnMob?.('droite'); out.push('spawnMob même slot → ' + (m2?.msg ?? m2?.err ?? 'ABSENT'));
+    out.push('positions figures = ' + [...w.document.querySelectorAll('.npc-figure')].filter((f2) => f2.innerHTML).map((f2) => (f2.className.match(/pos-\w+/) ?? ['?'])[0]).join(' '));
+    // clic sur la 2e structure → son panneau doit s'ouvrir
+    w.document.querySelectorAll('.npc-figure.trade')[0]?.click();
+    await new Promise((res) => setTimeout(res, 300));
+    out.push('panneau après clic trade = ' + (w.document.getElementById('room-panel')?.classList.contains('active') ? 'OUVERT' : 'fermé'));
+    out.push('reroll → ' + (sb.rerollRoom?.() ?? 'ABSENT'));
+    out.push('reroll → ' + (sb.rerollRoom?.() ?? 'ABSENT'));
+    out.push('reroll → ' + (sb.rerollRoom?.() ?? 'ABSENT'));
+    const p1 = sb.addProp?.('skeleton', 'droite'); out.push('addProp → ' + (p1?.msg ?? p1?.err ?? 'ABSENT'));
+    out.push('roomContents → ' + JSON.stringify(sb.roomContents?.() ?? []));
+    out.push('removeContent → ' + (sb.removeContent?.('struct:trade') ?? 'ABSENT'));
+    out.push('après retrait → ' + (sb.roomContents?.() ?? []).map((c) => c.label).join(', '));
+    out.push('setDoors → ' + (sb.setDoors?.({ g: true, f: false, d: true }) ?? 'ABSENT'));
+    out.push('invAdd → ' + (sb.invAdd?.() ?? 'ABSENT'));
+    out.push('invClear → ' + (sb.invClear?.() ?? 'ABSENT'));
+    out.push('teleport → ' + (sb.teleport?.() ?? 'ABSENT'));
+    out.push('rerollMap → ' + (sb.rerollMap?.() ?? 'ABSENT'));
+    setTimeout(() => {
+      const d = w.document;
+      const game = d.querySelector('.game');
+      out.push('game.classList = ' + game.className);
+      const ebl = d.querySelector('.eyeblind-l');
+      out.push('eyeblind-l width = ' + (ebl ? w.getComputedStyle(ebl).width : 'ABSENT'));
+      const tl = d.querySelector('.torchlight');
+      out.push('torchlight opacity = ' + (tl ? w.getComputedStyle(tl).opacity : 'ABSENT'));
+      const vo = d.querySelector('.vision-overlay');
+      out.push('vision-overlay = ' + (vo ? 'présent' : 'ABSENT'));
+      out.push('scene = ' + (d.querySelector('.scene') ? 'présent' : 'ABSENT'));
+      out.push('data-scene = ' + (d.querySelector('.scene')?.dataset.scene ?? 'ABSENT'));
+      out.push('décor alvéoles = ' + (d.querySelector('.alvring') ? 'présent' : 'ABSENT') + ' · tempo = ' + d.querySelector('.scene')?.style.getPropertyValue('--scene-tempo'));
+      out.push('mobwrap = ' + d.querySelectorAll('.mobwrap').length);
+      out.push('npc-figure class = ' + (d.getElementById('npc-figure')?.className ?? 'ABSENT'));
+      const clones = [...d.querySelectorAll('.npc-figure')].filter((x) => x.id !== 'npc-figure');
+      out.push('clones npc = ' + clones.length + (clones[0] ? ' · largeur clone = ' + w.getComputedStyle(clones[0]).width : ''));
+      out.push('exits visibles = ' + ['exit-l', 'exit-f', 'exit-r'].map((id) => id + ':' + w.getComputedStyle(d.getElementById(id)).display).join(' '));
+      out.push('gore prop = ' + (d.getElementById('gore')?.dataset.prop ?? 'ABSENT'));
+      out.push('besace : ' + d.querySelectorAll('#inventory-grid .cell').length + ' cellules, '
+        + d.querySelectorAll('#inventory-grid .cell.full').length + ' pleines, '
+        + d.querySelectorAll('#inventory-grid .cell.lock').length + ' verrouillées');
+      out.push('carte : ' + d.querySelectorAll('#minimap-grid .mc').length + ' cases, joueur visible = '
+        + (d.querySelector('#minimap-grid .mc.p') ? 'oui' : 'non'));
+      out.push('sb-err = ' + (w.SANDBOX_ERROR ?? 'aucune'));
+      finish();
+    }, 1200);
+  } catch (e) { out.push('EXC: ' + e.message); finish(); }
+}, 300);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

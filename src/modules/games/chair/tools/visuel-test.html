@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test visuel</title></head>
+<body>
+<iframe id="f" src="./organ-editor.html" style="width:1200px;height:800px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  const d = w.document;
+  tries++;
+  const items = d.querySelectorAll('#org-list .item');
+  if (!items.length) { if (tries > 30) { out.push('TIMEOUT: liste organes vide'); finish(); } return; }
+  clearInterval(t);
+  try {
+    // ── organe : clic sur le premier → zone Visuel avec 3 états de qualité ──
+    items[0].click();
+    const legs = [...d.querySelectorAll('#org-editor legend')].map((l) => l.textContent);
+    out.push('legends organe = ' + legs.join(' | '));
+    const host = [...d.querySelectorAll('#org-editor fieldset div')].find((x) => x.shadowRoot);
+    if (!host) out.push('✕ pas de shadow host');
+    else {
+      const sh = host.shadowRoot;
+      const cells = sh.querySelectorAll('.cell');
+      out.push('cellules organe = ' + cells.length
+        + ' · classes = ' + [...cells].map((c) => c.className.replace('cell full', '').trim() || 'normal').join(', ')
+        + ' · formes = ' + sh.querySelectorAll('.orgshape').length);
+      const cs = w.getComputedStyle(cells[0]);
+      out.push('cellule stylée = ' + cs.width + ' · border ' + cs.borderTopColor + ' · aspect ' + cs.aspectRatio);
+      out.push('captions = ' + [...sh.querySelectorAll('div')].map((x) => x.textContent).filter((s) => s.includes('PV')).join(' | '));
+
+      // ── éditeur de sprites : le préréglage "oeil" doit reproduire le CSS historique À L'IDENTIQUE ──
+      // (le 1er organe est eye_human → sans sprite, la classe .orgshape.eye s'applique)
+      const shape0 = sh.querySelector('.orgshape');
+      const before = w.getComputedStyle(shape0);
+      const B1 = before.backgroundImage, R1 = before.borderRadius, W1 = before.width;
+      const spriteSel = [...d.querySelectorAll('#org-editor select')].find((s) =>
+        [...s.options].some((op) => op.textContent.includes('préréglage')));
+      if (!spriteSel) out.push('✕ select de préréglage sprite introuvable');
+      else {
+        spriteSel.value = 'oeil';
+        spriteSel.dispatchEvent(new w.Event('change'));
+        const shape1 = sh.querySelector('.orgshape');
+        out.push('sprite inline après préréglage = ' + (shape1.getAttribute('style') ? 'oui' : 'NON'));
+        const after = w.getComputedStyle(shape1);
+        out.push('préréglage œil vs CSS historique : fond ' + (after.backgroundImage === B1 ? 'IDENTIQUE' : 'DIFFÉRENT (' + after.backgroundImage + ' vs ' + B1 + ')')
+          + ' · forme ' + (after.borderRadius === R1 ? 'IDENTIQUE' : 'DIFFÉRENT') + ' · taille ' + (after.width === W1 ? 'IDENTIQUE' : 'DIFFÉRENT'));
+        // 🎲 forme aléatoire : l'aperçu change et le champ texte suit
+        const diceBtn = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent === '🎲');
+        if (!diceBtn) out.push('✕ bouton 🎲 introuvable');
+        else {
+          diceBtn.click();
+          const rolled = w.getComputedStyle(sh.querySelector('.orgshape')).borderRadius;
+          const fInp = [...d.querySelectorAll('#org-editor input')].find((x) => x.placeholder?.startsWith('border-radius'));
+          out.push('🎲 forme = ' + (rolled !== after.borderRadius ? 'changée' : 'INCHANGÉE') + ' (' + rolled.split(' / ')[0] + ' /…)'
+            + ' · champ synchronisé = ' + (fInp && /%.*%.*\/.*%/.test(fInp.value) ? 'oui' : 'NON'));
+          diceBtn.click();
+          const rolled2 = w.getComputedStyle(sh.querySelector('.orgshape')).borderRadius;
+          out.push('🎲 reroll = ' + (rolled2 !== rolled ? 'nouvelle forme' : 'IDENTIQUE (suspect)'));
+        }
+        // calques : + calque → un <i> noir positionné ; ⧉ miroir → 2e symétrique
+        const calBtn = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent.includes('+ calque'));
+        if (!calBtn) out.push('✕ bouton + calque introuvable');
+        else {
+          calBtn.click();
+          let dots = sh.querySelector('.orgshape').querySelectorAll('i');
+          const ds = dots[0] && w.getComputedStyle(dots[0]);
+          out.push('calque = ' + dots.length + ' point · fond ' + (ds?.backgroundColor ?? '?')
+            + ' · position ' + (ds?.position ?? '?') + ' · base relative = '
+            + (w.getComputedStyle(sh.querySelector('.orgshape')).position === 'relative' ? 'oui' : 'NON'));
+          const mirBtn = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent === '⧉');
+          mirBtn?.click();
+          dots = sh.querySelector('.orgshape').querySelectorAll('i');
+          const l1 = dots[0]?.style.left, l2 = dots[1]?.style.left;
+          out.push('⧉ miroir = ' + dots.length + ' points · gauche ' + l1 + ' / ' + l2
+            + (l1 && l2 && l1 !== l2 ? ' (symétriques)' : ' ✕ PAS symétriques'));
+          const dcut = [...d.querySelectorAll('#org-editor input[type=checkbox]')].find((x) => x.parentElement?.textContent.includes('découper'));
+          if (dcut) { dcut.checked = true; dcut.dispatchEvent(new w.Event('change')); }
+          out.push('découpe = overflow ' + w.getComputedStyle(sh.querySelector('.orgshape')).overflow);
+        }
+        // retour au CSS par défaut via ✕ sprite
+        const rmBtn = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent.includes('✕ sprite'));
+        rmBtn?.click();
+        out.push('✕ sprite → style inline = ' + (sh.querySelector('.orgshape').getAttribute('style') || '(vide)')
+          + ' · calques restants = ' + sh.querySelector('.orgshape').querySelectorAll('i').length);
+      }
+    }
+    // ── relique : onglet Reliques, clic sur le Déchet organique ──
+    d.querySelector('[data-tab="relics"]').click();
+    const relItems = [...d.querySelectorAll('#relic-list .item')];
+    out.push('reliques listées = ' + relItems.map((x) => x.querySelector('.nm')?.textContent).join(', '));
+    const dechet = relItems.find((x) => x.textContent.includes('Déchet'));
+    if (!dechet) out.push('✕ Déchet organique absent de la liste');
+    else {
+      dechet.click();
+      const host2 = [...d.querySelectorAll('#relic-editor fieldset div')].find((x) => x.shadowRoot);
+      if (!host2) out.push('✕ pas de shadow host relique');
+      else {
+        const sh2 = host2.shadowRoot;
+        const cell = sh2.querySelector('.cell');
+        out.push('cellule relique = ' + (cell?.className ?? 'ABSENTE') + ' · éclat = ' + (sh2.querySelector('.relicshape') ? 'oui' : 'non')
+          + ' · tooltip = ' + (cell?.title.split('\n')[0] ?? ''));
+        // le sprite data du déchet (motte brune #7a5a30) doit s'appliquer en inline
+        const dcs = w.getComputedStyle(sh2.querySelector('.relicshape'));
+        out.push('sprite déchet appliqué = ' + (dcs.backgroundImage.includes('122, 90, 48') ? 'oui (motte brune)' : 'NON — ' + dcs.backgroundImage));
+      }
+      const warns = [...d.querySelectorAll('#relic-editor .w')].map((x) => x.textContent);
+      out.push('validation déchet = ' + warns.join(' · '));
+    }
+  } catch (e) { out.push('EXC: ' + e.message); }
+  finish();
+}, 400);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

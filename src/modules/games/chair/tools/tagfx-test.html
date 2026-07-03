@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test tagfx</title></head>
+<body>
+<iframe id="f" src="./view-sandbox.html?ui=bar,map" style="width:640px;height:640px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+const BASE = '/src/modules/games/chair/content';
+let tries = 0;
+const t = setInterval(async () => {
+  const w = document.getElementById('f').contentWindow;
+  tries++;
+  if (w.SANDBOX_ERROR) { out.push('SANDBOX_ERROR: ' + w.SANDBOX_ERROR); finish(); return; }
+  if (!w.SANDBOX) { if (tries > 40) { out.push('TIMEOUT: SANDBOX jamais prêt'); finish(); } return; }
+  clearInterval(t);
+  try {
+    const sb = w.SANDBOX;
+    // ── catalogue par défaut : paramètres EchoFX lus depuis tags.json ──
+    const P = sb.TagFX.echoParams();
+    out.push('echoParams défauts = step ' + P.stepScene + '/' + P.stepUI + ' · alpha ' + P.alphaScene + '/' + P.alphaUI
+      + ' · densité ' + P.densiteBase + '+' + P.densiteParNiveau + '/niv (max ' + P.densiteMax + ') · nuage ' + P.nuageMob.points + 'pts');
+
+    // ── brouillons : un tag INÉDIT 100% data (filtre + classe + shader + son) ──
+    const [tags, organs, sets, rooms, relics, structures] = await Promise.all(
+      ['tags', 'organs', 'sets', 'rooms', 'relics', 'structures'].map((n) =>
+        fetch(`${BASE}/${n}.json`).then((r) => r.json())));
+    tags.tags['test-sonar'] = {
+      label: 'Sonar de test', categorie: 'Test', forme: 'capacite', cote: true, prerequis: ['vue'],
+      description: 'tag inédit créé par le test — zéro code',
+      visuel: { classeCote: 'tst-sonar', filtreCote: 'sepia(0.9)', shader: { couleur: '255,60,60', alpha: 0.6, step: 14, densite: 0.5 } },
+      sonore: { label: 'bourdon de test', intensite: 0.55, x: 0.5 },
+    };
+    organs.push({ id: '__t_eye', name: 'Œil sonde', type: 'eye', layer: 'surface', hp: 6, set: 'human', tags: ['vue', 'test-sonar'] });
+    organs.push({ id: '__t_ear', name: 'Oreille sonde', type: 'ear', layer: 'surface', hp: 6, set: 'human', tags: ['ouie', 'echolocation-3'] });
+    await sb.applyDrafts({ organs, sets, rooms, relics, structures, tags });
+    out.push('applyDrafts + setCatalog OK');
+
+    sb.setBody({ slots: {
+      eye_l: { organId: '__t_eye', hp: 6 }, eye_r: { organId: 'eye_human', hp: 6 },
+      ear_l: { organId: '__t_ear', hp: 6 }, ear_r: { organId: '__t_ear', hp: 6 },
+      heart: { organId: 'heart_beast', hp: 9 }, skin: { organId: 'skin_human', hp: 12 },
+      brain: { organId: 'brain_human', hp: 8 },
+    }});
+    sb.setLight(1);
+    out.push('setBody sonde OK');
+
+    setTimeout(() => {
+      const d = w.document;
+      // 1. classe par côté posée sur .game (gauche seulement)
+      const g = d.querySelector('.game');
+      out.push('classeCote = ' + (g.classList.contains('tst-sonar-l') ? 'tst-sonar-l OK' : 'ABSENTE')
+        + (g.classList.contains('tst-sonar-r') ? ' · ✕ -r posée à tort' : ' · -r absente OK'));
+      // 2. filtre par côté (backdrop-filter sur la moitié gauche uniquement)
+      const fl = d.getElementById('tagfx-filter-l'), fr = d.getElementById('tagfx-filter-r');
+      out.push('filtre G = ' + (fl?.style.backdropFilter || 'vide') + ' · filtre D = ' + (fr?.style.backdropFilter || 'vide'));
+      // 3. shader custom : canvas présent et dessiné (pixels non vides côté gauche)
+      const tc = d.getElementById('tagfx-canvas');
+      let tagPix = 'ABSENT';
+      if (tc?.width) {
+        const data = tc.getContext('2d').getImageData(0, 0, Math.floor(tc.width / 2), tc.height).data;
+        let n = 0; for (let i = 3; i < data.length; i += 4) if (data[i] > 0) n++;
+        tagPix = n + ' px allumés (gauche)';
+        const dataR = tc.getContext('2d').getImageData(Math.ceil(tc.width / 2), 0, Math.floor(tc.width / 2), tc.height).data;
+        let nr = 0; for (let i = 3; i < dataR.length; i += 4) if (dataR[i] > 0) nr++;
+        tagPix += ' · ' + nr + ' px à droite (attendu 0)';
+      }
+      out.push('shader custom = ' + tagPix);
+      out.push('diag tagfx-canvas = ' + (tc ? tc.width + 'x' + tc.height + ' · client ' + tc.clientWidth + 'x' + tc.clientHeight : 'ABSENT'));
+      const ec0 = d.getElementById('echo-canvas');
+      out.push('diag echo-canvas = ' + (ec0 ? ec0.width + 'x' + ec0.height + ' · client ' + ec0.clientWidth + 'x' + ec0.clientHeight : 'ABSENT'));
+      let rafN = 0; w.requestAnimationFrame(function cnt() { rafN++; if (rafN < 5) w.requestAnimationFrame(cnt); });
+      setTimeout(() => out.push('rAF avancées en 300ms = ' + rafN), 300);
+      // 4. EchoFX piloté par la data : dots sur le canvas écho (echolocation-3 aux 2 oreilles)
+      const ec = d.getElementById('echo-canvas');
+      let echoPix = 'ABSENT';
+      if (ec?.width) {
+        const data = ec.getContext('2d').getImageData(0, 0, ec.width, ec.height).data;
+        let n = 0; for (let i = 3; i < data.length; i += 4) if (data[i] > 0) n++;
+        echoPix = n + ' px allumés';
+      }
+      out.push('shader écho = ' + echoPix);
+      // 5. source sonore permanente du tag (barre de son)
+      const srcs = sb.TagFX.soundSources();
+      out.push('soundSources = ' + JSON.stringify(srcs));
+      // 6. familles injectées depuis la data (echolocation max 4 → 2× niv-3 fusionnent en 4)
+      out.push('tiers écho gauche = [' + sb.Faculties.tiers('echolocation', 'gauche').join(',') + ']');
+      // 7. visuels des tags VUE désormais en data (mode absent / quand nuit)
+      const has = (...cs) => cs.map((c) => c + '=' + g.classList.contains(c)).join(' ');
+      out.push('jour (sonde G sans couleur, œil humain D) : ' + has('no-color-l', 'no-color-r', 'eye-l-dead', 'eye-r-dead', 'eye-l-dim'));
+      sb.setLight(0);
+      out.push('nuit (aucune vue nocturne) : ' + has('eye-l-dim', 'eye-r-dim', 'lum-out'));
+      sb.setLight(1);
+      sb.setBody({ slots: { eye_r: { organId: 'eye_human', hp: 6 }, ear_l: { organId: 'ear_human', hp: 6 }, heart: { organId: 'heart_human', hp: 9 } } });
+      out.push('œil G retiré : ' + has('eye-l-dead', 'eye-r-dead', 'no-eye', 'no-color-r'));
+      sb.setBody({ slots: { ear_l: { organId: 'ear_human', hp: 6 }, heart: { organId: 'heart_human', hp: 9 } } });
+      out.push('aveugle total : ' + has('eye-l-dead', 'eye-r-dead', 'no-eye'));
+      out.push('sb-err = ' + (w.SANDBOX_ERROR ?? 'aucune'));
+      setTimeout(finish, 400);
+    }, 1500);
+  } catch (e) { out.push('EXC: ' + e.message); finish(); }
+}, 300);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

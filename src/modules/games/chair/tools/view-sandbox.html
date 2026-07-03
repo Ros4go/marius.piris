@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHAIR · sandbox rendu</title>
+<!-- Les VRAIES feuilles de style du jeu — aucune copie -->
+<link rel="stylesheet" href="../styles/tokens.css">
+<link rel="stylesheet" href="../styles/scene.css">
+<link rel="stylesheet" href="../styles/scenes.css">
+<link rel="stylesheet" href="../styles/hud.css">
+<style>
+  /* Overrides sandbox : viewport plein cadre + bande Besace/Carte en dessous.
+     Rien ici ne touche à l'INTÉRIEUR du viewport (fidélité stricte). */
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0807; }
+  /* viewport à gauche (pleine hauteur), panneaux annexes en COLONNE à droite */
+  .game { display: flex !important; flex-direction: row; width: 100%; height: 100%; padding: 0 !important; }
+  .center { flex: 1; min-width: 0; height: 100%; display: block; }
+  .viewport { width: 100% !important; height: 100% !important; }
+  .rotate { display: none !important; }
+  .sbx-side { flex: none; width: 238px; display: flex; flex-direction: column; gap: 8px;
+              padding: 6px; border-left: 1px solid #241a12; background: #0e0a07; overflow: auto; }
+  .sbx-side .panel { flex: none; }
+  /* tailles contraintes : cellules ~52px, cases map ~24px */
+  .sbx-side .inv { max-width: 224px; margin: 0 auto; }
+  .sbx-side .map-wrap { max-width: 186px; margin: 0 auto; }
+  /* barre d'outils, en bas de la colonne */
+  .sbx-bar { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; margin-top: auto;
+             padding-top: 6px; border-top: 1px solid #241a12; font: 11px "Courier New", monospace; color: #8d7e63; }
+  .sbx-bar select { width: 100%; background: #0b0807; color: #b8a886; border: 1px solid #2a1f14; font: inherit; padding: 2px 4px; }
+  .sbx-bar button { background: #181009; color: #8d7e63; border: 1px solid #2a1f14; font: inherit; padding: 3px 8px; cursor: pointer; }
+  .sbx-bar button:hover { color: #c47f33; border-color: #574226; }
+  .sbx-sep { width: 100%; height: 1px; background: #241a12; margin: 3px 0; }
+  #sbx-msg { color: #5f7a4a; font-size: 10px; line-height: 1.4; width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="game" id="chair-app" data-biome="gorge">
+  <div class="grain" aria-hidden="true"></div>
+  <div class="heartpulse" aria-hidden="true"></div>
+  <main class="center">
+    <!-- Squelette injecté par ViewportDOM.js — la MÊME source que le jeu -->
+    <div class="viewport"></div>
+  </main>
+  <!-- Colonne latérale : Besace + Carte (mêmes squelettes/renderers que le jeu) + outils -->
+  <aside class="sbx-side">
+    <div class="panel">
+      <h3><i>❖</i> Besace</h3>
+      <div class="inv" id="inventory-grid"></div>
+    </div>
+    <div class="panel">
+      <h3><i>✠</i> Carte</h3>
+      <div class="map-wrap"></div>
+    </div>
+    <div class="sbx-bar">
+      <select id="sbx-item"></select>
+      <button id="sbx-invadd">🎒 ajouter</button>
+      <button id="sbx-invclear">vider</button>
+      <span class="sbx-sep"></span>
+      <select id="sbx-room"></select>
+      <button id="sbx-tp">📍 aller</button>
+      <button id="sbx-remap">🗺 reroll map</button>
+      <span id="sbx-msg"></span>
+    </div>
+  </aside>
+</div>
+
+<script>
+  // Rapport d'erreurs visible (pas de console nécessaire)
+  window.SANDBOX_ERROR = null;
+  function sbFail(msg) {
+    window.SANDBOX_ERROR = String(msg).substring(0, 300);
+    let el = document.getElementById('sb-err');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'sb-err';
+      el.style.cssText = 'position:fixed;left:0;right:0;bottom:0;background:#a3352b;color:#fff;font:11px monospace;padding:4px 8px;z-index:9999;white-space:pre-wrap';
+      document.body.appendChild(el);
+    }
+    el.textContent = '✕ ' + window.SANDBOX_ERROR;
+  }
+  window.addEventListener('error', (e) => sbFail(e.message + ' @ ' + (e.filename ?? '').split('/').pop() + ':' + e.lineno));
+  window.addEventListener('unhandledrejection', (e) => sbFail(e.reason?.stack?.split('\n').slice(0, 2).join(' ') ?? e.reason));
+</script>
+
+<script type="module">
+  // 1. DOM du viewport et des panneaux d'abord (certains modules capturent des
+  // éléments à l'import) — mêmes squelettes partagés que le jeu.
+  // Chaque élément annexe est OPTIONNEL, activé par ?ui=inv,map,bar dans l'URL
+  // (le simulateur demande tout ; l'aperçu de salle reste un viewport nu).
+  import { build, buildInto, INVENTORY_CELLS_HTML, MINIMAP_WRAP_HTML } from '../src/render/ViewportDOM.js';
+  const UI = new URLSearchParams(location.search).get('ui')?.split(',') ?? [];
+  build(document.querySelector('.viewport'));
+  if (UI.includes('inv')) buildInto(document.getElementById('inventory-grid'), INVENTORY_CELLS_HTML);
+  else document.getElementById('inventory-grid')?.closest('.panel')?.remove();
+  if (UI.includes('map')) buildInto(document.querySelector('.map-wrap'), MINIMAP_WRAP_HTML);
+  else document.querySelector('.map-wrap')?.closest('.panel')?.remove();
+  if (!UI.includes('bar')) document.querySelector('.sbx-bar')?.remove();
+  if (!UI.length) document.querySelector('.sbx-side')?.remove();
+</script>
+
+<script type="module">
+  // 2. Boot minimal : registry + état de run réel + modules de rendu réels
+  import { loadData, loadDataRaw, organResolver, allOrgans, allRelics, roomDef } from '../src/registry.js';
+  import * as MobGen from '../src/systems/MobGen.js';
+  import { WS, initRun, currentRoom, currentFloor } from '../src/WorldState.js';
+  import { descend, processTick } from '../src/TickEngine.js';
+  import { emit, flushAll } from '../src/TriggerBus.js';
+  import { ORGAN_SLOTS, Body } from '../src/entities/Body.js';
+  import * as Faculties from '../src/systems/Faculties.js';
+  import * as SensoryFX from '../src/render/SensoryFX.js';
+  import * as BodyFX from '../src/render/BodyFX.js';
+  import * as SoundBar from '../src/render/SoundBar.js';
+  import * as EchoFX from '../src/render/EchoFX.js';
+  import * as SceneRenderer from '../src/render/SceneRenderer.js';
+  import * as MobRenderer from '../src/render/MobRenderer.js';
+  import * as RoomPanel from '../src/render/RoomPanel.js';
+  import * as MinimapRenderer from '../src/render/MinimapRenderer.js';
+  import * as InventoryRenderer from '../src/render/InventoryRenderer.js';
+  import * as FXSystem from '../src/render/FXSystem.js';
+  import * as TagFX from '../src/render/TagFX.js';
+
+  const BASE = '/src/modules/games/chair';
+
+  function refresh() {
+    try { BodyFX.apply(); } catch (e) { sbFail('BodyFX: ' + (e.stack?.split('\n').slice(0, 2).join(' | ') ?? e.message)); }
+    try { SensoryFX.applyBodyState(); } catch (e) { sbFail('SensoryFX: ' + e.message); }
+    // Carte (tags map/memoire/detection du corps) + Besace (capacité liée aux bras)
+    // — seulement si le panneau est demandé par ?ui= (sinon retiré du DOM)
+    if (document.getElementById('minimap-grid')) {
+      try { MinimapRenderer.render(); } catch (e) { sbFail('Minimap: ' + e.message); }
+    }
+    if (document.getElementById('inventory-grid')) {
+      try { InventoryRenderer.render(); } catch (e) { sbFail('Inventory: ' + e.message); }
+    }
+  }
+
+  // Options RoomPanel : onRender auto-référent (cliquer une structure ouvre son
+  // panneau) et onTick branché sur le VRAI TickEngine.processTick — acheter,
+  // greffer, sacrifier consomment réellement l'inventaire, comme en jeu.
+  function rerenderAll() {
+    try { SceneRenderer.render(); } catch {}
+    try { MobRenderer.render({}); } catch {}
+    try { RoomPanel.render(RP_OPTS); } catch (e) { sbFail('RoomPanel: ' + e.message); }
+    refresh();
+  }
+  const RP_OPTS = {
+    onRender: () => rerenderAll(),
+    onTick: (action) => {
+      try { processTick(action); } catch (e) { sbFail('tick: ' + e.message); }
+      rerenderAll();
+    },
+    onSave: () => {},
+    onChoosePath: () => {},
+    onAimMob: () => {},
+    heritage: [],
+    onHeritageChange: () => {},
+  };
+
+  // Le bus d'événements exige cette structure dans WS (normalement posée par initRun)
+  function ensureBus() { WS.triggerBus = WS.triggerBus ?? { queue: [], budget: 0 }; }
+  function fire(event) {
+    ensureBus();
+    emit(event);
+    flushAll();   // flush() exige une priorité — flushAll() traite les 3 niveaux
+  }
+
+  async function boot() {
+    await loadData(BASE);
+    try { initRun(1); } catch (e) { console.warn('initRun', e); }
+    ensureBus();
+    // Génère un vrai étage (donjon, salles, portes) comme au début d'une run.
+    // La palette biome est appliquée par SceneRenderer.render() (code partagé).
+    try { descend('gorge', 0); } catch (e) { console.warn('descend', e); }
+    SensoryFX.init();
+    try { SoundBar.init(); } catch (e) { console.warn('SoundBar', e); }
+    try { EchoFX.init(); } catch (e) { console.warn('EchoFX', e); }
+    try { SceneRenderer.render(); } catch (e) { console.warn('SceneRenderer', e); }
+    InventoryRenderer.init({ onInspect: () => {} });
+    // besace de test : deux organes + une relique (rendus par le vrai renderer)
+    WS.player.inventory = [{ organId: 'eye_human', hp: 4 }, { organId: 'heart_beast', hp: 6 }, { relicId: 'relic_suture_noire' }];
+    refresh();
+
+    // ── API pilotée par l'atelier (même origine → accès direct) ──
+    window.SANDBOX = {
+      WS, Faculties, FXSystem, SoundBar, TagFX, organResolver,
+
+      // Remplace le contenu du registry par les brouillons de l'atelier
+      async applyDrafts({ organs, sets, rooms, relics, structures, tags }) {
+        const [biomes, relicsDisk, mobs, balance, lore] = await Promise.all(
+          ['biomes', 'relics', 'mobs', 'balance', 'lore'].map((n) =>
+            fetch(`${BASE}/content/${n}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+        loadDataRaw({ organs, sets, rooms,
+          biomes: biomes ?? [], relics: relics ?? relicsDisk ?? [], mobs: mobs ?? [], lore: lore ?? [], balance });
+        // structures : brouillons injectés dans les modules qui les lisent
+        if (structures) { RoomPanel.setStructures(structures); SoundBar.setStructures(structures); }
+        // catalogue de tags : primitives visuel/sonore + max des familles (Faculties)
+        if (tags) TagFX.setCatalog(tags);
+        window.SANDBOX?._fillItemSelect?.();
+        refresh();
+      },
+
+      // corps = { slots: { eye_l: {organId, hp}, ... } }
+      setBody(body) { WS.player = WS.player ?? {}; WS.player.body = body; refresh(); },
+      setLight(v) { WS.light = WS.light ?? {}; WS.light.current = v; refresh(); },
+
+      beat() {
+        try { SensoryFX.onBeat(); return '♥ battement joué'; }
+        catch (e) { return '✕ beat: ' + e.message; }
+      },
+      hit(dmg = 2) {
+        try {
+          fire({ type: 'ORGAN_DAMAGED', source: 'sandbox', target: 'player',
+                 data: { slotKey: 'skin', dmg }, priority: 0 });
+          return '⚡ flash joué (peau: ' + (WS.player?.body?.slots?.skin?.organId ?? 'aucune') + ')';
+        } catch (e) { return '✕ hit: ' + e.message; }
+      },
+      killSlot(slotKey) {
+        try {
+          const slot = WS.player?.body?.slots?.[slotKey];
+          if (!slot) return '✕ slot ' + slotKey + ' vide — équipe un organe dans ce slot';
+          slot.hp = 0;
+          fire({ type: 'ORGAN_DAMAGED', source: 'sandbox', target: 'player',
+                 data: { slotKey, dmg: 99 }, priority: 0 });
+          refresh();
+          return '☠ ' + slotKey + ' détruit';
+        } catch (e) { return '✕ killSlot: ' + e.message; }
+      },
+      reviveAll() {
+        try {
+          const body = WS.player?.body; if (!body) return '✕ pas de corps';
+          for (const k of Object.keys(body.slots)) {
+            const s = body.slots[k];
+            if (s) s.hp = organResolver(s.organId)?.hp ?? organResolver(s.organId)?.maxHp ?? 10;
+          }
+          document.querySelector('.game')?.classList.remove('limp');
+          refresh();
+          return '✚ corps soigné';
+        } catch (e) { return '✕ revive: ' + e.message; }
+      },
+      ping(x = 0.5, label = 'ploc', i = 0.6) { try { SoundBar.ping(x, label, i); } catch {} },
+
+      // ── Besace ── (id d'organe, id de relique, ou rien = aléatoire)
+      invAdd(id) {
+        try {
+          let item, label;
+          if (id && allRelics().some((r) => r.id === id)) {
+            item = { relicId: id }; label = allRelics().find((r) => r.id === id)?.name ?? id;
+          } else {
+            const pool = allOrgans();
+            const o = (id ? pool.find((x) => x.id === id) : null) ?? pool[Math.floor(Math.random() * pool.length)];
+            if (!o) return `✕ item "${id}" inconnu`;
+            item = { organId: o.id, hp: o.maxHp ?? o.hp ?? 5 }; label = o.name;
+          }
+          (WS.player.inventory = WS.player.inventory ?? []).push(item);
+          refresh();
+          return `🎒 + ${label} (${WS.player.inventory.length} items)`;
+        } catch (e) { return '✕ invAdd: ' + e.message; }
+      },
+      invClear() {
+        WS.player.inventory = [];
+        refresh();
+        return '🎒 besace vidée';
+      },
+
+      // ── Carte ──
+      floorRooms() {
+        const floor = currentFloor(); if (!floor) return [];
+        const out = [];
+        for (let x = 0; x < 13; x++) for (let y = 0; y < 13; y++) {
+          const c = floor.cell(x, y);
+          if (c) out.push({ x, y, defId: c.defId ?? '?' });
+        }
+        return out;
+      },
+      rerollMap() {
+        try {
+          const biomeId = currentFloor()?.biomeId ?? 'gorge';
+          descend(biomeId, WS.player.floorIdx ?? 0);
+          rerenderAll();
+          _fillRoomSelect();
+          return `🗺 étage regénéré (${biomeId})`;
+        } catch (e) { return '✕ reroll map: ' + e.message; }
+      },
+      teleport(x, y) {
+        try {
+          const rooms = this.floorRooms();
+          if (!rooms.length) return '✕ étage vide';
+          const c = (x != null ? rooms.find((r) => r.x === +x && r.y === +y) : null)
+                 ?? rooms[Math.floor(Math.random() * rooms.length)];
+          WS.player.pos = { x: c.x, y: c.y };
+          rerenderAll();
+          return `📍 téléporté en ${c.x},${c.y} — ${currentRoom()?.defId ?? '?'}`;
+        } catch (e) { return '✕ teleport: ' + e.message; }
+      },
+
+      // ── Spawns dans la salle : liste gérée, chacun retirable ──
+      spawnMob(side = 'centre') {
+        try {
+          const room = currentRoom(); if (!room) return { err: '✕ pas de salle courante' };
+          const slot = _posOf(side);
+          // occupation réelle : couvre aussi les mobs spawnés naturellement
+          const taken = (room.mobIds ?? []).some((id) => WS.mobs.get(id)?._slot === slot);
+          if (taken) return { err: `✕ emplacement ${side} : déjà un mob (1 par emplacement)` };
+          if ((room.mobIds ?? []).length >= 3) return { err: '✕ les 3 emplacements de mob sont pris' };
+          const pool = allOrgans();
+          const b = new Body('sbmob' + (++_mobSeq));
+          const n = 2 + Math.floor(Math.random() * 3);
+          let placed = 0, tries = 0;
+          while (placed < n && tries++ < 40) {
+            const o = pool[Math.floor(Math.random() * pool.length)];
+            const key = Object.keys(ORGAN_SLOTS).find((k) => ORGAN_SLOTS[k].type === o.type && !b.slots[k]);
+            if (key) { b.slots[key] = { organId: o.id, hp: o.maxHp ?? 10 }; placed++; }
+          }
+          const mob = { id: b.id, name: 'Cobaye ' + _mobSeq, body: b, lifecycle: 'active', tags: [], _bleeds: {}, _slot: slot,
+                        pos: { floorIdx: WS.player.floorIdx ?? 0, x: WS.player.pos?.x ?? 0, y: WS.player.pos?.y ?? 0 } };
+          WS.mobs.set(mob.id, mob);
+          room.mobIds = room.mobIds ?? [];
+          room.mobIds.push(mob.id);
+          MobRenderer.render({});   // le placement suit mob._slot (grille moteur)
+          return { msg: `👹 ${mob.name} (${side})` };
+        } catch (e) { return { err: '✕ mob: ' + e.message }; }
+      },
+      // Spawn NATUREL : le vrai MobGen (thèmes du biome, budget, élites) — le
+      // même code que le jeu quand tu entres dans la salle.
+      spawnRoomMobs() {
+        try {
+          const room = currentRoom(); const floor = currentFloor();
+          if (!room || !floor) return { err: '✕ pas de salle' };
+          const before = new Set(room.mobIds ?? []);
+          MobGen.spawnForRoom(room, floor, WS.player.floorIdx ?? 0);
+          const born = (room.mobIds ?? []).filter((id) => !before.has(id));
+          for (const id of born) { const m = WS.mobs.get(id); if (m) m.lifecycle = 'active'; }
+          MobRenderer.render({});
+          if (!born.length) return { err: 'la salle n\'a rien fait spawner (def sans mobs ?)' };
+          return _track('mob', `🎲 ${born.map((id) => WS.mobs.get(id)?.name ?? id).join(', ')}`, 'naturel', () => {
+            for (const id of born) { WS.mobs.delete(id); }
+            room.mobIds = (room.mobIds ?? []).filter((id) => !born.includes(id));
+            MobRenderer.render({});
+          });
+        } catch (e) { return { err: '✕ spawn salle: ' + e.message }; }
+      },
+      addStructure(kind, side = 'centre') {
+        try {
+          const room = currentRoom(); if (!room) return { err: '✕ pas de salle' };
+          const def = RoomPanel.structureDefs()[kind];
+          if (!def) return { err: `✕ structure "${kind}" inconnue` };
+          const pos = _posOf(side);
+          if (room._structRolled === undefined) RoomPanel.render(RP_OPTS);   // force le tirage initial
+          // Règle des emplacements : 3 slots, 1 structure par slot, 1 par type
+          const kinds = room._structKinds ?? [];
+          if (kinds.includes(kind)) return { err: `✕ "${def.label ?? kind}" est déjà dans la salle (1 par type)` };
+          if (kinds.length >= 3) return { err: '✕ les 3 emplacements de structure sont pris' };
+          if ((room._structSides ?? []).includes(pos)) return { err: `✕ emplacement ${side} : déjà une structure` };
+          room._structSidePrefs = { ...(room._structSidePrefs ?? {}), [kind]: pos };
+          room._structRolled = [...(room._structRolled ?? []), kind];
+          RoomPanel.render(RP_OPTS);
+          return { msg: `🧍 ${def.label ?? kind} (${side})` };
+        } catch (e) { return { err: '✕ structure: ' + e.message }; }
+      },
+      rerollRoom() {
+        try {
+          const room = currentRoom(); if (!room) return '✕ pas de salle';
+          room._structSalt = Math.random();
+          delete room._structRolled;
+          delete room._structSidePrefs;
+          RoomPanel.render(RP_OPTS);
+          const got = room._structKinds ?? [];
+          return got.length ? `🎲 tirage : ${got.join(' + ')}` : '🎲 tirage : aucune structure';
+        } catch (e) { return '✕ reroll: ' + e.message; }
+      },
+      addProp(kind, side = 'centre') {
+        try {
+          if (_propSides.has(side)) return { err: `✕ emplacement ${side} : déjà un décor (1 par emplacement)` };
+          const gore = document.getElementById('gore'); if (!gore) return { err: '✕ pas de gore layer' };
+          const c = gore.cloneNode(true);
+          c.removeAttribute('id');
+          c.dataset.prop = kind;
+          c.style.setProperty('--gore-left', side === 'gauche' ? '5%' : side === 'droite' ? '66%' : '36%');
+          gore.parentElement.appendChild(c);
+          _propSides.add(side);
+          return _track('prop', `🦴 ${kind}`, side, () => { _propSides.delete(side); c.remove(); });
+        } catch (e) { return { err: '✕ décor: ' + e.message }; }
+      },
+      removeSpawn(id) {
+        const i = _spawns.findIndex((s) => s.id === id);
+        if (i < 0) return '✕ inconnu';
+        try { _spawns[i].cleanup(); } catch {}
+        const lbl = _spawns[i].label;
+        _spawns.splice(i, 1);
+        return `${lbl} retiré`;
+      },
+
+      // ── Contenu RÉEL de la salle courante (naturel + manuel), tout retirable ──
+      roomContents() {
+        const room = currentRoom(); if (!room) return [];
+        const out = [];
+        for (const id of room.mobIds ?? []) {
+          const m = WS.mobs.get(id);
+          if (!m || m.lifecycle !== 'active') continue;
+          out.push({ id: 'mob:' + id, label: '👹 ' + (m.name ?? id), side: m._slot ?? '?' });
+        }
+        (room._structKinds ?? []).forEach((k, i) => {
+          out.push({ id: 'struct:' + k, label: '🧍 ' + (RoomPanel.structureDefs()[k]?.label ?? k), side: room._structSides?.[i] ?? '?' });
+        });
+        const gore = document.getElementById('gore');
+        if (gore && gore.dataset.prop !== 'none') out.push({ id: 'gore', label: '🦴 ' + gore.dataset.prop, side: 'salle' });
+        for (const s of _spawns.filter((x) => x.type === 'prop')) out.push({ id: s.id, label: s.label, side: s.side });
+        return out;
+      },
+      removeContent(id) {
+        try {
+          const room = currentRoom(); if (!room) return '✕ pas de salle';
+          if (id.startsWith('mob:')) {
+            const mobId = id.slice(4);
+            WS.mobs.delete(mobId);
+            room.mobIds = (room.mobIds ?? []).filter((x) => x !== mobId);
+            MobRenderer.render({});
+            return '👹 retiré';
+          }
+          if (id.startsWith('struct:')) {
+            const kind = id.slice(7);
+            if (room._structRolled === undefined) room._structRolled = [...(room._structKinds ?? [])];
+            const i = room._structRolled.lastIndexOf(kind);
+            if (i >= 0) room._structRolled.splice(i, 1);
+            delete room._structSidePrefs?.[kind];
+            RoomPanel.render(RP_OPTS);
+            return '🧍 retiré';
+          }
+          if (id === 'gore') {
+            const g = document.getElementById('gore');
+            if (g) g.dataset.prop = 'none';
+            return '🦴 retiré';
+          }
+          return this.removeSpawn(id);
+        } catch (e) { return '✕ ' + e.message; }
+      },
+      clearSpawns() {
+        try {
+          const room = currentRoom();
+          if (room) {
+            for (const id of [...(room.mobIds ?? [])]) WS.mobs.delete(id);
+            room.mobIds = [];
+            room._structRolled = [];
+            delete room._structSidePrefs;
+            const g = document.getElementById('gore');
+            if (g) g.dataset.prop = 'none';
+          }
+          for (const s of [..._spawns].reverse()) { try { s.cleanup(); } catch {} }
+          _spawns.length = 0;
+          MobRenderer.render({});
+          RoomPanel.render(RP_OPTS);
+          return 'salle vidée';
+        } catch (e) { return '✕ ' + e.message; }
+      },
+      spawnList() { return this.roomContents(); },
+      loadRoom(defId, biomeId) {
+        try {
+          const room = currentRoom(); const floor = currentFloor();
+          if (!room || !floor) return '✕ pas de salle/étage';
+          const def = roomDefOf(defId); if (!def) return `✕ salle "${defId}" inconnue`;
+          // vider les spawns avant de changer de décor
+          for (const s of [..._spawns].reverse()) { try { s.cleanup(); } catch {} }
+          _spawns.length = 0;
+          room.defId = def.id; room.ui = def.ui;
+          room.hostile = (def.spawns?.maxMobs ?? 0) > 0 || !!def.spawns?.boss || !!def.spawns?.graveyard;
+          room.description = def.description;
+          room.cleared = !room.hostile;
+          delete room._structRolled; delete room._structSidePrefs; delete room._sbOrigUi;
+          if (biomeId) floor.biomeId = biomeId;
+          SceneRenderer.render();   // applique aussi la palette biome (code partagé)
+          RoomPanel.render(RP_OPTS);
+          refresh();
+          const struck = room._structRolled ? ` — structure tirée : ${room._structRolled}` : '';
+          return `🏠 "${def.id}" chargée (${floor.biomeId})${struck}`;
+        } catch (e) { return '✕ salle: ' + e.message; }
+      },
+      setDoors({ g = false, f = true, d = false, b = false } = {}) {
+        try {
+          const floor = currentFloor(); if (!floor) return '✕ pas d\'étage';
+          if (!floor._sbOrigCell) floor._sbOrigCell = floor.cell.bind(floor);
+          const DIR_DELTA = { N: { dx: 0, dy: -1 }, E: { dx: 1, dy: 0 }, S: { dx: 0, dy: 1 }, W: { dx: -1, dy: 0 } };
+          const ORDER = ['N', 'E', 'S', 'W'];
+          const rot = (dir2, k) => ORDER[(ORDER.indexOf(dir2) + k + 4) % 4];
+          floor.cell = (x, y) => {
+            const { x: px, y: py } = WS.player.pos;
+            const dir2 = WS.player.dir ?? 'S';
+            const fw = DIR_DELTA[dir2], lf = DIR_DELTA[rot(dir2, -1)], rg = DIR_DELTA[rot(dir2, 1)];
+            if (x === px + fw.dx && y === py + fw.dy) return f ? (floor._sbOrigCell(x, y) ?? {}) : null;
+            if (x === px + lf.dx && y === py + lf.dy) return g ? (floor._sbOrigCell(x, y) ?? {}) : null;
+            if (x === px + rg.dx && y === py + rg.dy) return d ? (floor._sbOrigCell(x, y) ?? {}) : null;
+            if (x === px - fw.dx && y === py - fw.dy) return b ? (floor._sbOrigCell(x, y) ?? {}) : null;
+            return floor._sbOrigCell(x, y);
+          };
+          SceneRenderer.render();
+          return `🚪 portes : ${[g && 'gauche', f && 'face', d && 'droite', b && 'dos'].filter(Boolean).join(', ') || 'aucune'}`;
+        } catch (e) { return '✕ portes: ' + e.message; }
+      },
+      setProp(prop, side = 'centre') {
+        try {
+          const gore = document.getElementById('gore'); if (!gore) return '✕ pas de gore layer';
+          gore.dataset.prop = prop;
+          gore.style.setProperty('--gore-left', side === 'gauche' ? '5%' : side === 'droite' ? '66%' : '36%');
+          return prop === 'none' ? 'décor retiré' : `🦴 décor "${prop}" (${side})`;
+        } catch (e) { return '✕ décor: ' + e.message; }
+      },
+      refresh,
+    };
+    let _mobSeq = 0, _spawnSeq = 0;
+    const _spawns = [];   // { id, type, label, side, cleanup }
+    const _propSides = new Set();   // occupation des emplacements décor
+    const _posOf = (side) => ({ gauche: 'left', centre: 'center', droite: 'right' }[side] ?? 'center');
+    function _track(type, label, side, cleanup) {
+      const entry = { id: 's' + (++_spawnSeq), type, label, side, cleanup };
+      _spawns.push(entry);
+      return { id: entry.id, msg: `${label} (${side})` };
+    }
+    // les defs de salles viennent du registry (brouillons inclus via applyDrafts)
+    const roomDefOf = (defId) => roomDef(defId);
+    // ── Barre d'outils locale (sous Besace/Carte) ──
+    function _fillItemSelect() {
+      const s = document.getElementById('sbx-item'); if (!s) return;
+      const cur = s.value;
+      s.innerHTML = '';
+      const og1 = document.createElement('optgroup'); og1.label = 'Organes';
+      for (const o of allOrgans()) { const opt = document.createElement('option'); opt.value = o.id; opt.textContent = o.name; og1.appendChild(opt); }
+      const og2 = document.createElement('optgroup'); og2.label = 'Reliques';
+      for (const r of allRelics()) { const opt = document.createElement('option'); opt.value = r.id; opt.textContent = r.name; og2.appendChild(opt); }
+      s.append(og1, og2);
+      if (cur) s.value = cur;
+    }
+    function _fillRoomSelect() {
+      const s = document.getElementById('sbx-room'); if (!s) return;
+      s.innerHTML = '';
+      for (const r of window.SANDBOX.floorRooms()) {
+        const opt = document.createElement('option');
+        opt.value = r.x + ',' + r.y;
+        opt.textContent = `${r.defId} (${r.x},${r.y})`;
+        s.appendChild(opt);
+      }
+    }
+    const _msg = (m) => { const el = document.getElementById('sbx-msg'); if (el) el.textContent = m ?? ''; };
+    if (document.getElementById('sbx-invadd')) {   // barre absente si ?ui= ne demande pas "bar"
+      document.getElementById('sbx-invadd').onclick = () => _msg(window.SANDBOX.invAdd(document.getElementById('sbx-item').value));
+      document.getElementById('sbx-invclear').onclick = () => _msg(window.SANDBOX.invClear());
+      document.getElementById('sbx-tp').onclick = () => {
+        const [x, y] = (document.getElementById('sbx-room').value || ',').split(',');
+        _msg(window.SANDBOX.teleport(x, y));
+      };
+      document.getElementById('sbx-remap').onclick = () => { _msg(window.SANDBOX.rerollMap()); };
+    }
+    window.SANDBOX._fillItemSelect = _fillItemSelect;
+    window.SANDBOX._fillRoomSelect = _fillRoomSelect;
+    _fillItemSelect();
+    _fillRoomSelect();
+
+    window.dispatchEvent(new Event('sandbox-ready'));
+    document.title = 'CHAIR · sandbox prêt';
+  }
+  boot().catch((e) => { console.error(e); sbFail(e.stack?.split('\n').slice(0, 2).join(' ') ?? e); });
+</script>
+</body>
+</html>

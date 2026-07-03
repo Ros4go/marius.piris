@@ -1,0 +1,77 @@
+{
+  "_doc": "Tous les effets visuels du jeu, pilotés par la data (TDD: designers-first). Les keyframes suivent le format Web Animations API. Le token $I est remplacé par l'intensité calculée.",
+
+  "vision": {
+    "_doc": "backdrop-filter appliqué au .vision-overlay quand cet œil est équipé et vivant. Clé = organId.",
+    "eye_beast":    "sepia(0.35) brightness(0.96)",
+    "eye_spider":   "grayscale(0.55) hue-rotate(115deg) brightness(1.08)",
+    "eye_void":     "brightness(0.38) contrast(2.2) hue-rotate(208deg) saturate(2)",
+    "eye_beholder": "hue-rotate(265deg) saturate(1.5) brightness(1.05)",
+    "eye_lich":     "invert(1) hue-rotate(178deg) brightness(1.1)"
+  },
+  "visionCombos": {
+    "_doc": "Deux yeux différents équipés : filtre combiné spécifique (clé = ids triés joints par +).",
+    "eye_beast+eye_spider": "sepia(0.25) grayscale(0.4) hue-rotate(110deg)",
+    "eye_lich+eye_void":    "invert(1) brightness(0.4) contrast(2.4)"
+  },
+
+  "hitFlash": {
+    "_doc": "Flash de dégâts sur .viewport selon la peau équipée. minDmg = flash seulement au-dessus (carapace absorbe). Clé par défaut = 'default'.",
+    "default":         { "keyframes": [{ "boxShadow": "inset 0 0 50px #8a2f2aaa" }, { "boxShadow": "inset 0 0 50px #8a2f2a00" }], "duration": 210, "easing": "ease-out" },
+    "skin_stone":      { "keyframes": [{ "boxShadow": "inset 0 0 50px #6a6a5088" }, { "boxShadow": "inset 0 0 50px #6a6a5000" }], "duration": 210, "easing": "ease-out" },
+    "skin_lich":       { "keyframes": [{ "boxShadow": "inset 0 0 50px #3a0a5888" }, { "boxShadow": "inset 0 0 50px #3a0a5800" }], "duration": 210, "easing": "ease-out" },
+    "skin_alchimique": { "keyframes": [{ "boxShadow": "inset 0 0 50px #2a6a1888" }, { "boxShadow": "inset 0 0 50px #2a6a1800" }], "duration": 210, "easing": "ease-out" },
+    "skin_carapace":   { "minDmg": 2, "keyframes": [{ "boxShadow": "inset 0 0 50px #6a6a5088" }, { "boxShadow": "inset 0 0 50px #6a6a5000" }], "duration": 210, "easing": "ease-out" }
+  },
+
+  "beat": {
+    "_doc": "Pulsation cardiaque. intensité = min(1, base + pool × perPool), injectée dans --beat-intensity (le box-shadow CSS la lit). L'anim ne gère que l'opacité, comme bp-slam.",
+    "base": 0.25,
+    "perPool": 0.08,
+    "overlay": { "keyframes": [{ "opacity": 1 }, { "opacity": 0 }], "duration": 160, "easing": "ease-out" }
+  },
+
+  "organLost": {
+    "_doc": "Quand un organe du joueur meurt : anim one-shot sur .scene + classe persistante sur .game (état continu défini en CSS). Clé = type d'organe.",
+    "legs": {
+      "persist": "limp",
+      "anim": { "keyframes": [
+        { "transform": "rotate(0deg) translateY(0)" },
+        { "transform": "rotate(-4.5deg) translateY(3.2%) scale(1.05)", "offset": 0.55 },
+        { "transform": "rotate(-2.8deg) translateY(1.6%) scale(1.04)" }
+      ], "duration": 650, "easing": "cubic-bezier(.3,1.4,.5,1)" }
+    },
+    "eye": {
+      "anim": { "keyframes": [
+        { "filter": "brightness(1)" },
+        { "filter": "brightness(3) contrast(0.4)", "offset": 0.12 },
+        { "filter": "brightness(0.6)", "offset": 0.5 },
+        { "filter": "brightness(1)" }
+      ], "duration": 550, "easing": "ease-out" }
+    },
+    "ear": {
+      "anim": { "keyframes": [
+        { "transform": "translateX(0)" },
+        { "transform": "translateX(-6px)", "offset": 0.2 },
+        { "transform": "translateX(5px)", "offset": 0.45 },
+        { "transform": "translateX(-3px)", "offset": 0.7 },
+        { "transform": "translateX(0)" }
+      ], "duration": 420, "easing": "ease-out" }
+    },
+    "heart": {
+      "anim": { "keyframes": [
+        { "filter": "saturate(1)" },
+        { "filter": "saturate(0.1) brightness(0.7)", "offset": 0.4 },
+        { "filter": "saturate(1)" }
+      ], "duration": 900, "easing": "ease-in-out" }
+    }
+  },
+
+  "overlays": {
+    "_doc": "organs.json visual.overlay → classe CSS appliquée à .scene (bfx-* dans scene.css).",
+    "hex-fragment": "bfx-hex-frag",
+    "lich-pulse":   "bfx-lich-pulse",
+    "spider-crawl": "bfx-spider-crawl",
+    "stone-crack":  "bfx-stone-crack"
+  }
+}

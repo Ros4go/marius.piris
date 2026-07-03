@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+<iframe id="f" src="./view-sandbox.html?ui=bar" style="width:800px;height:500px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  tries++;
+  if (!w.SANDBOX) { if (tries > 40) { out.push('TIMEOUT'); fin(); } return; }
+  clearInterval(t);
+  const sb = w.SANDBOX;
+  sb.clearSpawns();
+  sb.spawnMob('centre'); sb.spawnMob('gauche'); sb.spawnMob('droite');
+  setTimeout(() => {
+    const d = w.document;
+    const wraps = [...d.querySelectorAll('.mobwrap')];
+    const bottoms = wraps.map((el) => Math.round(el.getBoundingClientRect().bottom));
+    out.push('mobs = ' + wraps.length);
+    out.push('bottoms = ' + bottoms.join(', '));
+    out.push('alignés = ' + (Math.max(...bottoms) - Math.min(...bottoms) <= 2 ? 'OUI' : 'NON'));
+    fin();
+  }, 400);
+}, 300);
+function fin() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script></body></html>

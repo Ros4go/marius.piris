@@ -1,0 +1,39 @@
+{
+  "_doc": "Structures cliquables dans la scène (PNJ, autel, objets au sol). label/floor/panel/son/html sont de la data designer. panel = quel panneau s'ouvre au clic (combat, rest, trade, graft, altar, puzzle, path_choice, pillard). son.intensite = volume sur la barre sonore (0-1), son.tremor = tremblement sourd sans texte.",
+
+  "trade": {
+    "label": "marchand",
+    "floor": false,
+    "panel": "trade",
+    "son": { "label": "marchand", "intensite": 0.42 },
+    "html": "<div class=\"m-hood\"></div><div class=\"m-body\"></div><div class=\"m-eye l\"></div><div class=\"m-eye r\"></div><div class=\"m-wares\"></div>"
+  },
+  "graft": {
+    "label": "couturière",
+    "floor": false,
+    "panel": "graft",
+    "son": { "label": "couturière", "intensite": 0.42 },
+    "html": "<div class=\"ss-lamp\"></div><div class=\"ss-hood\"></div><div class=\"ss-body\"></div><div class=\"ss-arm la\"></div><div class=\"ss-arm ra\"></div><div class=\"ss-eye\"></div><div class=\"ss-table\"></div><div class=\"ss-thread\"></div>"
+  },
+  "altar": {
+    "label": "autel",
+    "floor": false,
+    "panel": "altar",
+    "son": { "label": "autel", "intensite": 0.24 },
+    "html": "<div class=\"al-glow\"></div><div class=\"al-top\"></div><div class=\"al-base\"></div>"
+  },
+  "pillard": {
+    "label": "pillard",
+    "floor": false,
+    "panel": "pillard",
+    "son": { "label": "pillard", "intensite": 0.32 },
+    "html": "<div class=\"pl-body\"></div><div class=\"pl-hood\"></div><div class=\"pl-eye\"></div>"
+  },
+  "souffle": {
+    "label": "souffle",
+    "floor": true,
+    "panel": "altar",
+    "son": { "intensite": 0.18, "tremor": true },
+    "html": "<div class=\"sf-glow\"></div><div class=\"sf-shard\"></div>"
+  }
+}

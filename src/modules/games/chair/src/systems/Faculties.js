@@ -20,7 +20,17 @@ import { organResolver } from '../registry.js';
 const SIDE_TAG = { eye_l: 'gauche', eye_r: 'droite', ear_l: 'gauche', ear_r: 'droite' };
 
 // Highest defined tier per numbered family (bits above collapse onto the max).
+// Defaults hardcoded so node tests run without JSON imports; the render layer
+// overrides them from content/tags.json via configureFamilies().
 const FAMILY_MAX = { 'echolocation': 4, 'ouie-identification': 4, 'ouie-detection': 5, 'map': 4 };
+
+// Feed family caps from data: accepts {fam: max} or {fam: {max}} (tags.json shape).
+export function configureFamilies(map) {
+  for (const [fam, v] of Object.entries(map ?? {})) {
+    const max = typeof v === 'number' ? v : v?.max;
+    if (Number.isFinite(max) && max >= 1) FAMILY_MAX[fam] = max;
+  }
+}
 
 function _alive(slots, key) { const s = slots?.[key]; return !!s?.organId && (s.hp == null || s.hp > 0); }
 

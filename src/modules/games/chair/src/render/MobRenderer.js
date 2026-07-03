@@ -66,6 +66,18 @@ export function render(opts = {}) {
   _display.classList.toggle('multi', activeMobIds.length > 1);
   _display.classList.toggle('crowd', activeMobIds.length >= 3);
 
+  // EMPLACEMENTS : chaque mob occupe une colonne (left/center/right), stable
+  // tant qu'il vit. Assignés dans l'ordre centre → gauche → droite (3 max).
+  const SLOTS = ['center', 'left', 'right'];
+  const takenSlots = new Set(activeMobIds.map((id) => WS.mobs.get(id)?._slot).filter(Boolean));
+  for (const id of activeMobIds) {
+    const m = WS.mobs.get(id);
+    if (m && !m._slot) {
+      m._slot = SLOTS.find((s) => !takenSlots.has(s)) ?? 'center';
+      takenSlots.add(m._slot);
+    }
+  }
+
   for (const mobId of activeMobIds) {
     const mob = WS.mobs.get(mobId);
     if (!mob) continue;
@@ -100,12 +112,12 @@ export function render(opts = {}) {
     }
 
     el._onPeek = onPeek;
+    // Position = colonne de l'emplacement du mob ; côté perçu dérivé du slot.
+    el.style.gridColumn = { left: 1, center: 2, right: 3 }[mob._slot] ?? 2;
     // Entity `invisible` GAUGE (§2.7): each stack = −10% opacity. Fully invisible
     // (≥10) → veiled shimmer unless perceived (vue-invisible on the mob's side /
     // echolocation on sound). Partial stacks → plain transparency for everyone.
-    const n = activeMobIds.length, k = activeMobIds.indexOf(mobId);
-    const f = n <= 1 ? 0.5 : (k + 0.5) / n;
-    const side = f < 0.45 ? 'gauche' : f > 0.55 ? 'droite' : null;
+    const side = mob._slot === 'left' ? 'gauche' : mob._slot === 'right' ? 'droite' : null;
     const stacks = Faculties.invisibleStacksOf(mob);
     el.classList.toggle('mob-veiled', stacks >= 10 && !Faculties.perceivesMob(mob, side));
     el.style.opacity = Faculties.mobOpacity(mob, side).toFixed(2);

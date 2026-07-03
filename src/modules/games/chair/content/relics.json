@@ -12,5 +12,17 @@
     "price": 100,
     "effects": [{ "kind": "graft_cost", "value": 3 }],
     "description": "Tant qu'il est dans votre besace : les greffes ne coûtent que 3 ticks au lieu de 5. La couturière vous reconnaît comme l'un des siens."
+  },
+  {
+    "id": "relic_dechet_organique",
+    "name": "Déchet organique",
+    "price": 90,
+    "effects": [],
+    "description": "Un agglomérat compact de tout ce que ton corps a refusé de garder. Strictement inutile — mais les marchands d'en-bas en raffolent, va savoir pourquoi.",
+    "sprite": {
+      "forme": "52% 48% 44% 56% / 60% 52% 48% 40%",
+      "degrade": { "cx": 40, "cy": 32, "stops": [{ "c": "#7a5a30" }, { "c": "#3a2a14", "de": 60 }, { "c": "#1a1208" }] },
+      "taille": 60
+    }
   }
 ]

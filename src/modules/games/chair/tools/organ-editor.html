@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CHAIR · Éditeur d'organes</title>
+<title>CHAIR · Atelier</title>
 <style>
   :root{
     --bg:#100c08; --panel:#1b150e; --panel2:#221a12; --line:#3a2e20;
@@ -16,7 +16,7 @@
   body{
     background:var(--bg); color:var(--ink);
     font:13px/1.5 "IBM Plex Mono","Courier New",monospace;
-    display:flex; flex-direction:column; height:100vh;
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
   }
   header{
     display:flex; align-items:center; gap:10px; padding:8px 14px;
@@ -25,8 +25,6 @@
   header h1{font-size:14px;letter-spacing:3px;margin:0;color:var(--accent);text-transform:uppercase;font-weight:600}
   header .sp{flex:1}
   .tabs{display:flex;gap:2px;margin-left:6px}
-  .tab{border-radius:3px;padding:5px 14px;font-size:12px;letter-spacing:1px}
-  .tab.on{background:var(--deep);border-color:var(--accent);color:var(--accent)}
   button{
     background:var(--chip); color:var(--ink); border:1px solid var(--line);
     padding:6px 11px; border-radius:3px; cursor:pointer; font:inherit; font-size:12px;
@@ -35,20 +33,30 @@
   button.primary{background:var(--deep); border-color:var(--accent); color:var(--accent)}
   button.danger{border-color:var(--bad); color:#d98} button.danger:hover{background:var(--bad);color:#fff}
   button.tiny{padding:2px 7px;font-size:11px}
+  button.tab{border-radius:3px;padding:5px 14px;font-size:12px;letter-spacing:1px}
+  button.tab.on{background:var(--deep);border-color:var(--accent);color:var(--accent)}
   .status{font-size:11px;color:var(--ink-dim)}
   .status .ok{color:var(--ok)} .status .bad{color:var(--bad)} .status .warn{color:var(--warn)}
 
   main{display:flex; flex:1; min-height:0}
+  section.tabpane{display:none; flex:1; min-height:0}
+  section.tabpane.on{display:flex}
+
   aside{
-    width:280px; border-right:1px solid var(--line); background:var(--panel);
-    display:flex; flex-direction:column; min-height:0;
+    width:270px; border-right:1px solid var(--line); background:var(--panel);
+    display:flex; flex-direction:column; min-height:0; flex:none;
   }
   .search{padding:8px; border-bottom:1px solid var(--line)}
-  .search input{width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:6px 8px; border-radius:3px; font:inherit}
+  input,select,textarea{
+    background:var(--bg); border:1px solid var(--line); color:var(--ink);
+    padding:5px 7px; border-radius:3px; font:inherit; font-size:12px;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .search input{width:100%}
   .list{overflow:auto; flex:1; padding:6px}
   .grp{font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); padding:10px 8px 4px; opacity:.8}
   .item{
-    display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:3px; cursor:pointer;
+    display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:3px; cursor:pointer;
     border:1px solid transparent;
   }
   .item:hover{background:var(--panel2)}
@@ -57,650 +65,278 @@
   .item .id{font-size:10px; color:var(--ink-dim)}
   .tierdot{width:8px;height:8px;border-radius:50%;flex:none}
   .t-common{background:#8a8172} .t-rare{background:#5a86a8} .t-epic{background:#9a5aa8} .t-legendary{background:#c79a3a}
-  .addbar{padding:8px;border-top:1px solid var(--line);display:flex;gap:6px}
+  .addbar{padding:8px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap}
 
-  .form{flex:1; overflow:auto; padding:16px 22px 60px}
-  .empty{opacity:.4; text-align:center; margin-top:80px; font-size:14px}
-  fieldset{border:1px solid var(--line); border-radius:5px; margin:0 0 16px; padding:12px 14px; background:var(--panel)}
+  .editor{flex:1; overflow:auto; padding:14px 18px; min-width:0}
+  .frow{display:flex; gap:10px; margin-bottom:8px; align-items:center; flex-wrap:wrap}
+  .frow label{width:90px; color:var(--ink-dim); font-size:11px; flex:none}
+  .frow input[type=text],.frow input[type=number]{width:160px}
+  .frow input.wide{width:340px}
+  fieldset{border:1px solid var(--line); border-radius:3px; margin:0 0 12px; padding:10px 12px}
   legend{color:var(--accent); font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:0 6px}
-  .row{display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end}
-  .fld{display:flex; flex-direction:column; gap:3px; margin-bottom:8px}
-  .fld label{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-dim)}
-  .fld input,.fld select,.fld textarea{
-    background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:5px 7px; border-radius:3px; font:inherit;
+  .chips{display:flex; flex-wrap:wrap; gap:5px; margin:6px 0}
+  .chip{
+    background:var(--chip); border:1px solid var(--line); border-radius:3px;
+    padding:2px 7px; font-size:11px; cursor:pointer; display:inline-flex; gap:5px; align-items:center;
   }
-  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--accent)}
-  .fld.w-sm input{width:74px} .fld.w-md input{width:130px} .fld.w-id input{width:160px}
-  textarea{width:100%; min-height:44px; resize:vertical}
-  .hint{font-size:10px;color:var(--ink-dim);margin-top:2px}
-  .warnline{color:var(--warn);font-size:11px;margin-top:6px}
+  .chip:hover{border-color:var(--bad)}
+  .chip b{color:var(--accent);font-weight:normal}
+  .warns{margin:8px 0}
+  .w{font-size:11px;padding:2px 0} .w.bad{color:#d98} .w.warn{color:var(--warn)} .w.ok{color:var(--ok)}
+  .skill{border:1px solid var(--line); border-radius:3px; padding:8px; margin-bottom:8px; background:var(--panel)}
+  .muted{color:var(--ink-dim);font-size:11px}
+  h3{color:var(--accent);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin:14px 0 6px}
 
-  .tags{display:flex;flex-wrap:wrap;gap:6px}
-  .tagcol{margin-right:16px;margin-bottom:8px}
-  .tagcol h4{margin:6px 0 3px;font-size:10px;letter-spacing:1px;color:var(--ink-dim);text-transform:uppercase}
-  label.chk{display:inline-flex;align-items:center;gap:5px;background:var(--chip);border:1px solid var(--line);border-radius:3px;padding:3px 8px;cursor:pointer;font-size:12px}
-  label.chk.on{background:var(--deep);border-color:var(--accent);color:var(--accent)}
-  label.chk input{accent-color:var(--accent)}
+  /* ---- simulateur ---- */
+  .simcols{display:flex;flex:1;min-height:0}
+  .simcol{padding:10px;overflow:auto;min-width:0}
+  .simcol.left{width:280px;flex:none;border-right:1px solid var(--line);background:var(--panel)}
+  .simcol.mid{flex:1}
+  .simcol.right{width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel)}
+  .slotrow{display:flex;gap:6px;align-items:center;margin-bottom:3px}
+  .slotrow .sl{width:72px;font-size:10px;color:var(--ink-dim);flex:none}
+  .slotrow select{flex:1;min-width:0;font-size:11px;padding:2px 4px}
+  .orgcard{
+    border:1px solid var(--line); border-radius:3px; padding:5px 8px; background:var(--panel);
+    display:flex; flex-direction:column; gap:2px; min-width:110px; position:relative;
+  }
+  .orgcard.dead{opacity:.35}
+  .orgcard.targetable{border-color:var(--accent); cursor:pointer}
+  .orgcard.targetable:hover{background:var(--deep)}
+  .orgcard.weak{box-shadow:0 0 6px var(--bad)}
+  .orgcard .nm{font-size:11px}
+  .hpbar{height:5px;background:#000;border-radius:2px;overflow:hidden}
+  .hpbar i{display:block;height:100%;background:var(--blood)}
+  .stat-ico{font-size:10px;color:var(--warn)}
+  .layerbox{border:1px dashed var(--line);border-radius:3px;padding:8px;margin-bottom:8px}
+  .layerbox.locked{opacity:.55}
+  .layerbox .lt{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:5px}
+  .cards{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .card{
+    border:1px solid var(--accent); border-radius:4px; background:var(--deep); padding:6px 9px;
+    cursor:pointer; width:130px; font-size:11px;
+  }
+  .card:hover{background:#332718}
+  .card.off{opacity:.4;cursor:not-allowed;border-color:var(--line)}
+  .card .cost{color:var(--blood);font-weight:bold;background:#000;border-radius:50%;padding:0 5px;float:right}
+  .card .cn{color:var(--accent)}
+  .telegraph{border:1px solid var(--warn);border-radius:3px;padding:6px 10px;margin:8px 0;font-size:11px;color:var(--warn)}
+  .pstats{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0;font-size:11px}
+  .pstats b{color:var(--accent)}
+  #simlog{font-size:11px;line-height:1.5;overflow:auto;max-height:40vh;white-space:pre-wrap;color:var(--ink-dim)}
+  .banner{padding:8px;border-radius:3px;text-align:center;font-size:13px;letter-spacing:2px;margin:8px 0}
+  .banner.win{background:var(--ok);color:#fff} .banner.lose{background:var(--bad);color:#fff}
 
-  .sub{border:1px solid var(--line);border-radius:4px;padding:10px;margin-bottom:10px;background:var(--panel2)}
-  .sub .subhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .sub .subhead .t{flex:1;color:var(--accent);font-size:11px;letter-spacing:1px;text-transform:uppercase}
-  .addrow{margin-top:4px}
-  code.k{color:var(--accent)}
-  .footnote{opacity:.6;font-size:11px;margin-top:24px}
-  dialog{background:var(--panel);color:var(--ink);border:1px solid var(--accent);border-radius:6px}
-  dialog textarea{width:70vw;height:60vh}
+  /* ---- atlas ---- */
+  .atlaswrap{display:flex;flex:1;min-height:0}
+  #atlascanvas{flex:1;display:block;background:radial-gradient(ellipse at center,#16110b,#0d0a06)}
+  .atlasside{width:320px;flex:none;border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px}
+  .legend2{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;padding:6px 10px}
+  .legend2 span{display:inline-flex;align-items:center;gap:4px}
+  .legend2 i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .dead-item{font-size:11px;padding:2px 0;color:var(--warn)}
+
+  /* ---- rooms preview ---- */
+  #roomprev{width:100%;max-width:460px;border:1px solid var(--line);border-radius:3px;display:block}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>Chair</h1>
-  <span class="tabs">
-    <button id="tab-organs" class="tab on">Organes</button>
-    <button id="tab-sets" class="tab">Sets</button>
-  </span>
-  <span class="status" id="status">—</span>
-  <span class="sp"></span>
-  <button id="btn-load">⟳ Charger</button>
-  <button id="btn-copy">⧉ Copier</button>
-  <button id="btn-export" class="primary">⬇ Exporter</button>
-  <button id="btn-save" class="primary" title="Écrit directement dans le fichier (Chrome/Edge)">💾 Enregistrer</button>
+  <h1>Chair · Atelier</h1>
+  <div class="tabs">
+    <button class="tab on" data-tab="sim">Simulateur</button>
+    <button class="tab" data-tab="organs">Organes</button>
+    <button class="tab" data-tab="tags">Tags</button>
+    <button class="tab" data-tab="relics">Reliques</button>
+    <button class="tab" data-tab="structs">Structures</button>
+    <button class="tab" data-tab="rooms">Salles</button>
+    <button class="tab" data-tab="atlas">Atlas</button>
+  </div>
+  <div class="sp"></div>
+  <span class="status" id="status">chargement…</span>
+  <button class="tiny" id="btn-reset" title="Recharger le contenu réel (écrase les brouillons)">↺ reset</button>
+  <button class="tiny primary" id="btn-save">💾 sauver</button>
 </header>
 
 <main>
-  <aside>
-    <div class="search"><input id="search" placeholder="filtrer par nom / id / tag…"></div>
-    <div class="list" id="list"></div>
-    <div class="addbar">
-      <button id="btn-add" class="primary tiny" style="flex:1">＋ Nouvel organe</button>
-      <button id="btn-dup" class="tiny">⎘ Dupliquer</button>
-      <button id="btn-del" class="danger tiny">🗑</button>
+  <!-- ═══════════ SIMULATEUR ═══════════ -->
+  <section class="tabpane on" id="pane-sim">
+    <div class="simcols">
+      <div class="simcol left">
+        <h3 style="margin-top:0">Corps du joueur</h3>
+        <div id="sim-player-slots"></div>
+        <div style="display:flex;gap:6px;margin:8px 0">
+          <button class="tiny" id="sim-preset-human">corps humain</button>
+          <button class="tiny" id="sim-preset-beast">corps bête</button>
+        </div>
+        <h3>Perception (Faculties réel)</h3>
+        <div id="sim-perception" class="muted">—</div>
+      </div>
+      <div class="simcol mid">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label class="muted">seed</label><input type="number" id="sim-seed" value="1" style="width:80px">
+          <button class="primary" id="sim-start">▶ démarrer combat</button>
+          <button id="sim-endturn" disabled>fin de tour ⏭</button>
+          <span class="muted" id="sim-turn"></span>
+        </div>
+        <div id="sim-banner"></div>
+        <h3>Ennemi</h3>
+        <div id="sim-enemy"></div>
+        <div class="telegraph" id="sim-telegraph" style="display:none"></div>
+        <h3>Ta main <span class="muted" id="sim-pstate-inline"></span></h3>
+        <div class="pstats" id="sim-pstats"></div>
+        <div class="cards" id="sim-hand"></div>
+        <div class="muted" id="sim-targethint" style="margin-top:6px"></div>
+        <h3>Tes organes</h3>
+        <div id="sim-playerbody" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        <h3>Vue jeu — rendu RÉEL (mêmes modules, même CSS, même DOM)</h3>
+        <div class="frow" style="font-size:11px;gap:6px">
+          <label style="width:auto"><input type="checkbox" id="vp-torch" checked> torche</label>
+          <button class="tiny" id="vp-beat">♥ battement</button>
+          <button class="tiny" id="vp-hit">⚡ flash dégâts</button>
+          <button class="tiny" id="vp-legs">🦵 perdre jambes</button>
+          <button class="tiny" id="vp-revive">✚ soigner tout</button>
+          <button class="tiny" id="vp-pingl">♪ son G</button>
+          <button class="tiny" id="vp-pingc">♪ son C</button>
+          <button class="tiny" id="vp-pingr">♪ son D</button>
+          <label style="width:auto" class="muted">portes :
+            <input type="checkbox" id="vp-door-g"> G
+            <input type="checkbox" id="vp-door-f" checked> F
+            <input type="checkbox" id="vp-door-d"> D
+          </label>
+        </div>
+        <div class="frow" style="font-size:11px;gap:6px;align-items:center">
+          <label style="width:auto" class="muted">salle</label>
+          <select id="vp-room" style="max-width:180px"></select>
+          <label style="width:auto" class="muted">biome</label>
+          <select id="vp-biome"></select>
+          <button class="tiny primary" id="vp-loadroom">charger la salle</button>
+        </div>
+        <div class="frow" style="font-size:11px;gap:6px;align-items:center">
+          <label style="width:auto" class="muted">ajouter</label>
+          <select id="vp-spawn-type" style="max-width:170px"></select>
+          <select id="vp-side">
+            <option value="gauche">gauche</option>
+            <option value="centre" selected>centre</option>
+            <option value="droite">droite</option>
+          </select>
+          <button class="tiny primary" id="vp-add">+ ajouter</button>
+          <button class="tiny danger" id="vp-clearspawns">tout retirer</button>
+        </div>
+        <div id="vp-spawnlist" style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0"></div>
+        <iframe id="vp-frame" src="./view-sandbox.html?ui=inv,map,bar"
+          style="width:100%;max-width:940px;height:520px;border:1px solid var(--line);border-radius:3px;background:#000"></iframe>
+        <div class="muted" id="vp-status">… sandbox en chargement</div>
+        <div class="muted">Sandbox : vrai ViewportDOM + SensoryFX + BodyFX + SoundBar + fx.json. Le corps suit tes slots à gauche.</div>
+      </div>
+      <div class="simcol right">
+        <h3 style="margin-top:0">Adversaire</h3>
+        <div class="frow"><label>génération</label>
+          <select id="sim-mobmode"><option value="seed">aléatoire (seed)</option><option value="manual">manuel</option></select>
+        </div>
+        <div id="sim-mob-seedopts">
+          <div class="frow"><label>set</label><select id="sim-mobset"></select></div>
+          <div class="frow"><label>organes</label><input type="number" id="sim-mobn" value="3" min="1" max="12" style="width:60px"></div>
+        </div>
+        <div id="sim-mob-manual" style="display:none"></div>
+        <h3>Batch (IA auto)</h3>
+        <div class="frow"><label>combats</label><input type="number" id="sim-batch-n" value="500" style="width:80px">
+          <button id="sim-batch-run">lancer</button></div>
+        <div id="sim-batch-out" class="muted">—</div>
+        <h3>Journal</h3>
+        <div id="simlog"></div>
+      </div>
     </div>
-  </aside>
-  <section class="form" id="form"><div class="empty">Charge <code class="k">organs.json</code> ou crée un organe.</div></section>
+  </section>
+
+  <!-- ═══════════ ORGANES ═══════════ -->
+  <section class="tabpane" id="pane-organs">
+    <aside>
+      <div class="search"><input id="org-search" placeholder="chercher…"></div>
+      <div class="list" id="org-list"></div>
+      <div class="addbar">
+        <button class="tiny primary" id="org-new">+ organe</button>
+        <button class="tiny" id="org-dup">⧉ dupliquer</button>
+        <button class="tiny danger" id="org-del">✕</button>
+        <button class="tiny" id="set-new">+ set</button>
+      </div>
+    </aside>
+    <div class="editor" id="org-editor"><p class="muted">Sélectionne un organe à gauche.</p></div>
+  </section>
+
+  <!-- ═══════════ TAGS ═══════════ -->
+  <section class="tabpane" id="pane-tags" style="flex-direction:column">
+    <div class="search" style="border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center">
+      <input id="tag-search" placeholder="chercher un tag…" style="width:280px">
+      <span class="muted">label + description seulement — le reste du catalogue (formes, prérequis, visuels, sons) vit dans content/tags.json</span>
+    </div>
+    <div class="editor" id="tag-page" style="flex:1"></div>
+  </section>
+
+  <!-- ═══════════ RELIQUES ═══════════ -->
+  <section class="tabpane" id="pane-relics">
+    <aside>
+      <div class="search"><input id="relic-search" placeholder="chercher…"></div>
+      <div class="list" id="relic-list"></div>
+      <div class="addbar">
+        <button class="tiny primary" id="relic-new">+ relique</button>
+        <button class="tiny" id="relic-dup">⧉</button>
+        <button class="tiny danger" id="relic-del">✕</button>
+      </div>
+    </aside>
+    <div class="editor" id="relic-editor"><p class="muted">Sélectionne une relique à gauche.</p></div>
+  </section>
+
+  <!-- ═══════════ STRUCTURES ═══════════ -->
+  <section class="tabpane" id="pane-structs">
+    <aside>
+      <div class="search"><input id="struct-search" placeholder="chercher…"></div>
+      <div class="list" id="struct-list"></div>
+      <div class="addbar">
+        <button class="tiny primary" id="struct-new">+ structure</button>
+        <button class="tiny danger" id="struct-del">✕</button>
+      </div>
+    </aside>
+    <div class="editor" id="struct-editor"><p class="muted">Sélectionne une structure à gauche.</p></div>
+  </section>
+
+  <!-- ═══════════ SALLES ═══════════ -->
+  <section class="tabpane" id="pane-rooms">
+    <aside>
+      <div class="search"><input id="room-search" placeholder="chercher…"></div>
+      <div class="list" id="room-list"></div>
+      <div class="addbar">
+        <button class="tiny primary" id="room-new">+ salle</button>
+        <button class="tiny" id="room-dup">⧉</button>
+        <button class="tiny danger" id="room-del">✕</button>
+      </div>
+    </aside>
+    <div style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0">
+      <div class="editor" id="room-editor" style="flex:1"><p class="muted">Sélectionne une salle à gauche.</p></div>
+      <div style="border-top:1px solid var(--line);background:var(--panel);padding:8px 14px;flex:none">
+        <div class="frow" style="margin-bottom:4px">
+          <span style="font-size:11px;color:var(--accent);letter-spacing:.1em">RENDU RÉEL</span>
+          <button class="tiny primary" id="room-preview-load">voir cette salle</button>
+          <button class="tiny" id="room-preview-roll">🎲 relancer le tirage</button>
+          <span class="muted" id="room-preview-status"></span>
+        </div>
+        <iframe id="room-preview-frame" src="./view-sandbox.html" loading="lazy"
+          style="width:560px;height:330px;border:1px solid var(--line);border-radius:3px;background:#000"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ATLAS ═══════════ -->
+  <section class="tabpane" id="pane-atlas" style="flex-direction:column">
+    <div class="legend2" id="atlas-legend"></div>
+    <div class="atlaswrap">
+      <canvas id="atlascanvas"></canvas>
+      <div class="atlasside" id="atlas-side"><p class="muted">Clique un module pour le détail.<br><br>⚠ le code mort listé est <b>suspect</b>, pas certain : le dispatch piloté par les JSON (effect.kind…) échappe à l'analyse.</p></div>
+    </div>
+  </section>
 </main>
 
-<dialog id="jsondlg"><div style="padding:14px"><h3 style="margin-top:0;color:var(--accent)">JSON</h3><textarea id="jsonout" readonly></textarea><div style="text-align:right;margin-top:8px"><button onclick="document.getElementById('jsondlg').close()">Fermer</button></div></div></dialog>
-
-<script>
-"use strict";
-
-// ─── Vocabulaire (miroir du moteur — voir Faculties.js / combatRules.js) ─────
-const TYPES  = ['eye','ear','arm','legs','heart','skin','brain','stomach','tongue'];
-const TIERS  = ['common','rare','epic','legendary'];
-const LAYERS = ['outer','mid','deep'];
-const FRAGILE = ['fire','crush'];
-const OVERLAYS = ['','hex-fragment','lich-pulse','spider-crawl','stone-crack'];
-
-// Vocabulaire des tags (TDD §2). kind: 'marker' = case à cocher · 'gauge' = jauge
-// à compteur (le tag se RÉPÈTE dans le tableau, ±10 % chacun, sans plafond).
-// `req` = prérequis MÊME ORGANE (avertissement si absent).
-const TAG_GROUPS = {
-  'Vue ↔ (latéral)': [
-    {t:'vue'}, {t:'vue-couleur',req:['vue']}, {t:'vue-nocturne',req:['vue']},
-    {t:'vue-invisible',req:['vue']}, {t:'vue-spider',req:['vue']},
-    {t:'vue-rayons-x',req:['vue']}, {t:'vue-arcane',req:['vue']}, {t:'vue-thermique',req:['vue']},
-  ],
-  'Ouïe ↔ (latéral)': [
-    {t:'ouie'},
-    {t:'echolocation-1'}, {t:'echolocation-2'}, {t:'echolocation-3'}, {t:'echolocation-4'},
-    {t:'ouie-identification-1'}, {t:'ouie-identification-2'}, {t:'ouie-identification-3'}, {t:'ouie-identification-4'},
-    {t:'ouie-detection-1'}, {t:'ouie-detection-2'}, {t:'ouie-detection-3'}, {t:'ouie-detection-4'}, {t:'ouie-detection-5'},
-  ],
-  'Lucidité (cerveau)': [
-    {t:'plan'}, {t:'plan-degats',req:['plan']}, {t:'plan-faille',req:['plan']}, {t:'plan-anticipation',req:['plan']},
-    {t:'map-1'}, {t:'map-2'}, {t:'map-3'}, {t:'map-4'}, {t:'memoire'},
-  ],
-  'Jauges (±10 %/tag, répétables)': [
-    {t:'digestion',kind:'gauge'}, {t:'pompe',kind:'gauge'}, {t:'garde-manger',kind:'gauge'},
-    {t:'fermentation',kind:'gauge'},
-    {t:'bruyant',kind:'gauge'}, {t:'calme',kind:'gauge'},
-    {t:'luminescent',kind:'gauge'}, {t:'sombre',kind:'gauge'},
-    {t:'compatible',kind:'gauge'}, {t:'incompatible',kind:'gauge'},
-    {t:'invisible',kind:'gauge'}, {t:'chaud',kind:'gauge'}, {t:'froid',kind:'gauge'},
-  ],
-  'Marqueurs & corps': [
-    {t:'second-souffle'}, {t:'estomac-de-fer'}, {t:'hyper-compatible'}, {t:'photophobe'}, {t:'arcane'},
-  ],
-};
-const ALL_TAGS = Object.values(TAG_GROUPS).flat();
-const KNOWN_TAGS = new Set(ALL_TAGS.map(s=>s.t));
-const SIDE_TAGS = new Set(TAG_GROUPS['Vue ↔ (latéral)'].concat(TAG_GROUPS['Ouïe ↔ (latéral)']).map(s=>s.t));
-// Tags présents sur des organes mais absents du vocabulaire connu → colonne
-// « Autres (dynamiques) », pour que tout nouveau tag apparaisse tout seul.
-function customTags(){ const s=new Set(); for(const o of organs) for(const t of (o.tags||[])) if(!KNOWN_TAGS.has(t)) s.add(t); return [...s].sort(); }
-
-// Ressources (produces + convert).
-const RESOURCES = ['protection','sang','viande','regen','frenesie','bile','saignement','vulnerabilite'];
-const CONVERT_RES = ['sang','viande','protection','frenesie'];
-
-// Effets de compétence : kind → champs pertinents.
-const EFFECT_FIELDS = {
-  damage:       ['amount','target','meatOnKill','bleed','lifesteal','splash','pierce'],
-  heal:         ['amount','target','costMeat'],
-  protect:      ['amount'],
-  regen:        ['amount'],
-  frenesie:     ['amount'],
-  blood:        ['amount'],
-  bile:         ['amount','target'],
-  saignement:   ['amount','target'],
-  vulnerabilite:['amount','target'],
-  convert:      ['from','fromAmount','to','toAmount'],
-  retrigger:    [],
-};
-const EFFECT_KINDS = Object.keys(EFFECT_FIELDS);
-const TARGETS = ['enemy_organ','organ','all','self'];
-const NUM_FIELDS  = new Set(['amount','meatOnKill','bleed','lifesteal','splash','costMeat','fromAmount','toAmount']);
-const BOOL_FIELDS = new Set(['pierce','once','loud']);
-
-// ─── État ───────────────────────────────────────────────────────────────────
-let mode = 'organs';  // 'organs' | 'sets'
-let organs = [];      // [{_uid, ...def}]
-let sets   = [];      // [{_uid, id, name, color}]
-let selOrgan = null, selSet = null;   // uids par mode
-let uidSeq = 1;
-const LS_ORGANS = 'chair_organ_editor_v4';
-const LS_SETS   = 'chair_set_editor_v1';
-
-const curArr    = ()=> mode==='organs' ? organs : sets;
-const curSelUid = ()=> mode==='organs' ? selOrgan : selSet;
-const setCurSel = v => { if(mode==='organs') selOrgan=v; else selSet=v; };
-function sel(){ return curArr().find(o=>o._uid===curSelUid()); }
-
-// Couleur d'un set (source vive = tableau sets[], donc l'aperçu suit les éditions).
-function setColorOf(id){ return sets.find(s=>s.id===id)?.color; }
-// Couleur effective d'un organe = son override `color`, sinon la couleur de son set.
-function effColor(o){ return (o.color&&String(o.color).trim()) || setColorOf(o.set) || '#9a8a70'; }
-
-const $  = (s,r=document)=>r.querySelector(s);
-const uid = ()=>'u'+(uidSeq++);
-function el(tag,props={},...kids){
-  const n=document.createElement(tag);
-  for(const[k,v]of Object.entries(props)){
-    if(k==='class')n.className=v;
-    else if(k==='html')n.innerHTML=v;
-    else if(k.startsWith('on'))n.addEventListener(k.slice(2),v);
-    else if(v!=null)n.setAttribute(k,v);
-  }
-  for(const c of kids) if(c!=null) n.append(c);
-  return n;
-}
-
-// ─── Chargement / persistance ───────────────────────────────────────────────
-function stripUid(o){ const c={...o}; delete c._uid; return c; }
-function ingestOrgans(arr){ organs = arr.map(o=>({_uid:uid(), ...structuredClone(o)})); }
-function ingestSets(arr){ sets   = arr.map(s=>({_uid:uid(), ...structuredClone(s)})); }
-function persist(){ try{
-  localStorage.setItem(LS_ORGANS, JSON.stringify(organs.map(stripUid)));
-  localStorage.setItem(LS_SETS,   JSON.stringify(sets.map(stripUid)));
-}catch(e){} }
-
-async function fetchJSON(p){ const r=await fetch(p,{cache:'no-store'}); if(!r.ok) throw 0; return r.json(); }
-async function loadOrgans(ask){
-  try{ const arr=await fetchJSON('../content/organs.json');
-    if(ask && organs.length && !confirm('Remplacer les organes par content/organs.json ?')) return;
-    ingestOrgans(arr); selOrgan=organs[0]?._uid??null; persist();
-  }catch(e){ setStatus('Échec fetch organs.json — lance via le serveur Vite.','bad'); }
-}
-async function loadSets(ask){
-  try{ const arr=await fetchJSON('../content/sets.json');
-    if(ask && sets.length && !confirm('Remplacer les sets par content/sets.json ?')) return;
-    ingestSets(arr); selSet=sets[0]?._uid??null; persist();
-  }catch(e){ if(ask) setStatus('Échec fetch sets.json.','bad'); }
-}
-async function loadCurrentFromServer(){
-  if(mode==='organs') await loadOrgans(true); else await loadSets(true);
-  render(); setStatus('Rechargé depuis le serveur.','ok'); setTimeout(refreshStatus,1400);
-}
-function loadOrgansCache(){ try{ const r=localStorage.getItem(LS_ORGANS); if(r){ ingestOrgans(JSON.parse(r)); selOrgan=organs[0]?._uid??null; return true; } }catch(e){} return false; }
-function loadSetsCache(){   try{ const r=localStorage.getItem(LS_SETS);   if(r){ ingestSets(JSON.parse(r));   selSet=sets[0]?._uid??null; return true; } }catch(e){} return false; }
-
-// ─── Sérialisation propre (ordre + champs vides omis) ───────────────────────
-const num = v => (v===''||v==null)?undefined:Number(v);
-function clean(o){ for(const k of Object.keys(o)) if(o[k]===undefined) delete o[k]; return o; }
-function serialize(o){
-  const out={};
-  const put=(k,v)=>{ if(v!==undefined&&v!==null&&v!=='') out[k]=v; };
-  put('id',o.id); put('type',o.type); put('name',o.name); put('set',o.set);
-  put('tier',o.tier); put('hp',num(o.hp)); put('layer',o.layer);
-  if(o.type==='heart') put('pool',num(o.pool));
-  put('price',num(o.price));
-  if(o.type==='heart'){ put('pulse', o.pulse!=null&&o.pulse!==''?Number(o.pulse):undefined); put('maxBlood',num(o.maxBlood)); }
-  if(o.icon) put('icon',o.icon);
-  if(o.color) put('color',o.color);
-  if(o.tags&&o.tags.length) out.tags=[...o.tags];
-  if(o.produces&&o.produces.length) out.produces=o.produces.map(p=>({resource:p.resource,amount:num(p.amount),carryover:num(p.carryover)||0}));
-  out.passives=(o.passives??[]).map(p=>{ const r={id:p.id,label:p.label,desc:p.desc}; if(p.value!=null&&p.value!=='')r.value=Number(p.value); if(p.loud)r.loud=true; return clean(r); });
-  out.skills=(o.skills??[]).map(serializeSkill);
-  out.harvest={fragileTo:[...(o.harvest?.fragileTo??[])]};
-  if(o.visual&&o.visual.overlay) out.visual={overlay:o.visual.overlay};
-  return out;
-}
-function serializeSkill(s){
-  const r={id:s.id,label:s.label,cost:num(s.cost)||0,desc:s.desc};
-  if(s.once) r.once=true;
-  r.effect=serializeEffect(s.effect??{kind:'damage'});
-  return clean(r);
-}
-function serializeEffect(e){
-  const r={kind:e.kind||'damage'};
-  for(const f of (EFFECT_FIELDS[r.kind]||[])){
-    let v=e[f];
-    if(v===undefined||v===''||v===false) continue;
-    if(NUM_FIELDS.has(f)) v=Number(v);
-    r[f]=v;
-  }
-  return r;
-}
-function serializeSet(s){ const r={id:s.id,name:s.name}; if(s.color) r.color=s.color; return r; }
-function exportArray(){ return mode==='organs' ? organs.map(serialize) : sets.map(serializeSet); }
-function jsonText(){ return JSON.stringify(exportArray(),null,2); }
-function curFileName(){ return mode==='organs' ? 'organs.json' : 'sets.json'; }
-
-// ─── Validation ─────────────────────────────────────────────────────────────
-function validate(){ return mode==='organs' ? validateOrgans() : validateSets(); }
-function validateOrgans(){
-  const errs=[], warns=[]; const ids=new Set();
-  for(const o of organs){
-    for(const f of ['id','type','name','tier','hp','layer','price'])
-      if(o[f]===undefined||o[f]===''||o[f]==null) errs.push(`${o.id||'(sans id)'} : champ manquant « ${f} »`);
-    if(o.id){ if(ids.has(o.id)) errs.push(`id dupliqué : ${o.id}`); ids.add(o.id); if(!/^[a-z0-9_]+$/.test(o.id)) warns.push(`${o.id} : id devrait être minuscules/underscore`); }
-    if(o.type&&!TYPES.includes(o.type)) warns.push(`${o.id} : type inconnu « ${o.type} »`);
-    if(o.set && !sets.some(s=>s.id===o.set)) warns.push(`${o.id} : set « ${o.set} » introuvable dans sets.json`);
-    for(const w of tagWarnings(o)) warns.push(`${o.id} : ${w}`);
-  }
-  return {errs,warns};
-}
-function validateSets(){
-  const errs=[], warns=[]; const ids=new Set();
-  for(const s of sets){
-    for(const f of ['id','name']) if(!s[f]) errs.push(`${s.id||'(sans id)'} : champ « ${f} » manquant`);
-    if(s.id){ if(ids.has(s.id)) errs.push(`id dupliqué : ${s.id}`); ids.add(s.id); if(!/^[a-z0-9_]+$/.test(s.id)) warns.push(`${s.id} : id devrait être minuscules/underscore`); }
-    if(s.color && !/^#[0-9a-fA-F]{6}$/.test(s.color)) warns.push(`${s.id} : couleur non hexa #rrggbb`);
-  }
-  return {errs,warns};
-}
-function tagWarnings(o){
-  const out=[]; const set=new Set(o.tags||[]);
-  for(const spec of ALL_TAGS) if(set.has(spec.t)) for(const r of (spec.req||[])) if(!set.has(r)) out.push(`« ${spec.t} » nécessite « ${r} »`);
-  return out;
-}
-function setStatus(msg,cls){ $('#status').innerHTML=`<span class="${cls||''}">${msg}</span>`; }
-function refreshStatus(){
-  const {errs,warns}=validate(); const n=curArr().length;
-  const noun = mode==='organs' ? 'organe' : 'set';
-  let html=`${n} ${noun}${n>1?'s':''}`;
-  html += errs.length ? ` · <span class="bad">${errs.length} erreur(s)</span>` : ` · <span class="ok">valide</span>`;
-  if(warns.length) html += ` · <span class="warn">${warns.length} avert.</span>`;
-  const s=$('#status'); s.innerHTML=html;
-  s.title=[...errs.map(e=>'✗ '+e),...warns.map(w=>'⚠ '+w)].join('\n')||'RAS';
-}
-
-// ─── Rendu ──────────────────────────────────────────────────────────────────
-function render(){ renderList(); renderForm(); refreshStatus(); persist(); }
-
-function renderList(){
-  const q=($('#search').value||'').toLowerCase().trim();
-  const list=$('#list'); list.innerHTML='';
-  if(mode==='sets'){
-    for(const s of sets){
-      if(q && !(s.id||'').toLowerCase().includes(q) && !(s.name||'').toLowerCase().includes(q)) continue;
-      list.append(el('div',{class:'item'+(s._uid===selSet?' sel':''),onclick:()=>{selSet=s._uid;render();}},
-        el('span',{class:'tierdot',style:`background:${s.color||'#9a8a70'}`}),
-        el('span',{class:'nm'},s.name||'(sans nom)'),
-        el('span',{class:'id'},s.id||'?'),
-      ));
-    }
-    if(!list.children.length) list.append(el('div',{class:'empty',style:'margin-top:24px'},'aucun set'));
-    return;
-  }
-  const match=o=>!q||(o.id||'').toLowerCase().includes(q)||(o.name||'').toLowerCase().includes(q)||(o.tags||[]).some(t=>t.includes(q));
-  const bySet={};
-  for(const o of organs){ if(!match(o))continue; (bySet[o.set||'—']??=[]).push(o); }
-  for(const s of Object.keys(bySet).sort()){
-    list.append(el('div',{class:'grp'},s));
-    for(const o of bySet[s]){
-      list.append(el('div',{class:'item'+(o._uid===selOrgan?' sel':''),onclick:()=>{selOrgan=o._uid;render();}},
-        el('span',{class:'tierdot t-'+(o.tier||'common')}),
-        el('span',{class:'nm'},o.name||'(sans nom)'),
-        el('span',{class:'id'},o.type||'?'),
-      ));
-    }
-  }
-  if(!list.children.length) list.append(el('div',{class:'empty',style:'margin-top:24px'},'aucun résultat'));
-}
-
-function bind(o,key,inp){
-  inp.addEventListener('input',()=>{
-    o[key] = inp.type==='checkbox' ? inp.checked : inp.value;
-    if(['name','tier','type','set'].includes(key)) renderList();
-    refreshStatus(); persist();
-  });
-}
-function field(o,key,label,opts={}){
-  const wrap=el('div',{class:'fld '+(opts.w||'')});
-  wrap.append(el('label',{},label));
-  let inp;
-  if(opts.options){
-    inp=el('select');
-    for(const opt of opts.options){ const v=typeof opt==='object'?opt.v:opt; const t=typeof opt==='object'?opt.t:opt;
-      inp.append(el('option',{value:v, selected:String(o[key]??'')===String(v)?'':null}, t===''?'(vide)':t)); }
-  } else if(opts.textarea){ inp=el('textarea'); inp.value=o[key]??''; }
-  else { inp=el('input',{type:opts.type||'text'}); inp.value=o[key]??''; if(opts.ph)inp.placeholder=opts.ph; }
-  bind(o,key,inp);
-  wrap.append(inp);
-  if(opts.hint) wrap.append(el('div',{class:'hint'},opts.hint));
-  return wrap;
-}
-function lblChk(o,key,label){
-  const wrap=el('div',{class:'fld'}); wrap.append(el('label',{},' '));
-  const lab=el('label',{class:'chk'+(o[key]?' on':'')}); const cb=el('input',{type:'checkbox'}); cb.checked=!!o[key];
-  cb.addEventListener('change',()=>{o[key]=cb.checked; lab.classList.toggle('on',cb.checked); persist();});
-  lab.append(cb,document.createTextNode(label)); wrap.append(lab); return wrap;
-}
-
-function renderForm(){
-  const form=$('#form'); form.innerHTML='';
-  if(mode==='sets') return renderSetForm(form);
-  const o=sel();
-  if(!o){ form.append(el('div',{class:'empty'},'Sélectionne un organe à gauche.')); return; }
-
-  // Identité & stats
-  const fsId=el('fieldset'); fsId.append(el('legend',{},'Identité & stats'));
-  fsId.append(el('div',{class:'row'},
-    field(o,'id','id',{w:'w-id',ph:'eye_human',hint:'unique · a-z0-9_'}),
-    field(o,'name','Nom',{w:'w-md'}),
-    field(o,'type','Type',{options:TYPES}),
-    field(o,'set','Set',{w:'w-sm',ph:'human'}),
-    field(o,'tier','Tier',{options:TIERS}),
-    field(o,'icon','Icône',{w:'w-sm',ph:'👁'}),
-  ));
-  fsId.append(el('div',{class:'row'},
-    field(o,'hp','PV',{w:'w-sm',type:'number'}),
-    field(o,'price','Prix',{w:'w-sm',type:'number'}),
-    field(o,'layer','Couche',{options:LAYERS}),
-  ));
-  form.append(fsId);
-
-  // Cœur
-  if(o.type==='heart'){
-    const fsH=el('fieldset'); fsH.append(el('legend',{},'Cœur'));
-    fsH.append(el('div',{class:'row'},
-      field(o,'pool','Sang / tour',{w:'w-sm',type:'number'}),
-      field(o,'maxBlood','Capacité sang',{w:'w-sm',type:'number'}),
-      field(o,'pulse','Pouls (s)',{w:'w-sm',type:'number',hint:'période battement'}),
-    ));
-    form.append(fsH);
-  }
-
-  // Tags de perception
-  o.tags ??= [];
-  const fsT=el('fieldset'); fsT.append(el('legend',{},'Tags de perception'));
-  const tagsWrap=el('div',{style:'display:flex;flex-wrap:wrap'});
-  const tagCount=(t)=>o.tags.filter(x=>x===t).length;
-  const setCount=(t,n)=>{ o.tags=o.tags.filter(x=>x!==t); for(let i=0;i<n;i++)o.tags.push(t); renderForm(); renderList(); refreshStatus(); persist(); };
-  for(const [grp,specs] of Object.entries(TAG_GROUPS)){
-    const col=el('div',{class:'tagcol'}); col.append(el('h4',{},grp));
-    const box=el('div',{class:'tags'});
-    for(const spec of specs){
-      const n=tagCount(spec.t);
-      if(spec.kind==='gauge'){
-        // jauge : le tag se répète — stepper −/n/＋
-        const lab=el('label',{class:'chk'+(n>0?' on':''),style:'gap:3px'});
-        const minus=el('button',{class:'tiny',style:'padding:0 4px;min-width:0'},'−');
-        const plus =el('button',{class:'tiny',style:'padding:0 4px;min-width:0'},'＋');
-        minus.addEventListener('click',(e)=>{e.preventDefault(); if(n>0)setCount(spec.t,n-1);});
-        plus .addEventListener('click',(e)=>{e.preventDefault(); setCount(spec.t,n+1);});
-        lab.append(document.createTextNode(spec.t+' '), minus, el('b',{style:'min-width:14px;text-align:center'},String(n)), plus);
-        lab.title='jauge : ±10 % par tag, sans plafond';
-        box.append(lab);
-      } else {
-        const lab=el('label',{class:'chk'+(n>0?' on':'')});
-        const cb=el('input',{type:'checkbox'}); cb.checked=n>0;
-        cb.addEventListener('change',()=>setCount(spec.t, cb.checked?1:0));
-        lab.append(cb,document.createTextNode(spec.t+(SIDE_TAGS.has(spec.t)?' ↔':'')));
-        if(spec.req) lab.title='nécessite : '+spec.req.join(', ')+' (même organe)';
-        box.append(lab);
-      }
-    }
-    col.append(box); tagsWrap.append(col);
-  }
-  // Colonne dynamique : tags custom déjà utilisés + champ pour en créer un nouveau.
-  const ccol=el('div',{class:'tagcol'}); ccol.append(el('h4',{},'Autres (dynamiques)'));
-  const cbox=el('div',{class:'tags'});
-  for(const t of customTags()){
-    const on=o.tags.includes(t);
-    const lab=el('label',{class:'chk'+(on?' on':'')}); const cb=el('input',{type:'checkbox'}); cb.checked=on;
-    cb.addEventListener('change',()=>{ if(cb.checked){if(!o.tags.includes(t))o.tags.push(t);} else o.tags=o.tags.filter(x=>x!==t); renderForm(); renderList(); refreshStatus(); persist(); });
-    lab.append(cb,document.createTextNode(t)); cbox.append(lab);
-  }
-  const addInp=el('input',{type:'text',placeholder:'nouveau tag…',style:'width:130px;background:var(--bg);border:1px solid var(--line);color:var(--ink);padding:3px 7px;border-radius:3px;font:inherit'});
-  const addTag=()=>{ const t=addInp.value.trim().toLowerCase(); if(!t)return; if(!o.tags.includes(t))o.tags.push(t); renderForm(); renderList(); refreshStatus(); persist(); };
-  addInp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();addTag();} });
-  cbox.append(el('span',{class:'fld',style:'flex-direction:row;gap:4px;align-items:center;margin:0'}, addInp, el('button',{class:'tiny',onclick:addTag},'＋')));
-  ccol.append(cbox); tagsWrap.append(ccol);
-  fsT.append(tagsWrap);
-  fsT.append(el('div',{class:'hint',style:'margin-top:6px'},'↔ = latéralisé : l\'effet ne vaut que du côté du slot (gauche/droite). vue-spider ignore le côté. · Un tag créé ici n\'a d\'effet que si le moteur le lit (sinon il est inerte).'));
-  const tw=tagWarnings(o); if(tw.length) fsT.append(el('div',{class:'warnline'},'⚠ '+tw.join(' · ')));
-  form.append(fsT);
-
-  // Production
-  o.produces ??= [];
-  const fsP=el('fieldset'); fsP.append(el('legend',{},'Production de ressource (début de tour)'));
-  o.produces.forEach((p,i)=>{
-    fsP.append(el('div',{class:'sub'}, el('div',{class:'row'},
-      field(p,'resource','Ressource',{options:RESOURCES}),
-      field(p,'amount','Quantité',{w:'w-sm',type:'number'}),
-      field(p,'carryover','Report',{w:'w-sm',type:'number',hint:'0 = purgé/tour'}),
-      el('button',{class:'danger tiny',onclick:()=>{o.produces.splice(i,1);renderForm();}},'🗑'),
-    )));
-  });
-  fsP.append(el('button',{class:'tiny addrow',onclick:()=>{o.produces.push({resource:'protection',amount:2,carryover:0});renderForm();}},'＋ production'));
-  form.append(fsP);
-
-  // Passifs
-  o.passives ??= [];
-  const fsPa=el('fieldset'); fsPa.append(el('legend',{},'Passifs'));
-  o.passives.forEach((p,i)=>{
-    const box=el('div',{class:'sub'});
-    box.append(el('div',{class:'subhead'}, el('span',{class:'t'},'passif'), el('button',{class:'danger tiny',onclick:()=>{o.passives.splice(i,1);renderForm();}},'🗑')));
-    box.append(el('div',{class:'row'},
-      field(p,'id','id',{w:'w-md'}),
-      field(p,'label','Label',{w:'w-md'}),
-      field(p,'value','Valeur',{w:'w-sm',type:'number',hint:'optionnel'}),
-      lblChk(p,'loud','Bruyant'),
-    ));
-    box.append(field(p,'desc','Description',{textarea:true}));
-    fsPa.append(box);
-  });
-  fsPa.append(el('button',{class:'tiny addrow',onclick:()=>{o.passives.push({id:'',label:'',desc:''});renderForm();}},'＋ passif'));
-  form.append(fsPa);
-
-  // Compétences
-  o.skills ??= [];
-  const fsSk=el('fieldset'); fsSk.append(el('legend',{},'Compétences (combat)'));
-  o.skills.forEach((s,i)=>{
-    s.effect ??= {kind:'damage'};
-    const box=el('div',{class:'sub'});
-    box.append(el('div',{class:'subhead'}, el('span',{class:'t'},'compétence · '+(s.label||s.id||'?')), el('button',{class:'danger tiny',onclick:()=>{o.skills.splice(i,1);renderForm();}},'🗑')));
-    box.append(el('div',{class:'row'},
-      field(s,'id','id',{w:'w-md'}),
-      field(s,'label','Label',{w:'w-md'}),
-      field(s,'cost','Coût (sang)',{w:'w-sm',type:'number'}),
-      lblChk(s,'once','1×/combat'),
-    ));
-    box.append(field(s,'desc','Description',{textarea:true}));
-    const efWrap=el('div',{class:'row',style:'margin-top:6px'});
-    const kindSel=field(s.effect,'kind','Effet',{options:EFFECT_KINDS});
-    kindSel.querySelector('select').addEventListener('change',()=>renderForm());
-    efWrap.append(kindSel);
-    for(const f of (EFFECT_FIELDS[s.effect.kind]||[])) efWrap.append(effectField(s.effect,f));
-    box.append(efWrap);
-    fsSk.append(box);
-  });
-  fsSk.append(el('button',{class:'tiny addrow',onclick:()=>{o.skills.push({id:'',label:'',cost:1,desc:'',effect:{kind:'damage',amount:2,target:'enemy_organ'}});renderForm();}},'＋ compétence'));
-  form.append(fsSk);
-
-  // Apparence & animation
-  o.visual ??= {};
-  const fsAp=el('fieldset'); fsAp.append(el('legend',{},'Apparence & animation'));
-  const colWrap=el('div',{class:'fld'});
-  colWrap.append(el('label',{},'Couleur (accent des cartes de skill)'));
-  const colInp=el('input',{type:'text',style:'width:130px'}); colInp.value=o.color??''; colInp.placeholder=(setColorOf(o.set)||'hérite du set');
-  const swatch=el('span',{style:`display:inline-block;width:24px;height:24px;border-radius:3px;border:1px solid var(--line);background:${effColor(o)}`});
-  const picker=el('input',{type:'color',value:effColor(o),style:'width:36px;height:26px;padding:0;border:1px solid var(--line);background:var(--bg);border-radius:3px;cursor:pointer'});
-  colInp.addEventListener('input',()=>{ o.color=colInp.value.trim()||undefined; const c=effColor(o); swatch.style.background=c; picker.value=c; persist(); renderList(); });
-  picker.addEventListener('input',()=>{ o.color=picker.value; colInp.value=picker.value; swatch.style.background=picker.value; persist(); renderList(); });
-  colWrap.append(el('div',{style:'display:flex;gap:8px;align-items:center'}, colInp, picker, swatch));
-  colWrap.append(el('div',{class:'hint'},`Vide = couleur du set (${setColorOf(o.set)||'défaut'}). L'override prime sur le set.`));
-  fsAp.append(el('div',{class:'row'}, colWrap, field(o.visual,'overlay','Overlay FX (animation)',{options:OVERLAYS})));
-  fsAp.append(el('div',{class:'hint',style:'margin-top:4px'}, o.type==='heart'
-    ? 'Battement : règle la période dans le champ « Pouls » (section Cœur).'
-    : 'Overlay = animation CSS ajoutée à la scène quand l\'organe est greffé (hex-fragment, lich-pulse, spider-crawl, stone-crack).'));
-  form.append(fsAp);
-
-  // Récolte
-  o.harvest ??= {fragileTo:[]}; o.harvest.fragileTo ??= [];
-  const fsHv=el('fieldset'); fsHv.append(el('legend',{},'Récolte'));
-  const fr=el('div',{class:'tags'});
-  fr.append(el('span',{class:'hint',style:'align-self:center;margin-right:6px'},'fragile à :'));
-  for(const f of FRAGILE){
-    const on=o.harvest.fragileTo.includes(f);
-    const lab=el('label',{class:'chk'+(on?' on':'')}); const cb=el('input',{type:'checkbox'}); cb.checked=on;
-    cb.addEventListener('change',()=>{ if(cb.checked)o.harvest.fragileTo.push(f); else o.harvest.fragileTo=o.harvest.fragileTo.filter(x=>x!==f); renderForm(); persist(); });
-    lab.append(cb,document.createTextNode(f)); fr.append(lab);
-  }
-  fsHv.append(fr);
-  form.append(fsHv);
-
-  form.append(el('div',{class:'footnote'},'Champs vides omis à l\'export. « Enregistrer » écrit dans le fichier (Chrome/Edge) ; sinon « Exporter » télécharge organs.json.'));
-}
-
-function effectField(e,f){
-  if(f==='target') return field(e,'target','cible',{options:TARGETS});
-  if(f==='from')   return field(e,'from','de',{options:CONVERT_RES});
-  if(f==='to')     return field(e,'to','vers',{options:CONVERT_RES});
-  if(BOOL_FIELDS.has(f)) return lblChk(e,f,f);
-  return field(e,f,f,{w:'w-sm',type:'number'});
-}
-
-// ─── Actions ────────────────────────────────────────────────────────────────
-function renderSetForm(form){
-  const s=sel();
-  if(!s){ form.append(el('div',{class:'empty'},'Sélectionne un set à gauche, ou crée-en un.')); return; }
-  const fs=el('fieldset'); fs.append(el('legend',{},'Set'));
-  fs.append(el('div',{class:'row'},
-    field(s,'id','id',{w:'w-id',ph:'human',hint:'unique · référencé par organe.set'}),
-    field(s,'name','Nom',{w:'w-md',ph:'Humain'}),
-  ));
-  const colWrap=el('div',{class:'fld'});
-  colWrap.append(el('label',{},'Couleur du set'));
-  const cur=()=> (s.color&&String(s.color).trim())||'#9a8a70';
-  const colInp=el('input',{type:'text',style:'width:130px'}); colInp.value=s.color??''; colInp.placeholder='#c47c6e';
-  const swatch=el('span',{style:`display:inline-block;width:24px;height:24px;border-radius:3px;border:1px solid var(--line);background:${cur()}`});
-  const picker=el('input',{type:'color',value:/^#[0-9a-fA-F]{6}$/.test(cur())?cur():'#000000',style:'width:36px;height:26px;padding:0;border:1px solid var(--line);background:var(--bg);border-radius:3px;cursor:pointer'});
-  colInp.addEventListener('input',()=>{ s.color=colInp.value.trim()||undefined; const c=cur(); swatch.style.background=c; if(/^#[0-9a-fA-F]{6}$/.test(c))picker.value=c; renderList(); refreshStatus(); persist(); });
-  picker.addEventListener('input',()=>{ s.color=picker.value; colInp.value=picker.value; swatch.style.background=picker.value; renderList(); persist(); });
-  colWrap.append(el('div',{style:'display:flex;gap:8px;align-items:center'}, colInp, picker, swatch));
-  colWrap.append(el('div',{class:'hint'},'Couleur par défaut des organes de ce set (accent des cartes de skill). Un organe peut la surcharger via son propre champ « Couleur ».'));
-  fs.append(colWrap);
-  form.append(fs);
-
-  const members=organs.filter(o=>o.set===s.id);
-  const fsM=el('fieldset'); fsM.append(el('legend',{},`Organes de ce set (${members.length})`));
-  if(members.length){
-    const box=el('div',{class:'tags'});
-    for(const o of members){
-      const chip=el('label',{class:'chk',style:`border-color:${effColor(o)}`});
-      chip.append(el('span',{style:`display:inline-block;width:9px;height:9px;border-radius:50%;background:${effColor(o)};margin-right:5px`}), document.createTextNode(o.name||o.id));
-      box.append(chip);
-    }
-    fsM.append(box);
-  } else fsM.append(el('div',{class:'hint'},'Aucun organe ne référence ce set.'));
-  form.append(fsM);
-}
-
-function addOrgan(){
-  const o={_uid:uid(),id:'',type:'arm',name:'Nouvel organe',set:'human',tier:'common',hp:8,layer:'outer',price:10,tags:[],produces:[],passives:[],skills:[],harvest:{fragileTo:[]}};
-  organs.push(o); selOrgan=o._uid; render();
-  setTimeout(()=>$('.form input')?.focus(),0);
-}
-function dupOrgan(){
-  const o=sel(); if(!o)return;
-  const c=structuredClone(stripUid(o)); c._uid=uid(); c.id=(o.id||'organ')+'_copy'; c.name=(o.name||'')+' (copie)';
-  const idx=organs.findIndex(x=>x._uid===selOrgan); organs.splice(idx+1,0,c); selOrgan=c._uid; render();
-}
-function delOrgan(){
-  const o=sel(); if(!o)return; if(!confirm(`Supprimer « ${o.name||o.id} » ?`))return;
-  organs=organs.filter(x=>x._uid!==selOrgan); selOrgan=organs[0]?._uid??null; render();
-}
-function addSet(){
-  const s={_uid:uid(),id:'',name:'Nouveau set',color:'#b9975b'};
-  sets.push(s); selSet=s._uid; render(); setTimeout(()=>$('.form input')?.focus(),0);
-}
-function dupSet(){
-  const s=sel(); if(!s)return;
-  const c=structuredClone(stripUid(s)); c._uid=uid(); c.id=(s.id||'set')+'_copy'; c.name=(s.name||'')+' (copie)';
-  const i=sets.findIndex(x=>x._uid===selSet); sets.splice(i+1,0,c); selSet=c._uid; render();
-}
-function delSet(){
-  const s=sel(); if(!s)return;
-  const used=organs.filter(o=>o.set===s.id).length;
-  if(!confirm(`Supprimer le set « ${s.name||s.id} » ?`+(used?`\n${used} organe(s) le référencent encore.`:'')))return;
-  sets=sets.filter(x=>x._uid!==selSet); selSet=sets[0]?._uid??null; render();
-}
-function addItem(){ mode==='organs'?addOrgan():addSet(); }
-function dupItem(){ mode==='organs'?dupOrgan():dupSet(); }
-function delItem(){ mode==='organs'?delOrgan():delSet(); }
-function doExport(){
-  const {errs}=validate(); if(errs.length&&!confirm(`${errs.length} erreur(s) de validation. Exporter quand même ?`))return;
-  const blob=new Blob([jsonText()+'\n'],{type:'application/json'});
-  const a=el('a',{href:URL.createObjectURL(blob),download:curFileName()}); a.click(); URL.revokeObjectURL(a.href);
-}
-async function doCopy(){
-  try{ await navigator.clipboard.writeText(jsonText()); setStatus('JSON copié.','ok'); setTimeout(refreshStatus,1500); }
-  catch(e){ const d=$('#jsondlg'); $('#jsonout').value=jsonText(); d.showModal(); }
-}
-const fileHandles={organs:null,sets:null};
-async function doSave(){
-  const {errs}=validate(); if(errs.length&&!confirm(`${errs.length} erreur(s). Enregistrer quand même ?`))return;
-  if(!window.showSaveFilePicker){ setStatus('Écriture directe non supportée — utilise Exporter.','warn'); return doExport(); }
-  try{
-    if(!fileHandles[mode]) fileHandles[mode]=await window.showSaveFilePicker({suggestedName:curFileName(),types:[{description:'JSON',accept:{'application/json':['.json']}}]});
-    const w=await fileHandles[mode].createWritable(); await w.write(jsonText()+'\n'); await w.close();
-    setStatus(`${curFileName()} enregistré ✔`,'ok'); setTimeout(refreshStatus,1800);
-  }catch(e){ if(e?.name!=='AbortError') setStatus('Échec : '+e.message,'bad'); }
-}
-
-// ─── Boot ───────────────────────────────────────────────────────────────────
-function updateChrome(){ $('#btn-add').textContent = mode==='organs' ? '＋ Nouvel organe' : '＋ Nouveau set'; }
-function switchMode(m){
-  if(mode===m) return;
-  mode=m;
-  $('#tab-organs').classList.toggle('on', m==='organs');
-  $('#tab-sets').classList.toggle('on', m==='sets');
-  $('#search').value='';
-  updateChrome(); render();
-}
-
-$('#tab-organs').addEventListener('click',()=>switchMode('organs'));
-$('#tab-sets').addEventListener('click',()=>switchMode('sets'));
-$('#btn-load').addEventListener('click',loadCurrentFromServer);
-$('#btn-add').addEventListener('click',addItem);
-$('#btn-dup').addEventListener('click',dupItem);
-$('#btn-del').addEventListener('click',delItem);
-$('#btn-export').addEventListener('click',doExport);
-$('#btn-copy').addEventListener('click',doCopy);
-$('#btn-save').addEventListener('click',doSave);
-$('#search').addEventListener('input',renderList);
-
-(async function init(){
-  const oc=loadOrgansCache(), sc=loadSetsCache();
-  if(!sc) await loadSets(false);       // les sets alimentent l'aperçu couleur des organes
-  if(!oc) await loadOrgans(false);
-  if(!sets.length) ingestSets([{id:'human',name:'Humain',color:'#c47c6e'},{id:'beast',name:'Bête',color:'#9a2f24'}]);
-  updateChrome(); render();
-})();
-</script>
+<script type="module" src="./tool.js"></script>
 </body>
 </html>

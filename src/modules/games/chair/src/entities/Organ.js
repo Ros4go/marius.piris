@@ -39,6 +39,7 @@ export class Organ {
   get harvest()   { return this._def.harvest ?? {}; }
   get visual()    { return this._def.visual ?? {}; }
   get icon()      { return this._def.icon ?? null; }
+  get sprite()    { return this._def.sprite ?? null; }      // forme CSS paramétrique (besace/marchand)
   get basePrice() { return this._def.price; }
 
   getQuality(currentHp) {

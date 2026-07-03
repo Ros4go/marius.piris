@@ -4,11 +4,15 @@ export class Room {
   constructor(def, id) {
     this.id       = id;          // unique instance id (e.g. "r_3_4")
     this.defId    = def.id;      // points to rooms.json entry
-    this.family   = def.family;
+    // Hostilité dérivée des spawns : des mobs peuvent y apparaître → hostile.
+    // (Remplace l'ancien champ "family", supprimé — redondant avec spawns.)
+    this.hostile  = (def.spawns?.maxMobs ?? 0) > 0 || !!def.spawns?.boss || !!def.spawns?.graveyard;
     this.ui       = def.ui;
     this.description = def.description;
-    this.loot     = { ...def.loot };
-    this.cleared  = def.cleared ?? false;
+    // État runtime : accompli/nettoyé. Une salle hostile démarre non-nettoyée,
+    // une salle sûre n'a rien à accomplir. (Ex-champ de def, désormais dérivé ;
+    // il passe à true quand les mobs meurent / l'autel est consommé, etc.)
+    this.cleared  = def.cleared ?? !this.hostile;
     this.visited  = false;
     this.mobIds   = [];          // WorldState.mobs keys active in this room
     this.lootIds  = [];          // organ/relic instance ids on the floor
@@ -32,17 +36,16 @@ export class Room {
   }
 
   isHostile() {
-    return this.family === 'combat' || this.family === 'thematic' || this.family === 'boss';
+    return this.hostile;
   }
 
   toJSON() {
     return {
       id: this.id,
       defId: this.defId,
-      family: this.family,
+      hostile: this.hostile,
       ui: this.ui,
       description: this.description,
-      loot: this.loot,
       cleared: this.cleared,
       visited: this.visited,
       mobIds: [...this.mobIds],
@@ -52,9 +55,12 @@ export class Room {
   }
 
   static fromJSON(data) {
-    const r = new Room({ id: data.defId, family: data.family, ui: data.ui,
-                         description: data.description, loot: data.loot,
+    const r = new Room({ id: data.defId, ui: data.ui,
+                         description: data.description,
                          cleared: data.cleared }, data.id);
+    // Compat anciennes saves : elles portaient "family" au lieu de "hostile".
+    r.hostile = data.hostile
+      ?? (data.family === 'combat' || data.family === 'thematic' || data.family === 'boss');
     r.visited = data.visited;
     r.mobIds  = [...data.mobIds];
     r.lootIds = [...data.lootIds];

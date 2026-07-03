@@ -68,7 +68,7 @@ export function render() {
   const enemyPos = new Set();
   for (const mob of WS.mobs.values()) {
     if (mob.lifecycle !== 'active') continue;
-    if (mob.pos.floorIdx !== WS.player.floorIdx) continue;
+    if (mob.pos?.floorIdx !== WS.player.floorIdx) continue;
     enemyPos.add(`${mob.pos.x},${mob.pos.y}`);
   }
 
