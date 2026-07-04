@@ -2,7 +2,7 @@ import { WS } from '../../WorldState.js';
 import { allOrgans, organResolver, relic as getRelic } from '../../registry.js';
 import { addLog } from '../HUDRenderer.js';
 import { inventoryCapacity } from '../../WorldState.js';
-import { spriteStyle, spriteCalques } from '../InventoryRenderer.js';
+import { spriteStyle, spriteCalques, spriteAnimAttr, animerSprites } from '../InventoryRenderer.js';
 
 export function render(container, room, options = {}) {
   const { onRender } = options;
@@ -39,7 +39,7 @@ export function render(container, room, options = {}) {
       const btn          = document.createElement('button');
       btn.className      = 'ware' + (!canAfford || full ? ' off' : '');
       btn.disabled       = !canAfford || full;
-      btn.innerHTML      = `<span class="ware-ic ${_icClass(def.type)}" style="${spriteStyle(def.sprite, false)}">${spriteCalques(def.sprite)}</span>
+      btn.innerHTML      = `<span class="ware-ic ${_icClass(def.type)}" style="${spriteStyle(def.sprite, false)}"${spriteAnimAttr(def.sprite)}>${spriteCalques(def.sprite)}</span>
                             <span class="ware-n">${def.name} <em>· ${def.tier}</em></span>
                             <span class="ware-p">${price}</span>`;
       btn.addEventListener('click', () => {
@@ -71,7 +71,7 @@ export function render(container, room, options = {}) {
         const price = Math.round((rdef.price ?? 60) * 0.5);
         const btn   = document.createElement('button');
         btn.className = 'ware sell';
-        btn.innerHTML = `<span class="ware-ic relic" style="${spriteStyle(rdef.sprite, false)}">${spriteCalques(rdef.sprite)}</span>
+        btn.innerHTML = `<span class="ware-ic relic" style="${spriteStyle(rdef.sprite, false)}"${spriteAnimAttr(rdef.sprite)}>${spriteCalques(rdef.sprite)}</span>
                          <span class="ware-n">✦ ${rdef.name}</span>
                          <span class="ware-p sell">+${price}</span>`;
         btn.addEventListener('click', () => {
@@ -90,7 +90,7 @@ export function render(container, room, options = {}) {
       const price   = def.getSellPrice ? def.getSellPrice(item.hp ?? def.maxHp) : Math.round((def.price ?? 20) * 0.5);
       const btn     = document.createElement('button');
       btn.className = 'ware sell';
-      btn.innerHTML = `<span class="ware-ic ${_icClass(def.type)}" style="${spriteStyle(def.sprite, false)}">${spriteCalques(def.sprite)}</span>
+      btn.innerHTML = `<span class="ware-ic ${_icClass(def.type)}" style="${spriteStyle(def.sprite, false)}"${spriteAnimAttr(def.sprite)}>${spriteCalques(def.sprite)}</span>
                        <span class="ware-n">${def.name} <em>${quality.name}</em></span>
                        <span class="ware-p sell">+${price}</span>`;
       btn.addEventListener('click', () => {
@@ -107,6 +107,8 @@ export function render(container, room, options = {}) {
     p.textContent = 'Besace vide.';
     sellScroll.appendChild(p);
   }
+
+  animerSprites(container);
 }
 
 function _icClass(type) {

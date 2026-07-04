@@ -57,10 +57,12 @@ const _row  = (l, v, cls='') => `<div class="ins-row ${cls}"><span>${l}</span><s
 const _desc = (t, cls='insp-pos') => `<div class="ins-row ${cls}" style="flex-wrap:wrap"><span style="white-space:normal;line-height:1.4;flex:1">${t}</span></div>`;
 const _chargeStr = (ch) => Array.isArray(ch) ? ch.map(v=>(v/1000).toFixed(1)).join(' / ')+' s' : (ch/1000).toFixed(1)+' s';
 
-export function showOrgan(organId, currentHp, slotKey, onBack) {
-  if (!organId) return;
+// Fiche COMPLÈTE d'un organe (nom, état, skills, tags générés, passifs, revente)
+// en HTML pur — partagée entre le panneau du jeu (showOrgan) et la zone
+// « Inspecteur » de l'atelier. `back` = HTML optionnel préfixé (bouton retour).
+export function organHTML(organId, currentHp, slotKey, back = '') {
   const def = organResolver(organId);
-  if (!def) return;
+  if (!def) return '';
 
   const hp        = currentHp ?? def.maxHp;
   const quality   = def.getQuality(hp);
@@ -112,14 +114,21 @@ export function showOrgan(organId, currentHp, slotKey, onBack) {
   const flaw = def.flaw ? _desc(`⚠ ${FLAW_FR[def.flaw] ?? def.flaw}`, 'insp-neg') : '';
   if (abil || trig || flaw) body += `<div class="ins-section-head">Effets</div>${abil}${trig}${flaw}`;
 
-  const back = onBack ? '<button class="ins-back" id="ins-back-btn">← retour au corps</button>' : '';
-  _content.innerHTML = `
+  return `
     ${back}
     <div class="ins-name">${def.name}</div>
     <div class="ins-arc">${slotLabel} · ${TIER_FR[def.tier] ?? def.tier}${setStr}</div>
     <div class="ins-row"><span>État</span><span>${hp}/${def.maxHp} PV <span style="color:${_qualColor(quality.name)}">[${quality.name}]</span></span></div>
     ${body}
     <div class="ins-row insp-dim"><span>Revente</span><span>${def.getSellPrice(hp)} 💀</span></div>`;
+}
+
+export function showOrgan(organId, currentHp, slotKey, onBack) {
+  if (!organId) return;
+  const back = onBack ? '<button class="ins-back" id="ins-back-btn">← retour au corps</button>' : '';
+  const html = organHTML(organId, currentHp, slotKey, back);
+  if (!html) return;
+  _content.innerHTML = html;
   if (onBack) document.getElementById('ins-back-btn')?.addEventListener('click', onBack);
 }
 

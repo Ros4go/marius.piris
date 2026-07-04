@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test ressources</title></head>
+<body>
+<iframe id="f" src="./organ-editor.html" style="width:1280px;height:900px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(async () => {
+  const w = document.getElementById('f').contentWindow;
+  const d = w.document;
+  tries++;
+  if (!d.querySelector('#res-list .item')) { if (tries > 30) { out.push('TIMEOUT liste'); finish(); } return; }
+  clearInterval(t);
+  try {
+    d.querySelector('[data-tab="res"]').click();
+    // liste : les 8 ressources migrées, groupées par porteur
+    const items = [...d.querySelectorAll('#res-list .item')];
+    const grps = [...d.querySelectorAll('#res-list .grp')].map((g) => g.textContent);
+    out.push('liste = ' + items.length + ' ressources · groupes = ' + grps.join(' | '));
+    // ouvrir le Sang : sprite présent, aperçu = vraies puces de combat
+    items.find((i) => i.textContent.includes('Sang')).click();
+    const ed = d.querySelector('#res-editor');
+    const shadow = [...ed.querySelectorAll('div')].find((x) => x.shadowRoot)?.shadowRoot;
+    const chips = shadow ? shadow.querySelectorAll('.cb-res').length : 0;
+    const ics = shadow ? shadow.querySelectorAll('.cb-ic').length : 0;
+    out.push('sang : aperçu puces = ' + chips + ' · icônes sprite = ' + ics
+      + ' · éditeur sprite = ' + (ed.textContent.includes('personnalisé') || ed.textContent.includes('préréglage')));
+    // blocs de règles : la fiche Bile a tick actif avec propagation
+    [...d.querySelectorAll('#res-list .item')].find((i) => i.textContent.includes('Bile')).click();
+    const legends = [...d.querySelectorAll('#res-editor legend')].map((x) => x.textContent.trim());
+    const tickOn = [...d.querySelectorAll('#res-editor legend input[type=checkbox]')].filter((c) => c.checked).length;
+    out.push('bile : ' + legends.length + ' sections · blocs actifs = ' + tickOn
+      + ' · propage visible = ' + d.querySelector('#res-editor').textContent.includes('propage'));
+    // créer une ressource, activer l'absorption, vérifier la persistance des règles
+    d.querySelector('#res-new').click();
+    const ed2 = d.querySelector('#res-editor');
+    const absLegend = [...ed2.querySelectorAll('legend')].find((l) => l.textContent.includes('Absorption'));
+    absLegend.querySelector('input').checked = true;
+    absLegend.querySelector('input').dispatchEvent(new w.Event('change'));
+    const nv = w.DATA?.resources ?? null;   // pas exposé — on vérifie via l'éditeur re-rendu
+    const absOk = [...d.querySelectorAll('#res-editor legend')].find((l) => l.textContent.includes('Absorption'))?.querySelector('input')?.checked;
+    out.push('création : absorbe activé = ' + absOk);
+    d.querySelector('#res-del').click();   // nettoie le brouillon créé
+    // combat réel : donner de la ressource via le sandbox
+    d.querySelector('[data-tab="sim"]').click();
+    const sb = () => d.getElementById('vp-frame')?.contentWindow?.SANDBOX;
+    let waited = 0;
+    while (!sb()?.giveResource && waited++ < 40) await new Promise((r) => setTimeout(r, 300));
+    if (!sb()) { out.push('sandbox indisponible'); finish(); return; }
+    sb().spawnMob?.('centre');
+    const started = sb().startCombat();
+    const give1 = sb().giveResource('protection', 4);
+    const give2 = sb().giveResource('bile', 2, 'skin');
+    const pst = sb().TurnCombat.state.pstate;
+    out.push('combat : ' + started.substring(0, 14) + ' · ' + give1 + ' · ' + give2
+      + ' · protection=' + pst.protection + ' · bile(skin)=' + (pst._bile?.skin ?? 0));
+    // les puces s'affichent dans la vue (icônes sprites)
+    const sd = d.getElementById('vp-frame').contentWindow.document;
+    out.push('puces en jeu = ' + sd.querySelectorAll('#combat-blood .cb-res').length
+      + ' · icônes sprites = ' + sd.querySelectorAll('#combat-blood .cb-ic').length);
+    sb().stopCombat();
+    out.push('erreurs sandbox = ' + (d.getElementById('vp-frame').contentWindow.SANDBOX_ERROR ?? 'aucune'));
+  } catch (e) { out.push('EXC: ' + e.message); }
+  finish();
+}, 400);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

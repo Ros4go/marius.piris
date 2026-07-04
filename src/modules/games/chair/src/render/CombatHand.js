@@ -6,6 +6,9 @@
 // organ to play the card there. Utility cards (guard / dodge…) are click-to-play
 // on yourself. Pointer events → desktop + touch.
 
+import { spriteStyle } from './SpriteFX.js';
+import { resDef } from '../systems/Resources.js';
+
 const SVG = 'http://www.w3.org/2000/svg';
 
 let _root, _handEl, _targetsEl, _end, _blood, _discard;
@@ -92,22 +95,40 @@ function _flyToDiscard(cardEl) {
   setTimeout(() => clone.remove(), 470);
 }
 
+// Puce d'une ressource — PARTAGÉE jeu/atelier : l'icône est le SPRITE de la
+// ressource (resources.json, éditeur de sprite de l'atelier), la valeur au centre.
+export function resChipHTML(def, val) {
+  const ic = def?.sprite
+    ? `<span class="cb-ic" style="${spriteStyle(def.sprite)}"></span>`
+    : `<span class="cb-ic" style="background:${def?.couleur ?? '#666'};border-radius:50%"></span>`;
+  return `<span class="cb-res cb-${def?.id ?? '?'}" title="${def?.name ?? '?'} : ${val}">${ic}<span class="cb-n">${val}</span></span>`;
+}
+
+// Contenu HTML d'une carte de la main — PARTAGÉ jeu/atelier (l'éditeur d'organes
+// prévisualise chaque skill comme la vraie carte de combat).
+export function cardHTML(c) {
+  const beads = c.cost > 0 ? '<i></i>'.repeat(Math.min(c.cost, 4)) : '<u>libre</u>';
+  // multi-coûts (skill.couts) : une pastille colorée par ressource, hors Sang (les perles)
+  const autres = Object.entries(c.couts ?? {}).filter(([id, n]) => id !== 'sang' && n > 0)
+    .map(([id, n]) => {
+      const d = resDef(id);
+      return `<b class="cc-rc" style="background:${d?.couleur ?? '#666'}" title="${n} ${d?.name ?? id}">${n}</b>`;
+    }).join('');
+  return `<span class="cc-cost" title="${c.cost} Sang">${beads}${autres}</span>` +
+    `<span class="cc-name">${c.label}</span>` +
+    `<span class="cc-desc">${c.desc}</span>` +
+    `<span class="cc-tag">${c.organName ?? ''}</span>`;
+}
+
 export function render(cards, ctx) {
   _ensure();
   _root.style.display = '';
   _blood.style.display = '';
   _ctx = ctx;
 
-  // top-left resource readout — one chip per resource, its value inside the icon.
-  // Sang is always leftmost and always shown (even 0); the others only appear
-  // when you actually hold some.
-  const chip = (kind, val, label) =>
-    `<span class="cb-res cb-${kind}" title="${label} : ${val}"><span class="cb-n">${val}</span></span>`;
-  const out = [chip('sang', Math.max(0, ctx.blood ?? 0), 'Sang')];
-  if ((ctx.protection ?? 0) > 0) out.push(chip('protection', ctx.protection, 'Protection'));
-  if ((ctx.frenesie ?? 0)   > 0) out.push(chip('frenesie', ctx.frenesie, 'Frénésie'));
-  if ((ctx.regen ?? 0)      > 0) out.push(chip('regen', ctx.regen, 'Régénération'));
-  _blood.innerHTML = out.join('');
+  // top-left resource readout — one chip per resource (data-driven, une puce par
+  // ressource d'entité : le Sang toujours, les autres dès qu'on en détient).
+  _blood.innerHTML = (ctx.resources ?? []).map(({ def, val }) => resChipHTML(def, val)).join('');
 
   // discard pile count (and refresh the popup if it's open)
   _discard.style.display = '';
@@ -121,12 +142,7 @@ export function render(cards, ctx) {
     const el = document.createElement('div');
     el.className = 'ccard l-' + (c.layerHint ?? 'x') + (c.playable ? '' : ' disabled') + (c.needsTarget ? ' targeted-card' : '');
     if (c.color) el.style.setProperty('--card-accent', c.color);   // organ/set colour (matches the mob)
-    const beads = c.cost > 0 ? '<i></i>'.repeat(Math.min(c.cost, 4)) : '<u>libre</u>';
-    el.innerHTML =
-      `<span class="cc-cost" title="${c.cost} Sang">${beads}</span>` +
-      `<span class="cc-name">${c.label}</span>` +
-      `<span class="cc-desc">${c.desc}</span>` +
-      `<span class="cc-tag">${c.organName ?? ''}</span>`;
+    el.innerHTML = cardHTML(c);
     el._card = c;
     if (c.playable) {
       if (c.needsTarget) el.addEventListener('pointerdown', (e) => _onDown(e, el, c));

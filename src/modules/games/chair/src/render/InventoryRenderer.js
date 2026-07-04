@@ -13,65 +13,17 @@ function _orgShapeClass(type) {
   return 'orgshape';
 }
 
-// Sprite paramétrique (organs/relics.json "sprite") → style inline, PARTAGÉ
-// besace/marchand/atelier. Sans sprite : les formes CSS historiques (hud.css).
-// Champs : forme (border-radius) · degrade {cx,cy,stops:[{c,de?,a?}]} — deux
-// positions sur un stop = anneau net (l'iris de l'œil) · taille (% de la cellule)
-// · ombre (false = sans ombre portée) · eclat {c,alpha,rayon} (halo, cf reliques).
-export function spriteStyle(sp, avecTaille = true) {
-  if (!sp) return '';
-  const out = [];
-  if (sp.forme) out.push(`border-radius:${sp.forme}`);
-  if (sp.degrade?.stops?.length) {
-    const stops = sp.degrade.stops
-      .map((s) => s.c + (s.de != null ? ` ${s.de}%` : '') + (s.a != null ? ` ${s.a}%` : ''))
-      .join(', ');
-    out.push(`background:radial-gradient(circle at ${sp.degrade.cx ?? 50}% ${sp.degrade.cy ?? 50}%, ${stops})`);
-  }
-  if (avecTaille && sp.taille) out.push(`width:${sp.taille}%;height:${sp.taille}%`);
-  if (sp.eclat?.c || sp.ombre === false) {
-    const shadows = [];
-    if (sp.eclat?.c) {
-      const a = Math.round((sp.eclat.alpha ?? 0.4) * 255).toString(16).padStart(2, '0');
-      shadows.push(`0 0 ${sp.eclat.rayon ?? 6}px ${sp.eclat.c}${a}`);
-    }
-    if (sp.ombre !== false) shadows.push('0 2px 4px #000');
-    out.push(`box-shadow:${shadows.join(', ') || 'none'}`);
-  }
-  if (sp.calques?.length) {
-    out.push('position:relative');                    // ancre les calques absolus
-    if (sp.decoupe) out.push('overflow:hidden');      // coupe ce qui dépasse la forme
-  }
-  return out.join(';');
-}
-
-// Calques : petites formes posées PAR-DESSUS la forme de base (points noirs pour
-// des yeux, taches, détails). {c, c2?, x, y, l, h, forme?, rot?, alpha?} — position
-// et taille en % de la forme de base, CENTRÉES sur (x, y). c2 → mini dégradé.
-function _calqueStyle(k) {
-  const l = k.l ?? 20, h = k.h ?? 20;
-  const out = [
-    'position:absolute', 'display:block',
-    `left:${(k.x ?? 50) - l / 2}%`, `top:${(k.y ?? 50) - h / 2}%`,
-    `width:${l}%`, `height:${h}%`,
-    `border-radius:${k.forme ?? '50%'}`,
-    k.c2 ? `background:radial-gradient(circle at 35% 30%, ${k.c ?? '#000'}, ${k.c2})` : `background:${k.c ?? '#000'}`,
-  ];
-  if (k.alpha != null) out.push(`opacity:${k.alpha}`);
-  if (k.rot) out.push(`transform:rotate(${k.rot}deg)`);
-  return out.join(';');
-}
-// HTML interne de la forme (un <i> par calque) — à insérer DANS le div du sprite.
-export function spriteCalques(sp) {
-  return (sp?.calques ?? []).map((k) => `<i style="${_calqueStyle(k)}"></i>`).join('');
-}
+// Le compilateur de sprites vit dans SpriteFX (partagé besace/marchand/figures
+// de salle/atelier) — ré-exporté ici pour les consommateurs historiques.
+import { spriteStyle, spriteCalques, spriteAnimAttr, animerSprites } from './SpriteFX.js';
+export { spriteStyle, spriteCalques, spriteAnimAttr, animerSprites, structFigure, decorFigure, ANIM_PRESETS, ANIM_EASINGS } from './SpriteFX.js';
 
 // Apparence d'un item de besace — PARTAGÉE jeu/atelier (zone Visuel de l'outil) :
 // classes de cellule, HTML interne (forme CSS + sprite + badge de tier) et tooltip.
 export function itemLook(item) {
   if (item.relicId) {
     const rdef = getRelic(item.relicId);
-    return { cls: 'cell full relic', html: `<div class="orgshape relicshape" style="${spriteStyle(rdef?.sprite)}">${spriteCalques(rdef?.sprite)}</div>`,
+    return { cls: 'cell full relic', html: `<div class="orgshape relicshape" style="${spriteStyle(rdef?.sprite)}"${spriteAnimAttr(rdef?.sprite)}>${spriteCalques(rdef?.sprite)}</div>`,
              title: rdef ? `✦ ${rdef.name}\n${rdef.description ?? ''}` : '✦ relique' };
   }
   const def     = organResolver(item.organId);
@@ -80,9 +32,12 @@ export function itemLook(item) {
   if (quality.name === 'pourri' || quality.name === 'destroyed') cls += ' rot';
   else if (quality.name === 'parfait' || quality.name === 'intact') cls += ' glow';
   const shape = def ? _orgShapeClass(def.type) : 'orgshape';
+  // L'usure TERNIT l'organe : couleurs désaturées et assombries par palier de
+  // qualité (pourri/détruit gardent le filtre .rot de la cellule entière)
+  const usure = { 'abîmé': 'saturate(.72) brightness(.86)', cuit: 'saturate(.42) brightness(.66)' }[quality.name];
   // Badge = initiale du tier pour rare+ (common = rien)
   const badge = (def && def.tier && def.tier !== 'common') ? def.tier[0].toUpperCase() : '';
-  return { cls, html: `<div class="${shape}" style="${spriteStyle(def?.sprite)}">${spriteCalques(def?.sprite)}</div>${badge ? `<span class="q">${badge}</span>` : ''}`,
+  return { cls, html: `<div class="${shape}" style="${spriteStyle(def?.sprite)}${usure ? `;filter:${usure}` : ''}"${spriteAnimAttr(def?.sprite)}>${spriteCalques(def?.sprite)}</div>${badge ? `<span class="q">${badge}</span>` : ''}`,
            title: def ? `${def.name} [${quality.name}]` : '?' };
 }
 
@@ -146,4 +101,5 @@ export function render() {
     const inspectable = !!item.relicId || !!organResolver(item.organId);
     cell.onclick   = inspectable ? () => _onInspect?.(invIdx) : null;
   });
+  animerSprites(_grid);
 }

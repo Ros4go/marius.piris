@@ -1,0 +1,149 @@
+[
+  {
+    "id": "sang",
+    "name": "Sang",
+    "description": "La monnaie de tes actions en combat. Produit chaque tour par ton cœur (son pool), dépensé pour jouer les cartes. Ce qui reste s'évapore à la fin du tour.",
+    "polarite": "positif",
+    "porteur": "entite",
+    "stockage": "blood",
+    "max": null,
+    "expire": "finDeTour",
+    "couleur": "#c23a30",
+    "sprite": {
+      "forme": "50% 50% 50% 50% / 62% 62% 38% 38%",
+      "degrade": { "cx": 38, "cy": 30, "stops": [{ "c": "#f0655a" }, { "c": "#7a1813", "de": 72 }] },
+      "taille": 100,
+      "eclat": { "c": "#c23a30", "alpha": 0.35, "rayon": 5 }
+    }
+  },
+  {
+    "id": "viande",
+    "name": "Viande",
+    "description": "La chair récoltée — sert de monnaie d'échange et de matière première à certains skills. Persiste hors combat (c'est ta bourse).",
+    "polarite": "positif",
+    "porteur": "entite",
+    "stockage": "meat",
+    "max": null,
+    "expire": "jamais",
+    "couleur": "#a06a42",
+    "sprite": {
+      "forme": "52% 48% 44% 56% / 60% 52% 48% 40%",
+      "degrade": { "cx": 40, "cy": 32, "stops": [{ "c": "#b5714a" }, { "c": "#5a2c1a", "de": 62 }, { "c": "#2a1208" }] },
+      "taille": 100
+    }
+  },
+  {
+    "id": "protection",
+    "name": "Protection",
+    "description": "Le Bloc : chaque point se consomme pour absorber 1 dégât à ta place. Produit au début du tour par les organes qui en génèrent (leur report décide de ce qui survit d'un tour à l'autre).",
+    "polarite": "positif",
+    "porteur": "entite",
+    "stockage": "protection",
+    "max": null,
+    "expire": "jamais",
+    "absorbe": { "ratio": 1 },
+    "production": { "parOrganes": true },
+    "couleur": "#7fa8c0",
+    "sprite": {
+      "forme": "18% 18% 52% 52% / 12% 12% 88% 88%",
+      "degrade": { "cx": 40, "cy": 26, "stops": [{ "c": "#9fc0d4" }, { "c": "#2a4657", "de": 74 }] },
+      "taille": 100,
+      "eclat": { "c": "#7fa8c0", "alpha": 0.3, "rayon": 5 },
+      "calques": [
+        { "x": 50, "y": 38, "l": 34, "h": 30, "forme": "18% 18% 52% 52% / 12% 12% 88% 88%", "degrade": { "cx": 45, "cy": 30, "stops": [{ "c": "#cfe4f0", "a": 40 }, { "c": "#4a7288", "de": 42 }] }, "alpha": 0.85 }
+      ]
+    }
+  },
+  {
+    "id": "regeneration",
+    "name": "Régénération",
+    "description": "Répare ton organe le plus abîmé au début de chaque tour (autant de PV que de stacks), puis perd 1 stack.",
+    "polarite": "positif",
+    "porteur": "entite",
+    "stockage": "regen",
+    "max": null,
+    "expire": "jamais",
+    "tick": { "quand": "debutDeTour", "soigne": { "valeur": 1, "parStack": true, "cible": "pireOrgane" }, "consomme": 1 },
+    "couleur": "#5aa86a",
+    "sprite": {
+      "forme": "50%",
+      "degrade": { "cx": 40, "cy": 30, "stops": [{ "c": "#9fe6ad" }, { "c": "#1f6a3a", "de": 74 }] },
+      "taille": 100,
+      "eclat": { "c": "#5aa86a", "alpha": 0.4, "rayon": 6 },
+      "anim": [{ "preset": "pulsation" }]
+    }
+  },
+  {
+    "id": "frenesie",
+    "name": "Frénésie",
+    "description": "Chaque stack ajoute +1 dégât à toutes tes attaques, en permanence. Ne s'éteint qu'à la fin du combat… ou jamais.",
+    "polarite": "positif",
+    "porteur": "entite",
+    "stockage": "frenesie",
+    "max": null,
+    "expire": "jamais",
+    "degatsInfliges": { "op": "plus", "valeur": 1, "parStack": true },
+    "couleur": "#d07a2a",
+    "sprite": {
+      "forme": "50% 50% 50% 50% / 70% 70% 30% 30%",
+      "degrade": { "cx": 42, "cy": 28, "stops": [{ "c": "#ffb057" }, { "c": "#a83a12", "de": 70 }] },
+      "taille": 100,
+      "eclat": { "c": "#d07a2a", "alpha": 0.5, "rayon": 7 },
+      "anim": [{ "preset": "scintillement" }]
+    }
+  },
+  {
+    "id": "bile",
+    "name": "Bile",
+    "description": "Poison d'organe : à la fin de ton tour, chaque organe atteint subit autant de dégâts que ses stacks, puis en perd 1. Si l'organe meurt, la Bile restante se propage sur 1 à 3 autres organes.",
+    "polarite": "negatif",
+    "porteur": "organe",
+    "stockage": "_bile",
+    "max": null,
+    "expire": "jamais",
+    "tick": { "quand": "finDeTour", "degats": { "valeur": 1, "parStack": true }, "consomme": 1, "propageALaMort": true },
+    "couleur": "#8aa02a",
+    "sprite": {
+      "forme": "56% 44% 52% 48% / 44% 60% 40% 56%",
+      "degrade": { "cx": 40, "cy": 34, "stops": [{ "c": "#c8d052" }, { "c": "#5a6a14", "de": 66 }, { "c": "#242c08" }] },
+      "taille": 100,
+      "anim": [{ "preset": "derive" }]
+    }
+  },
+  {
+    "id": "saignement",
+    "name": "Saignement",
+    "description": "L'organe entaillé perd autant de PV que ses stacks chaque fois que son porteur attaque, puis en perd 1. Frapper coûte cher à qui saigne.",
+    "polarite": "negatif",
+    "porteur": "organe",
+    "stockage": "_bleeds",
+    "max": null,
+    "expire": "jamais",
+    "tick": { "quand": "attaque", "degats": { "valeur": 1, "parStack": true }, "consomme": 1 },
+    "couleur": "#7a1813",
+    "sprite": {
+      "forme": "50% 50% 50% 50% / 30% 30% 70% 70%",
+      "degrade": { "cx": 42, "cy": 60, "stops": [{ "c": "#a83228" }, { "c": "#3a0806", "de": 76 }] },
+      "taille": 100
+    }
+  },
+  {
+    "id": "vulnerabilite",
+    "name": "Vulnérabilité",
+    "description": "L'organe marqué subit +1 dégât par stack à chaque coup reçu. Perd 1 stack à la fin de chaque tour.",
+    "polarite": "negatif",
+    "porteur": "organe",
+    "stockage": "_vuln",
+    "max": null,
+    "expire": "jamais",
+    "degatsSubis": { "op": "plus", "valeur": 1, "parStack": true },
+    "decroissance": { "quand": "finDeTour", "valeur": 1 },
+    "couleur": "#c0b08a",
+    "sprite": {
+      "forme": "50%",
+      "degrade": { "cx": 50, "cy": 50, "stops": [{ "c": "#e8dcb8", "de": 24 }, { "c": "#8a7448", "de": 30, "a": 52 }, { "c": "#2a2210", "de": 56 }] },
+      "taille": 100,
+      "anim": [{ "preset": "clignement" }]
+    }
+  }
+]

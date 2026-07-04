@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test équilibrage</title></head>
+<body>
+<iframe id="f" src="./organ-editor.html" style="width:1200px;height:800px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  const d = w.document;
+  tries++;
+  if (!d.querySelector('#equi-page fieldset')) { if (tries > 30) { out.push('TIMEOUT'); finish(); } return; }
+  clearInterval(t);
+  try {
+    d.querySelector('[data-tab="equi"]').click();
+    // parcours : segments cliquables, étages lisibles
+    const segs = [...d.querySelectorAll('#equi-page .parcseg')];
+    out.push('parcours : ' + segs.length + ' segments · "ét. 1–5" visible = ' + segs.some((s) => s.textContent.includes('ét. 1–5'))
+      + ' · boss marqués = ' + segs.filter((s) => s.textContent.includes('☠')).length);
+    // sélection du 2e segment de la branche A (Les Poumons)
+    segs[1].click();
+    const head = d.querySelector('#equi-page .equi-head')?.textContent ?? '';
+    out.push('panel = ' + head.substring(0, 58));
+    // budget entrée→sortie + taux de tiers normalisés
+    const buds = [...d.querySelectorAll('#equi-page .bud-in')];
+    const pcts = [...d.querySelectorAll('#equi-page .tier-pct')].map((s) => parseInt(s.textContent) || 0);
+    const somme = pcts.reduce((a, v) => a + v, 0);
+    out.push('budget : ' + buds.map((x) => x.value).join(' → ') + ' · tiers = ' + d.querySelectorAll('#equi-page .tier-n').length
+      + ' · % = [' + pcts.join(',') + '] (somme ' + somme + ')');
+    // éditer le budget re-trace le parcours sans casser le panneau
+    const old1 = buds[1].value;
+    buds[1].value = +old1 + 5; buds[1].dispatchEvent(new w.Event('input'));
+    const graphOk = d.querySelectorAll('#equi-page .parcseg').length === 8 && !!d.querySelector('#equi-page svg polyline');
+    const b2 = [...d.querySelectorAll('#equi-page .bud-in')][1];
+    b2.value = old1; b2.dispatchEvent(new w.Event('input'));
+    out.push('édition budget → parcours re-tracé = ' + graphOk);
+    // pool : exclusion → restauration (les chips se re-rendent, on requête à chaque fois)
+    const chips = () => d.querySelectorAll('#equi-page .poolchip').length;
+    const n0 = chips();
+    d.querySelector('#equi-page .poolchip .poolx').click();
+    const n1 = chips();
+    d.querySelector('#equi-page .poolback').click();
+    const n2 = chips();
+    out.push('pool : ' + n0 + ' → exclu ' + n1 + ' → restauré ' + n2 + ' · ok = ' + (n1 === n0 - 1 && n2 === n0));
+    // exceptions : décoche un set → des organes deviennent dispo → +exception → retrait → set recoché
+    const setCb = (i) => [...d.querySelectorAll('#equi-page .set-cb')][i];
+    const idx = [...d.querySelectorAll('#equi-page .set-cb')].findIndex((c) => c.checked);
+    const cb = setCb(idx);
+    cb.checked = false; cb.dispatchEvent(new w.Event('change'));
+    const nSet = chips();
+    const addSel = d.querySelector('#equi-page .pooladd');
+    addSel.value = addSel.options[1].value;
+    addSel.dispatchEvent(new w.Event('change'));
+    const n3 = chips();
+    const exChip = [...d.querySelectorAll('#equi-page .poolchip')].find((c) => c.textContent.includes('＋'));
+    exChip.querySelector('.poolx').click();
+    const n4 = chips();
+    const cb2 = setCb(idx);
+    cb2.checked = true; cb2.dispatchEvent(new w.Event('change'));
+    const n5 = chips();
+    out.push('exceptions : set décoché ' + nSet + ' → +exception ' + n3 + ' → retirée ' + n4 + ' → set recoché ' + n5
+      + ' · ok = ' + (nSet < n0 && n3 === nSet + 1 && n4 === nSet && n5 === n0));
+    // générateur du biome : groupe de 3 avec élite
+    d.querySelector('#equi-page .gen-elite').checked = true;
+    d.querySelector('#equi-page .gen-groupe').checked = true;
+    d.querySelector('#equi-page .gen-btn').click();
+    const cartes = d.querySelectorAll('#equi-page .gen-out .orgcard');
+    const elites = [...cartes].filter((c) => c.textContent.includes('élite'));
+    out.push('générateur : ' + cartes.length + ' mobs · élites = ' + elites.length
+      + ' · budgets affichés = ' + [...cartes].every((c) => c.textContent.includes('budget dépensé')));
+    // sections globales repliées (élites/meutes + mesure) + graphe du parcours
+    const dets = [...d.querySelectorAll('#equi-page details')];
+    out.push('sections repliées = ' + dets.length + ' · graphes SVG = ' + d.querySelectorAll('#equi-page svg').length
+      + ' · polylines parcours = ' + d.querySelectorAll('#equi-page svg polyline').length);
+    // courbe mesurée
+    const mes = dets.find((x) => x.textContent.includes('mesurée'));
+    mes.querySelector('button.primary').click();
+    out.push('courbe mesurée : ' + mes.querySelectorAll('svg polyline').length + ' lignes');
+    out.push('erreurs = ' + (d.querySelector('#equi-page')?.textContent.includes('✕ ') ? 'OUI' : 'aucune'));
+  } catch (e) { out.push('EXC: ' + e.message); }
+  finish();
+}, 400);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

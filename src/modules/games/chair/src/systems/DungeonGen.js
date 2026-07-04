@@ -24,7 +24,17 @@ function _gen(biome) {
 }
 
 // Generate a complete Floor from a biome definition.
-// On boss floors (last floor of biome strate), the exit is replaced by a boss room.
+// Le PEUPLEMENT est 100% data (biomes.json "salles") :
+//   salles.poids  — { roomId: poids } : le pool pondéré des salles normales
+//   salles.regles — [{ salle, position?, etage?, min?, max?, chance? }]
+//     position : entree | sortie | impasse (bout de branche) | chemin (colonne
+//                vertébrale) — entree/sortie PLACENT la salle ; pour min/max/
+//                chance, position restreint la zone (défaut : partout)
+//     etage    : premier | dernier | numéro absolu — filtre la règle
+//                (deux règles "sortie" : la plus spécifique gagne, ex. boss au
+//                dernier étage remplace la sortie normale)
+//     min/max  : nombre garanti / plafonné par étage · chance : proba d'UNE
+//                apparition par étage
 export function generateFloor(biomeId, floorIndex) {
   const biome = getBiome(biomeId);
   if (!biome) throw new Error(`DungeonGen: unknown biome "${biomeId}"`);
@@ -44,16 +54,27 @@ export function generateFloor(biomeId, floorIndex) {
   const branches  = _addBranches(cells, visited, size, seedCount, gen.branchLen);
   const allCells  = [...cells, ...branches];
 
-  const eligibleDefs = allRooms()
-    .filter(d => d.weight > 0 && (!d.biomeOnly || d.biomeOnly === biomeId))
-    .map(d => ({ weight: d.weight, def: d }));
+  const table  = biome.salles ?? {};
+  const poids  = table.poids ?? {};
+  const regles = table.regles ?? [];
+  const defOf  = (id) => allRooms().find((d) => d.id === id) ?? null;
+  const matchEtage = (r) => r.etage == null
+    || (r.etage === 'dernier' && floorIndex === biome.floorRange[1] - 1)
+    || (r.etage === 'premier' && floorIndex === biome.floorRange[0] - 1)
+    || (typeof r.etage === 'number' && floorIndex === r.etage);
+  // entrée / sortie : parmi les règles qui matchent l'étage, la plus SPÉCIFIQUE
+  // (étage défini) gagne — c'est ainsi que le boss remplace la sortie au dernier.
+  const pick = (position) => {
+    const c = regles.filter((r) => r.position === position && matchEtage(r) && defOf(r.salle));
+    c.sort((a, b) => (b.etage != null) - (a.etage != null));
+    return c.length ? defOf(c[0].salle) : null;
+  };
+  const entranceDef = pick('entree');
+  const exitDef     = pick('sortie');
 
-  const entranceDef = allRooms().find(d => d.id === 'entrance');
-  const exitDef     = allRooms().find(d => d.id === 'exit');
-
-  // Boss floor: last floor of this biome's range gets a boss room at the exit
-  const isBossFloor = !!biome.bossId && floorIndex === biome.floorRange[1] - 1;
-  const bossDef     = isBossFloor ? allRooms().find(d => d.id === 'boss') : null;
+  const eligibleDefs = Object.entries(poids)
+    .map(([id, w]) => ({ weight: w, def: defOf(id) }))
+    .filter((e) => e.weight > 0 && e.def);
 
   for (const cell of allCells) {
     const isEntrance = cell.x === floor.entrance.x && cell.y === floor.entrance.y;
@@ -61,11 +82,49 @@ export function generateFloor(biomeId, floorIndex) {
 
     let def;
     if (isEntrance) def = entranceDef;
-    else if (isExit) def = bossDef ?? exitDef;
+    else if (isExit) def = exitDef;
     else if (eligibleDefs.length) def = weighted(rng, eligibleDefs)?.def;
 
     if (!def) continue;
     floor.setCell(cell.x, cell.y, new Room(def, `r_${cell.x}_${cell.y}`));
+  }
+
+  // ── règles de quantité (min / max / chance), zone optionnelle ──
+  const spine = new Set(cells.map((c) => `${c.x},${c.y}`));
+  const isFixed = (c) => (c.x === floor.entrance.x && c.y === floor.entrance.y)
+                      || (c.x === floor.exit.x && c.y === floor.exit.y);
+  const normal = allCells.filter((c) => !isFixed(c) && floor.cell(c.x, c.y));
+  const zoneDe = (position) =>
+    position === 'impasse' ? normal.filter((c) => !spine.has(`${c.x},${c.y}`))
+    : position === 'chemin' ? normal.filter((c) => spine.has(`${c.x},${c.y}`))
+    : normal;
+  const place = (cell, def) => floor.setCell(cell.x, cell.y, new Room(def, `r_${cell.x}_${cell.y}`));
+
+  for (const r of regles) {
+    if (r.position === 'entree' || (r.position === 'sortie' && r.min == null && r.max == null && r.chance == null)) continue;
+    if (!matchEtage(r)) continue;
+    const def = defOf(r.salle);
+    if (!def) continue;
+    const zone = zoneDe(r.position);
+    const compte = () => normal.filter((c) => floor.cell(c.x, c.y)?.defId === def.id).length;
+
+    if (r.chance != null && compte() === 0 && zone.length && rng() < r.chance) {
+      place(zone[Math.floor(rng() * zone.length)], def);
+    }
+    if (r.min != null) {
+      const libres = zone.filter((c) => floor.cell(c.x, c.y)?.defId !== def.id);
+      while (compte() < r.min && libres.length) {
+        place(libres.splice(Math.floor(rng() * libres.length), 1)[0], def);
+      }
+    }
+    if (r.max != null && compte() > r.max) {
+      const pool = eligibleDefs.filter((e) => e.def.id !== def.id);
+      const extra = normal.filter((c) => floor.cell(c.x, c.y)?.defId === def.id).slice(r.max);
+      for (const c of extra) {
+        const alt = pool.length ? weighted(rng, pool)?.def : null;
+        if (alt) place(c, alt);
+      }
+    }
   }
 
   return floor;

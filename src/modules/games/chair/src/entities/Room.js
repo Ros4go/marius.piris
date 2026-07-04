@@ -13,6 +13,7 @@ export class Room {
     // une salle sûre n'a rien à accomplir. (Ex-champ de def, désormais dérivé ;
     // il passe à true quand les mobs meurent / l'autel est consommé, etc.)
     this.cleared  = def.cleared ?? !this.hostile;
+    this.sortie   = !!def.sortie;   // salle de descente (le puits) — flag de def, plus de test sur l'id
     this.visited  = false;
     this.mobIds   = [];          // WorldState.mobs keys active in this room
     this.lootIds  = [];          // organ/relic instance ids on the floor
@@ -44,6 +45,7 @@ export class Room {
       id: this.id,
       defId: this.defId,
       hostile: this.hostile,
+      sortie: this.sortie,
       ui: this.ui,
       description: this.description,
       cleared: this.cleared,
@@ -61,6 +63,8 @@ export class Room {
     // Compat anciennes saves : elles portaient "family" au lieu de "hostile".
     r.hostile = data.hostile
       ?? (data.family === 'combat' || data.family === 'thematic' || data.family === 'boss');
+    // compat vieilles saves : la sortie s'appelait littéralement "exit"
+    r.sortie = data.sortie ?? data.defId === 'exit';
     r.visited = data.visited;
     r.mobIds  = [...data.mobIds];
     r.lootIds = [...data.lootIds];

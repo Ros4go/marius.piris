@@ -96,7 +96,7 @@ export function render() {
         // room is just a shape. Only your memory of a VISITED room adds detail.
         cell.classList.add('r');
         if (room.visited) cell.classList.add('v');
-        if (room.defId === 'exit' && room.visited) cell.classList.add('x');
+        if (room.sortie && room.visited) cell.classList.add('x');
       } else if (room) {
         cell.classList.add('g');                    // greyed: there but unsensed
       }

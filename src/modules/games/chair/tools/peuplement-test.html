@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test peuplement</title></head>
+<body>
+<iframe id="f" src="./organ-editor.html" style="width:1200px;height:800px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  const d = w.document;
+  tries++;
+  if (!d.querySelector('#biome-list .item')) { if (tries > 30) { out.push('TIMEOUT'); finish(); } return; }
+  clearInterval(t);
+  try {
+    d.querySelector('[data-tab="biomes"]').click();
+    d.querySelector('#biome-list .item').click();   // La Gorge
+    const legs = [...d.querySelectorAll('#biome-editor legend')].map((x) => x.textContent);
+    out.push('fieldsets = ' + legs.join(' | '));
+    // peuplement : lignes avec poids + barres %
+    const rows = [...d.querySelectorAll('#biome-editor [data-salle]')].filter((x) => x.querySelector('input[type=number]'));
+    out.push('peuplement : ' + rows.length + ' salles — ex : ' + rows.slice(0, 3).map((r) => r.dataset.salle + ' (' + r.querySelector('input').value + ')').join(', '));
+    // règles migrées visibles
+    const regles = [...d.querySelectorAll('#biome-editor select')].filter((s) => [...s.options].some((o) => o.value === 'entree'));
+    out.push('règles = ' + regles.length + ' — positions : ' + regles.map((s) => s.value || '—').join(', '));
+    // simulation : carte + stats + hover croisé
+    const simBtn = [...d.querySelectorAll('#biome-editor button')].find((b) => b.textContent.includes('générer'));
+    simBtn.click();
+    const cells = [...d.querySelectorAll('#biome-editor div')].filter((x) => x.dataset.salle && x.style.width === '16px');
+    out.push('carte : ' + cells.length + ' salles posées · entrée verte = ' + cells.some((c) => c.style.outline.includes('rgb')) );
+    const statLines = [...d.querySelectorAll('#biome-editor [data-salle]')].filter((x) => x.textContent.includes('/étage'));
+    out.push('stats : ' + statLines.length + ' lignes — ' + statLines.slice(0, 3).map((x) => x.textContent.trim()).join(' · '));
+    // hover : survoler une ligne de stats highlight les cases de la carte
+    if (statLines[0]) {
+      statLines[0].onmouseenter();
+      const salle = statLines[0].dataset.salle;
+      const high = cells.filter((c) => c.dataset.salle === salle && c.style.boxShadow.includes('2px'));
+      out.push('hover "' + salle + '" → ' + high.length + ' case(s) highlightée(s) sur cet étage');
+    }
+    // navigation d'étages
+    const nav = [...d.querySelectorAll('#biome-editor button')].find((b) => b.textContent === '▶');
+    nav?.click();
+    out.push('navigation étage = ' + ([...d.querySelectorAll('#biome-editor span')].some((s) => s.textContent.includes('étage 2/20')) ? 'oui' : 'NON'));
+  } catch (e) { out.push('EXC: ' + e.message); }
+  finish();
+}, 400);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

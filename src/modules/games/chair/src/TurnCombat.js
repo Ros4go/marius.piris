@@ -7,6 +7,7 @@
 import { WS, currentRoom, rng } from './WorldState.js';
 import { organResolver, balance as getBalance } from './registry.js';
 import * as CR from './systems/combatRules.js';
+import * as RES from './systems/Resources.js';
 import * as HungerSystem from './systems/HungerSystem.js';
 import * as Faculties from './systems/Faculties.js';
 
@@ -54,7 +55,7 @@ export function start(onChange, onEnd, onLog) {
     onOrganKillBlood: _hasInstinct(body) ? 1 : 0,
   };
   CR.produceTurnResources(body, state.pstate, organResolver);   // Protection from skin, Régé (incl. well-fed)
-  for (const m of _activeMobs()) { m._bleeds = {}; m._bile = {}; m._vuln = {}; }
+  for (const m of _activeMobs()) { m._bleeds = {}; m._bile = {}; m._vuln = {}; m._res = {}; m._orgRes = {}; }
   _retelegraphAll();
   _log(`⚔ Combat — ${state.pstate.blood} Sang.`, 'sys');
   _onChange?.();
@@ -63,6 +64,8 @@ export function start(onChange, onEnd, onLog) {
 export function stop(callEnd = true) {
   state.active = false;
   WS.player.gold = state.pstate?.meat ?? WS.player.gold;
+  // les ressources « finDuCombat » s'éteignent sur les mobs qui survivent
+  for (const m of _activeMobs()) RES.expire(m._res = m._res ?? {}, m, 'finDuCombat');
   if (callEnd) _onEnd?.();
 }
 
@@ -74,6 +77,10 @@ export function protection() { return state.pstate?.protection ?? 0; }
 export function frenesie()   { return state.pstate?.frenesie ?? 0; }
 export function regen()      { return state.pstate?.regen ?? 0; }
 export function guard() { return state.pstate?.protection ?? 0; }   // legacy alias
+// Une puce par ressource d'entité pour l'UI (Sang toujours, les autres si > 0).
+export function resourcesView() { return state.pstate ? RES.entChips(state.pstate) : []; }
+// Ressources portées par un organe (les tiens : pstate ; un mob : l'objet mob).
+export function organResView(holder, key) { return RES.orgAt(holder ?? state.pstate, key); }
 
 // Your HAND this turn: one card per organ skill. A skill is playable ONCE per
 // turn — once played its card leaves the hand (to the discard) and comes back
@@ -88,8 +95,9 @@ export function hand() {
       const cardId = `${key}:${sk.id}`;
       if (used.has(cardId)) continue;                                // played this turn → discarded
       if (sk.once && state.pstate?.onceUsed?.has(sk.id)) continue;   // once-per-combat, spent
+      const paie = RES.canPay(state.pstate, CR.skillCosts(sk), key);
       const blocked =
-        ((sk.cost ?? 0) > blood()) ? 'no_blood'
+        !paie.ok ? (paie.manque === 'sang' ? 'no_blood' : 'no_res')
         : (sk.effect?.costMeat && meat() < sk.effect.costMeat) ? 'no_meat'
         : null;
       out.push({ organKey: key, organId: def.id, skill: sk, cardId, playable: !blocked, blocked });
@@ -164,7 +172,7 @@ export function play(organKey, skillId, mobId, targetSlot, isSelf = false) {
     ? { body, slotKey: targetSlot ?? null, isSelf: true }
     : { body: mob?.body, slotKey: targetSlot ?? state.targetSlot ?? null, isSelf: false };
 
-  const r = CR.playCard(state.pstate, body, def, sk, { enemy: mob, target }, organResolver, rng);
+  const r = CR.playCard(state.pstate, body, def, sk, { enemy: mob, target, organKey }, organResolver, rng);
   if (!r.ok) { if (r.reason) _log(`✗ ${sk.label} : ${_reason(r.reason)}`, 'sys'); return false; }
   WS.player.gold = state.pstate.meat;
   (state.pstate.usedThisTurn ??= new Set()).add(`${organKey}:${skillId}`);   // card → discard for this turn
@@ -208,6 +216,8 @@ export function endTurn() {
   // prepare the next player turn (values only; retelegraph happens in finalizeTurn)
   state.turn++;
   state.pstate.usedThisTurn = new Set();   // all cards return to hand
+  RES.expire(state.pstate, state.pstate, 'finDeTour');           // ressources « finDeTour » (Sang…)
+  for (const m of _activeMobs()) RES.expire(m._res = m._res ?? {}, m, 'finDeTour');
   state.pstate.blood = Math.max(0, CR.bloodPool(WS.player.body, organResolver) - HungerSystem.bloodPenalty());
   state.pstate.hungerDmg = HungerSystem.damageModifier();
   state.pstate.weakBonus = weakRevealed() ? _weak().bonus : 0;
@@ -279,33 +289,31 @@ function _lose(mob) {
   _onEnd?.('dead');
 }
 
+const _resNom = (id) => RES.resDef(id)?.name ?? id;
+
 function _emitEvents(events, skill) {
   for (const e of events ?? []) {
     switch (e.t) {
       case 'damage':
-        if (e.who === 'self')            _log(`⚠ Tu te mutiles · ton ${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗ DÉTRUIT' : ''}`, e.dead ? 'death' : 'damage');
-        else if (e.who === 'bile')       _log(`☣ Bile · ${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗' : ''}`, 'damage');
-        else if (e.who === 'saignement') _log(`∴ Saignement · ${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗' : ''}`, 'damage');
-        else                             _log(`${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗' : ''}`, 'damage');
+        if (e.who === 'self')       _log(`⚠ Tu te mutiles · ton ${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗ DÉTRUIT' : ''}`, e.dead ? 'death' : 'damage');
+        else if (RES.resDef(e.who)) _log(`☣ ${_resNom(e.who)} · ${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗' : ''}`, 'damage');
+        else                        _log(`${e.name ?? e.key} −${e.dmg}${e.dead ? ' ✗' : ''}`, 'damage');
         break;
       case 'mob_action':
         _log(`☣ Ennemi · ${e.label} → ton ${e.target} : −${e.dmg}${e.soaked ? ` (🛡 ${e.soaked} bloqués)` : ''}${e.dead ? ' ✗ DÉTRUIT' : ''}`, e.dead ? 'death' : 'damage');
         break;
       case 'heal':     _log(`✦ +${e.amount} PV ${e.who === 'enemy' ? '(ennemi !)' : '(toi)'} · ${e.key}`, e.who === 'enemy' ? 'damage' : 'sys'); break;
       case 'heal_all': _log(`✦ +${e.amount} PV ${e.who === 'enemy' ? "à l'ennemi !" : 'à tes organes blessés'}`, e.who === 'enemy' ? 'damage' : 'sys'); break;
-      case 'guard':
-      case 'protect':  _log(`🛡 Protection +${e.amount}`, 'sys'); break;
-      case 'regen_set':_log(`✚ Régénération +${e.amount}`, 'sys'); break;
-      case 'frenesie': _log(`🔥 Frénésie +${e.amount} (dégâts)`, 'sys'); break;
       case 'convert':  _log(`⇄ ${e.from} → +${e.amount} ${e.to}`, 'sys'); break;
-      case 'bile':     _log(`☣ Bile +${e.amount} sur ${e.key}`, 'sys'); break;
-      case 'saignement':   _log(`∴ Saignement +${e.amount} sur ${e.key}`, 'sys'); break;
-      case 'vulnerabilite':_log(`◎ Vulnérabilité +${e.amount} sur ${e.key}`, 'sys'); break;
-      case 'bile_spread':  _log(`☣ La Bile se propage sur ${e.key} (+${e.amount})`, 'sys'); break;
+      case 'res':      _log(`◈ ${_resNom(e.id)} +${e.amount}`, 'sys'); break;
+      case 'res_org':  _log(`◈ ${_resNom(e.id)} +${e.amount} sur ${e.key}`, 'sys'); break;
+      case 'res_spread': _log(`☣ ${_resNom(e.id)} se propage sur ${e.key} (+${e.amount})`, 'sys'); break;
+      case 'res_absorb': _log(`🛡 ${_resNom(e.id)} absorbe ${e.amount} dégâts`, 'sys'); break;
+      case 'res_bloque': _log(`⊘ gain de ${_resNom(e.id)} bloqué par ${_resNom(e.par)}`, 'sys'); break;
+      case 'res_hp':     _log(`◈ ${_resNom(e.id)} altère ${e.key} → ${e.hp} PV`, 'sys'); break;
       case 'weak':     _log('✦ Point faible touché !', 'sys'); break;
       case 'retrigger':_log(`↻ Sursaut redéclenche ${e.label}.`, 'sys'); break;
       case 'meat':     _log(`+${e.amount} viande`, 'harvest'); break;
-      case 'blood':    _log(`+${e.amount} Sang`, 'sys'); break;
       case 'interrupted': _log(`✗ ${e.label} — interrompu !`, 'sys'); break;
     }
   }
@@ -313,6 +321,7 @@ function _emitEvents(events, skill) {
 
 function _log(t, cls) { _onLog?.(t, cls); }
 function _reason(r) {
+  if (String(r).startsWith('no_res:')) return `pas assez de ${_resNom(String(r).slice(7))}`;
   return { no_blood: 'pas assez de Sang', no_meat: 'pas assez de viande', used: 'déjà utilisé',
            no_target: 'aucune cible', unknown_effect: '?' }[r] ?? r;
 }

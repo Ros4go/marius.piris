@@ -2,157 +2,1538 @@
   {
     "id": "combat",
     "ui": "combat",
-    "weight": 40,
-    "spawns": { "minMobs": 1, "maxMobs": 3 },
-    "description": "Une salle de chair et de sang."
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3
+    },
+    "description": "Une salle de chair et de sang.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "combat_poumons",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3
+    },
+    "description": "Une salle de chair et de sang.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "combat_coeur",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3
+    },
+    "description": "Une salle de chair et de sang.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "combat_estomac",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3
+    },
+    "description": "Une salle de chair et de sang.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "combat_entrailles",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3
+    },
+    "description": "Une salle de chair et de sang.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "combat_le_fond",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3
+    },
+    "description": "Une salle de chair et de sang.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "combat_elite",
     "ui": "combat",
-    "weight": 10,
-    "spawns": { "minMobs": 1, "maxMobs": 1, "elite": true },
-    "description": "Quelque chose d'imposant attend."
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "elite": true
+    },
+    "description": "Quelque chose d'imposant attend.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "combat_elite_poumons",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "elite": true
+    },
+    "description": "Quelque chose d'imposant attend.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "combat_elite_coeur",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "elite": true
+    },
+    "description": "Quelque chose d'imposant attend.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "combat_elite_estomac",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "elite": true
+    },
+    "description": "Quelque chose d'imposant attend.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "combat_elite_entrailles",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "elite": true
+    },
+    "description": "Quelque chose d'imposant attend.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "combat_elite_le_fond",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "elite": true
+    },
+    "description": "Quelque chose d'imposant attend.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "trade",
-    "structures": [{ "kind": "trade", "chance": 1 }],
-    "weight": 8,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Un marchant dans l'ombre."
+    "structures": [
+      {
+        "kind": "trade",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un marchant dans l'ombre.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "trade_poumons",
+    "structures": [
+      {
+        "kind": "trade",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un marchant dans l'ombre.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "trade_coeur",
+    "structures": [
+      {
+        "kind": "trade",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un marchant dans l'ombre.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "trade_estomac",
+    "structures": [
+      {
+        "kind": "trade",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un marchant dans l'ombre.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "trade_entrailles",
+    "structures": [
+      {
+        "kind": "trade",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un marchant dans l'ombre.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "trade_le_fond",
+    "structures": [
+      {
+        "kind": "trade",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un marchant dans l'ombre.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "graft",
-    "structures": [{ "kind": "graft", "chance": 1 }],
-    "weight": 6,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Un greffeur silencieux."
+    "structures": [
+      {
+        "kind": "graft",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un greffeur silencieux.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "graft_poumons",
+    "structures": [
+      {
+        "kind": "graft",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un greffeur silencieux.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "graft_coeur",
+    "structures": [
+      {
+        "kind": "graft",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un greffeur silencieux.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "graft_estomac",
+    "structures": [
+      {
+        "kind": "graft",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un greffeur silencieux.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "graft_entrailles",
+    "structures": [
+      {
+        "kind": "graft",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un greffeur silencieux.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "graft_le_fond",
+    "structures": [
+      {
+        "kind": "graft",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un greffeur silencieux.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "altar",
-    "structures": [{ "kind": "altar", "chance": 1 }],
-    "weight": 4,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Un autel imprégné de pouvoir."
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un autel imprégné de pouvoir.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "altar_poumons",
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un autel imprégné de pouvoir.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "altar_coeur",
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un autel imprégné de pouvoir.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "altar_estomac",
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un autel imprégné de pouvoir.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "altar_entrailles",
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un autel imprégné de pouvoir.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "altar_le_fond",
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un autel imprégné de pouvoir.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "rest",
     "ui": "rest",
-    "weight": 10,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Le silence, pour une fois."
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Le silence, pour une fois.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "rest_poumons",
+    "ui": "rest",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Le silence, pour une fois.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "rest_coeur",
+    "ui": "rest",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Le silence, pour une fois.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "rest_estomac",
+    "ui": "rest",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Le silence, pour une fois.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "rest_entrailles",
+    "ui": "rest",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Le silence, pour une fois.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "rest_le_fond",
+    "ui": "rest",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Le silence, pour une fois.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "pillard",
-    "structures": [{ "kind": "pillard", "chance": 1 }],
-    "weight": 5,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Une silhouette humaine dans la pénombre."
+    "structures": [
+      {
+        "kind": "pillard",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "pillard_poumons",
+    "structures": [
+      {
+        "kind": "pillard",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "pillard_coeur",
+    "structures": [
+      {
+        "kind": "pillard",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "pillard_estomac",
+    "structures": [
+      {
+        "kind": "pillard",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "pillard_entrailles",
+    "structures": [
+      {
+        "kind": "pillard",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "pillard_le_fond",
+    "structures": [
+      {
+        "kind": "pillard",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Une silhouette humaine dans la pénombre.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "puzzle",
     "ui": "puzzle",
-    "weight": 5,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Les murs pulsent d'une logique obscure."
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "puzzle_poumons",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "puzzle_coeur",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "puzzle_estomac",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "puzzle_entrailles",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "puzzle_le_fond",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Les murs pulsent d'une logique obscure.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "nid",
     "ui": "combat",
-    "weight": 4,
-    "spawns": { "minMobs": 1, "maxMobs": 1 },
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1
+    },
     "description": "Des parois palpitantes. Quelque chose couve ici.",
-    "roomEffect": "nid"
+    "roomEffect": "nid",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "nid_poumons",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1
+    },
+    "description": "Des parois palpitantes. Quelque chose couve ici.",
+    "roomEffect": "nid",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "nid_coeur",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1
+    },
+    "description": "Des parois palpitantes. Quelque chose couve ici.",
+    "roomEffect": "nid",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "nid_estomac",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1
+    },
+    "description": "Des parois palpitantes. Quelque chose couve ici.",
+    "roomEffect": "nid",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "nid_entrailles",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1
+    },
+    "description": "Des parois palpitantes. Quelque chose couve ici.",
+    "roomEffect": "nid",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "nid_le_fond",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1
+    },
+    "description": "Des parois palpitantes. Quelque chose couve ici.",
+    "roomEffect": "nid",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "path_choice",
     "ui": "path_choice",
-    "weight": 0,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Un carrefour de chairs."
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un carrefour de chairs.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "path_choice_poumons",
+    "ui": "path_choice",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un carrefour de chairs.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "path_choice_coeur",
+    "ui": "path_choice",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un carrefour de chairs.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "path_choice_estomac",
+    "ui": "path_choice",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un carrefour de chairs.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "path_choice_entrailles",
+    "ui": "path_choice",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un carrefour de chairs.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "path_choice_le_fond",
+    "ui": "path_choice",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Un carrefour de chairs.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "entrance",
-    "weight": 0,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "Tu es entré par ici."
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Tu es entré par ici.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "entrance_poumons",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Tu es entré par ici.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "entrance_coeur",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Tu es entré par ici.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "entrance_estomac",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Tu es entré par ici.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "entrance_entrailles",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Tu es entré par ici.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "entrance_le_fond",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Tu es entré par ici.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "exit",
-    "weight": 0,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
-    "description": "La descente continue."
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "La descente continue.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "sortie": true,
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "exit_poumons",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "La descente continue.",
+    "biomeOnly": "poumons",
+    "sortie": true,
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "exit_coeur",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "La descente continue.",
+    "biomeOnly": "coeur",
+    "sortie": true,
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "exit_estomac",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "La descente continue.",
+    "biomeOnly": "estomac",
+    "sortie": true,
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "exit_entrailles",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "La descente continue.",
+    "biomeOnly": "entrailles",
+    "sortie": true,
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "exit_le_fond",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "La descente continue.",
+    "biomeOnly": "le-fond",
+    "sortie": true,
+    "scene": "coeur_ventricule"
   },
   {
     "id": "cordes_vocales",
     "ui": "combat",
-    "weight": 3,
-    "spawns": { "minMobs": 1, "maxMobs": 3, "themeForced": "putrid" },
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 3,
+      "themeForced": "putrid"
+    },
     "description": "Des cordes de chair vibrent sans raison. Les ennemis arrivent de partout.",
-    "biomeOnly": "gorge"
+    "biomeOnly": "gorge",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "scene": "gorge_couloir"
   },
   {
     "id": "salle_derniers_mots",
-    "weight": 2,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
     "description": "Les mots d'un dieu se cristallisent ici.",
     "biomeOnly": "gorge",
-    "structures": [{ "kind": "souffle", "chance": 1 }]
+    "structures": [
+      {
+        "kind": "souffle",
+        "chance": 1
+      }
+    ],
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "scene": "gorge_couloir"
   },
   {
     "id": "alveoles",
     "ui": "puzzle",
-    "weight": 4,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
     "description": "Les alvéoles pulsent. Un vent chaud vous frappe par rafales.",
     "biomeOnly": "poumons",
-    "roomEffect": "wind_dmg"
+    "roomEffect": "wind_dmg",
+    "scene": "poumons_alveoles"
   },
   {
     "id": "bronchioles",
     "ui": "rest",
-    "weight": 3,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
     "description": "Un carrefour de bronches. Le silence ici est presque respiratoire.",
-    "biomeOnly": "poumons"
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
   },
   {
     "id": "ventricules",
     "ui": "puzzle",
-    "weight": 4,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
     "description": "Les murs battent au rythme d'un cœur mort. Chaque pulse vous blesse.",
     "biomeOnly": "coeur",
-    "roomEffect": "pulse_damage"
+    "roomEffect": "pulse_damage",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "salle_pression",
-    "structures": [{ "kind": "altar", "chance": 1 }],
-    "weight": 3,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "structures": [
+      {
+        "kind": "altar",
+        "chance": 1
+      }
+    ],
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
     "description": "Une pression cardiaque fossilisée émane de l'autel.",
-    "biomeOnly": "coeur"
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "bains_acide",
     "ui": "puzzle",
-    "weight": 3,
-    "spawns": { "minMobs": 0, "maxMobs": 0 },
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
     "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
-    "roomEffect": "acid_baths"
+    "roomEffect": "acid_baths",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "bains_acide_poumons",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
+    "roomEffect": "acid_baths",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "bains_acide_coeur",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
+    "roomEffect": "acid_baths",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "bains_acide_estomac",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
+    "roomEffect": "acid_baths",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "bains_acide_entrailles",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
+    "roomEffect": "acid_baths",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "bains_acide_le_fond",
+    "ui": "puzzle",
+    "spawns": {
+      "minMobs": 0,
+      "maxMobs": 0
+    },
+    "description": "Des fluides acides suintent des parois. Votre peau extérieure brûle.",
+    "roomEffect": "acid_baths",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "boss",
     "ui": "combat",
-    "weight": 0,
-    "spawns": { "minMobs": 1, "maxMobs": 1, "boss": true },
-    "description": "Une présence ancienne emplit la salle."
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "boss": true
+    },
+    "description": "Une présence ancienne emplit la salle.",
+    "decos": {
+      "gorge": [
+        {
+          "kind": "guts",
+          "chance": 0.08
+        },
+        {
+          "kind": "spike",
+          "chance": 0.08
+        },
+        {
+          "kind": "bones",
+          "chance": 0.08
+        },
+        {
+          "kind": "skeleton",
+          "chance": 0.08
+        },
+        {
+          "kind": "splatter",
+          "chance": 0.08
+        }
+      ]
+    },
+    "biomeOnly": "gorge",
+    "scene": "gorge_couloir"
+  },
+  {
+    "id": "boss_poumons",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "boss": true
+    },
+    "description": "Une présence ancienne emplit la salle.",
+    "biomeOnly": "poumons",
+    "scene": "poumons_alveoles"
+  },
+  {
+    "id": "boss_coeur",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "boss": true
+    },
+    "description": "Une présence ancienne emplit la salle.",
+    "biomeOnly": "coeur",
+    "scene": "coeur_ventricule"
+  },
+  {
+    "id": "boss_estomac",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "boss": true
+    },
+    "description": "Une présence ancienne emplit la salle.",
+    "biomeOnly": "estomac",
+    "scene": "estomac_poche"
+  },
+  {
+    "id": "boss_entrailles",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "boss": true
+    },
+    "description": "Une présence ancienne emplit la salle.",
+    "biomeOnly": "entrailles",
+    "scene": "entrailles_tunnel"
+  },
+  {
+    "id": "boss_le_fond",
+    "ui": "combat",
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "boss": true
+    },
+    "description": "Une présence ancienne emplit la salle.",
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   },
   {
     "id": "grave",
     "ui": "combat",
-    "weight": 5,
-    "spawns": { "minMobs": 1, "maxMobs": 1, "graveyard": true },
+    "spawns": {
+      "minMobs": 1,
+      "maxMobs": 1,
+      "graveyard": true
+    },
     "description": "La salle sent la chair familière.",
-    "biomeOnly": "le-fond"
+    "biomeOnly": "le-fond",
+    "scene": "coeur_ventricule"
   }
 ]

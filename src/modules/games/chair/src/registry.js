@@ -1,4 +1,5 @@
 import { Organ } from './entities/Organ.js';
+import { setResources } from './systems/Resources.js';
 
 // Registry is a module-level singleton populated by loadData().
 // All lookups are O(1) Map access.
@@ -17,9 +18,9 @@ const DEFAULT_SET_COLOR = '#8a7a5c';
 // Balance/tuning knobs — overwritten by content/balance.json on load. The values
 // here are only a pre-load safety fallback; balance.json is the editable source.
 const DEFAULT_BALANCE = {
-  tierCost:        { common: 1, rare: 2, epic: 4, legendary: 8 },
-  tierUnlockFloor: { common: 0, rare: 1, epic: 4, legendary: 8 },
-  mob:    { budgetBase: 5, budgetPerFloor: 2, eliteMult: 1.7, eliteChance: 0.04,
+  tierCost: { common: 1, rare: 2, epic: 4, legendary: 8 },
+  // budget & taux de tiers des mobs : PAR BIOME (biomes.json mobs.budget/tiers)
+  mob:    { eliteMult: 1.7, eliteChance: 0.04,
             packFloor: 3, extraMobChanceBase: 0.32, extraMobChancePerFloor: 0.05, supportBudgetMult: 0.55 },
   hunger: { start: 90, max: 120, decayPerTick: 1,
             thresholds: { gave: 106, rassasie: 76, creux: 56, faim: 36, affame: 16 },
@@ -56,7 +57,7 @@ export function loadData(basePath = '') {
 }
 
 async function _doLoad(base) {
-  const [organs, biomes, rooms, relics, lore, mobs, balance, sets] = await Promise.all([
+  const [organs, biomes, rooms, relics, lore, mobs, balance, sets, resources] = await Promise.all([
     _fetchJSON(`${base}/content/organs.json`),
     _fetchJSON(`${base}/content/biomes.json`),
     _fetchJSON(`${base}/content/rooms.json`),
@@ -65,6 +66,7 @@ async function _doLoad(base) {
     _fetchJSON(`${base}/content/mobs.json`),
     _fetchJSON(`${base}/content/balance.json`),
     _fetchJSON(`${base}/content/sets.json`),
+    _fetchJSON(`${base}/content/resources.json`),
   ]);
   // clear before populating to stay idempotent after hot reloads
   _organs.clear(); _biomes.clear(); _rooms.clear();
@@ -78,12 +80,13 @@ async function _doLoad(base) {
   for (const def of mobs)    { _mobs.set(def.id,   def); }
   for (const def of (sets ?? [])) { _sets.set(def.id, def); }
   if (balance) _balance = balance;
+  setResources(resources);
 
   _loaded = true;
 }
 
 // For test harness: inject data directly without fetch
-export function loadDataRaw({ organs = [], biomes = [], rooms = [], relics = [], lore = [], mobs = [], balance = null, sets = [] } = {}) {
+export function loadDataRaw({ organs = [], biomes = [], rooms = [], relics = [], lore = [], mobs = [], balance = null, sets = [], resources = null } = {}) {
   _organs.clear(); _biomes.clear(); _rooms.clear();
   _relics.clear(); _lore.clear();   _mobs.clear(); _sets.clear();
 
@@ -95,6 +98,7 @@ export function loadDataRaw({ organs = [], biomes = [], rooms = [], relics = [],
   for (const def of mobs)    { _mobs.set(def.id,   def); }
   for (const def of sets)    { _sets.set(def.id, def); }
   if (balance) _balance = balance;
+  if (resources) setResources(resources);
 
   _loaded = true;
 }
@@ -147,7 +151,9 @@ function _validateBiome(def) {
 }
 
 function _validateRoom(def) {
-  const req = ['id','weight'];
+  // Le poids vit désormais dans biomes.json (salles.poids) — une salle exige
+  // seulement un id et SON biome (une salle = un biome).
+  const req = ['id','biomeOnly'];
   for (const f of req) {
     if (def[f] === undefined) throw new Error(`Room "${def.id}" missing field: ${f}`);
   }

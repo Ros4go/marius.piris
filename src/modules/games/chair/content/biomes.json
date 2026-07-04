@@ -1,7 +1,6 @@
 [
   {
     "id": "gorge",
-    "scene": "gorge_couloir",
     "name": "La Gorge",
     "strateIndex": 0,
     "floorRange": [
@@ -48,16 +47,65 @@
       "torch": "#c47f33",
       "torchHot": "#e8b25c"
     },
-    "thematicRooms": [
-      "cordes_vocales",
-      "salle_derniers_mots"
-    ],
     "gridSize": 7,
-    "gen": { "pathBias": 0.5, "branchSeeds": 0.6, "branchLen": [1, 2] }
+    "gen": {
+      "pathBias": 0.5,
+      "branchSeeds": 0.6,
+      "branchLen": [
+        1,
+        2
+      ]
+    },
+    "salles": {
+      "poids": {
+        "combat": 40,
+        "combat_elite": 10,
+        "trade": 8,
+        "graft": 6,
+        "altar": 4,
+        "rest": 10,
+        "pillard": 5,
+        "puzzle": 5,
+        "nid": 4,
+        "cordes_vocales": 3,
+        "salle_derniers_mots": 2,
+        "bains_acide": 3
+      },
+      "regles": [
+        {
+          "salle": "entrance",
+          "position": "entree"
+        },
+        {
+          "salle": "exit",
+          "position": "sortie"
+        },
+        {
+          "salle": "boss",
+          "position": "sortie",
+          "etage": "dernier"
+        }
+      ]
+    },
+    "mobs": {
+      "sets": [
+        "human",
+        "beast"
+      ],
+      "plus": [],
+      "moins": [],
+      "intrusion": 0.02,
+      "budget": [5, 13],
+      "tiers": {
+        "common": 67,
+        "rare": 23,
+        "epic": 7,
+        "legendary": 3
+      }
+    }
   },
   {
     "id": "poumons",
-    "scene": "poumons_alveoles",
     "name": "Les Poumons",
     "strateIndex": 1,
     "floorRange": [
@@ -103,16 +151,65 @@
       "torch": "#6fc48a",
       "torchHot": "#a6dca8"
     },
-    "thematicRooms": [
-      "alveoles",
-      "bronchioles"
-    ],
     "gridSize": 9,
-    "gen": { "pathBias": 0.55, "branchSeeds": 0.6, "branchLen": [2, 3] }
+    "gen": {
+      "pathBias": 0.55,
+      "branchSeeds": 0.6,
+      "branchLen": [
+        2,
+        3
+      ]
+    },
+    "salles": {
+      "poids": {
+        "combat_poumons": 40,
+        "combat_elite_poumons": 10,
+        "trade_poumons": 8,
+        "graft_poumons": 6,
+        "altar_poumons": 4,
+        "rest_poumons": 10,
+        "pillard_poumons": 5,
+        "puzzle_poumons": 5,
+        "nid_poumons": 4,
+        "alveoles": 4,
+        "bronchioles": 3,
+        "bains_acide_poumons": 3
+      },
+      "regles": [
+        {
+          "salle": "entrance_poumons",
+          "position": "entree"
+        },
+        {
+          "salle": "exit_poumons",
+          "position": "sortie"
+        },
+        {
+          "salle": "boss_poumons",
+          "position": "sortie",
+          "etage": "dernier"
+        }
+      ]
+    },
+    "mobs": {
+      "sets": [
+        "human",
+        "beast"
+      ],
+      "plus": [],
+      "moins": [],
+      "intrusion": 0.02,
+      "budget": [15, 23],
+      "tiers": {
+        "common": 60,
+        "rare": 25,
+        "epic": 10,
+        "legendary": 5
+      }
+    }
   },
   {
     "id": "coeur",
-    "scene": "coeur_ventricule",
     "name": "Le Cœur",
     "strateIndex": 2,
     "floorRange": [
@@ -159,16 +256,65 @@
       "torch": "#d8484a",
       "torchHot": "#ff7a6e"
     },
-    "thematicRooms": [
-      "ventricules",
-      "salle_pression"
-    ],
     "gridSize": 9,
-    "gen": { "pathBias": 0.6, "branchSeeds": 0.5, "branchLen": [1, 3] }
+    "gen": {
+      "pathBias": 0.6,
+      "branchSeeds": 0.5,
+      "branchLen": [
+        1,
+        3
+      ]
+    },
+    "salles": {
+      "poids": {
+        "combat_coeur": 40,
+        "combat_elite_coeur": 10,
+        "trade_coeur": 8,
+        "graft_coeur": 6,
+        "altar_coeur": 4,
+        "rest_coeur": 10,
+        "pillard_coeur": 5,
+        "puzzle_coeur": 5,
+        "nid_coeur": 4,
+        "ventricules": 4,
+        "salle_pression": 3,
+        "bains_acide_coeur": 3
+      },
+      "regles": [
+        {
+          "salle": "entrance_coeur",
+          "position": "entree"
+        },
+        {
+          "salle": "exit_coeur",
+          "position": "sortie"
+        },
+        {
+          "salle": "boss_coeur",
+          "position": "sortie",
+          "etage": "dernier"
+        }
+      ]
+    },
+    "mobs": {
+      "sets": [
+        "human",
+        "beast"
+      ],
+      "plus": [],
+      "moins": [],
+      "intrusion": 0.02,
+      "budget": [25, 33],
+      "tiers": {
+        "common": 52,
+        "rare": 27,
+        "epic": 14,
+        "legendary": 7
+      }
+    }
   },
   {
     "id": "estomac",
-    "scene": "estomac_poche",
     "name": "L'Estomac",
     "strateIndex": 1,
     "floorRange": [
@@ -213,16 +359,63 @@
       "torch": "#6fb0c4",
       "torchHot": "#a6dcea"
     },
-    "thematicRooms": [
-      "bains_acide",
-      "sphincters"
-    ],
     "gridSize": 9,
-    "gen": { "pathBias": 0.5, "branchSeeds": 0.7, "branchLen": [1, 3] }
+    "gen": {
+      "pathBias": 0.5,
+      "branchSeeds": 0.7,
+      "branchLen": [
+        1,
+        3
+      ]
+    },
+    "salles": {
+      "poids": {
+        "combat_estomac": 40,
+        "combat_elite_estomac": 10,
+        "trade_estomac": 8,
+        "graft_estomac": 6,
+        "altar_estomac": 4,
+        "rest_estomac": 10,
+        "pillard_estomac": 5,
+        "puzzle_estomac": 5,
+        "nid_estomac": 4,
+        "bains_acide_estomac": 3
+      },
+      "regles": [
+        {
+          "salle": "entrance_estomac",
+          "position": "entree"
+        },
+        {
+          "salle": "exit_estomac",
+          "position": "sortie"
+        },
+        {
+          "salle": "boss_estomac",
+          "position": "sortie",
+          "etage": "dernier"
+        }
+      ]
+    },
+    "mobs": {
+      "sets": [
+        "human",
+        "beast"
+      ],
+      "plus": [],
+      "moins": [],
+      "intrusion": 0.02,
+      "budget": [15, 23],
+      "tiers": {
+        "common": 60,
+        "rare": 25,
+        "epic": 10,
+        "legendary": 5
+      }
+    }
   },
   {
     "id": "entrailles",
-    "scene": "entrailles_tunnel",
     "name": "Les Entrailles",
     "strateIndex": 2,
     "floorRange": [
@@ -268,16 +461,63 @@
       "torch": "#cf9a3a",
       "torchHot": "#f0c468"
     },
-    "thematicRooms": [
-      "bains_acide",
-      "sphincters"
-    ],
     "gridSize": 11,
-    "gen": { "pathBias": 0.55, "branchSeeds": 0.6, "branchLen": [2, 4] }
+    "gen": {
+      "pathBias": 0.55,
+      "branchSeeds": 0.6,
+      "branchLen": [
+        2,
+        4
+      ]
+    },
+    "salles": {
+      "poids": {
+        "combat_entrailles": 40,
+        "combat_elite_entrailles": 10,
+        "trade_entrailles": 8,
+        "graft_entrailles": 6,
+        "altar_entrailles": 4,
+        "rest_entrailles": 10,
+        "pillard_entrailles": 5,
+        "puzzle_entrailles": 5,
+        "nid_entrailles": 4,
+        "bains_acide_entrailles": 3
+      },
+      "regles": [
+        {
+          "salle": "entrance_entrailles",
+          "position": "entree"
+        },
+        {
+          "salle": "exit_entrailles",
+          "position": "sortie"
+        },
+        {
+          "salle": "boss_entrailles",
+          "position": "sortie",
+          "etage": "dernier"
+        }
+      ]
+    },
+    "mobs": {
+      "sets": [
+        "human",
+        "beast"
+      ],
+      "plus": [],
+      "moins": [],
+      "intrusion": 0.02,
+      "budget": [25, 33],
+      "tiers": {
+        "common": 52,
+        "rare": 27,
+        "epic": 14,
+        "legendary": 7
+      }
+    }
   },
   {
     "id": "le-fond",
-    "scene": "coeur_ventricule",
     "name": "Le Fond",
     "strateIndex": 3,
     "floorRange": [
@@ -324,8 +564,55 @@
       "torch": "#a04020",
       "torchHot": "#c06030"
     },
-    "thematicRooms": [],
     "gridSize": 11,
-    "gen": { "pathBias": 0.6, "branchSeeds": 0.5, "branchLen": [2, 4] }
+    "gen": {
+      "pathBias": 0.6,
+      "branchSeeds": 0.5,
+      "branchLen": [
+        2,
+        4
+      ]
+    },
+    "salles": {
+      "poids": {
+        "combat_le_fond": 40,
+        "combat_elite_le_fond": 10,
+        "trade_le_fond": 8,
+        "graft_le_fond": 6,
+        "altar_le_fond": 4,
+        "rest_le_fond": 10,
+        "pillard_le_fond": 5,
+        "puzzle_le_fond": 5,
+        "nid_le_fond": 4,
+        "bains_acide_le_fond": 3,
+        "grave": 5
+      },
+      "regles": [
+        {
+          "salle": "entrance_le_fond",
+          "position": "entree"
+        },
+        {
+          "salle": "exit_le_fond",
+          "position": "sortie"
+        }
+      ]
+    },
+    "mobs": {
+      "sets": [
+        "human",
+        "beast"
+      ],
+      "plus": [],
+      "moins": [],
+      "intrusion": 0.02,
+      "budget": [35, 43],
+      "tiers": {
+        "common": 45,
+        "rare": 29,
+        "epic": 18,
+        "legendary": 8
+      }
+    }
   }
 ]

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test brouillons périmés</title></head>
+<body>
+<pre id="out">EN COURS</pre>
+<iframe id="f" style="width:1200px;height:800px"></iframe>
+<script>
+// Simule des brouillons d'AVANT la migration : catalogue de tags sans "visuel"
+// (c'est exactement l'état du localStorage de l'utilisateur → yeux cassés).
+const out = [];
+(async () => {
+  const BASE = '/src/modules/games/chair';
+  const [tags, organs, sets, rooms, relics, structures, biomes] = await Promise.all(
+    ['tags', 'organs', 'sets', 'rooms', 'relics', 'structures', 'biomes'].map((n) =>
+      fetch(`${BASE}/content/${n}.json`).then((r) => r.json())));
+  const vieuxTags = JSON.parse(JSON.stringify(tags));
+  for (const d of Object.values(vieuxTags.tags)) delete d.visuel;   // ← pré-migration
+  vieuxTags.tags['vue'].description = 'DESCRIPTION ÉDITÉE PAR LE DESIGNER';  // édition à préserver
+  // pollution "carré rouge" : fond #6e2c2b auto-créé par l'ancien éditeur sur la couturière
+  const vieuxStructs = JSON.parse(JSON.stringify(structures));
+  vieuxStructs.graft.sprite.degrade = { cx: 50, cy: 50, stops: [{ c: '#6e2c2b' }] };
+  localStorage.setItem('chair_tool_drafts_v3', JSON.stringify({ organs, sets, rooms, relics, structures: vieuxStructs, biomes, tags: vieuxTags }));
+  out.push('brouillons périmés injectés (tags sans visuel + couturière au carré rouge)');
+  document.getElementById('f').src = './organ-editor.html';
+
+  let tries = 0;
+  const t = setInterval(() => {
+    const w = document.getElementById('f').contentWindow;
+    tries++;
+    // attend que le sandbox du simulateur soit prêt ET synchronisé par l'atelier
+    const sbw = w.document?.getElementById('vp-frame')?.contentWindow;
+    if (!sbw?.SANDBOX || !w.document.querySelector('#tag-page h3')) {
+      if (tries > 60) { out.push('TIMEOUT'); finish(); } return;
+    }
+    // laisse le poll de l'atelier faire son premier syncSandbox
+    if (tries < 8) return;
+    clearInterval(t);
+    try {
+      const sb = sbw.SANDBOX;
+      const vue = sb.TagFX.tagDef('vue');
+      out.push('catalogue du sandbox : vue.visuel = ' + (vue?.visuel ? JSON.stringify(vue.visuel) : 'ABSENT — BUG'));
+      out.push('description éditée préservée = ' + (vue?.description === 'DESCRIPTION ÉDITÉE PAR LE DESIGNER' ? 'oui' : 'NON — ' + vue?.description));
+      // corps sans yeux → les DEUX classes doivent tomber
+      sb.setBody({ slots: { ear_l: { organId: 'ear_human', hp: 6 }, heart: { organId: 'heart_human', hp: 9 } } });
+      const g = sbw.document.querySelector('.game');
+      out.push('classes sans yeux = ' + ['eye-l-dead', 'eye-r-dead', 'no-eye'].map((c) => c + '=' + g.classList.contains(c)).join(' '));
+      // le carré rouge injecté sur la couturière doit avoir été nettoyé au chargement
+      const wd = w.document;
+      wd.querySelector('[data-tab="structs"]').click();
+      [...wd.querySelectorAll('#struct-list .item')].find((x) => x.textContent.includes('couturière'))?.click();
+      const host2 = [...wd.querySelectorAll('#struct-editor fieldset div')].find((x) => x.shadowRoot);
+      const cont = host2?.shadowRoot.querySelector('.npc-figure > div');
+      const bg = cont ? w.getComputedStyle(cont).backgroundColor : '?';
+      const fondBtn = [...wd.querySelectorAll('#struct-editor button')].some((b) => b.textContent === '+ fond');
+      out.push('couturière nettoyée = fond ' + bg + ' · bouton « + fond » (base transparente) = ' + fondBtn);
+      out.push('sb-err = ' + (sbw.SANDBOX_ERROR ?? 'aucune'));
+    } catch (e) { out.push('EXC: ' + e.message); }
+    finish();
+  }, 500);
+})();
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

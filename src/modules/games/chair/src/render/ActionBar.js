@@ -130,7 +130,7 @@ function _derive(room) {
   acts.push({ label: 'GREFFER',  sub: `${relicGraftCost()} ticks`, action: 'GRAFT_OPEN' });
   acts.push({ label: 'ARRACHER', sub: '0 tick', action: 'AMPUTATE_OPEN' });
 
-  if (room?.defId === 'exit') {
+  if (room?.sortie) {
     acts.push({ label: 'DESCENDRE', sub: '↓', action: 'DESCEND' });
   }
 
