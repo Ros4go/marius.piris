@@ -29,6 +29,9 @@ export default defineConfig({
       input: {
         main:  resolve(__dirname, 'index.html'),
         chair: resolve(__dirname, 'src/modules/games/chair/index.html'),
+        // l'Atelier (outil de dev) + son sandbox (iframe) — accessibles en ligne
+        atelier: resolve(__dirname, 'src/modules/games/chair/tools/organ-editor.html'),
+        sandbox: resolve(__dirname, 'src/modules/games/chair/tools/view-sandbox.html'),
       },
     },
   },
