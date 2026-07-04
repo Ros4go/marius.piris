@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test proto DA</title></head>
+<body>
+<iframe id="f" src="./proto-da.html" style="width:1360px;height:900px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  const d = w.document;
+  tries++;
+  const statut = d.getElementById('statut')?.textContent ?? '';
+  if (!statut.startsWith('prêt')) { if (tries > 50) { out.push('TIMEOUT: ' + statut); finish(); } return; }
+  clearInterval(t);
+  try {
+    const das = [...d.querySelectorAll('#das button')];
+    out.push('boutons DA = ' + das.length + ' (dont actuelle) · biomes = ' + d.querySelectorAll('#biomes button').length);
+    const sd = () => d.getElementById('f').contentDocument;
+    const scene = () => sd().querySelector('.scene');
+    out.push('salle vide : gore caché = ' + (sd().getElementById('proto-style')?.textContent.includes('.gore') ?? false));
+    // active chaque variante et vérifie l'injection
+    const resultats = [];
+    for (let i = 1; i < das.length; i++) {
+      das[i].click();
+      const s = scene();
+      const decor = sd().querySelector('.scene-decor');
+      const slug = s.dataset.scene;
+      const couches = decor.children.length;
+      const css = sd().getElementById('proto-style').textContent;
+      const scope = css.split('{').filter((x) => x.includes('.scene[data-scene=')).length;
+      resultats.push(`${das[i].textContent}: scene=${slug} · ${couches} couches · ${scope} règles scopées · anim=${css.includes('@keyframes')}`);
+    }
+    out.push(...resultats);
+    // retour à la DA actuelle
+    das[0].click();
+    out.push('retour actuelle : decor restauré = ' + (scene().dataset.scene != null));
+    // changement de biome avec une variante active
+    das[1].click();
+    [...d.querySelectorAll('#biomes button')][1].click();
+    setTimeout(() => {
+      out.push('biome poumons + variante : scene=' + scene().dataset.scene + ' · couches=' + sd().querySelector('.scene-decor').children.length);
+      out.push('erreurs sandbox = ' + (d.getElementById('f').contentWindow.SANDBOX_ERROR ?? 'aucune'));
+      finish();
+    }, 800);
+  } catch (e) { out.push('EXC: ' + e.message); finish(); }
+}, 400);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>
