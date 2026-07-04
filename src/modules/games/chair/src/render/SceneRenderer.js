@@ -3,6 +3,8 @@
 import { WS, currentFloor, currentRoom } from '../WorldState.js';
 import { biome as getBiomeData, roomDef } from '../registry.js';
 import { setScene } from './ViewportDOM.js';
+import { structureDefs } from './RoomPanel.js';
+import { decorFigure, animerSprites } from './SpriteFX.js';
 
 // Sockets (stables, hors décor) — capturés une fois.
 const _app   = document.querySelector('.game');
@@ -35,12 +37,11 @@ export function applyBiomePalette(biomeId) {
   for (const [k, v] of Object.entries(map)) if (v) _app.style.setProperty(k, v);
 }
 
-// Quelle scène de décor pour cette salle : override de la salle (rooms.json
-// "scene"), sinon défaut du biome (biomes.json "scene"), sinon le couloir.
+// Quelle scène de décor pour cette salle : rooms.json "scene" (explicite sur
+// CHAQUE salle depuis « une salle = un biome » — plus de défaut de biome).
+// Le couloir reste l'ultime filet si une salle a été créée sans scène.
 function _resolveScene(floor, room) {
-  return roomDef(room.defId)?.scene
-      ?? getBiomeData(floor.biomeId)?.scene
-      ?? 'gorge_couloir';
+  return roomDef(room.defId)?.scene ?? 'gorge_couloir';
 }
 
 export function render() {
@@ -74,24 +75,38 @@ export function render() {
   // a passage behind you (you can step back) → warm light spilling from the bottom
   _exitB?.classList.toggle('open', hasBack);
   // the descent room → an irradiating pit in the floor
-  _pit?.classList.toggle('open', room.defId === 'exit');
+  _pit?.classList.toggle('open', !!room.sortie);
 
-  // Gore is rare and ONLY on La Gorge: ~1 room in 3 gets a single prop
-  // (hanging guts / spike / bone pile / skeleton / blood splatter), chosen
-  // deterministically from the room id so a room always looks the same.
+  // Décoration : 100% DATA — la salle définit ses règles par biome (rooms.json
+  // "decos" : { biomeId|'*': [{kind, chance}] }), évaluées dans l'ordre (la
+  // première qui réussit gagne), tirage déterministe par salle+règle.
+  // AUCUNE règle pour ce biome = aucun décor.
   if (_gore) {
+    const defs = structureDefs();
+    const conf = roomDef(room.defId)?.decos;
     let prop = 'none';
-    if (floor.biomeId === 'gorge') {
-      const h = _hash(room.id);
-      if (h % 3 === 0) {
-        const PROPS = ['guts', 'spike', 'bones', 'skeleton', 'splatter'];
-        prop = PROPS[Math.floor(h / 3) % PROPS.length];
-      }
-      _gore.style.setProperty('--gore-x', `${(h % 7) - 3}px`);
-      // keep the corpse OFF the doorways: hug a doorless side, else sit on the floor centre
-      _gore.style.setProperty('--gore-left', !hasLeft ? '5%' : !hasRight ? '66%' : '36%');
+    const h = _hash(room.id);
+    // room._structSalt (outillage : « relancer le tirage ») force un nouveau
+    // tirage du décor aussi — indéfini en jeu, donc stable par salle.
+    const salt = room._structSalt != null ? ':' + room._structSalt : '';
+    const list = conf ? (conf[floor.biomeId] ?? conf['*'] ?? []) : [];
+    for (const [idx, c] of list.entries()) {
+      if (defs[c.kind]?.categorie !== 'decoration') continue;
+      const roll = (_hash(`${room.id}:${c.kind}${idx}${salt}`) % 1000) / 1000;
+      if (roll < (c.chance ?? 1)) { prop = c.kind; break; }
     }
-    _gore.dataset.prop = prop;
+    _gore.style.setProperty('--gore-x', `${(h % 7) - 3}px`);
+    // position : TIRÉE parmi les emplacements libres — jamais devant une porte
+    // latérale (le centre reste toujours possible). Salée par le reroll.
+    const spots = ['36%'];
+    if (!hasLeft) spots.push('5%');
+    if (!hasRight) spots.push('66%');
+    _gore.style.setProperty('--gore-left', spots[_hash(`${room.id}:pos${salt}`) % spots.length]);
+    if (_gore.dataset.prop !== prop) {   // ne reconstruit qu'au changement (anims)
+      _gore.dataset.prop = prop;
+      _gore.innerHTML = decorFigure(defs[prop]);
+      animerSprites(_gore);
+    }
   }
 
   // Back wall stays a plain textured wall; the forward door is the exit-f overlay.

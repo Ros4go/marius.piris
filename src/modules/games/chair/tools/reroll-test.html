@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test reroll</title></head>
+<body>
+<iframe id="f" src="./view-sandbox.html" style="width:640px;height:400px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  tries++;
+  if (!w.SANDBOX) { if (tries > 40) { out.push('TIMEOUT'); finish(); } return; }
+  clearInterval(t);
+  const sb = w.SANDBOX;
+  try {
+    // salle générique en Gorge : 5 règles de décor à 8% (défaut migré en data)
+    out.push('loadRoom → ' + sb.loadRoom('combat', 'gorge'));
+    const tirages = [];
+    const positions = new Set();
+    for (let i = 0; i < 10; i++) {
+      tirages.push(sb.rerollRoom());
+      positions.add(w.document.getElementById('gore')?.style.getPropertyValue('--gore-left'));
+    }
+    out.push(...tirages.map((x, i) => `  ${i + 1}. ${x}`));
+    const distincts = new Set(tirages).size;
+    out.push('tirages distincts = ' + distincts + '/10 → ' + (distincts >= 2 ? 'LE REROLL VARIE ✓' : '✕ TOUJOURS PAREIL'));
+    out.push('positions du décor = ' + [...positions].join(' / ') + ' → ' + (positions.size >= 2 ? 'LA POSITION VARIE ✓' : '✕ FIGÉE'));
+    // côtés des STRUCTURES : l'autel doit changer d'emplacement au reroll
+    out.push('loadRoom → ' + sb.loadRoom('altar', 'gorge'));
+    const cotes = new Set();
+    for (let i = 0; i < 10; i++) {
+      sb.rerollRoom();
+      const fig = [...w.document.querySelectorAll('.npc-figure')].find((x) => x.innerHTML);
+      cotes.add((fig?.className.match(/pos-\w+/) ?? ['?'])[0]);
+    }
+    out.push('côtés de l\'autel = ' + [...cotes].join(' / ') + ' → ' + (cotes.size >= 2 ? 'LE CÔTÉ VARIE ✓' : '✕ FIGÉ'));
+    out.push('sb-err = ' + (w.SANDBOX_ERROR ?? 'aucune'));
+  } catch (e) { out.push('EXC: ' + e.message); }
+  finish();
+}, 300);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

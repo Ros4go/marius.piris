@@ -3,6 +3,7 @@
 import { currentRoom } from '../WorldState.js';
 import { roomDef } from '../registry.js';
 import STRUCTURES_JSON from '../../content/structures.json';
+import { structFigure, animerSprites } from './SpriteFX.js';
 import { render as renderCombat }  from './panels/CombatPanel.js';
 import { render as renderRest }    from './panels/RestPanel.js';
 import { render as renderTrade }   from './panels/TradePanel.js';
@@ -78,9 +79,10 @@ let _openKind = null, _npcRoomId = null, _onRender = null;
 const _extraNpcs = new Map();   // kind → element (figures au-delà de la première)
 
 // Which side the structure PREFERS (deterministic per room + kind).
+// room._structSalt (outillage : « relancer le tirage ») refait AUSSI les côtés.
 function npcSide(room, kind) {
   let h = 2166136261 >>> 0;
-  const s = 'npc_' + room.id + '_' + kind;
+  const s = 'npc_' + room.id + '_' + kind + (room._structSalt != null ? ':' + room._structSalt : '');
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return ['left', 'center', 'right'][(h >>> 0) % 3];
 }
@@ -184,7 +186,12 @@ function _setNpcs(room, kinds, sides = []) {
 function _applyFigure(el2, kind, side) {
   const struct = STRUCT_DEFS[kind];
   el2.className = `npc-figure ${kind} pos-${side ?? 'center'}${struct?.floor ? ' on-floor' : ''}`;
-  el2.innerHTML = struct?.html ?? '';
+  // figure = sprite paramétrique (éditeur de l'atelier) si défini, sinon le
+  // html/CSS historique de structures.json — même compilateur que la besace
+  const fig = structFigure(struct);
+  el2.style.cssText = fig.style;
+  el2.innerHTML = fig.html;
+  animerSprites(el2);
   el2.style.cursor = 'pointer';
   el2.title = 'Cliquer pour interagir';
   el2.onclick = () => { _openKind = kind; _onRender?.(); };

@@ -148,9 +148,12 @@
     <button class="tab on" data-tab="sim">Simulateur</button>
     <button class="tab" data-tab="organs">Organes</button>
     <button class="tab" data-tab="tags">Tags</button>
+    <button class="tab" data-tab="res">Ressources</button>
     <button class="tab" data-tab="relics">Reliques</button>
     <button class="tab" data-tab="structs">Structures</button>
     <button class="tab" data-tab="rooms">Salles</button>
+    <button class="tab" data-tab="biomes">Biomes</button>
+    <button class="tab" data-tab="equi">Équilibrage</button>
     <button class="tab" data-tab="atlas">Atlas</button>
   </div>
   <div class="sp"></div>
@@ -175,21 +178,10 @@
       </div>
       <div class="simcol mid">
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <label class="muted">seed</label><input type="number" id="sim-seed" value="1" style="width:80px">
-          <button class="primary" id="sim-start">▶ démarrer combat</button>
-          <button id="sim-endturn" disabled>fin de tour ⏭</button>
-          <span class="muted" id="sim-turn"></span>
+          <button class="primary" id="sim-start">⚔ lancer le combat</button>
+          <button id="sim-stop">✋ arrêter</button>
+          <span class="muted">contre les mobs ACTIFS de la salle ci-dessous — cartes, visée (tes organes via « Ton corps »), afflictions, ressources : tout se joue dans la vue, comme en jeu</span>
         </div>
-        <div id="sim-banner"></div>
-        <h3>Ennemi</h3>
-        <div id="sim-enemy"></div>
-        <div class="telegraph" id="sim-telegraph" style="display:none"></div>
-        <h3>Ta main <span class="muted" id="sim-pstate-inline"></span></h3>
-        <div class="pstats" id="sim-pstats"></div>
-        <div class="cards" id="sim-hand"></div>
-        <div class="muted" id="sim-targethint" style="margin-top:6px"></div>
-        <h3>Tes organes</h3>
-        <div id="sim-playerbody" style="display:flex;flex-wrap:wrap;gap:6px"></div>
         <h3>Vue jeu — rendu RÉEL (mêmes modules, même CSS, même DOM)</h3>
         <div class="frow" style="font-size:11px;gap:6px">
           <label style="width:auto"><input type="checkbox" id="vp-torch" checked> torche</label>
@@ -225,22 +217,15 @@
           <button class="tiny danger" id="vp-clearspawns">tout retirer</button>
         </div>
         <div id="vp-spawnlist" style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0"></div>
-        <iframe id="vp-frame" src="./view-sandbox.html?ui=inv,map,bar"
-          style="width:100%;max-width:940px;height:520px;border:1px solid var(--line);border-radius:3px;background:#000"></iframe>
+        <iframe id="vp-frame" src="./view-sandbox.html?ui=inv,map,bar,reactor"
+          style="width:100%;max-width:1140px;height:540px;border:1px solid var(--line);border-radius:3px;background:#000"></iframe>
         <div class="muted" id="vp-status">… sandbox en chargement</div>
-        <div class="muted">Sandbox : vrai ViewportDOM + SensoryFX + BodyFX + SoundBar + fx.json. Le corps suit tes slots à gauche.</div>
+        <div class="muted">Sandbox : vrai ViewportDOM + SensoryFX + BodyFX + SoundBar + TurnCombat + CombatHand. Le corps suit tes slots à gauche.</div>
       </div>
       <div class="simcol right">
-        <h3 style="margin-top:0">Adversaire</h3>
-        <div class="frow"><label>génération</label>
-          <select id="sim-mobmode"><option value="seed">aléatoire (seed)</option><option value="manual">manuel</option></select>
-        </div>
-        <div id="sim-mob-seedopts">
-          <div class="frow"><label>set</label><select id="sim-mobset"></select></div>
-          <div class="frow"><label>organes</label><input type="number" id="sim-mobn" value="3" min="1" max="12" style="width:60px"></div>
-        </div>
-        <div id="sim-mob-manual" style="display:none"></div>
-        <h3>Batch (IA auto)</h3>
+        <h3 style="margin-top:0">Batch (IA auto)</h3>
+        <div class="frow"><label>set mobs</label><select id="sim-mobset"></select></div>
+        <div class="frow"><label>organes</label><input type="number" id="sim-mobn" value="3" min="1" max="12" style="width:60px"></div>
         <div class="frow"><label>combats</label><input type="number" id="sim-batch-n" value="500" style="width:80px">
           <button id="sim-batch-run">lancer</button></div>
         <div id="sim-batch-out" class="muted">—</div>
@@ -272,6 +257,20 @@
       <span class="muted">label + description seulement — le reste du catalogue (formes, prérequis, visuels, sons) vit dans content/tags.json</span>
     </div>
     <div class="editor" id="tag-page" style="flex:1"></div>
+  </section>
+
+  <!-- ═══════════ RESSOURCES ═══════════ -->
+  <section class="tabpane" id="pane-res">
+    <aside>
+      <div class="search"><input id="res-search" placeholder="chercher…"></div>
+      <div class="list" id="res-list"></div>
+      <div class="addbar">
+        <button class="tiny primary" id="res-new">+ ressource</button>
+        <button class="tiny" id="res-dup">⧉ dupliquer</button>
+        <button class="tiny danger" id="res-del">✕</button>
+      </div>
+    </aside>
+    <div class="editor" id="res-editor"><p class="muted">Sélectionne une ressource à gauche.</p></div>
   </section>
 
   <!-- ═══════════ RELIQUES ═══════════ -->
@@ -325,6 +324,25 @@
           style="width:560px;height:330px;border:1px solid var(--line);border-radius:3px;background:#000"></iframe>
       </div>
     </div>
+  </section>
+
+  <!-- ═══════════ BIOMES ═══════════ -->
+  <section class="tabpane" id="pane-biomes">
+    <aside>
+      <div class="search"><input id="biome-search" placeholder="chercher…"></div>
+      <div class="list" id="biome-list"></div>
+      <div class="addbar">
+        <button class="tiny primary" id="biome-new">+ biome</button>
+        <button class="tiny" id="biome-dup">⧉</button>
+        <button class="tiny danger" id="biome-del">✕</button>
+      </div>
+    </aside>
+    <div class="editor" id="biome-editor"><p class="muted">Sélectionne un biome à gauche.</p></div>
+  </section>
+
+  <!-- ═══════════ ÉQUILIBRAGE ═══════════ -->
+  <section class="tabpane" id="pane-equi" style="flex-direction:column">
+    <div class="editor" id="equi-page" style="flex:1"></div>
   </section>
 
   <!-- ═══════════ ATLAS ═══════════ -->

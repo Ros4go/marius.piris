@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>sonde carré rouge</title></head>
+<body>
+<iframe id="f" src="./organ-editor.html" style="width:1200px;height:800px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  const d = w.document;
+  tries++;
+  if (!d.querySelector('#struct-list .item')) { if (tries > 30) { out.push('TIMEOUT'); finish(); } return; }
+  clearInterval(t);
+  try {
+    d.querySelector('[data-tab="structs"]').click();
+    const item = [...d.querySelectorAll('#struct-list .item')].find((x) => x.textContent.includes('couturière'));
+    item.click();
+    const host = [...d.querySelectorAll('#struct-editor fieldset div')].find((x) => x.shadowRoot);
+    const sh = host.shadowRoot;
+    // liste TOUT ce qui a un fond non transparent dans le shadow
+    const els = [sh.querySelector('.npc-figure'), ...sh.querySelectorAll('.npc-figure *')];
+    for (const el of els) {
+      const cs = w.getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none') {
+        out.push(`${el.tagName}.${String(el.className).split(' ').slice(0, 3).join('.')} ${Math.round(r.width)}x${Math.round(r.height)}`
+          + ` bg=${cs.backgroundColor} img=${cs.backgroundImage.substring(0, 70)}`);
+      }
+    }
+    // et le style inline du conteneur sprite
+    const inner = sh.querySelector('.npc-figure > div');
+    out.push('inline conteneur = ' + (inner?.getAttribute('style') ?? 'ABSENT'));
+  } catch (e) { out.push('EXC: ' + e.message); }
+  finish();
+}, 400);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

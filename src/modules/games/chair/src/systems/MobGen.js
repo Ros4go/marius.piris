@@ -5,10 +5,59 @@ import { Body, ORGAN_SLOTS } from '../entities/Body.js';
 import { TYPE_NOUN } from '../labels.js';
 
 const TIER_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
+const TIERS = ['common', 'rare', 'epic', 'legendary'];
 
-// Which tiers may appear, by depth (tuning: balance.json tierUnlockFloor).
-function _tierAllowed(tier, floorIdx) {
-  return floorIdx >= (getBalance().tierUnlockFloor[tier] ?? 0);
+// ── Tout l'équilibrage des mobs est PAR BIOME (biomes.json mobs) — pas de ──
+// courbe globale. Fonctions pures du biome : partagées avec l'atelier.
+const TIERS_DEFAUT = { common: 70, rare: 20, epic: 8, legendary: 2 };
+
+// Budget d'organes d'un mob : biome.mobs.budget = [au 1er étage du biome, au
+// dernier], interpolé linéairement sur son floorRange (étage humain, 1-based).
+export function budgetFor(biome, floorIdx) {
+  const [f0, f1] = biome?.floorRange ?? [1, 1];
+  const [b0, b1] = biome?.mobs?.budget ?? [5, 10];
+  const t = f1 > f0 ? Math.min(1, Math.max(0, (floorIdx + 1 - f0) / (f1 - f0))) : 0;
+  return b0 + (b1 - b0) * t;
+}
+// Taux d'apparition des tiers du biome (biomes.json mobs.tiers), NORMALISÉS —
+// les tiers ne sont pas des paliers à débloquer, juste des poids de tirage.
+export function tierTauxFor(biome) {
+  const t = biome?.mobs?.tiers ?? {};
+  const brut = Object.fromEntries(TIERS.map((k) => [k, Math.max(0, t[k] ?? TIERS_DEFAUT[k])]));
+  const tot = Object.values(brut).reduce((s, v) => s + v, 0) || 1;
+  return Object.fromEntries(TIERS.map((k) => [k, brut[k] / tot]));
+}
+
+// Pool d'organes d'un biome : ses SETS (biomes.json mobs.sets) ± exceptions —
+// mobs.plus ajoute des organes précis hors sets, mobs.moins en exclut.
+// Exporté pour l'atelier (qui passe ses brouillons en `organs`).
+export function poolFor(biome, organs = allOrgans()) {
+  const m = biome?.mobs ?? {};
+  const sets  = m.sets ?? [];
+  const plus  = new Set(m.plus ?? []);
+  const moins = new Set(m.moins ?? []);
+  return organs.filter((o) => (plus.has(o.id) || sets.includes(o.set)) && !moins.has(o.id));
+}
+// `intrusion` = chance, à chaque tirage d'organe, de piocher HORS du pool.
+function _pools(biome) {
+  const dedans = poolFor(biome);
+  const ids    = new Set(dedans.map((o) => o.id));
+  const dehors = allOrgans().filter((o) => !ids.has(o.id));
+  return { dedans, dehors, intrusion: biome?.mobs?.intrusion ?? 0 };
+}
+
+// Tire UN organe : source (pool/intrus), puis TIER selon les taux du biome
+// (parmi les tiers abordables), puis organe uniforme dans ce tier.
+function _tireOrgane(pools, biome, budget, tierCost) {
+  const source = (pools.dehors.length && rng() < pools.intrusion) ? pools.dehors : pools.dedans;
+  const abordables = source.filter((o) => (tierCost[o.tier] ?? 1) <= budget);
+  if (!abordables.length) return null;
+  const taux = tierTauxFor(biome);
+  const parTier = TIERS.filter((t) => abordables.some((o) => o.tier === t));
+  let r = rng() * parTier.reduce((s, t) => s + taux[t], 0);
+  let tier = parTier[parTier.length - 1];
+  for (const t of parTier) { if (r < taux[t]) { tier = t; break; } r -= taux[t]; }
+  return pick(rng, abordables.filter((o) => o.tier === tier));
 }
 
 const THEME_NAMES = {
@@ -57,17 +106,37 @@ export function spawnForRoom(room, floor, floorIdx) {
   // otherwise we roll a single elite chance for the whole group and pick one
   // member to be it. The other members are built on a reduced budget so a pack
   // is never three heavyweights at once — the elite leads, the rest support.
-  const hasElite = elite || rng() < (B.eliteChance ?? 0.04);
-  const eliteIdx = hasElite ? Math.floor(rng() * count) : -1;
-
-  for (let i = 0; i < count; i++) {
-    const isElite    = elite ? true : (i === eliteIdx);
-    const budgetMult = (hasElite && !isElite) ? (B.supportBudgetMult ?? 0.55) : 1;
-    const theme      = pick(rng, biome.themes);
-    const mob        = _createMob(biome, theme, floorIdx, room, i, isElite, budgetMult);
+  const plan = _packPlan(count, elite, elite || rng() < (B.eliteChance ?? 0.04));
+  plan.forEach((p, i) => {
+    const theme = pick(rng, biome.themes);
+    const mob   = _createMob(biome, theme, floorIdx, room, i, p.isElite, p.budgetMult);
     WS.mobs.set(mob.id, mob);
     room.addMob(mob.id);
-  }
+  });
+}
+
+// Composition d'une meute : au plus UNE élite (index tiré), les autres en
+// soutien à budget réduit. forceAll = salle combat_elite (tous élites).
+function _packPlan(count, forceAll, hasElite) {
+  const B = getBalance().mob;
+  const eliteIdx = hasElite && !forceAll ? Math.floor(rng() * count) : -1;
+  return Array.from({ length: count }, (_, i) => {
+    const isElite = forceAll || i === eliteIdx;
+    return { isElite, budgetMult: (hasElite && !isElite) ? (B.supportBudgetMult ?? 0.55) : 1 };
+  });
+}
+
+// ── Outillage (atelier « Équilibrage ») : générer hors salle réelle ──
+export function rollMob(biomeId, floorIdx, { elite = false } = {}) {
+  const biome = getBiome(biomeId);
+  if (!biome) return null;
+  return _createMob(biome, pick(rng, biome.themes), floorIdx, { id: 'r_0_0' }, 0, elite, 1);
+}
+export function rollPack(biomeId, floorIdx, { count = 3, elite = false } = {}) {
+  const biome = getBiome(biomeId);
+  if (!biome) return [];
+  return _packPlan(count, false, elite).map((p, i) =>
+    _createMob(biome, pick(rng, biome.themes), floorIdx, { id: 'r_0_0' }, i, p.isElite, p.budgetMult));
 }
 
 // How many mobs to spawn within [minMobs, maxMobs]. Each slot above the minimum
@@ -187,19 +256,20 @@ function _createMob(biome, theme, floorIdx, room, idx, isElite, budgetMult = 1) 
   const id = `mob_${floorIdx}_${room.id}_${idx}`;
 
   const B = getBalance();
-  let budget = Math.max(1, Math.floor((B.mob.budgetBase + floorIdx * B.mob.budgetPerFloor) * (isElite ? B.mob.eliteMult : 1) * budgetMult));
+  // budget = entrée→sortie du biome (interpolé) × élite × rôle dans la meute
+  let budget = Math.max(1, Math.floor(budgetFor(biome, floorIdx)
+    * (isElite ? B.mob.eliteMult : 1) * budgetMult));
 
-  const pool = allOrgans().filter(o => _tierAllowed(o.tier, floorIdx));
-  const body = Body.empty(id);
+  const pools = _pools(biome);
+  const pool  = pools.dedans;   // pour les organes vitaux forcés (cœur/cerveau)
+  const body  = Body.empty(id);
 
   let attempts = 0;
   while (budget > 0 && attempts < 30) {
     attempts++;
-    const candidates = pool.filter(o => (B.tierCost[o.tier] ?? 1) <= budget);
-    if (!candidates.length) break;
-
-    const organDef = pick(rng, candidates);
-    const cost     = B.tierCost[organDef.tier] ?? 1;
+    const organDef = _tireOrgane(pools, biome, budget, B.tierCost);
+    if (!organDef) break;
+    const cost = B.tierCost[organDef.tier] ?? 1;
 
     const slotKey = Object.keys(ORGAN_SLOTS).find(k =>
       ORGAN_SLOTS[k].type === organDef.type && body.slots[k] === null

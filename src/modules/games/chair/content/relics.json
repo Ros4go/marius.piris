@@ -4,14 +4,34 @@
     "name": "Sang Cristallisé",
     "price": 120,
     "effects": [{ "kind": "auto_repair", "everyTicks": 20, "amount": 1 }],
-    "description": "Tant qu'il est dans votre besace : chaque 20 ticks, répare 1 PV sur l'organe le plus endommagé. La guérison fait mal sous une malédiction soin-douleur."
+    "description": "Tant qu'il est dans votre besace : chaque 20 ticks, répare 1 PV sur l'organe le plus endommagé. La guérison fait mal sous une malédiction soin-douleur.",
+    "sprite": {
+      "taille": 62,
+      "eclat": { "c": "#b5333a", "alpha": 0.5, "rayon": 8 },
+      "calques": [
+        { "x": 50, "y": 52, "l": 34, "h": 84, "forme": "50% 50% 45% 45% / 12% 12% 88% 88%", "degrade": { "cx": 42, "cy": 18, "stops": [{ "c": "#e8888e" }, { "c": "#b5333a", "de": 40 }, { "c": "#3a0c10" }] }, "ombre": true, "anim": [{ "preset": "scintillement", "duree": 2.8 }] },
+        { "x": 32, "y": 66, "l": 16, "h": 40, "forme": "50% 50% 45% 45% / 15% 15% 85% 85%", "rot": -14, "degrade": { "cx": 45, "cy": 20, "stops": [{ "c": "#c9555c" }, { "c": "#4a1014" }] } },
+        { "x": 68, "y": 62, "l": 14, "h": 34, "forme": "50% 50% 45% 45% / 15% 15% 85% 85%", "rot": 12, "degrade": { "cx": 45, "cy": 20, "stops": [{ "c": "#c9555c" }, { "c": "#4a1014" }] } },
+        { "x": 45, "y": 34, "l": 6, "h": 30, "forme": "50%", "degrade": { "cx": 50, "cy": 50, "stops": [{ "c": "#f0c0c4" }] }, "alpha": 0.5 }
+      ]
+    }
   },
   {
     "id": "relic_suture_noire",
     "name": "Suture Noire",
     "price": 100,
     "effects": [{ "kind": "graft_cost", "value": 3 }],
-    "description": "Tant qu'il est dans votre besace : les greffes ne coûtent que 3 ticks au lieu de 5. La couturière vous reconnaît comme l'un des siens."
+    "description": "Tant qu'il est dans votre besace : les greffes ne coûtent que 3 ticks au lieu de 5. La couturière vous reconnaît comme l'un des siens.",
+    "sprite": {
+      "taille": 62,
+      "calques": [
+        { "x": 50, "y": 55, "l": 70, "h": 66, "forme": "50%", "degrade": { "cx": 40, "cy": 30, "stops": [{ "c": "#2a2632" }, { "c": "#0a080e", "de": 75 }] }, "ombre": true },
+        { "x": 50, "y": 55, "l": 46, "h": 42, "forme": "50%", "degrade": { "cx": 50, "cy": 50, "stops": [{ "c": "#0e0c12" }] } },
+        { "x": 50, "y": 34, "l": 58, "h": 10, "forme": "50%", "rot": -8, "degrade": { "cx": 50, "cy": 30, "stops": [{ "c": "#3a3644" }, { "c": "#16141c" }] }, "alpha": 0.9 },
+        { "x": 72, "y": 26, "l": 34, "h": 5, "forme": "50% 50% 50% 50% / 90% 90% 10% 10%", "rot": -34, "degrade": { "cx": 50, "cy": 50, "stops": [{ "c": "#c9c4d4" }, { "c": "#6a6478" }] }, "eclat": { "c": "#7d659e", "alpha": 0.4, "rayon": 5 } },
+        { "x": 38, "y": 68, "l": 18, "h": 6, "forme": "50%", "rot": 20, "degrade": { "cx": 50, "cy": 50, "stops": [{ "c": "#3a3644" }] }, "alpha": 0.8, "anim": [{ "prop": "rot", "de": 20, "a": 12, "duree": 3.4, "easing": "ease-in-out" }] }
+      ]
+    }
   },
   {
     "id": "relic_dechet_organique",

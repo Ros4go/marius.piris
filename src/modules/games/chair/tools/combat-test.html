@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test combat</title></head>
+<body>
+<iframe id="f" src="./view-sandbox.html?ui=inv,map,bar,reactor" style="width:940px;height:560px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+const LOGS = [];
+window.CHAIR_TOOL_LOG = (m) => LOGS.push(m);   // le sandbox remonte son journal ici (comme l'atelier)
+const HUMAN = { slots: {
+  eye_l:{organId:'eye_human',hp:8}, eye_r:{organId:'eye_human',hp:8},
+  ear_l:{organId:'ear_human',hp:6}, ear_r:{organId:'ear_human',hp:6},
+  arm_l:{organId:'arm_human',hp:12}, arm_r:{organId:'arm_human',hp:12},
+  legs:{organId:'legs_human',hp:12}, heart:{organId:'heart_human',hp:9},
+  skin:{organId:'skin_human',hp:12}, brain:{organId:'brain_human',hp:8},
+  stomach:{organId:'stomach_human',hp:6}, tongue:{organId:'tongue_human',hp:6},
+}};
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  tries++;
+  if (w.SANDBOX_ERROR) { out.push('SANDBOX_ERROR: ' + w.SANDBOX_ERROR); finish(); return; }
+  if (!w.SANDBOX) { if (tries > 40) { out.push('TIMEOUT'); finish(); } return; }
+  clearInterval(t);
+  const sb = w.SANDBOX;
+  const d = w.document;
+  try {
+    sb.setBody(JSON.parse(JSON.stringify(HUMAN)));
+    sb.setLight(1);
+    out.push('spawnMob → ' + (sb.spawnMob?.('droite')?.msg ?? '?'));
+    out.push('réacteur : ' + d.querySelectorAll('#reactor [data-organ]').length + ' organes cliquables (cibles self-cast)');
+    // combat sans mob impossible ? non — on en a un. Sans combat d'abord :
+    out.push('startCombat → ' + sb.startCombat());
+    out.push('re-startCombat → ' + sb.startCombat());   // doit refuser (déjà en cours)
+    setTimeout(() => {
+      out.push('TurnCombat actif = ' + sb.TurnCombat.isActive());
+      const cards = [...d.querySelectorAll('#combat-hand .ccard')];
+      out.push('main : ' + cards.length + ' cartes — ' + cards.slice(0, 4).map((c) => c.querySelector('.cc-name')?.textContent
+        + (c.classList.contains('targeted-card') ? '🎯' : '')).join(', '));
+      out.push('bouton fin de tour = ' + (d.getElementById('combat-end') ? 'présent' : 'ABSENT'));
+      out.push('ressources : sang affiché = ' + (d.querySelector('#combat-blood .cb-sang .cb-n')?.textContent ?? 'ABSENT')
+        + ' · moteur = ' + sb.TurnCombat.blood());
+      out.push('défausse = ' + (d.getElementById('combat-discard') ? 'présente (' + d.querySelector('#combat-discard .cd-n')?.textContent + ')' : 'ABSENTE'));
+      // joue une VRAIE carte via le moteur : premier skill damage sur le 1er organe atteignable
+      const enemy = sb.TurnCombat.enemies()[0];
+      const hand = sb.TurnCombat.hand();
+      const dmgCard = hand.find((c) => c.skill.effect?.kind === 'damage' && c.playable);
+      if (dmgCard && enemy) {
+        const targets = sb.TurnCombat.targetable(enemy.id, false);
+        const before = Object.fromEntries(Object.entries(enemy.body.slots).filter(([, s]) => s).map(([k, s]) => [k, s.hp]));
+        const ok = sb.TurnCombat.play(dmgCard.organKey, dmgCard.skill.id, enemy.id, targets[0], false);
+        const after = enemy.body.slots[targets[0]]?.hp;
+        out.push(`carte "${dmgCard.skill.label}" sur ${targets[0]} → ok=${ok} · PV ${before[targets[0]]} → ${after}`);
+      } else out.push('⚠ aucune carte damage jouable (main : ' + hand.map((c) => c.skill.effect?.kind).join(',') + ')');
+      // mort d'organe EN COMBAT : l'œil gauche meurt → la moitié doit noircir au
+      // prochain rendu (fin de tour = pipeline complet BodyFX/TagFX)
+      w.SANDBOX.WS.player.body.slots.eye_l.hp = 0;
+      w.SANDBOX.WS.player.body.slots.skin.hp = 0;
+      // fin de tour via le VRAI bouton (phase ennemie animée puis nouveau tour)
+      d.getElementById('combat-end')?.click();
+      setTimeout(() => {
+        const g = d.querySelector('.game');
+        out.push('œil mort en combat → eye-l-dead = ' + g.classList.contains('eye-l-dead')
+          + ' · réacteur eye_l mort = ' + (d.querySelector('#reactor [data-organ="eye_l"]')?.className ?? '?'));
+        out.push('peau morte → protection produite au tour suivant = ' + sb.TurnCombat.protection());
+        out.push('après phase ennemie : actif = ' + sb.TurnCombat.isActive()
+          + ' · journal remonté = ' + LOGS.length + ' lignes'
+          + (LOGS.length ? ' (ex: ' + LOGS[LOGS.length - 1].substring(0, 60) + ')' : ''));
+        out.push('stopCombat → ' + sb.stopCombat());
+        out.push('main cachée = ' + (d.getElementById('combat-ui')?.style.display === 'none' ? 'oui' : 'NON'));
+        out.push('sb-err = ' + (w.SANDBOX_ERROR ?? 'aucune'));
+        finish();
+      }, 3500);
+    }, 700);
+  } catch (e) { out.push('EXC: ' + e.message); finish(); }
+}, 300);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

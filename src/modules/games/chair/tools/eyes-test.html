@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>test yeux</title></head>
+<body>
+<iframe id="f" src="./view-sandbox.html?ui=inv,map,bar,reactor" style="width:1140px;height:540px"></iframe>
+<pre id="out">EN COURS</pre>
+<script>
+const out = [];
+let tries = 0;
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  tries++;
+  if (w.SANDBOX_ERROR) { out.push('SANDBOX_ERROR: ' + w.SANDBOX_ERROR); finish(); return; }
+  if (!w.SANDBOX) { if (tries > 40) { out.push('TIMEOUT'); finish(); } return; }
+  clearInterval(t);
+  const sb = w.SANDBOX;
+  const d = w.document;
+  try {
+    // config exacte de l'utilisateur : corps humain SANS les yeux, torche ON
+    sb.setBody({ slots: {
+      ear_l:{organId:'ear_human',hp:6}, ear_r:{organId:'ear_human',hp:6},
+      arm_l:{organId:'arm_human',hp:12}, arm_r:{organId:'arm_human',hp:12},
+      legs:{organId:'legs_human',hp:12}, heart:{organId:'heart_human',hp:9},
+      skin:{organId:'skin_human',hp:12}, brain:{organId:'brain_human',hp:8},
+      stomach:{organId:'stomach_human',hp:6}, tongue:{organId:'tongue_human',hp:6},
+    }});
+    sb.setLight(1);
+    sb.loadRoom?.('combat', 'gorge');
+    setTimeout(() => {
+      const g = d.querySelector('.game');
+      out.push('classes .game = ' + g.className);
+      for (const cl of ['eyeblind-l', 'eyeblind-r']) {
+        const e = d.querySelector('.' + cl);
+        if (!e) { out.push(cl + ' : ABSENT du DOM'); continue; }
+        const cs = w.getComputedStyle(e);
+        const r = e.getBoundingClientRect();
+        out.push(`${cl} : width=${cs.width} opacité=${cs.opacity} z=${cs.zIndex} fond=${cs.backgroundColor} rect=${Math.round(r.width)}x${Math.round(r.height)} display=${cs.display} position=${cs.position}`);
+      }
+      const vp = d.querySelector('.viewport').getBoundingClientRect();
+      out.push('viewport = ' + Math.round(vp.width) + 'x' + Math.round(vp.height));
+      // parent des eyeblinds + ordre dans le DOM
+      const ebl = d.querySelector('.eyeblind-l');
+      out.push('parent eyeblind = ' + (ebl?.parentElement?.className ?? '?'));
+      out.push('nb .eyeblind-l = ' + d.querySelectorAll('.eyeblind-l').length
+        + ' · inline style = "' + (ebl?.getAttribute('style') ?? '') + '"'
+        + ' · ancêtre .game = ' + (ebl?.closest('.game') ? ebl.closest('.game').className.split(' ').slice(0, 4).join(' ') : 'AUCUN'));
+      // la règle CSS est-elle chargée dans CE document ?
+      let rule = null;
+      try {
+        for (const ss of d.styleSheets) {
+          try { for (const r of ss.cssRules) if (r.selectorText?.includes('.eye-l-dead .eyeblind-l')) rule = r.cssText; } catch {}
+        }
+      } catch {}
+      out.push('règle CSS trouvée = ' + (rule ?? 'ABSENTE'));
+      // élément neuf avec la même classe : matche-t-il ?
+      const probe = d.createElement('div');
+      probe.className = 'eyeblind-l';
+      ebl?.parentElement?.appendChild(probe);
+      out.push('sonde fraîche .eyeblind-l width = ' + w.getComputedStyle(probe).width);
+      probe.remove();
+      // animations accrochées (une WAAPI écrase la feuille de style !)
+      for (const [nom, sel] of [['gauche', '.eyeblind-l'], ['droit', '.eyeblind']]) {
+        const e = d.querySelector(sel);
+        const anims = e?.getAnimations?.() ?? [];
+        out.push(`animations ${nom} = ` + (anims.length ? anims.map((a) =>
+          (a.animationName ?? a.constructor.name) + ' état:' + a.playState + ' fill:' + (a.effect?.getComputedTiming?.().fill ?? '?')
+          + ' keyframes:' + JSON.stringify((a.effect?.getKeyframes?.() ?? []).map((k) => k.width ?? k.opacity ?? '?'))).join(' | ') : 'aucune'));
+      }
+      // TagFX : les classes des yeux viennent de lui — vérifie qu'il tourne
+      out.push('tagfx-filter-l présent = ' + !!d.getElementById('tagfx-filter-l'));
+      out.push('sb-err = ' + (w.SANDBOX_ERROR ?? 'aucune'));
+      finish();
+    }, 900);
+  } catch (e) { out.push('EXC: ' + e.message); finish(); }
+}, 300);
+function finish() { document.getElementById('out').textContent = 'RESULT\n' + out.join('\n') + '\nFIN'; }
+</script>
+</body>
+</html>

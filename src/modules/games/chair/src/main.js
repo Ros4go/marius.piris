@@ -1,21 +1,19 @@
 // Entry point — imports everything, boots the game.
 
-import { loadData, organResolver, organColor, biome as getBiomeData } from './registry.js';
+import { loadData, organResolver, biome as getBiomeData } from './registry.js';
 import { WS, initRun, currentRoom, toJSON, fromJSON } from './WorldState.js';
 import { on as onTrigger, emit, flush, PRIORITY } from './TriggerBus.js';
 import { processTick, descend, advanceTicks } from './TickEngine.js';
 import { graftCost as relicGraftCost } from './systems/RelicSystem.js';
 import * as HungerSystem from './systems/HungerSystem.js';
-import * as Faculties from './systems/Faculties.js';
 import * as BattleEngine from './BattleEngine.js';
 import * as TurnCombat from './TurnCombat.js';
 import * as CombatHand from './render/CombatHand.js';
-import * as CombatFX from './render/CombatFX.js';
+import * as CombatOrchestrator from './render/CombatOrchestrator.js';
 import * as SoundBar from './render/SoundBar.js';
 import * as EchoFX from './render/EchoFX.js';
 import * as AmbientFX from './render/AmbientFX.js';
-import { SLOT_SHORT, SLOT_FULL } from './labels.js';
-import { ORGAN_SLOTS } from './entities/Body.js';
+import { SLOT_FULL } from './labels.js';
 import { init as initInput, on as onInput } from './input/InputHandler.js';
 import * as SceneRenderer     from './render/SceneRenderer.js';
 import * as MobRenderer       from './render/MobRenderer.js';
@@ -46,12 +44,10 @@ const _opposite  = d => DIR_ORDER[(DIR_ORDER.indexOf(d) + 2) % 4];
 const _dir       = () => WS.player.dir ?? 'S';
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let _targetedMobId = null;
-let _targetedSlot  = null;
+// (visée + verrou d'animation de combat : dans CombatOrchestrator, partagé atelier)
 let _inspect       = null;   // inspector focus: {kind:'organ',slot} | {kind:'item',index} | null (= body overview)
 let _gameOver      = false;
 let _transitioning = false;  // a room transition is playing (locks movement briefly)
-let _combatAnimating = false; // the enemy phase animation is playing (locks combat input)
 let _graveyard     = null;   // persists between runs (loaded from localStorage)
 let _heritage      = [];     // organs kept between runs via Consigne
 
@@ -125,8 +121,7 @@ function _showStartScreen() {
 
 function _startGame() {
   _gameOver      = false;
-  _targetedMobId = null;
-  _targetedSlot  = null;
+  CombatOrchestrator.clearTarget();
   initRun(Date.now() >>> 0);
   descend('gorge', 0);
   BattleEngine.ensureDefaultAlloc();   // seed a default blood split (editable anytime)
@@ -386,8 +381,7 @@ function _onCombatEnd(reason) {
     flush(PRIORITY.MOB);
     return;
   }
-  _targetedMobId = null;
-  _targetedSlot  = null;
+  CombatOrchestrator.clearTarget();
   advanceTicks(1);
   render();
 }
@@ -460,7 +454,7 @@ function _transitionTo(dir) {
 
 // ── UI action dispatch ────────────────────────────────────────────────────────
 function _handleUiAction(act) {
-  if (_gameOver || _transitioning || _combatAnimating) return;
+  if (_gameOver || _transitioning || CombatOrchestrator.isAnimating()) return;
 
   switch (act.action) {
     case 'CARD':
@@ -468,7 +462,7 @@ function _handleUiAction(act) {
       render();
       break;
     case 'END_TURN':
-      _runEnemyPhase();
+      CombatOrchestrator.runEnemyPhase();
       break;
     case 'WAIT':
       _tick({ type: 'WAIT' });
@@ -513,8 +507,7 @@ function _handleUiAction(act) {
         descend(curBiomeId, nextIdx);
         addLog(`Descente — étage ${nextIdx + 1}.`, 'sys');
       }
-      _targetedMobId = null;
-      _targetedSlot  = null;
+      CombatOrchestrator.clearTarget();
       _transitionTo('down');   // renders the new floor mid-transition
       break;
     }
@@ -626,8 +619,7 @@ function _choosePath(biomeId, nextIdx) {
     ? 'Trachée · les Poumons vous accueillent.'
     : 'Œsophage · les Entrailles s\'ouvrent.', 'sys');
   LoreSystem.checkBiomeEntry(biomeId);
-  _targetedMobId = null;
-  _targetedSlot  = null;
+  CombatOrchestrator.clearTarget();
   render();
   return;
 }
@@ -660,12 +652,9 @@ function render() {
   ReactorPanel.render();
 
   RoomPanel.render({
-    targetedMobId:    _targetedMobId,
-    targetedSlot:     _targetedSlot,
+    ...CombatOrchestrator.target(),
     onAimMob: (mobId, slotKey) => {
-      _targetedMobId = mobId;
-      _targetedSlot  = slotKey;
-      if (TurnCombat.isActive()) TurnCombat.setTarget(mobId, slotKey);
+      CombatOrchestrator.aim(mobId, slotKey);
       render();
     },
     onTick:           (action) => _tick(action),
@@ -693,97 +682,12 @@ function render() {
   }
 
   ActionBar.render();
-  _renderCombatHand();
+  CombatOrchestrator.renderHand(render);
   BodyFX.apply();
   SensoryFX.applyBodyState();
 
   // Palette biome : appliquée par SceneRenderer.applyBiomePalette (source unique),
   // déjà déclenchée par SceneRenderer.render() en tête de cette fonction.
-}
-
-// ── Combat hand (drag-and-drop cards) ──────────────────────────────────────────
-function _renderCombatHand() {
-  if (!TurnCombat.isActive()) { CombatHand.hide(); return; }
-  const room   = currentRoom();
-  const active = (room?.mobIds ?? []).map(id => WS.mobs.get(id)).filter(m => m?.lifecycle === 'active');
-  const mob    = active.find(m => m.id === _targetedMobId) ?? active[0];
-
-  // Targets for EVERY enemy (each cluster is drawn over its own silhouette), so
-  // you can drop a card straight on the mob you want — no pre-selection needed.
-  const organs = [];
-  active.forEach((mb, mbIdx) => {
-    const reach = new Set(TurnCombat.targetable(mb.id, false));
-    // `vue-rayons-x` (§2.2): DEEP organs stay hidden ("???", no HP) while sealed
-    // behind the outer layers — unless an x-ray eye covers the mob's side.
-    const f = active.length <= 1 ? 0.5 : (mbIdx + 0.5) / active.length;
-    const mobSide = f < 0.45 ? 'gauche' : f > 0.55 ? 'droite' : null;
-    const xray = mobSide ? Faculties.hasOn('vue-rayons-x', mobSide) : Faculties.has('vue-rayons-x');
-    for (const k of Object.keys(ORGAN_SLOTS)) {
-      const s = mb.body.slots[k];
-      if (!s?.organId) continue;
-      const def = organResolver(s.organId);
-      const maxHp = def?.maxHp ?? 1;
-      const hp = s.hp ?? maxHp;
-      const locked = !reach.has(k);
-      const masked = locked && ORGAN_SLOTS[k].layer === 'deep' && !xray && hp > 0;
-      organs.push({ mobId: mb.id, slotKey: k, layer: ORGAN_SLOTS[k].layer,
-        name: masked ? '???' : (SLOT_SHORT[k] ?? def?.name ?? k), hp, maxHp, masked,
-        color: masked ? null : organColor(s.organId), locked, dead: hp <= 0,
-        weak: !masked && TurnCombat.weakRevealed() && TurnCombat.weakSpotOf(mb.id) === k });
-    }
-  });
-
-  const cards = TurnCombat.hand().map(c => ({
-    organKey:   c.organKey,
-    skillId:    c.skill.id,
-    label:      c.skill.label,
-    cost:       c.skill.cost ?? 0,
-    desc:       c.skill.desc ?? '',
-    organName:  organResolver(c.organId)?.name ?? '',
-    color:      organColor(c.organId),
-    playable:   c.playable,
-    needsTarget: ['damage', 'heal', 'retrigger'].includes(c.skill.effect?.kind),
-    layerHint:  ORGAN_SLOTS[c.organKey]?.layer ?? 'x',
-  }));
-
-  CombatHand.render(cards, {
-    blood:      TurnCombat.blood(),
-    protection: TurnCombat.protection(),
-    frenesie:   TurnCombat.frenesie(),
-    regen:      TurnCombat.regen(),
-    discardCount: TurnCombat.discardCount(),
-    discarded:    TurnCombat.discardedCards(),
-    mobId:  mob?.id ?? null,
-    organs,
-    onPlay: (organKey, skillId, mobId, slot, isSelf) => {
-      if (_combatAnimating) return;
-      const kind  = organResolver(WS.player.body.slots[organKey]?.organId)?.skills?.find(s => s.id === skillId)?.effect?.kind;
-      const label = organResolver(WS.player.body.slots[organKey]?.organId)?.skills?.find(s => s.id === skillId)?.label ?? '';
-      const before = { blood: TurnCombat.blood(), protection: TurnCombat.protection(), frenesie: TurnCombat.frenesie(), regen: TurnCombat.regen() };
-      const ok = TurnCombat.play(organKey, skillId, mobId, slot, isSelf);
-      if (ok) {
-        CombatFX.playerCast(isSelf ? null : (mobId ?? _targetedMobId), kind, label, organColor(WS.player.body.slots[organKey]?.organId));
-        CombatFX.resourceDelta('sang', TurnCombat.blood() - before.blood);
-        for (const k of ['protection', 'frenesie', 'regen']) CombatFX.resourceDelta(k, TurnCombat[k]() - before[k]);
-      }
-      render();
-    },
-    onEndTurn: () => { _runEnemyPhase(); },
-  });
-}
-
-// Play the enemy phase as a timed sequence so the turn-based flow is legible.
-async function _runEnemyPhase() {
-  if (_combatAnimating || !TurnCombat.isActive()) return;
-  _combatAnimating = true;
-  try {
-    const { timeline } = TurnCombat.endTurn();
-    await CombatFX.playEnemyPhase(timeline, (evs) => TurnCombat.logEvents(evs));
-    TurnCombat.finalizeTurn();
-  } finally {
-    _combatAnimating = false;
-  }
-  render();
 }
 
 // ── Harvest UI ────────────────────────────────────────────────────────────────

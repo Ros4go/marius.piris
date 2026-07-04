@@ -32,6 +32,9 @@
   .sbx-bar button:hover { color: #c47f33; border-color: #574226; }
   .sbx-sep { width: 100%; height: 1px; background: #241a12; margin: 3px 0; }
   #sbx-msg { color: #5f7a4a; font-size: 10px; line-height: 1.4; width: 100%; }
+  /* colonne réacteur à droite — « Ton corps » toujours visible (cibles self-cast) */
+  .sbx-reactor { flex: none; width: 200px; padding: 6px; border-left: 1px solid #241a12;
+                 background: #0e0a07; overflow: auto; }
 </style>
 </head>
 <body>
@@ -62,6 +65,13 @@
       <button id="sbx-tp">📍 aller</button>
       <button id="sbx-remap">🗺 reroll map</button>
       <span id="sbx-msg"></span>
+    </div>
+  </aside>
+  <!-- Colonne dédiée « Ton corps » (réacteur = cibles self-cast en combat), à droite -->
+  <aside class="sbx-reactor">
+    <div class="panel">
+      <h3><i>♥</i> Ton corps</h3>
+      <div id="reactor"></div>
     </div>
   </aside>
 </div>
@@ -95,8 +105,9 @@
   else document.getElementById('inventory-grid')?.closest('.panel')?.remove();
   if (UI.includes('map')) buildInto(document.querySelector('.map-wrap'), MINIMAP_WRAP_HTML);
   else document.querySelector('.map-wrap')?.closest('.panel')?.remove();
+  if (!UI.includes('reactor')) document.querySelector('.sbx-reactor')?.remove();
   if (!UI.includes('bar')) document.querySelector('.sbx-bar')?.remove();
-  if (!UI.length) document.querySelector('.sbx-side')?.remove();
+  if (!UI.length) { document.querySelector('.sbx-side')?.remove(); document.querySelector('.sbx-reactor')?.remove(); }
 </script>
 
 <script type="module">
@@ -119,6 +130,12 @@
   import * as InventoryRenderer from '../src/render/InventoryRenderer.js';
   import * as FXSystem from '../src/render/FXSystem.js';
   import * as TagFX from '../src/render/TagFX.js';
+  import * as TurnCombat from '../src/TurnCombat.js';
+  import * as Resources from '../src/systems/Resources.js';
+  import * as CombatHand from '../src/render/CombatHand.js';
+  import * as CombatOrchestrator from '../src/render/CombatOrchestrator.js';
+  import * as ReactorPanel from '../src/render/ReactorPanel.js';
+  import { decorFigure, animerSprites } from '../src/render/SpriteFX.js';
 
   const BASE = '/src/modules/games/chair';
 
@@ -133,6 +150,10 @@
     if (document.getElementById('inventory-grid')) {
       try { InventoryRenderer.render(); } catch (e) { sbFail('Inventory: ' + e.message); }
     }
+    // « Ton corps » : silhouette + organes (cibles self-cast en combat)
+    if (document.getElementById('reactor')) {
+      try { ReactorPanel.render(); } catch (e) { sbFail('Reactor: ' + e.message); }
+    }
   }
 
   // Options RoomPanel : onRender auto-référent (cliquer une structure ouvre son
@@ -140,11 +161,15 @@
   // greffer, sacrifier consomment réellement l'inventaire, comme en jeu.
   function rerenderAll() {
     try { SceneRenderer.render(); } catch {}
-    try { MobRenderer.render({}); } catch {}
-    try { RoomPanel.render(RP_OPTS); } catch (e) { sbFail('RoomPanel: ' + e.message); }
+    // press-and-hold un mob → révèle ses organes (même geste qu'en jeu)
+    try { MobRenderer.render({ onPeek: (on, mobId) => CombatHand.peek(on, mobId) }); } catch {}
+    try { RoomPanel.render(RP_OPTS()); } catch (e) { sbFail('RoomPanel: ' + e.message); }
+    // main de combat réelle (cartes, ressources, défausse) — se cache hors combat
+    try { CombatOrchestrator.renderHand(rerenderAll); } catch (e) { sbFail('CombatHand: ' + e.message); }
     refresh();
   }
-  const RP_OPTS = {
+  const RP_OPTS = () => ({
+    ...CombatOrchestrator.target(),
     onRender: () => rerenderAll(),
     onTick: (action) => {
       try { processTick(action); } catch (e) { sbFail('tick: ' + e.message); }
@@ -152,10 +177,10 @@
     },
     onSave: () => {},
     onChoosePath: () => {},
-    onAimMob: () => {},
+    onAimMob: (mobId, slotKey) => { CombatOrchestrator.aim(mobId, slotKey); rerenderAll(); },
     heritage: [],
     onHeritageChange: () => {},
-  };
+  });
 
   // Le bus d'événements exige cette structure dans WS (normalement posée par initRun)
   function ensureBus() { WS.triggerBus = WS.triggerBus ?? { queue: [], budget: 0 }; }
@@ -177,21 +202,69 @@
     try { EchoFX.init(); } catch (e) { console.warn('EchoFX', e); }
     try { SceneRenderer.render(); } catch (e) { console.warn('SceneRenderer', e); }
     InventoryRenderer.init({ onInspect: () => {} });
+    ReactorPanel.init(document.getElementById('reactor'), { onInspect: () => {} });
     // besace de test : deux organes + une relique (rendus par le vrai renderer)
     WS.player.inventory = [{ organId: 'eye_human', hp: 4 }, { organId: 'heart_beast', hp: 6 }, { relicId: 'relic_suture_noire' }];
     refresh();
 
     // ── API pilotée par l'atelier (même origine → accès direct) ──
+    // le journal de combat remonte dans l'atelier (même origine)
+    const toolLog = (msg) => { try { window.parent?.CHAIR_TOOL_LOG?.(String(msg)); } catch {} };
+
     window.SANDBOX = {
-      WS, Faculties, FXSystem, SoundBar, TagFX, organResolver,
+      WS, Faculties, FXSystem, SoundBar, TagFX, TurnCombat, organResolver,
+
+      // ── Combat RÉEL (TurnCombat + CombatHand + CombatFX, le code du jeu) ──
+      // contre les mobs ACTIFS de la salle courante — ceux affichés dans la vue.
+      startCombat() {
+        try {
+          const room = currentRoom();
+          const n = (room?.mobIds ?? []).filter((id) => WS.mobs.get(id)?.lifecycle === 'active').length;
+          if (!n) return '✕ aucun mob actif dans la salle — fais-en spawn (ou charge une salle hostile)';
+          if (TurnCombat.isActive()) return '⚔ combat déjà en cours';
+          TurnCombat.start(rerenderAll, (reason) => {
+            toolLog(reason === 'dead' ? '✝ TU ES MORT' : '☠ victoire — la salle est à toi');
+            CombatOrchestrator.clearTarget();
+            rerenderAll();
+          }, toolLog);
+          rerenderAll();
+          return `⚔ combat lancé contre ${n} mob(s) — joue tes cartes dans la vue`;
+        } catch (e) { return '✕ startCombat: ' + e.message; }
+      },
+      stopCombat() {
+        if (!TurnCombat.isActive()) return '— pas de combat en cours';
+        TurnCombat.stop(false);
+        CombatOrchestrator.clearTarget();
+        rerenderAll();
+        return '✋ combat interrompu';
+      },
+      // Injecte une ressource en combat (test de l'onglet Ressources) : entité →
+      // ton portefeuille ; organe → l'organe visé de TON corps (slotKey).
+      giveResource(id, n = 1, slotKey = null) {
+        try {
+          if (!TurnCombat.isActive()) return '✕ lance d\'abord un combat';
+          const d = Resources.resDef(id);
+          if (!d) return `✕ ressource "${id}" inconnue`;
+          const ev = [];
+          if (d.porteur === 'entite') Resources.gainEnt(TurnCombat.state.pstate, id, n, ev);
+          else {
+            const key = slotKey ?? 'skin';
+            Resources.gainOrg(TurnCombat.state.pstate, TurnCombat.state.pstate, WS.player.body, id, key, n, organResolver, ev);
+          }
+          TurnCombat.logEvents(ev);
+          rerenderAll();
+          return ev.length ? `◈ ${d.name} +${n}` : `⊘ gain bloqué`;
+        } catch (e) { return '✕ giveResource: ' + e.message; }
+      },
 
       // Remplace le contenu du registry par les brouillons de l'atelier
-      async applyDrafts({ organs, sets, rooms, relics, structures, tags }) {
-        const [biomes, relicsDisk, mobs, balance, lore] = await Promise.all(
-          ['biomes', 'relics', 'mobs', 'balance', 'lore'].map((n) =>
+      async applyDrafts({ organs, sets, rooms, relics, structures, tags, biomes, balance, resources }) {
+        const [biomesDisk, relicsDisk, mobs, balanceDisk, lore, resourcesDisk] = await Promise.all(
+          ['biomes', 'relics', 'mobs', 'balance', 'lore', 'resources'].map((n) =>
             fetch(`${BASE}/content/${n}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
         loadDataRaw({ organs, sets, rooms,
-          biomes: biomes ?? [], relics: relics ?? relicsDisk ?? [], mobs: mobs ?? [], lore: lore ?? [], balance });
+          biomes: biomes ?? biomesDisk ?? [], relics: relics ?? relicsDisk ?? [], mobs: mobs ?? [], lore: lore ?? [],
+          balance: balance ?? balanceDisk, resources: resources ?? resourcesDisk });
         // structures : brouillons injectés dans les modules qui les lisent
         if (structures) { RoomPanel.setStructures(structures); SoundBar.setStructures(structures); }
         // catalogue de tags : primitives visuel/sonore + max des familles (Faculties)
@@ -346,7 +419,7 @@
           const def = RoomPanel.structureDefs()[kind];
           if (!def) return { err: `✕ structure "${kind}" inconnue` };
           const pos = _posOf(side);
-          if (room._structRolled === undefined) RoomPanel.render(RP_OPTS);   // force le tirage initial
+          if (room._structRolled === undefined) RoomPanel.render(RP_OPTS());   // force le tirage initial
           // Règle des emplacements : 3 slots, 1 structure par slot, 1 par type
           const kinds = room._structKinds ?? [];
           if (kinds.includes(kind)) return { err: `✕ "${def.label ?? kind}" est déjà dans la salle (1 par type)` };
@@ -354,7 +427,7 @@
           if ((room._structSides ?? []).includes(pos)) return { err: `✕ emplacement ${side} : déjà une structure` };
           room._structSidePrefs = { ...(room._structSidePrefs ?? {}), [kind]: pos };
           room._structRolled = [...(room._structRolled ?? []), kind];
-          RoomPanel.render(RP_OPTS);
+          RoomPanel.render(RP_OPTS());
           return { msg: `🧍 ${def.label ?? kind} (${side})` };
         } catch (e) { return { err: '✕ structure: ' + e.message }; }
       },
@@ -364,22 +437,29 @@
           room._structSalt = Math.random();
           delete room._structRolled;
           delete room._structSidePrefs;
-          RoomPanel.render(RP_OPTS);
+          rerenderAll();   // structures ET décor (SceneRenderer relit le sel)
           const got = room._structKinds ?? [];
-          return got.length ? `🎲 tirage : ${got.join(' + ')}` : '🎲 tirage : aucune structure';
+          const deco = document.getElementById('gore')?.dataset.prop;
+          return `🎲 tirage : ${got.length ? got.join(' + ') : 'aucune structure'}`
+            + (deco && deco !== 'none' ? ` · déco : ${deco}` : ' · pas de déco');
         } catch (e) { return '✕ reroll: ' + e.message; }
       },
       addProp(kind, side = 'centre') {
         try {
           if (_propSides.has(side)) return { err: `✕ emplacement ${side} : déjà un décor (1 par emplacement)` };
           const gore = document.getElementById('gore'); if (!gore) return { err: '✕ pas de gore layer' };
-          const c = gore.cloneNode(true);
-          c.removeAttribute('id');
+          const def = RoomPanel.structureDefs()[kind];
+          if (!def?.sprite) return { err: `✕ décor "${kind}" sans sprite (crée-le dans l'onglet Structures)` };
+          // même rendu que le jeu : decorFigure dans un calque .gore dédié
+          const c = document.createElement('div');
+          c.className = 'gore';
           c.dataset.prop = kind;
           c.style.setProperty('--gore-left', side === 'gauche' ? '5%' : side === 'droite' ? '66%' : '36%');
+          c.innerHTML = decorFigure(def);
+          animerSprites(c);
           gore.parentElement.appendChild(c);
           _propSides.add(side);
-          return _track('prop', `🦴 ${kind}`, side, () => { _propSides.delete(side); c.remove(); });
+          return _track('prop', `🦴 ${def.label ?? kind}`, side, () => { _propSides.delete(side); c.remove(); });
         } catch (e) { return { err: '✕ décor: ' + e.message }; }
       },
       removeSpawn(id) {
@@ -404,7 +484,7 @@
           out.push({ id: 'struct:' + k, label: '🧍 ' + (RoomPanel.structureDefs()[k]?.label ?? k), side: room._structSides?.[i] ?? '?' });
         });
         const gore = document.getElementById('gore');
-        if (gore && gore.dataset.prop !== 'none') out.push({ id: 'gore', label: '🦴 ' + gore.dataset.prop, side: 'salle' });
+        if (gore && gore.dataset.prop !== 'none') out.push({ id: 'gore', label: '🦴 ' + (RoomPanel.structureDefs()[gore.dataset.prop]?.label ?? gore.dataset.prop), side: 'salle' });
         for (const s of _spawns.filter((x) => x.type === 'prop')) out.push({ id: s.id, label: s.label, side: s.side });
         return out;
       },
@@ -424,12 +504,12 @@
             const i = room._structRolled.lastIndexOf(kind);
             if (i >= 0) room._structRolled.splice(i, 1);
             delete room._structSidePrefs?.[kind];
-            RoomPanel.render(RP_OPTS);
+            RoomPanel.render(RP_OPTS());
             return '🧍 retiré';
           }
           if (id === 'gore') {
             const g = document.getElementById('gore');
-            if (g) g.dataset.prop = 'none';
+            if (g) { g.dataset.prop = 'none'; g.innerHTML = ''; }
             return '🦴 retiré';
           }
           return this.removeSpawn(id);
@@ -444,12 +524,12 @@
             room._structRolled = [];
             delete room._structSidePrefs;
             const g = document.getElementById('gore');
-            if (g) g.dataset.prop = 'none';
+            if (g) { g.dataset.prop = 'none'; g.innerHTML = ''; }
           }
           for (const s of [..._spawns].reverse()) { try { s.cleanup(); } catch {} }
           _spawns.length = 0;
           MobRenderer.render({});
-          RoomPanel.render(RP_OPTS);
+          RoomPanel.render(RP_OPTS());
           return 'salle vidée';
         } catch (e) { return '✕ ' + e.message; }
       },
@@ -469,7 +549,7 @@
           delete room._structRolled; delete room._structSidePrefs; delete room._sbOrigUi;
           if (biomeId) floor.biomeId = biomeId;
           SceneRenderer.render();   // applique aussi la palette biome (code partagé)
-          RoomPanel.render(RP_OPTS);
+          RoomPanel.render(RP_OPTS());
           refresh();
           const struck = room._structRolled ? ` — structure tirée : ${room._structRolled}` : '';
           return `🏠 "${def.id}" chargée (${floor.biomeId})${struck}`;
@@ -501,6 +581,8 @@
           const gore = document.getElementById('gore'); if (!gore) return '✕ pas de gore layer';
           gore.dataset.prop = prop;
           gore.style.setProperty('--gore-left', side === 'gauche' ? '5%' : side === 'droite' ? '66%' : '36%');
+          gore.innerHTML = prop === 'none' ? '' : decorFigure(RoomPanel.structureDefs()[prop]);
+          animerSprites(gore);
           return prop === 'none' ? 'décor retiré' : `🦴 décor "${prop}" (${side})`;
         } catch (e) { return '✕ décor: ' + e.message; }
       },

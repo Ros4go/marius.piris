@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>shot structures</title><style>html,body{margin:0;background:#000}</style></head>
+<body>
+<iframe id="f" src="./view-sandbox.html" style="width:1180px;height:660px;border:0"></iframe>
+<script>
+const t = setInterval(() => {
+  const w = document.getElementById('f').contentWindow;
+  if (!w.SANDBOX) return;
+  clearInterval(t);
+  const sb = w.SANDBOX;
+  sb.setBody({ slots: { eye_l:{organId:'eye_human',hp:8}, eye_r:{organId:'eye_human',hp:8}, heart:{organId:'heart_human',hp:9} } });
+  sb.setLight(1);
+  sb.addStructure('altar', 'gauche');
+  sb.addStructure('trade', 'centre');
+  sb.addStructure('graft', 'droite');
+  sb.setProp?.('skeleton', 'centre');
+  // sonde "carré rouge" : liste tout élément de la scène au fond rouge dominant
+  setTimeout(() => {
+    const d = w.document;
+    const out = [];
+    const isRed = (c) => {
+      const m = c?.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      return m && +m[1] > 70 && +m[1] > (+m[2] + 25) && +m[1] > (+m[3] + 25);
+    };
+    for (const el of d.querySelectorAll('.scene *, .viewport > *')) {
+      const cs = w.getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) continue;
+      if (isRed(cs.backgroundColor) || (cs.backgroundImage !== 'none' && isRed(cs.backgroundImage))) {
+        out.push(`${el.tagName}.${(el.className.baseVal ?? el.className).toString().split(' ').slice(0, 3).join('.')}`
+          + ` ${Math.round(r.width)}x${Math.round(r.height)} bg=${cs.backgroundColor} img=${cs.backgroundImage.substring(0, 90)}`);
+      }
+    }
+    const pre = document.createElement('pre');
+    pre.id = 'probe';
+    pre.textContent = 'ROUGES\n' + (out.join('\n') || 'aucun') + '\nFIN';
+    document.body.appendChild(pre);
+  }, 1200);
+}, 300);
+</script>
+</body>
+</html>

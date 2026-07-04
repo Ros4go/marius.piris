@@ -19,7 +19,25 @@ const t = setInterval(() => {
     items[0].click();
     const legs = [...d.querySelectorAll('#org-editor legend')].map((l) => l.textContent);
     out.push('legends organe = ' + legs.join(' | '));
-    const host = [...d.querySelectorAll('#org-editor fieldset div')].find((x) => x.shadowRoot);
+    // skills repliés par défaut : ▸ déplie et révèle la vraie carte de combat
+    // (test sur le bras humain, qui a des skills, puis retour à l'œil)
+    const armItem = [...d.querySelectorAll('#org-list .item')].find((x) => x.textContent.includes('Bras humain'));
+    if (armItem) {
+      armItem.click();
+      const skHead = [...d.querySelectorAll('#org-editor .skill .frow')].find((x) => x.textContent.includes('▸'));
+      if (!skHead) out.push('✕ skill replié introuvable sur le bras');
+      else {
+        skHead.click();
+        const cardHost = [...d.querySelectorAll('#org-editor .skill div')].find((x) => x.shadowRoot);
+        const card = cardHost?.shadowRoot.querySelector('.ccard');
+        out.push('skill déplié → carte de combat = ' + (card
+          ? 'oui — « ' + card.querySelector('.cc-name')?.textContent + ' » · ' + w.getComputedStyle(card).width
+          : 'ABSENTE'));
+      }
+      out.push('boutons ▲▼ calques = ' + ([...d.querySelectorAll('#org-editor button')].some((b) => b.textContent === '▲') ? 'présents' : 'ABSENTS'));
+      items[0].click();   // retour à l'œil pour la suite
+    }
+    const host = [...d.querySelectorAll('#org-editor fieldset div')].find((x) => x.shadowRoot && !x.closest('.skill'));
     if (!host) out.push('✕ pas de shadow host');
     else {
       const sh = host.shadowRoot;
@@ -32,7 +50,10 @@ const t = setInterval(() => {
       out.push('captions = ' + [...sh.querySelectorAll('div')].map((x) => x.textContent).filter((s) => s.includes('PV')).join(' | '));
 
       // ── éditeur de sprites : le préréglage "oeil" doit reproduire le CSS historique À L'IDENTIQUE ──
-      // (le 1er organe est eye_human → sans sprite, la classe .orgshape.eye s'applique)
+      // (eye_human a maintenant un sprite NATIF : on le retire d'abord pour mesurer
+      // la base CSS .orgshape.eye, puis on applique le préréglage et on compare)
+      const rmNatif = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent.includes('✕ sprite'));
+      rmNatif?.click();
       const shape0 = sh.querySelector('.orgshape');
       const before = w.getComputedStyle(shape0);
       const B1 = before.backgroundImage, R1 = before.borderRadius, W1 = before.width;
@@ -76,9 +97,38 @@ const t = setInterval(() => {
           const l1 = dots[0]?.style.left, l2 = dots[1]?.style.left;
           out.push('⧉ miroir = ' + dots.length + ' points · gauche ' + l1 + ' / ' + l2
             + (l1 && l2 && l1 !== l2 ? ' (symétriques)' : ' ✕ PAS symétriques'));
+          // mini-rendu + repli : calque neuf OUVERT (couleur éditable), copie ⧉ REPLIÉE
+          const minis = [...d.querySelectorAll('#org-editor span[title*="calque seul"]')];
+          const sub1 = minis[0]?.parentElement?.parentElement;   // .frow → boîte du calque
+          const sub2 = minis[1]?.parentElement?.parentElement;
+          const cIn = sub1?.querySelector('input[type=color]');
+          const mi = minis[0]?.querySelector('i');
+          const avant = mi?.style.background;
+          if (cIn) { cIn.value = '#22cc44'; cIn.dispatchEvent(new w.Event('input')); }
+          const apres = minis[0]?.querySelector('i')?.style.background;
+          out.push('minis calques = ' + minis.length + ' · maj après édition = ' + (avant !== apres ? 'oui' : 'NON')
+            + ' · calque neuf déplié = ' + (cIn ? 'oui' : 'NON')
+            + ' · copie ⧉ repliée = ' + (sub2 && !sub2.querySelector('input[type=color]') && sub2.textContent.includes('▸') ? 'oui' : 'NON'));
           const dcut = [...d.querySelectorAll('#org-editor input[type=checkbox]')].find((x) => x.parentElement?.textContent.includes('découper'));
           if (dcut) { dcut.checked = true; dcut.dispatchEvent(new w.Event('change')); }
           out.push('découpe = overflow ' + w.getComputedStyle(sh.querySelector('.orgshape')).overflow);
+        }
+        // animations : + animation (préréglage pulsation) → WAAPI lancée sur la forme
+        const animBtn = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent.includes('+ animation'));
+        if (!animBtn) out.push('✕ bouton + animation introuvable');
+        else {
+          animBtn.click();
+          const nAnims = sh.querySelector('.orgshape')?.getAnimations?.().length ?? -1;
+          out.push('+ animation (pulsation) → animations WAAPI actives = ' + nAnims);
+          // passage en custom : forme qui morphe
+          const presetSel = [...d.querySelectorAll('#org-editor select')].find((x) => [...x.options].some((o) => o.value === 'pulsation'));
+          if (presetSel) {
+            presetSel.value = ''; presetSel.dispatchEvent(new w.Event('change'));
+            const propSel = [...d.querySelectorAll('#org-editor select')].find((x) => [...x.options].some((o) => o.value === 'forme'));
+            if (propSel) { propSel.value = 'forme'; propSel.dispatchEvent(new w.Event('change')); }
+            const nAnims2 = sh.querySelector('.orgshape')?.getAnimations?.().length ?? -1;
+            out.push('custom forme (morph border-radius) → animations = ' + nAnims2);
+          }
         }
         // retour au CSS par défaut via ✕ sprite
         const rmBtn = [...d.querySelectorAll('#org-editor button')].find((b) => b.textContent.includes('✕ sprite'));
@@ -108,6 +158,43 @@ const t = setInterval(() => {
       }
       const warns = [...d.querySelectorAll('#relic-editor .w')].map((x) => x.textContent);
       out.push('validation déchet = ' + warns.join(' · '));
+    }
+    // ── structure : figure SPRITE native (structures.json converties à l'éditeur) ──
+    d.querySelector('[data-tab="structs"]').click();
+    const stItem = d.querySelector('#struct-list .item');
+    if (!stItem) out.push('✕ liste structures vide');
+    else {
+      stItem.click();   // 1re = marchand (trade)
+      const stHost = [...d.querySelectorAll('#struct-editor fieldset div')].find((x) => x.shadowRoot);
+      if (!stHost) out.push('✕ pas de shadow host structure');
+      else {
+        const sh3 = stHost.shadowRoot;
+        const fig = sh3.querySelector('.npc-figure');
+        const inner = fig?.querySelector('div');
+        out.push('figure structure = ' + (fig?.className ?? 'ABSENTE') + ' · largeur ' + fig?.style.width
+          + ' · ratio ' + fig?.style.aspectRatio);
+        out.push('sprite marchand = ' + (inner ? 'oui · ' + inner.querySelectorAll('i').length + ' calques' : 'ABSENT')
+          + ' · anims WAAPI = ' + [...sh3.querySelectorAll('[data-anim]')].reduce((n, e) => n + (e.getAnimations?.().length ?? 0), 0));
+        // toute structure spritée devient un préréglage du spriteEditor
+        const spSel = [...d.querySelectorAll('#struct-editor select')].find((x) =>
+          [...x.options].some((op) => op.value?.startsWith('struct:')));
+        out.push('préréglages structures = ' + (spSel
+          ? [...spSel.options].filter((o) => o.value.startsWith('struct:')).map((o) => o.textContent).join(', ')
+          : 'ABSENTS'));
+      }
+      // ── décoration : groupe dédié, accroche, aperçu decorFigure ──
+      const grps = [...d.querySelectorAll('#struct-list .grp')].map((x) => x.textContent);
+      out.push('groupes structures = ' + grps.join(' | '));
+      const decoItem = [...d.querySelectorAll('#struct-list .item')].find((x) => x.textContent.includes('squelette'));
+      if (!decoItem) out.push('✕ squelette absent de la liste');
+      else {
+        decoItem.click();
+        const dHost = [...d.querySelectorAll('#struct-editor fieldset div')].find((x) => x.shadowRoot);
+        const wrap = dHost?.shadowRoot.querySelector('div[style*="--gore-left"], div > div') && dHost.shadowRoot.querySelector('div');
+        const inner = dHost?.shadowRoot.querySelectorAll('i').length ?? 0;
+        out.push('aperçu décor squelette = ' + (inner ? inner + ' calques (os)' : 'VIDE')
+          + ' · accroche select = ' + ([...d.querySelectorAll('#struct-editor select')].some((x) => [...x.options].some((o) => o.value === 'plafond')) ? 'oui' : 'NON'));
+      }
     }
   } catch (e) { out.push('EXC: ' + e.message); }
   finish();
