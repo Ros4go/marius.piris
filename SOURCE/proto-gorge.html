@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<title>CHAIR · Gorge — proto DA (Boyau contractile + passages)</title>
+<style>
+  :root{ color-scheme:dark; } *{ box-sizing:border-box; }
+  body{ margin:0; background:#080503; color:#b6a786; font:12px "IBM Plex Mono","Courier New",monospace; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+  header{ padding:8px 14px; border-bottom:1px solid #2a1210; display:flex; flex-direction:column; gap:8px; }
+  h1{ margin:0; font-size:13px; letter-spacing:.14em; color:#cf6a4a; text-transform:uppercase; }
+  h1 small{ color:#6a4a42; text-transform:none; letter-spacing:0; margin-left:8px; }
+  .row{ display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .grp{ display:flex; gap:8px; align-items:center; }
+  .grp .lbl{ color:#7a5148; font-size:10px; letter-spacing:.1em; text-transform:uppercase; }
+  label.ck{ display:inline-flex; gap:5px; align-items:center; cursor:pointer; padding:3px 9px; border:1px solid #3a1c18; border-radius:3px; background:#160b09; user-select:none; }
+  label.ck.on{ background:#2a0e0b; border-color:#b5333a; color:#f0c0a0; }
+  label.ck input{ accent-color:#b5333a; }
+  button.va{ background:#160b09; color:#b6a786; border:1px solid #3a1c18; border-radius:3px; padding:4px 11px; font:inherit; cursor:pointer; }
+  button.va.on{ background:#2a0e0b; border-color:#cf6a4a; color:#ffd0a8; }
+  #stage{ flex:1; min-height:0; display:grid; place-items:center; padding:14px; }
+  .viewport{ position:relative; width:min(1180px,100%); height:100%; background:#000; border:2px solid #1c0f0b; overflow:hidden; box-shadow: inset 0 0 0 1px #000, inset 0 0 0 4px #140a06, inset 0 0 0 5px #000, inset 0 0 46px #000; }
+  #tip{ color:#6a4a42; font-size:11px; padding:2px 14px 8px; }
+  #tip b{ color:#cf6a4a; }
+  .scene{ position:absolute; inset:0; overflow:hidden; --scene-tempo:9s; --meat:#2e1112;--blood:#8a2f2a;--thread:#5d2120;--torch:#c47f33;--torch-hot:#e8b25c; animation: g-breathe var(--scene-tempo) ease-in-out infinite; }
+  @keyframes g-breathe{ 50%{ transform:scale(1.011); } }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOYAU CONTRACTILE — tunnel cylindrique organique, péristaltisme lent.
+   Point de fuite à 50%/50% (aligné sur exit-f). 5 anneaux musculaires
+   concentriques + gorge du fond ; l'onde de contraction se propage du proche
+   vers le lointain via un déphasage --pb-ph par anneau.
+   Palette : 100% dérivée des 5 tokens de biome (--meat/--blood/--thread/
+   --torch/--torch-hot) via color-mix → belle dans les 6 biomes.
+   Aucun z-index > 1, aucune cible moteur, transform/opacity/filter only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Racine : couche décor + palette dérivée ───────────────────────────────── */
+.scene[data-scene="proto_boyau"] .proto_boyau-root {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  /* dérivés de biome — un seul endroit à retoucher */
+  --pb-abyss: color-mix(in srgb, var(--meat) 14%, #000);  /* fond du boyau     */
+  --pb-deep:  color-mix(in srgb, var(--meat) 42%, #000);  /* chair dans l'ombre*/
+  --pb-flesh: color-mix(in srgb, var(--meat) 84%, var(--blood) 16%); /* muscle */
+  --pb-crest: color-mix(in srgb, var(--meat) 64%, var(--blood) 36%); /* bourrelet éclairé */
+  --pb-vein:  color-mix(in srgb, var(--thread) 62%, #000);           /* veines */
+  --pb-lume:  color-mix(in srgb, var(--torch) 16%, transparent);     /* lueur torche */
+  --pb-lume2: color-mix(in srgb, var(--torch-hot) 9%, transparent);  /* pointe chaude */
+}
+
+/* ── Fond : cylindre continu — voûte + cuve courbes, fibres longitudinales ──
+   Tout est radial/conique : aucun angle droit. Les fibres convergent vers le
+   point de fuite comme les stries musculaires d'un intestin. */
+.scene[data-scene="proto_boyau"] .proto_boyau-bg {
+  position: absolute; inset: 0;
+  background:
+    /* puits de profondeur : le centre s'enfonce dans le noir */
+    radial-gradient(ellipse 46% 42% at 50% 50%, #000c 0%, #0007 45%, transparent 72%),
+    /* fibres longitudinales convergentes (stries de muscle lisse) */
+    repeating-conic-gradient(from 2deg at 50% 50%,
+      transparent 0deg 7deg,
+      color-mix(in srgb, var(--pb-vein) 55%, transparent) 7deg 7.8deg,
+      transparent 7.8deg 14deg),
+    /* voûte : le plafond retombe en courbe */
+    radial-gradient(ellipse 130% 85% at 50% -28%, color-mix(in srgb, var(--meat) 30%, #000) 0%, transparent 62%),
+    /* cuve : le sol remonte en courbe (plus charnu, côté torche) */
+    radial-gradient(ellipse 130% 78% at 50% 128%, color-mix(in srgb, var(--meat) 54%, #000) 0%, transparent 60%),
+    /* chair de base */
+    radial-gradient(ellipse 120% 120% at 50% 50%, var(--pb-deep) 0%, var(--pb-abyss) 78%);
+  animation: proto_boyau-swell var(--scene-tempo, 8s) ease-in-out infinite;
+}
+
+/* ── Gorge du fond : là où le tunnel se referme (sous exit-f, qui reste lisible :
+   fond très sombre, jamais de couche claire ici) ─────────────────────────── */
+.scene[data-scene="proto_boyau"] .proto_boyau-throat {
+  position: absolute; left: 50%; top: 50%; width: 17%; height: 15.5%;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(closest-side at 50% 46%,
+    #000 34%,
+    color-mix(in srgb, var(--meat) 18%, #000) 70%,
+    color-mix(in srgb, var(--meat) 38%, #000) 92%,
+    transparent 100%);
+  box-shadow: 0 0 26px #000c;
+  --pb-ph: .40;                                /* dernier maillon de l'onde */
+  animation: proto_boyau-peristole var(--scene-tempo, 8s) ease-in-out infinite;
+  animation-delay: calc(var(--scene-tempo, 8s) * var(--pb-ph));
+}
+
+/* ── Anneaux musculaires : ellipses imbriquées, annulus par masque radial ──
+   3 dégradés superposés = modelé du bourrelet (radial) × éclairage vertical
+   torche (linéaire) × segmentation musculaire (conique). Le masque confine
+   le tout à la couronne → l'intérieur reste transparent sur les plans loin. */
+.scene[data-scene="proto_boyau"] .proto_boyau-ring {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  -webkit-mask: radial-gradient(closest-side at 50% 50%, transparent 0 67%, #000 72% 96%, transparent 100%);
+          mask: radial-gradient(closest-side at 50% 50%, transparent 0 67%, #000 72% 96%, transparent 100%);
+  background:
+    /* éclairage vertical : voûte dans l'ombre, bas léché par la torche */
+    linear-gradient(180deg,
+      #0009 0%, #0003 26%, transparent 48%,
+      transparent 60%, var(--pb-lume) 80%, #0007 100%),
+    /* segmentation musculaire autour de l'anneau */
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg 11deg, #0003 11deg 14deg, transparent 14deg 22deg),
+    /* modelé du bourrelet : crevasse interne → crête → veine → revers sombre */
+    radial-gradient(closest-side at 50% 50%,
+      transparent 62%,
+      color-mix(in srgb, var(--meat) 22%, #000) 69%,
+      var(--pb-crest) 78%,
+      var(--pb-flesh) 85%,
+      var(--pb-vein) 90.5%, var(--pb-vein) 92%,
+      color-mix(in srgb, var(--meat) 34%, #000) 97%,
+      transparent 100%);
+  will-change: transform;
+  animation: proto_boyau-peristole var(--scene-tempo, 8s) ease-in-out infinite;
+  animation-delay: calc(var(--scene-tempo, 8s) * var(--pb-ph, 0));
+}
+/* étagement : taille, phase de l'onde, perspective atmosphérique (les plans
+   lointains foncent et se désaturent, le plan proche flou = profondeur de champ) */
+.scene[data-scene="proto_boyau"] .proto_boyau-r1 { width: 164%; height: 176%; --pb-ph: 0;   filter: blur(1.4px) brightness(1.04); }
+.scene[data-scene="proto_boyau"] .proto_boyau-r2 { width: 112%; height: 120%; --pb-ph: .08; filter: brightness(.90); }
+.scene[data-scene="proto_boyau"] .proto_boyau-r3 { width: 76%;  height: 80%;  --pb-ph: .16; filter: brightness(.74) saturate(.92); }
+.scene[data-scene="proto_boyau"] .proto_boyau-r4 { width: 50%;  height: 52%;  --pb-ph: .24; filter: brightness(.58) saturate(.85); }
+.scene[data-scene="proto_boyau"] .proto_boyau-r5 { width: 31%;  height: 32%;  --pb-ph: .32; filter: brightness(.44) saturate(.75) blur(.4px); }
+
+/* ── Lit du boyau : cuvette muqueuse humide où se posent mobs et PNJ ──────
+   Déborde des bords (left/right négatifs) → la courbe remonte hors cadre,
+   pas de coin. Reflet de torche discret, jamais opaque ni clair au centre. */
+.scene[data-scene="proto_boyau"] .proto_boyau-bed {
+  position: absolute; left: -8%; right: -8%; bottom: -3%; height: 34%;
+  border-radius: 50% 50% 0 0 / 92% 92% 0 0;
+  background:
+    /* reflet mouillé de la torche sur la muqueuse */
+    radial-gradient(ellipse 40% 52% at 50% 98%, var(--pb-lume) 0%, transparent 65%),
+    /* chair du sol, plus dense au fond de la cuvette */
+    radial-gradient(ellipse 115% 130% at 50% 135%,
+      color-mix(in srgb, var(--meat) 58%, #000) 30%,
+      color-mix(in srgb, var(--meat) 30%, #000) 62%,
+      transparent 80%);
+  animation: proto_boyau-swell var(--scene-tempo, 8s) ease-in-out infinite;
+  animation-delay: calc(var(--scene-tempo, 8s) * .05);
+}
+
+/* ── Brume du fond : répond à l'arrivée de l'onde dans la gorge ──────────── */
+.scene[data-scene="proto_boyau"] .proto_boyau-haze {
+  position: absolute; inset: 0; mix-blend-mode: screen; opacity: .18;
+  background: radial-gradient(closest-side at 50% 50%,
+    transparent 0 4%,
+    color-mix(in srgb, var(--torch) 10%, transparent) 9%,
+    color-mix(in srgb, var(--meat) 24%, transparent) 15%,
+    transparent 30%);
+  animation: proto_boyau-hazebreath var(--scene-tempo, 8s) ease-in-out infinite;
+  animation-delay: calc(var(--scene-tempo, 8s) * .40);
+}
+
+/* ── Vernis de torche : halo ANNULAIRE (donut) — lèche les crêtes de muscle,
+   laisse le centre sombre → mobs, PNJ et exit-f restent lisibles ─────────── */
+.scene[data-scene="proto_boyau"] .proto_boyau-glaze {
+  position: absolute; inset: 0; mix-blend-mode: screen; opacity: .5;
+  background: radial-gradient(closest-side at 50% 55%,
+    transparent 0 20%,
+    var(--pb-lume2) 38%,
+    var(--pb-lume) 52%,
+    transparent 74%);
+  animation: proto_boyau-glow var(--scene-tempo, 8s) ease-in-out infinite;
+}
+
+/* ── Peau : grain organique (feTurbulence inline, 2 échelles), masqué au
+   centre pour ne pas boucher la profondeur ni salir la zone de jeu ───────── */
+.scene[data-scene="proto_boyau"] .proto_boyau-skin {
+  position: absolute; inset: 0; mix-blend-mode: overlay; opacity: .16;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.028 0.055' numOctaves='4' seed='7'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23t)' opacity='0.85'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.028 0.055' numOctaves='4' seed='7'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23t)' opacity='0.85'/%3E%3C/svg%3E");
+  background-size: 240px 240px, 620px 620px;
+  -webkit-mask: radial-gradient(closest-side at 50% 50%, transparent 0 11%, #000 28%);
+          mask: radial-gradient(closest-side at 50% 50%, transparent 0 11%, #000 28%);
+}
+
+/* ═══ Animations — tout sur var(--scene-tempo), transform/opacity only ═══ */
+
+/* l'onde péristaltique : une contraction brève (3,6%) qui traverse le cycle ;
+   le déphasage --pb-ph la fait voyager d'anneau en anneau, du proche au fond */
+@keyframes proto_boyau-peristole {
+  0%       { transform: translate(-50%, -50%) scale(1); }
+  10%      { transform: translate(-50%, -50%) scale(.964); }
+  24%, 100%{ transform: translate(-50%, -50%) scale(1); }
+}
+
+/* respiration de fond : le boyau entier gonfle à peine (1,2%) */
+@keyframes proto_boyau-swell {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.012); }
+}
+
+/* la brume du fond s'exhale quand la contraction atteint la gorge */
+@keyframes proto_boyau-hazebreath {
+  0%       { opacity: .18; transform: scale(1); }
+  12%      { opacity: .42; transform: scale(1.04); }
+  30%, 100%{ opacity: .18; transform: scale(1); }
+}
+
+/* le vernis de torche vit doucement (le flicker rapide reste à .torchlight) */
+@keyframes proto_boyau-glow {
+  0%, 100% { opacity: .46; }
+  50%      { opacity: .62; }
+}
+
+/* ═══ AJOUTS — passages dessinés dans la chair (même vocabulaire que les anneaux) ═══ */
+/* Passage latéral : un orifice charnu ENCHÂSSÉ dans la courbe de la paroi (fort
+   raccourci, incliné), lèvre musculaire éversée — et surtout il RESPIRE :
+   l'intérieur s'éclaire quand il se dilate, et son haleine chaude se répand sur
+   le sol. C'est la LUMIÈRE qui annonce le passage, pas un trou noir. */
+.scene[data-scene="proto_boyau"] .pb-side{
+  position:absolute; top:48%; width:12.5%; height:40%;
+  translate:0 -50%; opacity:0; transition:opacity .6s;
+  border-radius:50%;
+  background:
+    /* profondeur interne : le conduit fuit vers l'extérieur du cadre, un
+       second bourrelet interne suggère qu'il continue */
+    radial-gradient(ellipse 88% 84% at 36% 50%,
+      #000 12%,
+      color-mix(in srgb, var(--meat) 16%, #000) 24%,
+      color-mix(in srgb, var(--pb-crest) 46%, #000) 33%,
+      color-mix(in srgb, var(--meat) 18%, #000) 40%,
+      color-mix(in srgb, var(--pb-crest) 60%, #000) 50%,
+      color-mix(in srgb, var(--meat) 20%, #000) 58%,
+      /* lèvre éversée : crête mouillée côté joueur */
+      var(--pb-crest) 71%,
+      var(--pb-flesh) 80%,
+      var(--pb-vein) 87%,
+      color-mix(in srgb, var(--meat) 28%, #000) 93%,
+      transparent 100%);
+  /* assise dans la paroi : ombre portée du bourrelet sur la chair */
+  box-shadow: 0 10px 34px #000d, 0 0 26px #000b, -8px 0 22px #0009;
+  animation: pb-inhale calc(var(--scene-tempo,8s)*.75) ease-in-out infinite;
+}
+/* l'haleine : un CROISSANT de lumière au fond du conduit (elle vient d'après le
+   coude), qui lèche la paroi interne — l'essentiel du conduit reste noir */
+.scene[data-scene="proto_boyau"] .pb-side::before{
+  content:""; position:absolute; inset:14% 34% 14% 10%; border-radius:50%;
+  background:
+    radial-gradient(ellipse 46% 78% at 18% 50%,
+      color-mix(in srgb, var(--torch) 30%, var(--blood)) 0%,
+      color-mix(in srgb, var(--blood) 55%, transparent) 34%,
+      transparent 60%);
+  -webkit-mask: radial-gradient(ellipse 90% 90% at 60% 50%, transparent 42%, #000 66%);
+          mask: radial-gradient(ellipse 90% 90% at 60% 50%, transparent 42%, #000 66%);
+  mix-blend-mode:screen; filter:blur(3px);
+  animation: pb-breath calc(var(--scene-tempo,8s)*.75) ease-in-out infinite;
+  animation-delay:inherit;
+}
+/* la lueur se répand sur le sol devant l'orifice */
+.scene[data-scene="proto_boyau"] .pb-side::after{
+  content:""; position:absolute; left:-10%; width:210%; bottom:-36%; height:56%;
+  background: radial-gradient(ellipse 50% 58% at 30% 28%,
+    color-mix(in srgb, var(--torch) 17%, transparent) 0%, transparent 70%);
+  mix-blend-mode:screen; filter:blur(7px);
+  animation: pb-breath calc(var(--scene-tempo,8s)*.75) ease-in-out infinite;
+  animation-delay:inherit;
+}
+@keyframes pb-inhale{ 0%,100%{ scale:.94 1; } 50%{ scale:1.03 1.05; } }
+@keyframes pb-breath{ 0%,100%{ opacity:.22; } 50%{ opacity:.85; } }
+.scene[data-scene="proto_boyau"] .pb-side.l{ left:4.5%; rotate:-7deg; animation-delay:calc(var(--scene-tempo,8s)*.1); }
+.scene[data-scene="proto_boyau"] .pb-side.r{ right:4.5%; rotate:7deg; transform:scaleX(-1); animation-delay:calc(var(--scene-tempo,8s)*.34); }
+.scene.has-left  .pb-side.l{ opacity:1; }
+.scene.has-right .pb-side.r{ opacity:1; }
+
+/* ═══ MODE BIFURCATION : la GÉOMÉTRIE du tunnel se dédouble ═══
+   Un passage latéral = un SECOND système d'anneaux + gorge (recette identique
+   aux anneaux d'origine) qui diverge à mi-profondeur — trachée → bronches.
+   Le tronc (r1-r3) est partagé ; la branche s'enfonce vers son côté. */
+.scene[data-scene="proto_boyau"] .pb-br{
+  position:absolute; top:52%; width:23%; height:42%; translate:0 -50%;
+  opacity:0; transition:opacity .6s; pointer-events:none;
+  filter:brightness(.86);   /* la branche reste secondaire face au tronc */
+}
+/* creux d'ombre derrière la branche : la paroi s'enfonce là */
+.scene[data-scene="proto_boyau"] .pb-br::before{
+  content:""; position:absolute; inset:-10% -6%; border-radius:50%;
+  background: radial-gradient(ellipse 54% 54% at 46% 50%, #0009 20%, transparent 68%);
+}
+.scene[data-scene="proto_boyau"] .pb-br .bb{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  border-radius:50%; display:block;
+  -webkit-mask: radial-gradient(closest-side at 50% 50%, transparent 0 67%, #000 72% 96%, transparent 100%);
+          mask: radial-gradient(closest-side at 50% 50%, transparent 0 67%, #000 72% 96%, transparent 100%);
+  background:
+    linear-gradient(180deg,
+      #0009 0%, #0003 26%, transparent 48%,
+      transparent 60%, var(--pb-lume) 80%, #0007 100%),
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg 11deg, #0003 11deg 14deg, transparent 14deg 22deg),
+    radial-gradient(closest-side at 50% 50%,
+      transparent 62%,
+      color-mix(in srgb, var(--meat) 22%, #000) 69%,
+      var(--pb-crest) 78%,
+      var(--pb-flesh) 85%,
+      var(--pb-vein) 90.5%, var(--pb-vein) 92%,
+      color-mix(in srgb, var(--meat) 34%, #000) 97%,
+      transparent 100%);
+  animation: proto_boyau-peristole var(--scene-tempo,8s) ease-in-out infinite;
+  animation-delay: calc(var(--scene-tempo,8s) * var(--pb-ph,.2));
+}
+/* fuite décalée : chaque plan glisse vers le côté → la branche TOURNE */
+.scene[data-scene="proto_boyau"] .pb-br .b1{ width:135%; height:88%; --pb-ph:.20; filter:brightness(.78); }
+.scene[data-scene="proto_boyau"] .pb-br .b2{ width:84%;  height:54%; left:46.5%; --pb-ph:.28; filter:brightness(.60) saturate(.85); }
+.scene[data-scene="proto_boyau"] .pb-br .b3{ width:50%;  height:32%; left:43.5%; --pb-ph:.36; filter:brightness(.46) saturate(.75) blur(.4px); }
+.scene[data-scene="proto_boyau"] .pb-br .bt{
+  width:26%; height:17%; left:41.5%; -webkit-mask:none; mask:none;
+  background: radial-gradient(closest-side at 50% 46%,
+    #000 34%,
+    color-mix(in srgb, var(--meat) 18%, #000) 70%,
+    color-mix(in srgb, var(--meat) 38%, #000) 92%,
+    transparent 100%);
+  box-shadow: 0 0 26px #000c;
+  --pb-ph:.44; filter:none;
+}
+.scene[data-scene="proto_boyau"] .pb-br.l{ left:9%; rotate:-4deg; }
+.scene[data-scene="proto_boyau"] .pb-br.r{ right:9%; rotate:4deg; transform:scaleX(-1); }
+
+/* ═══ MODE FOND : le fond du boyau est UNE SEULE SURFACE de chair, et les bouches
+   sont PEINTES DEDANS (calques du même élément) — rien n'est superposé. Le tronc
+   (r1-r3) s'arrête sur ce mur ; les anneaux profonds/gorge sont retirés (sauf en
+   « fond seul », où l'original reste intact). Inséré SOUS bed/haze/glaze/skin →
+   il reçoit le grain et la glaçure de la scène comme le reste. ═══ */
+.scene[data-scene="proto_boyau"] .pb-wall{
+  display:none; position:absolute; left:50%; top:51%; width:56%; height:58%;
+  translate:-50% -50%; border-radius:50%;
+  -webkit-mask: radial-gradient(closest-side at 50% 50%, #000 0 66%, transparent 96%);
+          mask: radial-gradient(closest-side at 50% 50%, #000 0 66%, transparent 96%);
+  background: var(--wbg);
+  animation: proto_boyau-swell var(--scene-tempo,8s) ease-in-out infinite;
+  animation-delay: calc(var(--scene-tempo,8s)*.22);
+}
+/* — bouches à ANNEAUX IMBRIQUÉS peintes dans le mur (gorge+2 crêtes), une config
+   par sortie(s) ; drift = le conduit tourne vers son côté. WALL_BASE = crête de
+   raccord + lumière torche + chair. Cas droite = miroir du gauche. — */
+.scene.has-left.has-fwd.has-right .pb-wall{ --wbg:radial-gradient(ellipse 6.2% 11.4% at 17.0% 51%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 12% 22% at 20.0% 51%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 21.0% 38.5% at 23% 51%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(ellipse 7.8% 14.6% at 50.0% 49%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 15% 28% at 50.0% 49%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 26.3% 49.0% at 50% 49%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(ellipse 6.2% 11.4% at 83.0% 51%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 12% 22% at 80.0% 51%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 21.0% 38.5% at 77% 51%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(closest-side at 50% 50%, transparent 70%, color-mix(in srgb,var(--pb-crest) 70%,#000) 80%, color-mix(in srgb,var(--pb-flesh) 70%,#000) 86%, color-mix(in srgb,var(--pb-vein) 80%,#000) 91%, color-mix(in srgb,var(--meat) 26%,#000) 96%, transparent 100%),linear-gradient(180deg,#0007 0%,#0002 30%,transparent 55%,var(--pb-lume) 88%,#0005 100%),radial-gradient(ellipse 120% 120% at 50% 46%, color-mix(in srgb,var(--meat) 40%,#000) 0%, color-mix(in srgb,var(--meat) 22%,#000) 66%, color-mix(in srgb,var(--meat) 12%,#000) 100%); }
+.scene.has-left.has-fwd:not(.has-right) .pb-wall,
+.scene.has-right.has-fwd:not(.has-left) .pb-wall{ --wbg:radial-gradient(ellipse 6.8% 12.5% at 19.0% 51%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 13% 24% at 22.0% 51%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 22.8% 42.0% at 25% 51%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(ellipse 8.3% 15.1% at 57.0% 49%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 16% 29% at 57.0% 49%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 28.0% 50.8% at 57% 49%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(closest-side at 50% 50%, transparent 70%, color-mix(in srgb,var(--pb-crest) 70%,#000) 80%, color-mix(in srgb,var(--pb-flesh) 70%,#000) 86%, color-mix(in srgb,var(--pb-vein) 80%,#000) 91%, color-mix(in srgb,var(--meat) 26%,#000) 96%, transparent 100%),linear-gradient(180deg,#0007 0%,#0002 30%,transparent 55%,var(--pb-lume) 88%,#0005 100%),radial-gradient(ellipse 120% 120% at 50% 46%, color-mix(in srgb,var(--meat) 40%,#000) 0%, color-mix(in srgb,var(--meat) 22%,#000) 66%, color-mix(in srgb,var(--meat) 12%,#000) 100%); }
+.scene.has-right.has-fwd:not(.has-left) .pb-wall{ transform:scaleX(-1); }
+.scene.has-left.has-right:not(.has-fwd) .pb-wall{ --wbg:radial-gradient(ellipse 7.3% 13.5% at 21.0% 51%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 14% 26% at 24.0% 51%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 24.5% 45.5% at 27% 51%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(ellipse 7.3% 13.5% at 79.0% 51%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 14% 26% at 76.0% 51%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 24.5% 45.5% at 73% 51%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(closest-side at 50% 50%, transparent 70%, color-mix(in srgb,var(--pb-crest) 70%,#000) 80%, color-mix(in srgb,var(--pb-flesh) 70%,#000) 86%, color-mix(in srgb,var(--pb-vein) 80%,#000) 91%, color-mix(in srgb,var(--meat) 26%,#000) 96%, transparent 100%),linear-gradient(180deg,#0007 0%,#0002 30%,transparent 55%,var(--pb-lume) 88%,#0005 100%),radial-gradient(ellipse 120% 120% at 50% 46%, color-mix(in srgb,var(--meat) 40%,#000) 0%, color-mix(in srgb,var(--meat) 22%,#000) 66%, color-mix(in srgb,var(--meat) 12%,#000) 100%); }
+.scene.has-left:not(.has-fwd):not(.has-right) .pb-wall,
+.scene.has-right:not(.has-fwd):not(.has-left) .pb-wall{ --wbg:radial-gradient(ellipse 7.8% 14.6% at 29.0% 50%, #000 34%, color-mix(in srgb,var(--meat) 18%,#000) 70%, color-mix(in srgb,var(--meat) 38%,#000) 92%, transparent 100%),radial-gradient(ellipse 15% 28% at 33.0% 50%, transparent 54%, color-mix(in srgb,var(--meat) 22%,#000) 62%, var(--pb-crest) 72%, var(--pb-flesh) 80%, var(--pb-vein) 86%, color-mix(in srgb,var(--meat) 34%,#000) 93%, transparent 100%),radial-gradient(ellipse 26.3% 49.0% at 37% 50%, transparent 66%, color-mix(in srgb,var(--pb-crest) 55%,#000) 76%, color-mix(in srgb,var(--pb-flesh) 55%,#000) 83%, color-mix(in srgb,var(--pb-vein) 75%,#000) 89%, color-mix(in srgb,var(--meat) 24%,#000) 95%, transparent 100%),radial-gradient(closest-side at 50% 50%, transparent 70%, color-mix(in srgb,var(--pb-crest) 70%,#000) 80%, color-mix(in srgb,var(--pb-flesh) 70%,#000) 86%, color-mix(in srgb,var(--pb-vein) 80%,#000) 91%, color-mix(in srgb,var(--meat) 26%,#000) 96%, transparent 100%),linear-gradient(180deg,#0007 0%,#0002 30%,transparent 55%,var(--pb-lume) 88%,#0005 100%),radial-gradient(ellipse 120% 120% at 50% 46%, color-mix(in srgb,var(--meat) 40%,#000) 0%, color-mix(in srgb,var(--meat) 22%,#000) 66%, color-mix(in srgb,var(--meat) 12%,#000) 100%); }
+.scene.has-right:not(.has-fwd):not(.has-left) .pb-wall{ transform:scaleX(-1); }
+.scene:not(.has-left):not(.has-fwd):not(.has-right) .pb-wall{ --wbg:radial-gradient(closest-side at 50% 50%, transparent 70%, color-mix(in srgb,var(--pb-crest) 70%,#000) 80%, color-mix(in srgb,var(--pb-flesh) 70%,#000) 86%, color-mix(in srgb,var(--pb-vein) 80%,#000) 91%, color-mix(in srgb,var(--meat) 26%,#000) 96%, transparent 100%),linear-gradient(180deg,#0007 0%,#0002 30%,transparent 55%,var(--pb-lume) 88%,#0005 100%),radial-gradient(ellipse 120% 120% at 50% 46%, color-mix(in srgb,var(--meat) 40%,#000) 0%, color-mix(in srgb,var(--meat) 22%,#000) 66%, color-mix(in srgb,var(--meat) 12%,#000) 100%); }
+
+/* Activation du mur : mode "wall", sauf « fond seul » (original intact). Les
+   plans profonds du tronc disparaissent derrière le mur. */
+.scene[data-doors="wall"]:is(.has-left,.has-right,:not(.has-fwd)) .pb-wall{ display:block; }
+.scene[data-doors="wall"]:is(.has-left,.has-right,:not(.has-fwd)) .proto_boyau-r4,
+.scene[data-doors="wall"]:is(.has-left,.has-right,:not(.has-fwd)) .proto_boyau-r5,
+.scene[data-doors="wall"]:is(.has-left,.has-right,:not(.has-fwd)) .proto_boyau-throat{ display:none; }
+/* en mode wall, le clench ne sert qu'au cul-de-sac TOTAL */
+.scene[data-doors="wall"]:is(.has-left,.has-right) .pb-clench{ display:none !important; }
+
+/* ═══ Sélecteur de portes : fond intégré / bifurcation / orifices ═══ */
+.scene[data-doors="orifice"] .pb-br{ display:none; }
+.scene[data-doors="wall"] .pb-side{ display:none; }
+.scene[data-doors="wall"] .pb-side, .scene[data-doors="wall"] .pb-br{ display:none; }
+.scene[data-doors="wall"].has-left  .pb-br.l{ opacity:1; }
+.scene[data-doors="wall"].has-right .pb-br.r{ opacity:1; }
+
+/* Cul-de-sac : le gosier du fond se referme en sphincter — anneaux serrés,
+   concentriques (pas de rayons), avec un nœud mouillé central. */
+.scene[data-scene="proto_boyau"] .pb-clench{
+  position:absolute; left:50%; top:50%; translate:-50% -50%;
+  width:23%; height:21%; border-radius:50%; display:none;
+  -webkit-mask: radial-gradient(closest-side at 50% 50%, #000 0 82%, transparent 100%);
+          mask: radial-gradient(closest-side at 50% 50%, #000 0 82%, transparent 100%);
+  background:
+    /* rides concentriques serrées → chair pincée */
+    radial-gradient(closest-side at 50% 47%,
+      var(--pb-lume2) 0%, var(--pb-crest) 9%,
+      color-mix(in srgb,var(--meat) 22%,#000) 19%,
+      var(--pb-crest) 29%,
+      color-mix(in srgb,var(--meat) 22%,#000) 41%,
+      var(--pb-flesh) 53%,
+      var(--pb-vein) 66%,
+      color-mix(in srgb,var(--meat) 28%,#000) 80%,
+      transparent 100%),
+    /* faible froissement organique (irrégularité, très discret) */
+    repeating-conic-gradient(from 10deg at 50% 50%, transparent 0deg 20deg, #0002 20deg 30deg, transparent 30deg 44deg),
+    /* éclairage vertical torche */
+    linear-gradient(180deg,#0008 0%,transparent 46%,var(--pb-lume) 82%,#0006 100%);
+  box-shadow: inset 0 0 18px #0009;
+  filter: blur(1px);
+  animation: pb-strain calc(var(--scene-tempo,8s)*.8) ease-in-out infinite;
+}
+@keyframes pb-strain{ 0%,100%{ scale:1; } 50%{ scale:.94; } }
+.scene:not(.has-fwd) [data-scene] .proto_boyau-throat,
+.scene:not(.has-fwd) .proto_boyau-throat{ display:none; }
+.scene:not(.has-fwd) .pb-clench{ display:block; }
+.scene:not(.has-fwd) .proto_boyau-r5{ opacity:.45; }
+
+</style></head><body>
+<header>
+  <h1>Gorge — Boyau contractile <small>· original intact + passages dessinés dans la chair (pas de porte moteur)</small></h1>
+  <div class="row">
+    <div class="grp"><span class="lbl">Passages</span>
+      <label class="ck on"><input type="checkbox" id="p-left" checked> gauche</label>
+      <label class="ck on"><input type="checkbox" id="p-fwd" checked> fond</label>
+      <label class="ck on"><input type="checkbox" id="p-right" checked> droite</label>
+    </div>
+    <div class="grp"><span class="lbl">Portes</span>
+      <button class="va md on" data-m="wall">Fond intégré</button>
+      <button class="va md" data-m="bif">Bifurcation</button>
+      <button class="va md" data-m="orifice">Orifices</button>
+    </div>
+    <div class="grp"><span class="lbl">Variante</span>
+      <button class="va on" data-v="gorge">Gorge</button>
+      <button class="va" data-v="sang">Sang frais</button>
+      <button class="va" data-v="chair">Chair vive</button>
+      <button class="va" data-v="viscere">Viscère</button>
+      <button class="va" data-v="fournaise">Fournaise</button>
+    </div>
+  </div>
+</header>
+<div id="stage"><div class="viewport">
+  <div class="scene has-left has-fwd has-right" id="scene" data-scene="proto_boyau" data-variant="gorge" data-doors="wall">
+    <div class="proto_boyau-root" aria-hidden="true"><div class="proto_boyau-bg" aria-hidden="true"></div><div class="proto_boyau-throat" aria-hidden="true"></div><div class="proto_boyau-ring proto_boyau-r5" aria-hidden="true"></div><div class="proto_boyau-ring proto_boyau-r4" aria-hidden="true"></div><div class="proto_boyau-ring proto_boyau-r3" aria-hidden="true"></div><div class="proto_boyau-ring proto_boyau-r2" aria-hidden="true"></div><div class="proto_boyau-ring proto_boyau-r1" aria-hidden="true"></div><div class="pb-wall" aria-hidden="true"></div><div class="proto_boyau-bed" aria-hidden="true"></div><div class="proto_boyau-haze" aria-hidden="true"></div><div class="proto_boyau-glaze" aria-hidden="true"></div><div class="proto_boyau-skin" aria-hidden="true"></div>
+      <div class="pb-side l" aria-hidden="true"></div>
+      <div class="pb-side r" aria-hidden="true"></div>
+      <div class="pb-br l" aria-hidden="true"><i class="bb b1"></i><i class="bb b2"></i><i class="bb b3"></i><i class="bb bt"></i></div>
+      <div class="pb-br r" aria-hidden="true"><i class="bb b1"></i><i class="bb b2"></i><i class="bb b3"></i><i class="bb bt"></i></div>
+      <div class="pb-clench" aria-hidden="true"></div>
+    </div>
+  </div>
+</div></div>
+<div id="tip">Décoche <b>fond</b> → le gosier se referme (cul-de-sac). <b>gauche/droite</b> → des passages s'ouvrent dans la paroi. Les variantes ne changent que les 5 tokens de biome.</div>
+<script>
+  const scene = document.getElementById('scene');
+  const VARS = {"gorge":"--meat:#2e1112;--blood:#8a2f2a;--thread:#5d2120;--torch:#c47f33;--torch-hot:#e8b25c;","sang":"--meat:#3a1014;--blood:#b5333a;--thread:#6a1c1e;--torch:#d06a3a;--torch-hot:#ff8a5c;","chair":"--meat:#4a1a1e;--blood:#c8484e;--thread:#7a2428;--torch:#d88a4a;--torch-hot:#ffb07a;","viscere":"--meat:#2a0e18;--blood:#7a2440;--thread:#521a2e;--torch:#b06a4a;--torch-hot:#e0a070;","fournaise":"--meat:#3a1210;--blood:#a83828;--thread:#6a2418;--torch:#e08a30;--torch-hot:#ffc060;"};
+  function setVariant(v){ const p = VARS[v]; if(!p) return;
+    p.split(';').filter(Boolean).forEach(d => { const [k,val]=d.split(':'); scene.style.setProperty(k.trim(), val.trim()); });
+    scene.dataset.variant = v;
+    document.querySelectorAll('button.va').forEach(b => b.classList.toggle('on', b.dataset.v===v));
+  }
+  document.querySelectorAll('button.va:not(.md)').forEach(b => b.onclick = () => setVariant(b.dataset.v));
+  function setDoors(m){ scene.dataset.doors = m;
+    document.querySelectorAll('button.md').forEach(b => b.classList.toggle('on', b.dataset.m===m)); }
+  document.querySelectorAll('button.md').forEach(b => b.onclick = () => setDoors(b.dataset.m));
+  function bindPassage(id, cls){ const cb=document.getElementById(id), lab=cb.closest('label');
+    const sync=()=>{ scene.classList.toggle(cls, cb.checked); lab.classList.toggle('on', cb.checked); };
+    cb.addEventListener('change', sync); sync(); }
+  bindPassage('p-left','has-left'); bindPassage('p-fwd','has-fwd'); bindPassage('p-right','has-right');
+  const q=new URLSearchParams(location.search);
+  if(VARS[q.get('v')]) setVariant(q.get('v'));
+  if(['wall','bif','orifice'].includes(q.get('doors'))) setDoors(q.get('doors'));
+  for(const [p,id] of [['fwd','p-fwd'],['left','p-left'],['right','p-right']])
+    if(q.has(p)){ const cb=document.getElementById(id); cb.checked=q.get(p)!=='0'; cb.dispatchEvent(new Event('change')); }
+</script>
+</body></html>
