@@ -533,10 +533,6 @@ function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
         <div>
           <div className="module-sub">UE5 · BLUEPRINT</div>
           <h1 className="module-head">Blueprint Bootcamp</h1>
-          <p className="ue5-hero-tag">
-            Les bases d'<b>Unreal Engine 5.4</b> en <b>cartes mémo</b> + <b>quiz</b> : éditeur, Blueprints, events,
-            fonctions, <b>widgets</b>, <b>signaux</b>, mesh/anim et IA. Objectif : <b>défoncer le contrôle</b>. 🎮
-          </p>
         </div>
         <div className="ue5-badge-ue"><span>Unreal Engine <b>5.4</b></span></div>
       </div>
