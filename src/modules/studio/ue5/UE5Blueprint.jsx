@@ -541,7 +541,7 @@ function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
         <div className="ue5-exam-card">
           <div className="ue5-exam-txt">
             <h3>Examen <b>blanc</b></h3>
-            <p>Questions tirées au hasard dans TOUS les chapitres. La meilleure simulation du jour J.</p>
+            <p>Questions tirées au hasard dans TOUS les chapitres.</p>
           </div>
           <div className="ue5-exam-btns">
             <button className="btn ghost" onClick={() => onExam(15)}><span>Éclair · 15 Q</span></button>
