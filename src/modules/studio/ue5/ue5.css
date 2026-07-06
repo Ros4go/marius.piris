@@ -1,0 +1,867 @@
+/* =====================================================================
+   UE5 BLUEPRINT — module de révision (fiches + quiz)
+   Réutilise la palette Persona globale (--red / --cream / --ink…).
+   Ambiance "arcade / bootcamp" : angulaire, rouge, néon léger.
+   ===================================================================== */
+
+.ue5 {
+  position: relative;
+  min-height: 100%;
+}
+.ue5-inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- En-tête ---- */
+.ue5-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px 28px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.ue5-hero .module-head { margin-bottom: 0.12em; }
+.ue5-hero-tag {
+  font-family: 'Inter', sans-serif;
+  color: #d7d2cb;
+  max-width: 560px;
+  line-height: 1.55;
+  font-size: 14px;
+}
+.ue5-hero-tag b { color: var(--cream); }
+.ue5-badge-ue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--cream);
+  background: rgba(236, 0, 22, 0.14);
+  border: 1px solid rgba(236, 0, 22, 0.5);
+  padding: 6px 12px;
+  transform: skewX(-8deg);
+}
+.ue5-badge-ue b { color: var(--red); }
+
+/* ---- Barre de stats globale ---- */
+.ue5-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 26px;
+}
+.ue5-stat {
+  background: var(--ink);
+  border-left: 4px solid var(--red);
+  padding: 10px 16px;
+  min-width: 120px;
+  transform: skewX(-8deg);
+}
+.ue5-stat > * { transform: skewX(8deg); display: block; }
+.ue5-stat .n {
+  font-family: 'Anton', sans-serif;
+  font-size: 26px;
+  color: var(--cream);
+  line-height: 1;
+}
+.ue5-stat .l {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey);
+  margin-top: 4px;
+}
+
+/* =====================================================================
+   GRILLE DES CHAPITRES
+   ===================================================================== */
+.ue5-chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+  gap: 16px;
+}
+.ue5-chap {
+  position: relative;
+  background: var(--ink);
+  border-left: 5px solid var(--red);
+  padding: 16px 18px 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: ue5In 0.4s ease both;
+}
+.ue5-chap::after {
+  content: '';
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(236, 0, 22, 0.16), transparent 70%);
+  pointer-events: none;
+}
+.ue5-chap.special { border-left-color: #ffb300; }
+.ue5-chap.special::after { background: radial-gradient(circle, rgba(255,179,0,0.16), transparent 70%); }
+.ue5-chap-top {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.ue5-chap-num {
+  font-family: 'Anton', sans-serif;
+  font-size: 40px;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(236, 0, 22, 0.6);
+  transform: skewX(-8deg);
+}
+.ue5-chap.special .ue5-chap-num { -webkit-text-stroke-color: rgba(255,179,0,0.7); }
+.ue5-chap-title {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+  color: var(--cream);
+  line-height: 1.02;
+}
+.ue5-chap-sum {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #cfc9c1;
+  min-height: 38px;
+}
+.ue5-chap-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--grey);
+  letter-spacing: 0.04em;
+}
+.ue5-chap-meta b { color: var(--cream); font-weight: 700; }
+.ue5-chap-best {
+  color: #7dd88a;
+  font-weight: 700;
+}
+.ue5-chap-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+.ue5-mini {
+  flex: 1;
+  cursor: pointer;
+  border: 0;
+  padding: 9px 10px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  transform: skewX(-8deg);
+  transition: transform 0.12s, background 0.15s, color 0.15s;
+}
+.ue5-mini > span { display: inline-block; transform: skewX(8deg); }
+.ue5-mini.rev {
+  background: rgba(253, 246, 238, 0.06);
+  color: var(--cream);
+  border: 1px solid rgba(253, 246, 238, 0.18);
+}
+.ue5-mini.rev:hover { background: rgba(253, 246, 238, 0.14); }
+.ue5-mini.quiz {
+  background: var(--red);
+  color: #fff;
+}
+.ue5-mini.quiz:hover { background: var(--red-deep); }
+.ue5-mini:active { transform: skewX(-8deg) scale(0.96); }
+
+/* Carte "examen blanc" en avant */
+.ue5-exam-card {
+  grid-column: 1 / -1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(120deg, #240608, var(--ink) 70%);
+  border-left: 5px solid #ffb300;
+  padding: 18px 22px;
+  overflow: hidden;
+}
+.ue5-exam-card .ue5-exam-txt { max-width: 620px; }
+.ue5-exam-card h3 {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: 24px;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+}
+.ue5-exam-card h3 b { color: #ffb300; }
+.ue5-exam-card p {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #cfc9c1;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.ue5-exam-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* =====================================================================
+   SOUS-VUE (fiches / quiz) — barre de retour
+   ===================================================================== */
+.ue5-subhead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.ue5-back {
+  cursor: pointer;
+  background: none;
+  border: 2px solid var(--red);
+  color: var(--cream);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 13px;
+  padding: 8px 14px;
+  transform: skewX(-8deg);
+  transition: background 0.15s;
+}
+.ue5-back > span { display: inline-block; transform: skewX(8deg); }
+.ue5-back:hover { background: rgba(236, 0, 22, 0.16); }
+.ue5-subtitle {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(22px, 3.4vw, 34px);
+  color: var(--cream);
+  transform: skewX(-8deg);
+  text-shadow: 3px 3px 0 var(--red);
+}
+
+/* =====================================================================
+   FICHES DE RÉVISION
+   ===================================================================== */
+.ue5-fiches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.ue5-fiche {
+  background: var(--ink);
+  border-left: 4px solid var(--red);
+  padding: 16px 18px;
+  animation: ue5In 0.35s ease both;
+}
+.ue5-fiche h3 {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  color: var(--cream);
+  margin-bottom: 8px;
+}
+.ue5-fiche .body {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: #d7d2cb;
+}
+.ue5-fiche .body b, .ue5-fiche .body strong { color: var(--cream); font-weight: 700; }
+.ue5-fiche .body code {
+  font-family: 'Consolas', ui-monospace, monospace;
+  background: rgba(236, 0, 22, 0.14);
+  border: 1px solid rgba(236, 0, 22, 0.35);
+  color: #ffd9dc;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+.ue5-keypoints {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ue5-keypoints li {
+  position: relative;
+  padding-left: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #cfc9c1;
+}
+.ue5-keypoints li::before {
+  content: '▸';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  color: var(--red);
+  font-weight: 700;
+}
+.ue5-vnote {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(255, 179, 0, 0.1);
+  border-left: 3px solid #ffb300;
+  padding: 8px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #f2e2c2;
+}
+.ue5-vnote b { color: #ffce6b; }
+.ue5-sources {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ue5-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #9fd0ff;
+  text-decoration: none;
+  border: 1px solid rgba(159, 208, 255, 0.35);
+  border-radius: 4px;
+  padding: 3px 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ue5-src:hover { background: rgba(159, 208, 255, 0.12); border-color: rgba(159, 208, 255, 0.7); }
+.ue5-src::before { content: '🔗'; font-size: 10px; }
+
+/* bandeau de sources en bas de chapitre */
+.ue5-src-band {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(253, 246, 238, 0.1);
+}
+.ue5-src-band .module-sub { display: block; margin-bottom: 10px; }
+
+/* Diagrammes SVG */
+.ue5-diagram {
+  background: #0c0a09;
+  border: 1px solid rgba(236, 0, 22, 0.25);
+  border-radius: 6px;
+  padding: 14px;
+  margin: 4px 0 2px;
+}
+.ue5-diagram svg { width: 100%; height: auto; display: block; }
+.ue5-diagram .cap {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--grey);
+  text-align: center;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+.ue5-fiche.wide { grid-column: 1 / -1; }
+
+/* =====================================================================
+   QUIZ
+   ===================================================================== */
+.ue5-quiz {
+  max-width: 780px;
+  margin: 0 auto;
+  animation: ue5In 0.35s ease both;
+}
+.ue5-prog {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.ue5-prog-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(253, 246, 238, 0.08);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.ue5-prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red-deep), var(--red));
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ue5-prog-txt {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--cream);
+  white-space: nowrap;
+}
+.ue5-prog-score {
+  font-family: 'Anton', sans-serif;
+  color: var(--red);
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.ue5-qcard {
+  background: var(--ink);
+  border-left: 5px solid var(--red);
+  padding: 22px 24px;
+  animation: ue5In 0.3s ease both;
+}
+.ue5-qtopic {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 8px;
+}
+.ue5-qdiff {
+  float: right;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+.ue5-qdiff.facile { color: #7dd88a; }
+.ue5-qdiff.moyen { color: #ffce6b; }
+.ue5-qdiff.difficile { color: #ff8080; }
+.ue5-qtext {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: clamp(18px, 2.3vw, 23px);
+  line-height: 1.28;
+  color: var(--cream);
+  margin-bottom: 18px;
+}
+.ue5-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ue5-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: rgba(253, 246, 238, 0.04);
+  border: 1px solid rgba(253, 246, 238, 0.12);
+  border-left: 4px solid var(--grey);
+  padding: 13px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--cream);
+  transition: background 0.14s, border-color 0.14s, transform 0.1s;
+}
+.ue5-choice:not(:disabled):hover {
+  background: rgba(236, 0, 22, 0.1);
+  border-left-color: var(--red);
+  transform: translateX(3px);
+}
+.ue5-choice .k {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  font-family: 'Anton', sans-serif;
+  font-size: 15px;
+  background: rgba(253, 246, 238, 0.08);
+  color: var(--cream);
+  transform: skewX(-8deg);
+}
+.ue5-choice .k > span { transform: skewX(8deg); }
+.ue5-choice:disabled { cursor: default; }
+.ue5-choice.correct {
+  background: rgba(56, 180, 90, 0.16);
+  border-color: #38b45a;
+  border-left-color: #38b45a;
+}
+.ue5-choice.correct .k { background: #38b45a; color: #04210d; }
+.ue5-choice.wrong {
+  background: rgba(236, 0, 22, 0.16);
+  border-color: var(--red);
+  border-left-color: var(--red);
+}
+.ue5-choice.wrong .k { background: var(--red); color: #fff; }
+.ue5-choice .mark {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 700;
+}
+.ue5-choice.correct .mark { color: #38b45a; }
+.ue5-choice.wrong .mark { color: var(--red); }
+
+.ue5-explain {
+  margin-top: 16px;
+  background: rgba(9, 8, 7, 0.6);
+  border-left: 4px solid var(--red);
+  padding: 13px 16px;
+  animation: ue5In 0.3s ease both;
+}
+.ue5-explain.ok { border-left-color: #38b45a; }
+.ue5-explain .head {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.ue5-explain.ok .head { color: #7dd88a; }
+.ue5-explain.ko .head { color: #ff8080; }
+.ue5-explain p {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #d7d2cb;
+}
+.ue5-quiz-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+/* =====================================================================
+   ÉCRAN DE RÉSULTAT + MESSAGES GOOFY
+   ===================================================================== */
+.ue5-result {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  animation: ue5In 0.4s ease both;
+}
+.ue5-result-ring {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin: 6px auto 10px;
+}
+.ue5-result-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.ue5-result-ring .pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  flex-direction: column;
+}
+.ue5-result-ring .pct .big {
+  font-family: 'Anton', sans-serif;
+  font-size: 52px;
+  line-height: 0.9;
+  color: var(--cream);
+}
+.ue5-result-ring .pct .sub {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--grey);
+}
+.ue5-goofy {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(30px, 6vw, 62px);
+  line-height: 0.92;
+  color: var(--cream);
+  transform: skewX(-6deg) rotate(-2deg);
+  text-shadow: 5px 5px 0 var(--red);
+  margin: 8px 0 6px;
+  animation: goofySlam 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@keyframes goofySlam {
+  0% { opacity: 0; transform: skewX(-6deg) rotate(-2deg) scale(1.6); }
+  60% { opacity: 1; transform: skewX(-6deg) rotate(-2deg) scale(0.97); }
+  100% { opacity: 1; transform: skewX(-6deg) rotate(-2deg) scale(1); }
+}
+.ue5-goofy-sub {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--grey);
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.ue5-result-detail {
+  font-family: 'Inter', sans-serif;
+  color: #d7d2cb;
+  font-size: 14px;
+  margin: 12px 0 20px;
+  line-height: 1.6;
+}
+.ue5-result-detail b { color: var(--cream); }
+.ue5-result-best {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #ffce6b;
+  border: 1px solid rgba(255, 179, 0, 0.5);
+  padding: 5px 12px;
+  margin-bottom: 18px;
+  transform: skewX(-8deg);
+}
+.ue5-result-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+/* confettis pixels */
+.ue5-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  overflow: hidden;
+}
+.ue5-confetti i {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 9px;
+  opacity: 0;
+  animation: confFall linear forwards;
+}
+@keyframes confFall {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  100% { transform: translateY(112vh) rotate(540deg); opacity: 0.9; }
+}
+
+@keyframes ue5In {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* review récap en fin d'examen */
+.ue5-review {
+  margin-top: 24px;
+  text-align: left;
+}
+.ue5-review h4 {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  color: var(--cream);
+  font-size: 18px;
+  margin-bottom: 10px;
+  transform: skewX(-6deg);
+}
+.ue5-review-item {
+  background: var(--ink);
+  border-left: 3px solid var(--grey);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ue5-review-item.ok { border-left-color: #38b45a; }
+.ue5-review-item.ko { border-left-color: var(--red); }
+.ue5-review-item .q { color: var(--cream); font-weight: 600; }
+.ue5-review-item .a { color: #cfc9c1; margin-top: 4px; font-size: 12.5px; }
+.ue5-review-item .a .good { color: #7dd88a; }
+.ue5-review-item .a .bad { color: #ff8080; text-decoration: line-through; }
+
+@media (max-width: 560px) {
+  .ue5-chapters { grid-template-columns: 1fr; }
+  .ue5-fiches { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================
+   V2 — Fond FIXE, cartes mémo, filtres tiers, réglage quiz
+   ===================================================================== */
+
+/* Le fond ne suit plus la hauteur du contenu : il est ancré au viewport. */
+.ue5 { min-height: 100%; }
+.ue5 .persona-bg { position: fixed; inset: 0; z-index: 0; }
+.ue5-inner { position: relative; z-index: 1; }
+
+/* Accueil : résumé chapitre borné à 2 lignes (moins de pavé) */
+.ue5-chap-sum {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Quiz : hauteur mini stable → plus de saut entre questions courtes/longues */
+.ue5-qcard { min-height: 360px; }
+
+/* ---------- Filtres (tiers + à revoir) ---------- */
+.ue5-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.ue5-fchip {
+  cursor: pointer; border: 1px solid rgba(253, 246, 238, 0.16); background: rgba(253, 246, 238, 0.05);
+  color: var(--cream); font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 13px;
+  transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+.ue5-fchip i { font-style: normal; margin-left: 6px; opacity: 0.65; font-size: 11px; }
+.ue5-fchip:hover { background: rgba(253, 246, 238, 0.12); }
+.ue5-fchip.on { background: var(--red); border-color: var(--red); color: #fff; }
+.ue5-fchip.on i { opacity: 0.85; }
+.ue5-fchip.facile.on { background: #2f8f43; border-color: #2f8f43; }
+.ue5-fchip.moyen.on { background: #b8860b; border-color: #b8860b; }
+.ue5-fchip.review.on { background: #ffb300; border-color: #ffb300; color: #241a00; }
+.ue5-filters-sep { flex: 1; min-width: 6px; }
+.ue5-known-count { font-family: 'Oswald'; font-weight: 600; font-size: 12px; color: #7dd88a; letter-spacing: 0.04em; white-space: nowrap; }
+
+/* ---------- Deck de cartes ---------- */
+.ue5-cards { max-width: 760px; margin: 0 auto; }
+.ue5-deck-prog { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-family: 'Oswald'; font-weight: 700; font-size: 13px; color: var(--cream); }
+.ue5-deck-prog > span:first-child { white-space: nowrap; }
+
+.ue5-linkbtn { cursor: pointer; background: none; border: 0; color: #9fd0ff; font-family: 'Inter', sans-serif; font-size: 12.5px; text-decoration: underline; text-underline-offset: 2px; padding: 0; }
+.ue5-linkbtn:hover { color: #cfe6ff; }
+.ue5-linkbtn.small { font-size: 11px; color: var(--grey); margin-left: auto; }
+
+.ue5-card { display: block; width: 100%; text-align: left; cursor: pointer; border: 0; padding: 0; background: transparent; margin-bottom: 16px; }
+.ue5-card-face {
+  position: relative; min-height: 300px; display: flex; flex-direction: column;
+  background: var(--ink); border-left: 5px solid var(--red); padding: 24px;
+  animation: cardFlip 0.28s ease both;
+}
+@keyframes cardFlip { from { opacity: 0; } to { opacity: 1; } }
+.ue5-card-face.cface-front { align-items: center; justify-content: center; text-align: center; }
+.ue5-card.isknown .ue5-card-face { border-left-color: #38b45a; }
+
+.ue5-tier-badge { position: absolute; top: 14px; left: 14px; font-family: 'Oswald'; font-weight: 700; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 9px; transform: skewX(-8deg); }
+.ue5-tier-badge.facile { background: rgba(56, 180, 90, 0.18); color: #7dd88a; border: 1px solid rgba(56, 180, 90, 0.5); }
+.ue5-tier-badge.moyen { background: rgba(255, 179, 0, 0.16); color: #ffce6b; border: 1px solid rgba(255, 179, 0, 0.5); }
+.ue5-tier-badge.difficile { background: rgba(236, 0, 22, 0.16); color: #ff8f8f; border: 1px solid rgba(236, 0, 22, 0.55); }
+.ue5-card-known { position: absolute; top: 15px; right: 15px; font-family: 'Oswald'; font-weight: 700; font-size: 11px; color: #7dd88a; letter-spacing: 0.06em; }
+
+.ue5-card-front-text { font-family: 'Anton', sans-serif; text-transform: uppercase; font-size: clamp(20px, 3vw, 30px); line-height: 1.1; color: var(--cream); letter-spacing: 0.01em; max-width: 92%; }
+.ue5-card-hint { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; font-family: 'Inter'; font-size: 11px; color: var(--grey); letter-spacing: 0.08em; }
+
+.ue5-card-back-title { font-family: 'Anton', sans-serif; text-transform: uppercase; font-size: 16px; color: var(--red); letter-spacing: 0.02em; margin-bottom: 14px; padding-right: 90px; }
+.ue5-card .ue5-keypoints { margin: 0; gap: 11px; }
+.ue5-card .ue5-keypoints li { font-size: 14.5px; line-height: 1.5; color: #e6e1d9; padding-left: 22px; }
+.ue5-detail { margin-top: 16px; }
+.ue5-detail-body { margin-top: 8px; font-family: 'Inter'; font-size: 13px; line-height: 1.6; color: #c8c2ba; }
+
+/* actions cartes */
+.ue5-card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ue5-navbtn { cursor: pointer; background: rgba(253, 246, 238, 0.06); border: 1px solid rgba(253, 246, 238, 0.16); color: var(--cream); font-family: 'Oswald'; font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; padding: 11px 14px; transition: background 0.14s; }
+.ue5-navbtn:hover:not(:disabled) { background: rgba(253, 246, 238, 0.14); }
+.ue5-navbtn:disabled { opacity: 0.35; cursor: default; }
+.ue5-mark { cursor: pointer; border: 0; font-family: 'Oswald'; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; padding: 12px 16px; transition: filter 0.14s, transform 0.1s; }
+.ue5-mark:active { transform: scale(0.96); }
+.ue5-mark.reveal { flex: 1; background: var(--red); color: #fff; }
+.ue5-mark.reveal:hover { background: var(--red-deep); }
+.ue5-mark.know { background: #2f8f43; color: #fff; margin-left: auto; }
+.ue5-mark.know:hover { filter: brightness(1.12); }
+.ue5-mark.review { background: rgba(255, 179, 0, 0.16); color: #ffce6b; border: 1px solid rgba(255, 179, 0, 0.5); }
+.ue5-mark.review:hover { background: rgba(255, 179, 0, 0.26); }
+
+/* diagrammes repliables */
+.ue5-diag-toggle { margin-bottom: 16px; }
+.ue5-diag-grid { margin-top: 10px; display: grid; gap: 12px; }
+
+/* fin de paquet */
+.ue5-deck-end { text-align: center; background: var(--ink); border-left: 5px solid var(--red); padding: 36px 24px; animation: ue5In 0.35s ease both; }
+.ue5-deck-end-emoji { font-size: 52px; }
+.ue5-deck-end h3 { font-family: 'Anton'; text-transform: uppercase; font-size: 24px; color: var(--cream); margin: 10px 0 6px; }
+.ue5-deck-end p { font-family: 'Inter'; font-size: 14px; color: #cfc9c1; margin-bottom: 20px; }
+.ue5-deck-end-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.ue5-cards-foot { margin-top: 22px; text-align: center; }
+
+/* ---------- Réglage quiz (difficulté) ---------- */
+.ue5-setup { max-width: 760px; margin: 0 auto; }
+.ue5-diffgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+.ue5-diffopt { cursor: pointer; text-align: left; border: 0; border-left: 5px solid var(--grey); background: var(--ink); padding: 18px 20px; display: flex; flex-direction: column; gap: 5px; transition: transform 0.15s, box-shadow 0.15s; }
+.ue5-diffopt:hover:not(.disabled) { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5); }
+.ue5-diffopt.mix { border-left-color: var(--cream); }
+.ue5-diffopt.facile { border-left-color: #38b45a; }
+.ue5-diffopt.moyen { border-left-color: #ffb300; }
+.ue5-diffopt.difficile { border-left-color: var(--red); }
+.ue5-diffopt.disabled { opacity: 0.4; cursor: default; }
+.ue5-diffopt .d-lab { font-family: 'Anton'; text-transform: uppercase; font-size: 22px; color: var(--cream); letter-spacing: 0.02em; }
+.ue5-diffopt .d-n { font-family: 'Oswald'; font-weight: 600; font-size: 13px; color: var(--grey); }
+.ue5-diffopt .d-go { font-family: 'Oswald'; font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); margin-top: 4px; }
+
+.ue5-quiz-sub { font-family: 'Oswald'; font-weight: 600; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey); margin-bottom: 12px; }
+
+@media (max-width: 560px) {
+  .ue5-card-face { padding: 18px; min-height: 260px; }
+  .ue5-mark.know { margin-left: 0; }
+}
+
+/* =====================================================================
+   V3 — Encart définition (jaune) + ressources (images / liens)
+   ===================================================================== */
+
+/* Encart jaune « Définition » (après réponse au quiz + cartes) */
+.ue5-def {
+  margin-top: 14px;
+  background: linear-gradient(180deg, rgba(255, 179, 0, 0.14), rgba(255, 179, 0, 0.05));
+  border: 1px solid rgba(255, 179, 0, 0.45);
+  border-left: 4px solid #ffb300;
+  border-radius: 4px;
+  padding: 12px 14px;
+  animation: ue5In 0.3s ease both;
+}
+.ue5-def-head {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffce6b;
+  margin-bottom: 5px;
+}
+.ue5-def p { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.55; color: #f2e6cf; }
+.ue5-def strong, .ue5-def code { color: #fff; }
+
+/* Ligne de toggles (schémas / ressources) */
+.ue5-extras { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; margin-bottom: 16px; }
+.ue5-extras > .ue5-diag-grid, .ue5-extras > .ue5-res { flex-basis: 100%; }
+
+/* Images ressources (hotlink) */
+.ue5-res { margin-top: 8px; }
+.ue5-res-imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.ue5-res-img { display: block; position: relative; border: 1px solid rgba(253, 246, 238, 0.12); border-radius: 6px; overflow: hidden; text-decoration: none; background: #0c0a09; transition: transform 0.15s, border-color 0.15s; }
+.ue5-res-img:hover { transform: translateY(-3px); border-color: var(--red); }
+.ue5-res-img img { display: block; width: 100%; height: 122px; object-fit: cover; background: #160c0e; }
+.ue5-res-img .cap { display: block; font-family: 'Inter', sans-serif; font-size: 11px; line-height: 1.35; color: #cfc9c1; padding: 7px 9px; }
+
+/* Liens communautaires (colorés par type) */
+.ue5-res-links { display: flex; flex-direction: column; gap: 8px; }
+.ue5-reslink { --k: var(--red); display: flex; align-items: center; gap: 10px; text-decoration: none; background: var(--ink); border: 1px solid rgba(253, 246, 238, 0.1); border-left: 4px solid var(--k); border-radius: 5px; padding: 10px 12px; color: var(--cream); font-family: 'Inter', sans-serif; font-size: 13px; transition: background 0.14s, transform 0.14s; }
+.ue5-reslink:hover { background: color-mix(in srgb, var(--k) 15%, var(--ink)); transform: translateX(3px); }
+.ue5-reslink .ic { font-size: 15px; flex: none; }
+.ue5-reslink .lab { flex: 1; min-width: 0; }
+.ue5-reslink .knd { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--k); flex: none; }
+.ue5-reslink.reddit { --k: #ff4500; }
+.ue5-reslink.youtube { --k: #ff0033; }
+.ue5-reslink.wiki { --k: #5aa9e6; }
+.ue5-reslink.forum { --k: #9b7bd4; }
+.ue5-reslink.blog { --k: #61d36f; }
+.ue5-reslink.doc { --k: #ffb300; }
+
+/* Vraie image d'Unreal illustrant une question de quiz / une carte */
+.ue5-cimg { display: block; max-width: 430px; margin-top: 14px; border: 1px solid rgba(253, 246, 238, 0.14); border-left: 3px solid var(--red); border-radius: 6px; overflow: hidden; text-decoration: none; background: #0c0a09; transition: transform 0.15s, border-color 0.15s; }
+.ue5-cimg:hover { transform: translateY(-3px); border-color: var(--red); }
+.ue5-cimg img { display: block; width: 100%; max-height: 230px; object-fit: cover; background: #160c0e; }
+.ue5-cimg .cap { display: block; font-family: 'Inter', sans-serif; font-size: 11.5px; line-height: 1.4; color: #cfc9c1; padding: 8px 11px; }

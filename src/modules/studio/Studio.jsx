@@ -1,6 +1,7 @@
 import { useRoute, navigate, segments } from '../../core/router.js'
 import PersonaBg from '../../components/PersonaBg.jsx'
 import FrometonsGame from '../games/frometons/FrometonsGame.jsx'
+import UE5Blueprint from './ue5/UE5Blueprint.jsx'
 
 // Mots défilants de la bande verticale (droite) — ambiance arcade / catalogue.
 const ATELIER_WORDS = [
@@ -88,6 +89,16 @@ const CATALOG = [
     kind: 'external',
     href: '/guitare.html',
     tags: ['Guitare', 'Modes', 'Métronome'],
+  },
+  {
+    id: 'ue5-blueprint',
+    cat: 'outil',
+    title: 'Blueprint Bootcamp',
+    tagline: 'Réviser UE5 Blueprint : fiches + quiz (éditeur, events, widgets, signaux, IA…).',
+    icon: '🔷',
+    kind: 'route',
+    path: '/studio/ue5',
+    tags: ['UE5', 'Blueprint', 'Révision'],
   },
 ]
 
@@ -177,6 +188,10 @@ export default function Studio() {
         <FrometonsGame />
       </div>
     )
+  }
+
+  if (seg[1] === 'ue5') {
+    return <UE5Blueprint />
   }
 
   return (
