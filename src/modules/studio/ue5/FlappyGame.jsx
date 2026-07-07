@@ -124,51 +124,48 @@ export default function FlappyGame({ onClose }) {
       ctx.drawImage(tiles, BODY.sx, BODY.sy, BODY.sw, BODY.sh, p.x, by + CAP_H, PW, FLOOR - by - CAP_H)
     }
 
-    const loop = () => {
+    const STEP = 1000 / 60   // pas de simulation FIXE (60 Hz), indépendant du refresh écran
+
+    // Un pas de physique (n'avance que si on joue).
+    const update = () => {
       const s = g.current
-      const playing = phaseRef.current === 'play'
-      s.t++
-      s.frame = Math.floor(s.t / 5) % FRAMES
+      if (phaseRef.current !== 'play') return
       const { rw, rh } = birdSize()
       const hx = rw * HIT_KX, hy = rh * HIT_KY
-
-      if (playing) {
-        s.vy += GRAV
-        s.y += s.vy
-        s.gx -= SPEED   // accumulateur CONTINU : un wrap (% N) créerait un saut au bouclage
-        s.spawnX -= SPEED
-        if (s.spawnX <= 0) {
-          const gy = 70 + Math.random() * (FLOOR - GAP - 150)
-          s.pipes.push({ x: W, gy, passed: false })
-          s.spawnX = SPACING
-        }
-        for (const p of s.pipes) {
-          p.x -= SPEED
-          if (!p.passed && p.x + PW < BIRD_X) { p.passed = true; setScore((v) => v + 1) }
-          const inX = BIRD_X + hx > p.x && BIRD_X - hx < p.x + PW
-          if (inX && (s.y - hy < p.gy || s.y + hy > p.gy + GAP)) die()
-        }
-        s.pipes = s.pipes.filter((p) => p.x + PW > -10)
-        if (s.y + hy > FLOOR || s.y - hy < 0) die()
+      s.vy += GRAV
+      s.y += s.vy
+      s.gx -= SPEED   // accumulateur CONTINU : un wrap (% N) créerait un saut au bouclage
+      s.spawnX -= SPEED
+      if (s.spawnX <= 0) {
+        const gy = 70 + Math.random() * (FLOOR - GAP - 150)
+        s.pipes.push({ x: W, gy, passed: false })
+        s.spawnX = SPACING
       }
+      for (const p of s.pipes) {
+        p.x -= SPEED
+        if (!p.passed && p.x + PW < BIRD_X) { p.passed = true; setScore((v) => v + 1) }
+        const inX = BIRD_X + hx > p.x && BIRD_X - hx < p.x + PW
+        if (inX && (s.y - hy < p.gy || s.y + hy > p.gy + GAP)) die()
+      }
+      s.pipes = s.pipes.filter((p) => p.x + PW > -10)
+      if (s.y + hy > FLOOR || s.y - hy < 0) die()
+    }
 
-      // --- rendu ---
+    const render = () => {
+      const s = g.current
+      const { rw, rh } = birdSize()
       ctx.imageSmoothingEnabled = false
-      // ciel : couleur du pack (fallback) puis le fond complet (nuages + ville),
-      // tuilé en parallaxe. Même palette que les tuyaux/sol → cohérent.
+      // ciel du pack (fallback) puis le fond complet (nuages + ville), tuilé en parallaxe
       ctx.fillStyle = '#94fdff'; ctx.fillRect(0, 0, W, H)
       if (bg.complete && bg.naturalWidth) {
         const BGS = FLOOR
         const off = (s.gx * 0.35) % BGS
         for (let x = off - BGS; x < W; x += BGS) ctx.drawImage(bg, x, 0, BGS, BGS)
       }
-      // tuyaux
       for (const p of s.pipes) drawPipe(p)
-      // sol (tuilé + défilant)
       const tw = GND.sw * (GROUND_H / GND.sh)
       const goff = (s.gx) % tw
       for (let x = goff - tw; x < W; x += tw) ctx.drawImage(tiles, GND.sx, GND.sy, GND.sw, GND.sh, x, FLOOR, tw, GROUND_H)
-
       // oiseau (bbox cadrée serrée → gros ; lissage ON juste pour lui)
       const bb = bbox.current
       const angle = Math.max(-0.5, Math.min(1.1, s.vy / 11))
@@ -180,7 +177,24 @@ export default function FlappyGame({ onClose }) {
         ctx.fillStyle = '#ffb300'; ctx.beginPath(); ctx.arc(0, 0, rh / 2, 0, 7); ctx.fill()
       }
       ctx.restore()
+    }
 
+    // Boucle à PAS DE TEMPS FIXE : on accumule le temps réel écoulé et on avance la
+    // simu par pas de STEP ms → vitesse de chute IDENTIQUE en 60, 120 ou 144 Hz.
+    let acc = 0, last = 0
+    const loop = (now) => {
+      if (!last) last = now
+      let dt = now - last; last = now
+      if (dt > 250) dt = 250            // onglet re-affiché : pas de bond monstrueux
+      acc += dt
+      let steps = 0
+      while (acc >= STEP && steps < 8) { // cap anti-spirale de la mort
+        g.current.t++
+        g.current.frame = Math.floor(g.current.t / 5) % FRAMES
+        update()
+        acc -= STEP; steps++
+      }
+      render()
       raf = requestAnimationFrame(loop)
     }
 
