@@ -215,6 +215,38 @@
 }
 .ue5-exam-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 
+/* Côté droit de la carte d'examen : sélecteur de difficulté + boutons */
+.ue5-exam-side { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.ue5-exam-diff { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.ue5-exam-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 3px solid var(--cream);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cfc9c1;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ue5-exam-chip:hover:not(:disabled) { background: rgba(255, 255, 255, 0.09); color: var(--cream); }
+.ue5-exam-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.ue5-exam-chip .c-n {
+  font-size: 11px; font-weight: 700; opacity: 0.75;
+  padding: 1px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.1);
+}
+.ue5-exam-chip.mix { border-left-color: var(--cream); }
+.ue5-exam-chip.facile { border-left-color: #38b45a; }
+.ue5-exam-chip.moyen { border-left-color: #ffb300; }
+.ue5-exam-chip.difficile { border-left-color: var(--red); }
+.ue5-exam-chip.on { color: var(--ink); font-weight: 700; }
+.ue5-exam-chip.mix.on { background: var(--cream); }
+.ue5-exam-chip.facile.on { background: #38b45a; }
+.ue5-exam-chip.moyen.on { background: #ffb300; }
+.ue5-exam-chip.difficile.on { background: var(--red); color: #fff; }
+.ue5-exam-chip.on .c-n { background: rgba(0, 0, 0, 0.22); opacity: 0.9; }
+.ue5-exam-chip.difficile.on .c-n { background: rgba(0, 0, 0, 0.28); }
+
 /* =====================================================================
    SOUS-VUE (fiches / quiz) — barre de retour
    ===================================================================== */

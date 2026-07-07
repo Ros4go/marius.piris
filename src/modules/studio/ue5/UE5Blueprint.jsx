@@ -558,6 +558,12 @@ function ResultView({ score, total, log, title, storeKey, canContinue, onRetry, 
    ===================================================================== */
 function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
   const [flappy, setFlappy] = useState(false)
+  const [examDiff, setExamDiff] = useState('mix')
+  const examCounts = useMemo(() => {
+    const c = { mix: 0, facile: 0, moyen: 0, difficile: 0 }
+    CHAPTERS.forEach((ch) => ch.quiz.forEach((q) => { c.mix++; c[q.difficulty] = (c[q.difficulty] || 0) + 1 }))
+    return c
+  }, [])
   return (
     <div>
       {flappy && <FlappyGame onClose={() => setFlappy(false)} />}
@@ -580,9 +586,22 @@ function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
             <h3>Examen <b>blanc</b></h3>
             <p>Questions tirées au hasard dans TOUS les chapitres.</p>
           </div>
-          <div className="ue5-exam-btns">
-            <button className="btn ghost" onClick={() => onExam(15)}><span>Éclair · 15 Q</span></button>
-            <button className="btn" onClick={() => onExam(30)}><span>Grand examen · 30 Q ▶</span></button>
+          <div className="ue5-exam-side">
+            <div className="ue5-exam-diff" role="group" aria-label="Difficulté de l'examen">
+              {[['mix', 'Mélange'], ['facile', 'Facile'], ['moyen', 'Moyen'], ['difficile', 'Difficile']].map(([d, l]) => (
+                <button
+                  key={d}
+                  className={'ue5-exam-chip ' + d + (examDiff === d ? ' on' : '')}
+                  disabled={examCounts[d] === 0}
+                  aria-pressed={examDiff === d}
+                  onClick={() => setExamDiff(d)}
+                >{l}<span className="c-n">{examCounts[d]}</span></button>
+              ))}
+            </div>
+            <div className="ue5-exam-btns">
+              <button className="btn ghost" onClick={() => onExam(15, examDiff)}><span>Éclair · 15 Q</span></button>
+              <button className="btn" onClick={() => onExam(30, examDiff)}><span>Grand examen · 30 Q ▶</span></button>
+            </div>
           </div>
         </div>
 
@@ -639,11 +658,13 @@ export default function UE5Blueprint() {
     setQuiz({ kind: 'chapter', title: c.title, subtitle: `${lead} · ${dlab} · ${questions.length} questions`, questions, storeKey: c.id, chapter: c, diff })
     setView('quiz')
   }
-  const startExam = (size) => {
+  const startExam = (size, diff = 'mix') => {
     const all = CHAPTERS.flatMap((c) => c.quiz.map((raw) => ({ raw, chap: c.title })))
-    const chosen = shuffle(all).slice(0, Math.min(size, all.length))
+    const pool = diff === 'mix' ? all : all.filter((x) => x.raw.difficulty === diff)
+    const chosen = shuffle(pool).slice(0, Math.min(size, pool.length))
     const questions = chosen.map(({ raw, chap }) => prepareQuestion(raw, chap))
-    setQuiz({ kind: 'exam', title: `Examen blanc · ${questions.length} questions`, subtitle: 'Toutes matières, dans le désordre', questions, storeKey: 'exam', examSize: size })
+    const dlab = diff === 'mix' ? 'Mélange' : TIERS.find((t) => t.diff === diff)?.label
+    setQuiz({ kind: 'exam', title: `Examen blanc · ${questions.length} questions`, subtitle: `Toutes matières · ${dlab} · dans le désordre`, questions, storeKey: 'exam', examSize: size, examDiff: diff })
     setView('quiz')
   }
 
@@ -672,7 +693,7 @@ export default function UE5Blueprint() {
           <ResultView
             score={result.score} total={result.total} log={result.log}
             title={quiz.title} storeKey={quiz.storeKey} canContinue
-            onRetry={() => { if (quiz.kind === 'exam') startExam(quiz.examSize); else startChapterQuiz(quiz.chapter, quiz.diff) }}
+            onRetry={() => { if (quiz.kind === 'exam') startExam(quiz.examSize, quiz.examDiff); else startChapterQuiz(quiz.chapter, quiz.diff) }}
             onBack={backChapters}
           />
         )}

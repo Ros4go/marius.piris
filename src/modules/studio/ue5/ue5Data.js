@@ -659,7 +659,73 @@ export const CHAPTERS = [
           "term": "Actor",
           "text": "Objet de base plaçable dans un niveau Unreal : il possède un Transform et peut contenir des composants (mesh, lumière, collision, script)."
         }
+      },
+      {
+        "q": "Vous remappez vos raccourcis clavier dans l'éditeur ; un collègue clone le projet. A-t-il vos raccourcis ?",
+        "choices": [
+          "oui, ils partent avec le projet",
+          "non, ils restent sur votre poste",
+          "oui, dès qu'il ouvre le même niveau",
+          "non, sauf ceux de transformation"
+        ],
+        "answer": 1,
+        "explain": "Les Editor Preferences ne concernent que votre éditeur (votre poste) : elles ne sont pas embarquées dans le projet ni partagées via le .uproject.",
+        "difficulty": "difficile",
+        "topic": "Editor Preferences (portée locale)"
+      },
+      {
+        "q": "Copier un Blueprint et tout ce dont il dépend vers un autre projet Unreal : la bonne méthode ?",
+        "choices": [
+          "copier son fichier .uasset dans le Content de l'autre projet",
+          "l'exporter en FBX puis le réimporter",
+          "clic droit sur l'asset > Migrate",
+          "le glisser du Content Drawer vers l'autre éditeur"
+        ],
+        "answer": 2,
+        "explain": "Migrate embarque l'asset ET toutes ses dépendances. Copier le .uasset « à la main » casse les références (dépendances manquantes).",
+        "difficulty": "difficile",
+        "topic": "Migrate (migration d'assets)"
+      },
+      {
+        "q": "Habitué à Blender, vous voulez orbiter autour d'un objet sélectionné. En UE, la bonne manip ?",
+        "choices": [
+          "presser F, puis glisser",
+          "clic droit + glisser, comme dans Blender",
+          "clic gauche + glisser",
+          "Alt + molette de la souris"
+        ],
+        "answer": 0,
+        "explain": "En UE le clic droit fait pivoter la caméra sur place (regard FPS), pas orbiter autour de l'objet. Pour tourner autour d'un objet on le cible avec F (focus), puis on glisse.",
+        "difficulty": "difficile",
+        "topic": "Navigation viewport (focus/orbite)"
+      },
+      {
+        "q": "Le Content Drawer affiche-t-il un contenu différent d'un Content Browser ouvert ?",
+        "choices": [
+          "oui, il se limite aux Blueprints",
+          "oui, il masque le Developer folder",
+          "oui, il est en lecture seule",
+          "non, c'est une instance du même Content Browser"
+        ],
+        "answer": 3,
+        "explain": "Le Content Drawer est une instance escamotable du Content Browser : même contenu et mêmes actions, il se réduit simplement quand il perd le focus.",
+        "difficulty": "difficile",
+        "topic": "Content Drawer vs Content Browser"
+      },
+      {
+        "q": "L'Environment Light Mixer vous crée d'un coup…",
+        "choices": [
+          "Sky Light, Sky Atmosphere, Directional Light, Volumetric Fog",
+          "Sky Light, Sky Atmosphere, Directional Light, Volumetric Clouds",
+          "Sky Light, Directional Light, Volumetric Clouds, Post Process Volume",
+          "Sky Atmosphere, Directional Light, Volumetric Clouds, Volumetric Fog"
+        ],
+        "answer": 1,
+        "explain": "Le Mixer pose Sky Light, Sky Atmosphere, Directional Light et Volumetric Clouds. Le Volumetric Fog est une option de rendu séparée, pas un élément créé par le Mixer.",
+        "difficulty": "difficile",
+        "topic": "Environment Light Mixer"
       }
+
     ],
     "sources": [
       {
@@ -1472,7 +1538,73 @@ export const CHAPTERS = [
           "term": "Cast",
           "text": "Node qui vérifie qu'un objet appartient à une classe donnée et, si oui, débloque l'accès à ses variables et fonctions spécifiques. Sa suite ne s'exécute que si le cast réussit."
         }
+      },
+      {
+        "q": "BP_Boss et BP_Grunt héritent tous deux de BP_Enemy. Une référence typée BP_Enemy pointe un BP_Grunt ; vous faites Cast To BP_Boss. Le cast…",
+        "choices": [
+          "réussit : ils partagent la base BP_Enemy",
+          "échoue : un BP_Grunt n'est pas un BP_Boss (classes sœurs)",
+          "réussit en downcastant d'abord vers BP_Enemy",
+          "réussit mais n'expose que les membres communs"
+        ],
+        "answer": 1,
+        "explain": "Un cast ne réussit que si l'objet EST de la classe cible (ou d'une de ses sous-classes). BP_Grunt et BP_Boss sont des classes sœurs : partager une base commune ne rend pas l'un castable en l'autre.",
+        "difficulty": "difficile",
+        "topic": "Cast & héritage"
+      },
+      {
+        "q": "Deux floats censés être égaux renvoient parfois False avec Equal (==). Que faire ?",
+        "choices": [
+          "forcer un recalcul avant la comparaison",
+          "les convertir en Integer pour comparer",
+          "comparer avec Nearly Equal",
+          "monter la précision dans les Project Settings"
+        ],
+        "answer": 2,
+        "explain": "Les floats souffrent d'erreurs d'arrondi : deux calculs « équivalents » diffèrent d'un epsilon. On les compare avec Nearly Equal (égalité approchée à une tolérance près), pas avec un Equal exact.",
+        "difficulty": "difficile",
+        "topic": "Comparaison de floats (Nearly Equal)"
+      },
+      {
+        "q": "Vous ajoutez un composant lampe et voulez le décaler de 50 cm, mais aucun champ Location n'apparaît. Cause ?",
+        "choices": [
+          "ce composant n'a pas de transform ; il faut un SceneComponent",
+          "il faut compiler le Blueprint d'abord",
+          "le composant est attaché au mauvais parent",
+          "Location reste masqué hors du mode Play"
+        ],
+        "answer": 0,
+        "explain": "Un ActorComponent n'a pas de transform (aucune position/rotation dans le monde). Pour un placement spatial il faut un SceneComponent (ou un de ses dérivés, ex. StaticMeshComponent).",
+        "difficulty": "difficile",
+        "topic": "ActorComponent vs SceneComponent"
+      },
+      {
+        "q": "Une variable placée dans le GameMode est remise à zéro à chaque changement de niveau. Où la déplacer pour qu'elle survive ?",
+        "choices": [
+          "dans le PlayerController",
+          "dans le GameState",
+          "dans la GameInstance",
+          "dans le Level Blueprint"
+        ],
+        "answer": 2,
+        "explain": "La GameInstance n'est pas réinitialisée au changement de niveau : c'est là qu'on stocke ce qui doit persister entre niveaux. Le GameMode, lui, est recréé à chaque niveau chargé.",
+        "difficulty": "difficile",
+        "topic": "GameInstance (état persistant)"
+      },
+      {
+        "q": "Un node Sequence a trois sorties branchées. Elles s'exécutent…",
+        "choices": [
+          "en parallèle, en même temps",
+          "de haut en bas, à la suite (même frame)",
+          "une sortie par frame successive",
+          "dans un ordre non garanti"
+        ],
+        "answer": 1,
+        "explain": "Sequence déclenche ses sorties l'une après l'autre, de haut en bas, dans la même frame. Ce n'est ni du parallélisme, ni un ordre indéterminé.",
+        "difficulty": "difficile",
+        "topic": "Contrôle de flux (Sequence)"
       }
+
     ],
     "sources": [
       {
@@ -2086,7 +2218,73 @@ export const CHAPTERS = [
           "term": "Unbind",
           "text": "Désabonnement d'un Event Dispatcher (RemoveEventListener). Indispensable car les bind coûtent des ressources ; bonne pratique : un graph dédié aux bind/unbind."
         }
+      },
+      {
+        "q": "Un piège inflige des dégâts en boucle tant que le joueur reste dessus ; la logique est sur Event ActorBeginOverlap. Où est le problème ?",
+        "choices": [
+          "BeginOverlap ne se déclenche qu'une fois, à l'entrée dans la zone",
+          "EndOverlap se déclenche aussitôt et coupe l'effet",
+          "Generate Overlap Events manque sur le joueur, donc rien ne part",
+          "l'overlap se répète, mais Other Actor change à chaque frame"
+        ],
+        "answer": 0,
+        "explain": "ActorBeginOverlap ne se déclenche qu'à l'entrée (une seule fois), pas tant que l'acteur reste dans la zone. Pour des dégâts périodiques, on lance un Timer (ou un Tick) au BeginOverlap et on l'arrête au EndOverlap.",
+        "difficulty": "difficile",
+        "topic": "Overlap : Begin ne se déclenche qu'à l'entrée"
+      },
+      {
+        "q": "Un acteur a deux zones (Box « pieds », Box « tête ») ; vous voulez savoir laquelle est touchée. Le mieux ?",
+        "choices": [
+          "Event ActorBeginOverlap, puis tester Other Actor",
+          "Event Hit au niveau de l'acteur",
+          "OnComponentBeginOverlap sur chaque Box",
+          "comparer les positions des zones dans Tick"
+        ],
+        "answer": 2,
+        "explain": "Les événements au niveau du composant (OnComponentBeginOverlap) indiquent précisément quel composant a été touché ; ActorBeginOverlap ne signale que l'acteur globalement concerné, pas la zone.",
+        "difficulty": "difficile",
+        "topic": "Overlaps au niveau composant"
+      },
+      {
+        "q": "Deux Input Mapping Contexts sont actifs ; tous deux mappent Espace à des actions différentes. À l'appui sur Espace…",
+        "choices": [
+          "les deux actions se déclenchent",
+          "une erreur de conflit d'input est levée",
+          "la dernière action ajoutée l'emporte toujours",
+          "seule l'action du contexte le plus prioritaire se déclenche"
+        ],
+        "answer": 3,
+        "explain": "Quand plusieurs IMC se disputent la même touche, c'est la priorité du contexte qui tranche : le plus prioritaire consomme l'entrée, les autres sont ignorés (ce n'est pas l'ordre d'ajout).",
+        "difficulty": "difficile",
+        "topic": "IMC & priorité des contextes"
+      },
+      {
+        "q": "Un personnage peut marcher ou conduire un véhicule, chaque état ayant ses propres commandes. La façon propre en Enhanced Input ?",
+        "choices": [
+          "ajouter/retirer des Input Mapping Contexts selon l'état (marche vs conduite)",
+          "un seul IMC géant avec des Branch pour filtrer selon l'état",
+          "désactiver les Input Actions inutiles une par une au Tick",
+          "deux Pawns distincts et on recrée les inputs dans chacun"
+        ],
+        "answer": 0,
+        "explain": "L'atout majeur de l'Enhanced Input est d'ajouter/retirer des contextes de mapping au runtime : on bascule le jeu de commandes selon l'état du joueur, sans logique de filtrage manuelle.",
+        "difficulty": "difficile",
+        "topic": "Enhanced Input : contextes en runtime"
+      },
+      {
+        "q": "Un bouton doit prévenir une porte précise, dont il a déjà la référence. Custom Event ou Event Dispatcher ?",
+        "choices": [
+          "Event Dispatcher : mieux adapté à une cible unique connue",
+          "impossible sans passer par une Interface",
+          "un Custom Event, appelé directement sur la référence connue",
+          "Event Dispatcher, car un Custom Event ne franchit pas les BP"
+        ],
+        "answer": 2,
+        "explain": "Quand on connaît la cible unique et qu'on a sa référence, un appel direct à un Custom Event est le plus simple et le plus lisible. Le dispatcher sert à prévenir plusieurs abonnés inconnus, sans couplage fort.",
+        "difficulty": "difficile",
+        "topic": "Custom Event (appel direct ciblé) vs Dispatcher"
       }
+
     ],
     "sources": [
       {
@@ -2810,7 +3008,73 @@ export const CHAPTERS = [
           "term": "Références expirées",
           "text": "Broadcast() n'appelle pas les objets détruits/expirés : pas de crash. Désabonner (Unbind) dans EndPlay reste une bonne pratique d'hygiène."
         }
+      },
+      {
+        "q": "A binde au dispatcher de B dans son BeginPlay ; B est spawné par le GameMode dans un ordre non garanti. Symptôme ?",
+        "choices": [
+          "A réagit toujours, l'ordre de spawn n'importe pas",
+          "A ne réagit que si B existe déjà au BeginPlay de A ; sinon échec muet",
+          "A double ses abonnements quand B est recréé",
+          "le dispatcher rejoue son dernier Call pour A au moment du bind"
+        ],
+        "answer": 1,
+        "explain": "Un Bind exige une Target valide. Si la référence de B est None au moment du bind (B pas encore spawné), l'abonnement échoue silencieusement : bug intermittent selon l'ordre de création.",
+        "difficulty": "difficile",
+        "topic": "Timing du Bind (référence nulle)"
+      },
+      {
+        "q": "Au BeginPlay, un manager fait Get All Actors Of Class(BP_Enemy) et binde leur dispatcher OnDeath. Des ennemis apparaissent ensuite via un spawner. À leur mort…",
+        "choices": [
+          "le manager est notifié : le bind couvre aussi les suivants",
+          "le manager reçoit un événement groupé en fin de vague",
+          "le manager n'est pas notifié pour ceux nés après le BeginPlay",
+          "le manager se rebinde tout seul à chaque spawn"
+        ],
+        "answer": 2,
+        "explain": "Get All Actors Of Class ne renvoie que les acteurs existant à cet instant. Les ennemis spawnés plus tard ne sont jamais bindés : le manager ne les entend pas.",
+        "difficulty": "difficile",
+        "topic": "Bind & instances créées après coup"
+      },
+      {
+        "q": "Un dispatcher transporte un Input (float Damage). Vous voulez y binder un Custom Event sans paramètre. À la liaison…",
+        "choices": [
+          "le bind marche, Damage est simplement ignoré",
+          "le Custom Event sans paramètre n'est pas compatible avec ce dispatcher",
+          "Damage arrive converti en booléen",
+          "le bind marche mais Damage vaut toujours 0"
+        ],
+        "answer": 1,
+        "explain": "L'event lié doit avoir la même signature que les Inputs du dispatcher. Un Custom Event sans le paramètre Damage n'est pas compatible et n'est pas proposé à la liaison.",
+        "difficulty": "difficile",
+        "topic": "Signature d'un dispatcher (Inputs)"
+      },
+      {
+        "q": "Un widget se bind à OnHealthChanged du joueur, puis est retiré du viewport (Remove from Parent) sans Unbind. Au prochain Broadcast…",
+        "choices": [
+          "rien : un widget retiré est désabonné automatiquement",
+          "le joueur cesse d'émettre le signal",
+          "l'event du widget peut encore se déclencher sur une instance non détruite",
+          "une erreur « invalid target » stoppe le Broadcast"
+        ],
+        "answer": 2,
+        "explain": "Remove from Parent retire le widget de l'écran mais ne le détruit pas et ne le désabonne pas. Tant qu'il n'est pas Unbind/collecté, son event peut encore réagir au Broadcast (réaction fantôme) — d'où l'utilité d'Unbind.",
+        "difficulty": "difficile",
+        "topic": "Oubli d'Unbind (réaction fantôme)"
+      },
+      {
+        "q": "A est bien abonné au dispatcher de B. B est ensuite détruit (Destroy Actor). Par la suite, A…",
+        "choices": [
+          "plante à cause d'une référence pendante vers B",
+          "continue de recevoir des Call fantômes de B",
+          "ne reçoit plus rien : un émetteur détruit ne diffuse plus",
+          "se rebinde automatiquement au prochain B équivalent"
+        ],
+        "answer": 2,
+        "explain": "Un acteur détruit ne peut plus appeler son dispatcher : plus aucun Broadcast n'arrive. Pas de crash côté A (pas de référence pendante dangereuse ici), simplement plus de signal.",
+        "difficulty": "difficile",
+        "topic": "Cycle de vie de l'émetteur"
       }
+
     ],
     "sources": [
       {
@@ -3477,7 +3741,81 @@ export const CHAPTERS = [
           "term": "Timer",
           "text": "Mécanisme qui déclenche périodiquement un event ou une fonction sans Event Tick ; l'option Looping répète l'appel toutes les 'Time' secondes, économisant le FPS."
         }
+      },
+      {
+        "q": "Dans un Event BeginPlay, vous cherchez le bouton Local Variable pour une valeur temporaire, mais il est absent. Pourquoi ?",
+        "choices": [
+          "le bouton n'apparaît qu'après avoir ajouté un premier paramètre à l'event",
+          "il faut être dans le Construction Script, pas l'Event Graph",
+          "un event ne peut pas avoir de variables locales, contrairement aux fonctions",
+          "elles existent, mais restent masquées tant que le BP n'est pas compilé"
+        ],
+        "answer": 2,
+        "explain": "Seules les fonctions (et macros) disposent de variables locales ; les events n'en ont pas. Pour une donnée de travail isolée à ce traitement, il faut passer par une fonction.",
+        "difficulty": "difficile",
+        "topic": "Variables locales : fonctions oui, events non"
+      },
+      {
+        "q": "Vous glissez un Delay dans une fonction Blueprint, mais le nœud est refusé. Pourquoi ?",
+        "choices": [
+          "le Delay n'existe qu'en C++",
+          "il faut d'abord cocher l'attribut Pure",
+          "le Delay ne fonctionne qu'au Level Blueprint",
+          "une fonction interdit les nœuds latents (retour immédiat)"
+        ],
+        "answer": 3,
+        "explain": "Une fonction Blueprint doit s'exécuter et retourner immédiatement : elle interdit tout nœud latent (Delay, Timeline). Pour un délai réutilisable, on passe par une macro ou un event.",
+        "difficulty": "difficile",
+        "topic": "Fonction : pas de nœud latent",
+        "def": {
+          "term": "Nœud latent",
+          "text": "Un nœud dont l'exécution s'étale dans le temps au lieu de se terminer d'un coup (ex. Delay, Timeline) : il rend la main puis reprend plus tard — d'où son interdiction dans une fonction, qui doit retourner immédiatement."
+        }
+      },
+      {
+        "q": "Vous créez un Timer avec Set Timer by Function Name, puis vous renommez plus tard la fonction ciblée. Que se passe-t-il ?",
+        "choices": [
+          "le Timer met à jour la référence automatiquement",
+          "le Timer casse silencieusement : le nom (texte) ne pointe plus rien",
+          "une erreur de compilation apparaît immédiatement",
+          "le Timer se déclenche une dernière fois puis s'arrête"
+        ],
+        "answer": 1,
+        "explain": "By Function Name lie le timer via une chaîne de texte : renommer la fonction rompt le lien sans erreur de compilation (échec silencieux). Set Timer by Event (CreateEvent) résiste au renommage.",
+        "difficulty": "difficile",
+        "topic": "Timer by Function Name : lien fragile au renommage"
+      },
+      {
+        "q": "Vous voulez un calcul de distance réutilisable partout, non lié à un acteur précis. Où le mettre ?",
+        "choices": [
+          "dans une fonction du BP Actor courant",
+          "dans le Level Blueprint",
+          "dans une Blueprint Function Library",
+          "dans une Blueprint Interface"
+        ],
+        "answer": 2,
+        "explain": "Une Blueprint Function Library contient des fonctions statiques sans Target, appelables par leur nom depuis n'importe où : idéal pour un utilitaire commun comme un calcul de distance.",
+        "difficulty": "difficile",
+        "topic": "Blueprint Function Library (utilitaires statiques)",
+        "def": {
+          "term": "Blueprint Function Library",
+          "text": "Un conteneur de fonctions statiques non liées à un acteur : sans broche Target, elles s'appellent par leur nom depuis n'importe quel Blueprint (idéal pour des utilitaires maths/calculs partagés)."
+        }
+      },
+      {
+        "q": "Un BP enfant override Interact du parent, mais veut d'abord exécuter la logique du parent puis la sienne. Comment ?",
+        "choices": [
+          "rien à faire : l'override exécute déjà le parent puis l'enfant (comme un Event BeginPlay)",
+          "cocher « Call Parent Nodes » dans les paramètres de la fonction",
+          "appeler la version du parent via son Interface",
+          "placer un nœud Call to Parent Function avant sa propre logique"
+        ],
+        "answer": 3,
+        "explain": "Pour une fonction overridée, le parent n'est pas rappelé automatiquement : on ajoute explicitement un nœud Call to Parent Function (ici en tête) pour exécuter la logique parente avant la sienne.",
+        "difficulty": "difficile",
+        "topic": "Override : Call to Parent Function"
       }
+
     ],
     "sources": [
       {
@@ -4200,7 +4538,73 @@ export const CHAPTERS = [
           "term": "Classe HUD",
           "text": "Gestionnaire/conteneur central des widgets du joueur local (accessible via Get HUD). Ses fonctions de dessin direct, antérieures à l'UMG, sont rares."
         }
+      },
+      {
+        "q": "Vous créez un widget, l'ajoutez au viewport ; il s'affiche puis disparaît au bout d'un instant. Cause la plus probable ?",
+        "choices": [
+          "sa seule référence était dans une variable locale : il a été garbage-collecté",
+          "Add to Viewport doit être rappelé à chaque frame",
+          "son Z-Order est passé sous celui du HUD",
+          "Remove from Parent est appelé dans son Construct"
+        ],
+        "answer": 0,
+        "explain": "Un widget ajouté au viewport n'est gardé en vie que s'il reste référencé. Si sa seule référence vit dans une variable locale (détruite à la fin de la fonction), il est collecté par le GC et disparaît — d'où l'importance de promouvoir la référence en variable membre.",
+        "difficulty": "difficile",
+        "topic": "Durée de vie d'un widget (référence & GC)"
+      },
+      {
+        "q": "50 slots d'inventaire en Property Binding rament, même quand l'inventaire ne bouge pas. La correction recommandée par Epic ?",
+        "choices": [
+          "mettre les slots en cache dans un Retainer Box",
+          "mise à jour via un dispatcher seulement quand la donnée change",
+          "baisser la fréquence d'évaluation des bindings dans les Project Settings",
+          "marquer chaque slot comme Volatile"
+        ],
+        "answer": 1,
+        "explain": "Un Property Binding est ré-évalué à chaque frame même sans changement. Epic recommande l'approche événementielle : ne rafraîchir un slot que lorsque sa donnée change réellement (via un Event Dispatcher), au lieu de sonder en continu.",
+        "difficulty": "difficile",
+        "topic": "Property Binding vs mise à jour événementielle"
+      },
+      {
+        "q": "Vous ancrez un widget au centre (ancre 0.5, 0.5) mais c'est son coin haut-gauche qui se retrouve au centre, pas son milieu. Que corriger ?",
+        "choices": [
+          "régler les Offsets Left/Top en valeurs négatives",
+          "le placer dans un Overlay centré",
+          "mettre l'Alignment à (0.5, 0.5)",
+          "activer Size To Content sur le slot"
+        ],
+        "answer": 2,
+        "explain": "L'ancre définit le point de référence sur l'écran ; l'Alignment définit quel point du widget se cale sur ce repère. Pour un vrai centrage il faut ancre (0.5,0.5) ET Alignment (0.5,0.5), sinon c'est le coin haut-gauche du widget qui s'aligne.",
+        "difficulty": "difficile",
+        "topic": "Ancre vs Alignment (centrage)"
+      },
+      {
+        "q": "Dans Event Pre-Construct vous créez un sous-panneau et l'ajoutez à la hiérarchie ; en aperçu Designer il n'apparaît pas / se duplique. Pourquoi ?",
+        "choices": [
+          "Pre-Construct ne s'exécute qu'au runtime, pas en éditeur",
+          "il faut cocher Is Variable sur le sous-panneau",
+          "Create Widget est interdit hors du Level Blueprint",
+          "Pre-Construct tourne en design-time, parfois plusieurs fois, et ignore les ajouts dynamiques"
+        ],
+        "answer": 3,
+        "explain": "Pre-Construct s'exécute aussi dans l'éditeur (design-time) et peut tourner plusieurs fois ; il sert à prévisualiser des réglages, mais ne gère pas les widgets ajoutés dynamiquement. Les créations dynamiques et abonnements se font dans Event Construct (runtime).",
+        "difficulty": "difficile",
+        "topic": "Event Pre-Construct (design-time)"
+      },
+      {
+        "q": "Votre menu se navigue à la souris, mais la manette ne peut sélectionner aucun bouton. Le plus probable ?",
+        "choices": [
+          "les boutons ne sont pas Focusable",
+          "il manque un Set Input Mode Game Only",
+          "le DPI Scaling casse la détection de survol",
+          "des Property Bindings manquent sur chaque bouton"
+        ],
+        "answer": 0,
+        "explain": "La navigation à la manette/au clavier passe par le focus : un widget doit être Is Focusable pour être sélectionnable sans souris. (Set Input Mode Game Only couperait au contraire l'entrée UI.)",
+        "difficulty": "difficile",
+        "topic": "Is Focusable (navigation manette/clavier)"
       }
+
     ],
     "sources": [
       {
@@ -5002,7 +5406,77 @@ export const CHAPTERS = [
           "term": "Common UI",
           "text": "Plugin (issu de Fortnite/Lyra) pour UI multiplateformes : Input Routing vers l'arbre le plus haut et les Activatable Widgets."
         }
+      },
+      {
+        "q": "Une Progress Bar bindée (Property Binding) sur Percent ne suit plus jamais sa variable, depuis qu'on a un jour appelé SetPercent dessus. Pourquoi ?",
+        "choices": [
+          "appeler Set a rompu le binding : il ne se réévalue plus",
+          "le binding ne se réévalue qu'au Construct, pas ensuite",
+          "SetPercent a basculé le widget en Volatile",
+          "la variable et le binding pointent deux données différentes"
+        ],
+        "answer": 0,
+        "explain": "Appeler un Set sur une propriété bindée casse le binding : la liaison est remplacée et ne se réévalue plus. Il faut alors piloter la valeur uniquement par Set (événementiel), sans mélanger les deux mécanismes.",
+        "difficulty": "difficile",
+        "topic": "Set casse un Property Binding"
+      },
+      {
+        "q": "Dans un Horizontal Box : l'icône garde sa taille, le panneau de texte doit absorber l'espace restant, mais il reste collé à sa taille de contenu. Réglage manquant ?",
+        "choices": [
+          "ancrer le panneau à droite du Box",
+          "activer Size To Content sur le Box",
+          "Passer son Slot de Auto à Fill",
+          "envelopper le panneau dans un Scale Box"
+        ],
+        "answer": 2,
+        "explain": "Dans un Box, le Slot d'un enfant est en Auto (taille du contenu) ou en Fill (occupe l'espace restant). Ici le panneau reste en Auto ; le passer en Fill lui fait prendre la place libre à côté de l'icône. Les ancres n'existent pas dans un Box.",
+        "difficulty": "difficile",
+        "topic": "Box Slot : Auto vs Fill",
+        "def": {
+          "term": "Slot Auto vs Fill (Box)",
+          "text": "Dans un Horizontal/Vertical Box, le Slot d'un enfant se règle en Auto (il prend juste la taille de son contenu) ou en Fill (il occupe tout l'espace restant du Box, réparti selon un coefficient entre les enfants en Fill)."
+        }
+      },
+      {
+        "q": "Trois onglets, un seul panneau visible à la fois, bascule par index. Le plus adapté et le plus léger ?",
+        "choices": [
+          "un Overlay avec Visibility Collapsed sur deux des panneaux",
+          "trois User Widgets au viewport, on Remove les inactifs",
+          "un Canvas Panel, on déplace hors écran les panneaux inactifs",
+          "un Widget Switcher : il n'affiche que l'enfant à l'Active Widget Index"
+        ],
+        "answer": 3,
+        "explain": "Le Widget Switcher est fait pour ça : il contient plusieurs enfants mais n'en affiche qu'un seul, choisi par l'Active Widget Index. Les autres approches fonctionnent mais sont plus lourdes ou bricolées.",
+        "difficulty": "difficile",
+        "topic": "Widget Switcher (onglets par index)"
+      },
+      {
+        "q": "Un HUD statique est dans une Invalidation Box ; une seule jauge y change chaque frame et casse le gain de perf. Le bon réglage ?",
+        "choices": [
+          "sortir la jauge et la mettre dans un Retainer Box",
+          "marquer la jauge en Volatile",
+          "baisser la fréquence de rafraîchissement de l'Invalidation Box",
+          "désactiver l'invalidation et compter sur la Global Invalidation"
+        ],
+        "answer": 1,
+        "explain": "Un widget qui change à chaque frame doit être marqué Volatile : il est alors repeint normalement sans forcer la ré-invalidation du cache des autres widgets de l'Invalidation Box, qui restent mis en cache.",
+        "difficulty": "difficile",
+        "topic": "Invalidation Box & widgets Volatile"
+      },
+      {
+        "q": "Un terminal en jeu (Widget Component, World Space) affiche des boutons, mais cliquer dessus ne déclenche aucun OnClicked. Que manque-t-il ?",
+        "choices": [
+          "mettre le Player Controller en Set Input Mode UI Only",
+          "cocher Is Focusable sur les boutons du terminal",
+          "un Widget Interaction Component",
+          "passer le Widget Component en Screen Space"
+        ],
+        "answer": 2,
+        "explain": "Un widget affiché en 3D ne reçoit pas les clics de l'UI 2D. Il faut un Widget Interaction Component (sur le pion/la main) qui projette un rayon vers la surface du widget et y injecte les événements pointeur (clic, survol).",
+        "difficulty": "difficile",
+        "topic": "Widget Interaction Component (clics en 3D)"
       }
+
     ],
     "sources": [
       {
@@ -5793,7 +6267,77 @@ export const CHAPTERS = [
           "term": "Slomo (time scale)",
           "text": "Commande console réglant l'échelle temporelle globale du jeu. Une valeur < 1 ralentit tout le système (pas que les animations), une valeur > 1 l'accélère."
         }
+      },
+      {
+        "q": "Vous voulez importer un personnage à plusieurs millions de polygones et activer Nanite pour la perf. Problème ?",
+        "choices": [
+          "Nanite ne supporte pas les meshes déformables (Skeletal)",
+          "Nanite refuse les matériaux à World Position Offset ou translucides",
+          "Nanite impose une décomposition convexe pour la collision",
+          "Nanite exige un second canal UV pour la LightMap"
+        ],
+        "answer": 0,
+        "explain": "Nanite ne gère pas la déformation : il est incompatible avec les Skeletal Meshes (personnages). Il a bien d'autres limites (WPO/translucidité), mais pour un personnage, c'est la déformation squelettique qui l'exclut.",
+        "difficulty": "difficile",
+        "topic": "Nanite : pas de Skeletal Mesh"
+      },
+      {
+        "q": "Une animation d'attaque devrait faire avancer le personnage, mais il glisse sur place (moonwalk). Cause la plus probable ?",
+        "choices": [
+          "le Root Bone n'est pas le premier os du squelette",
+          "le Blend Space n'a pas d'Interpolation Time",
+          "le Root Motion n'est pas activé sur l'asset d'animation",
+          "la capsule de collision est trop petite"
+        ],
+        "answer": 2,
+        "explain": "Sans Root Motion activé sur l'asset, l'animation joue mais ne déplace pas la capsule : le personnage glisse (moonwalking). Le Root Bone à l'index 0 est un prérequis, mais le symptôme décrit vient de l'option Root Motion non activée.",
+        "difficulty": "difficile",
+        "topic": "Root Motion non activé (sliding)",
+        "def": {
+          "term": "Root Motion",
+          "text": "Mode où c'est l'animation elle-même qui déplace le personnage, via le déplacement de son Root Bone, au lieu du Character Movement Component. S'il n'est pas activé sur l'asset d'animation, l'anim joue mais le personnage glisse sur place (moonwalking)."
+        }
+      },
+      {
+        "q": "Jouer une Animation Sequence du personnage A sur le personnage B, au squelette différent, directement ?",
+        "choices": [
+          "oui, si les deux sont des Skeletal Mesh",
+          "oui, en cochant Import Skeleton",
+          "non, il faut d'abord la convertir en Montage",
+          "non : liée à un Skeleton, il faut du retargeting"
+        ],
+        "answer": 3,
+        "explain": "Une Animation Sequence est liée à un Skeleton précis et ne peut se jouer que sur lui. Pour un squelette différent, il faut passer par du retargeting (mise en correspondance des deux squelettes).",
+        "difficulty": "difficile",
+        "topic": "Anim Sequence liée à un Skeleton (retargeting)"
+      },
+      {
+        "q": "Dans un AnimBP, où calculez-vous Ground Speed et Is Falling à partir du Character Movement ?",
+        "choices": [
+          "dans l'Anim Graph",
+          "dans l'Event Graph",
+          "dans la State Machine directement",
+          "dans le Blend Space"
+        ],
+        "answer": 1,
+        "explain": "L'Event Graph de l'AnimBP met à jour la logique et les variables (Ground Speed, Is Falling) à chaque frame ; l'Anim Graph, lui, se contente d'évaluer la pose finale à partir de ces variables.",
+        "difficulty": "difficile",
+        "topic": "AnimBP : Event Graph (variables) vs Anim Graph (pose)"
+      },
+      {
+        "q": "Un morph target importé déforme le mesh n'importe comment (des vertices partent dans tous les sens). Cause la plus probable ?",
+        "choices": [
+          "le mesh cible n'a pas le même nombre et ordre de vertices que la base",
+          "le Weight du morph dépasse 1",
+          "les normales du mesh sont inversées",
+          "le morph a été créé en Local Space au lieu de Mesh Space"
+        ],
+        "answer": 0,
+        "explain": "Un morph target interpole les positions des vertices : le mesh modifié doit conserver exactement le même nombre ET le même ordre de vertices que la base. Toute addition/suppression/réindexation casse la correspondance et fait « exploser » la déformation.",
+        "difficulty": "difficile",
+        "topic": "Morph Target : nombre et ordre des vertices"
       }
+
     ],
     "sources": [
       {
@@ -6517,7 +7061,73 @@ export const CHAPTERS = [
           "term": "BlackboardKeySelector",
           "text": "Variable publique d'une Task qui pointe vers une clé du Blackboard (ici une clé Vector, targetLocation) où stocker le résultat calculé."
         }
+      },
+      {
+        "q": "Un Behavior Tree doit tenter Attaquer, sinon Fuir, sinon Patrouiller — la première qui réussit suffit. Quel composite ?",
+        "choices": [
+          "une Sequence",
+          "un Selector",
+          "un Service",
+          "un Decorator"
+        ],
+        "answer": 1,
+        "explain": "Le Selector exécute ses enfants de gauche à droite et réussit dès que l'un réussit (comme un switch/case) : parfait pour « essaie A, sinon B, sinon C ». La Sequence, elle, échoue au premier échec.",
+        "difficulty": "difficile",
+        "topic": "Selector vs Sequence"
+      },
+      {
+        "q": "Une IA patrouille ; dès que le joueur entre dans son champ de vision, elle doit interrompre la patrouille en cours et passer en chasse. Quel mécanisme ?",
+        "choices": [
+          "un Decorator avec Observer Aborts sur la clé de vision",
+          "un Service sur la patrouille qui met à jour la clé de vision",
+          "un Decorator simple (sans Observer Aborts) sur la branche chasse",
+          "mettre la chasse à gauche du Selector pour qu'elle soit réévaluée"
+        ],
+        "answer": 0,
+        "explain": "Seul un Decorator avec Observer Aborts (Self/Lower Priority/Both) surveille la clé du Blackboard et interrompt une branche déjà en cours. Un Service met à jour la clé mais n'interrompt rien ; un Decorator sans Observer Aborts ne réévalue pas une branche déjà lancée.",
+        "difficulty": "difficile",
+        "topic": "Decorator & Observer Aborts (interruption)"
+      },
+      {
+        "q": "Votre NPC a un Behavior Tree et un Blackboard corrects, mais reste inerte en jeu. Le maillon le plus souvent oublié ?",
+        "choices": [
+          "appeler Run Behavior Tree dans le BeginPlay du Character",
+          "cocher Auto Possess Player sur le Pawn",
+          "assigner un AI Controller au Pawn (AI Controller Class)",
+          "ajouter un AIPerception au Blackboard"
+        ],
+        "answer": 2,
+        "explain": "Le Behavior Tree est lancé et piloté par l'AI Controller, qui doit être assigné au Pawn via AI Controller Class. Sans lui, personne ne possède le Pawn ni ne lance le BT. (Auto Possess Player ferait contrôler le Pawn par un joueur, pas par l'IA.)",
+        "difficulty": "difficile",
+        "topic": "AI Controller pilote le BT"
+      },
+      {
+        "q": "AIPerception avec Sight bien réglé (rayon, angle), mais l'IA ne détecte jamais le joueur. Cause la plus courante ?",
+        "choices": [
+          "l'event On Target Perception Updated n'est pas branché",
+          "l'IA n'a pas de NavMesh pour rejoindre le joueur",
+          "le cône de vision ne suit pas la rotation du pion",
+          "le joueur n'a pas de AIPerceptionStimuliSource enregistré comme source"
+        ],
+        "answer": 3,
+        "explain": "Pour être perçu, un acteur doit porter un AIPerceptionStimuliSource enregistré comme source pour le sens voulu (ici la vue). Sans lui, aucun stimulus n'est émis, donc rien à détecter — même avec une vue parfaitement réglée.",
+        "difficulty": "difficile",
+        "topic": "AIPerceptionStimuliSource (cible détectable)"
+      },
+      {
+        "q": "Monde ouvert immense ; construire tout le NavMesh au démarrage coûte trop cher. La solution du cours ?",
+        "choices": [
+          "réduire la résolution des cellules (Cell Size) du NavMesh",
+          "des NavMesh Invokers : navigation construite autour des acteurs marqués",
+          "activer la régénération dynamique du NavMesh à chaque frame",
+          "découper la zone en plusieurs Nav Mesh Bounds Volumes"
+        ],
+        "answer": 1,
+        "explain": "Pour les grands environnements, les NavMesh Invokers ne construisent la navigation qu'autour des acteurs marqués (joueur, IA), au lieu de couvrir tout le monde d'un coup — d'où une génération bien moins coûteuse.",
+        "difficulty": "difficile",
+        "topic": "NavMesh Invokers (grands mondes)"
       }
+
     ],
     "sources": [
       {
