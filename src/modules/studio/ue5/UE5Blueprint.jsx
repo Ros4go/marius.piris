@@ -337,11 +337,11 @@ function QuizSetup({ chapter, onBack, onStart }) {
   }, [chapter])
   const total = chapter.quiz.length
 
-  const opt = (diff, label, cls, n) => (
+  const opt = (diff, label, cls, n, all = false) => (
     <button className={'ue5-diffopt ' + cls + (n === 0 ? ' disabled' : '')} disabled={n === 0} onClick={() => onStart(diff)}>
       <span className="d-lab">{label}</span>
       <span className="d-n">{n} question{n > 1 ? 's' : ''}</span>
-      <span className="d-go">jusqu'à {Math.min(ROUND, n)} par manche ▶</span>
+      <span className="d-go">{all ? `les ${n} d'affilée ▶` : `jusqu'à ${Math.min(ROUND, n)} par manche ▶`}</span>
     </button>
   )
 
@@ -352,9 +352,10 @@ function QuizSetup({ chapter, onBack, onStart }) {
         <span className="ue5-subtitle">{chapter.title}</span>
       </div>
       <p className="ue5-hero-tag" style={{ marginBottom: 18 }}>
-        Choisis un niveau. Chaque manche fait <b>{ROUND} questions max</b>, tirées au hasard.
+        Choisis un niveau. Chaque manche fait <b>{ROUND} questions max</b> — sauf <b>Tout</b>, qui enchaîne l'intégrale du chapitre.
       </p>
       <div className="ue5-diffgrid">
+        {opt('tout', 'Tout', 'tout', total, true)}
         {opt('mix', 'Mélange', 'mix', total)}
         {opt('facile', 'Facile', 'facile', counts.facile)}
         {opt('moyen', 'Moyen', 'moyen', counts.moyen)}
@@ -628,10 +629,14 @@ export default function UE5Blueprint() {
   const openSetup = (c) => { setChapter(c); setView('setup') }
 
   const startChapterQuiz = (c, diff) => {
-    const pool = diff === 'mix' ? c.quiz : c.quiz.filter((q) => q.difficulty === diff)
-    const questions = shuffle(pool).slice(0, ROUND).map((raw) => prepareQuestion(raw, c.title))
-    const dlab = diff === 'mix' ? 'Mélange' : TIERS.find((t) => t.diff === diff)?.label
-    setQuiz({ kind: 'chapter', title: c.title, subtitle: `Manche · ${dlab} · ${questions.length} questions`, questions, storeKey: c.id, chapter: c, diff })
+    // 'tout' = toutes les questions du chapitre, sans plafond ; 'mix' = mélange
+    // plafonné à ROUND ; sinon on filtre par difficulté (plafonné à ROUND).
+    const pool = diff === 'mix' || diff === 'tout' ? c.quiz : c.quiz.filter((q) => q.difficulty === diff)
+    const limit = diff === 'tout' ? pool.length : ROUND
+    const questions = shuffle(pool).slice(0, limit).map((raw) => prepareQuestion(raw, c.title))
+    const dlab = diff === 'tout' ? 'Tout' : diff === 'mix' ? 'Mélange' : TIERS.find((t) => t.diff === diff)?.label
+    const lead = diff === 'tout' ? 'Intégrale' : 'Manche'
+    setQuiz({ kind: 'chapter', title: c.title, subtitle: `${lead} · ${dlab} · ${questions.length} questions`, questions, storeKey: c.id, chapter: c, diff })
     setView('quiz')
   }
   const startExam = (size) => {
