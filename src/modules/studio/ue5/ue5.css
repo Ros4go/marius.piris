@@ -865,3 +865,113 @@
 .ue5-cimg:hover { transform: translateY(-3px); border-color: var(--red); }
 .ue5-cimg img { display: block; width: 100%; max-height: 230px; object-fit: cover; background: #160c0e; }
 .ue5-cimg .cap { display: block; font-family: 'Inter', sans-serif; font-size: 11.5px; line-height: 1.4; color: #cfc9c1; padding: 8px 11px; }
+
+/* =====================================================================
+   SUPER POULET — sprite sheet réutilisable (7 frames de 960px)
+   ===================================================================== */
+.sp-bird {
+  --bs: 68px;
+  display: block;
+  width: var(--bs);
+  height: var(--bs);
+  background-image: url(/assets/images/superpoulet-sheet.gif);
+  background-repeat: no-repeat;
+  background-size: calc(var(--bs) * 7) var(--bs);
+  background-position-x: 0;
+  image-rendering: pixelated;
+  animation: sp-flap 0.55s steps(7) infinite;
+}
+@keyframes sp-flap { to { background-position-x: calc(var(--bs) * -7); } }
+
+/* Oiseau idle cliquable sur l'accueil */
+.sp-idle-launch {
+  background: none; border: 0; cursor: pointer; padding: 6px 10px;
+  display: flex; align-items: center; gap: 6px;
+  border-radius: 12px; transition: transform 0.15s, background 0.15s;
+}
+.sp-idle-launch:hover { background: rgba(253, 246, 238, 0.06); transform: translateY(-2px); }
+.sp-idle { --bs: 60px; animation: sp-flap 0.55s steps(7) infinite, sp-bob 1.6s ease-in-out infinite; }
+@keyframes sp-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
+.sp-idle-hint {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--red); opacity: 0; transition: opacity 0.15s;
+}
+.sp-idle-launch:hover .sp-idle-hint { opacity: 1; }
+
+/* Vol d'oiseaux qui traversent l'écran (mauvaise réponse au quiz) */
+.sp-flock { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 55; }
+.sp-flybird {
+  position: absolute; right: -110px;
+  animation-name: sp-cross; animation-timing-function: linear; animation-fill-mode: forwards;
+}
+.sp-flybird .sp-bird { --bs: 66px; transform: scaleX(-1); } /* face au sens du vol (gauche) */
+@keyframes sp-cross { to { transform: translateX(calc(-100vw - 240px)); } }
+
+/* =====================================================================
+   FLAPPY — overlay plein écran
+   ===================================================================== */
+.sp-flappy-overlay {
+  position: fixed; inset: 0; z-index: 120;
+  background: rgba(6, 5, 4, 0.82); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-flappy {
+  background: #0c0a09; border: 1px solid rgba(253, 246, 238, 0.16);
+  border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.sp-flappy-head {
+  display: flex; align-items: center; gap: 12px; padding: 8px 12px;
+  border-bottom: 1px solid rgba(253, 246, 238, 0.1);
+}
+.sp-flappy-title { font-weight: 800; color: var(--cream, #fdf6ee); }
+.sp-flappy-score { margin-left: auto; font-size: 13px; opacity: 0.85; color: var(--cream, #fdf6ee); }
+.sp-flappy-close {
+  background: none; border: 0; color: var(--cream, #fdf6ee); font-size: 18px; cursor: pointer;
+  opacity: 0.7; line-height: 1;
+}
+.sp-flappy-close:hover { opacity: 1; }
+.sp-flappy-stage { position: relative; cursor: pointer; touch-action: none; }
+.sp-flappy-canvas { display: block; width: 360px; max-width: 92vw; aspect-ratio: 360 / 600; height: auto; max-height: 80vh; image-rendering: pixelated; }
+.sp-flappy-hint, .sp-flappy-over {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  text-align: center; color: var(--cream, #fdf6ee); pointer-events: none;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+.sp-flappy-hint b { display: block; font-size: 20px; }
+.sp-flappy-hint span { display: block; font-size: 13px; opacity: 0.8; }
+.sp-flappy-over { pointer-events: auto; background: rgba(12, 10, 9, 0.85); padding: 22px 30px; border-radius: 12px; }
+.sp-flappy-over h3 { margin: 0 0 6px; font-size: 26px; }
+.sp-flappy-over p { margin: 0 0 14px; opacity: 0.85; }
+
+/* =====================================================================
+   DOMINICUS — sort d'un bord, crâne en premier, s'arrête aux yeux
+   ===================================================================== */
+.dom-wrap {
+  --dh: 46vh;
+  --dw: calc(var(--dh) * 750 / 900);
+  position: fixed; z-index: 60; pointer-events: none;
+  transition: transform 1.05s cubic-bezier(0.18, 0.9, 0.2, 1);
+}
+.dom-wrap.fast { transition-duration: 0.5s; }
+.dom-img {
+  position: absolute; left: 50%; top: 50%;
+  height: var(--dh); width: auto;
+  transform-origin: center; cursor: pointer; pointer-events: auto;
+  filter: drop-shadow(0 4px 22px rgba(0, 0, 0, 0.6));
+}
+/* bas : droit, crâne vers le haut */
+.dom-bottom { left: 50%; bottom: 0; width: var(--dw); height: var(--dh); transform: translate(-50%, 101%); }
+.dom-bottom.on { transform: translate(-50%, 45%); }
+.dom-bottom .dom-img { transform: translate(-50%, -50%) rotate(0deg); }
+/* haut : retourné, crâne vers le bas */
+.dom-top { left: 50%; top: 0; width: var(--dw); height: var(--dh); transform: translate(-50%, -101%); }
+.dom-top.on { transform: translate(-50%, -45%); }
+.dom-top .dom-img { transform: translate(-50%, -50%) rotate(180deg); }
+/* gauche : crâne vers la droite */
+.dom-left { left: 0; top: 50%; width: var(--dh); height: var(--dw); transform: translate(-101%, -50%); }
+.dom-left.on { transform: translate(-45%, -50%); }
+.dom-left .dom-img { transform: translate(-50%, -50%) rotate(90deg); }
+/* droite : crâne vers la gauche */
+.dom-right { right: 0; top: 50%; width: var(--dh); height: var(--dw); transform: translate(101%, -50%); }
+.dom-right.on { transform: translate(45%, -50%); }
+.dom-right .dom-img { transform: translate(-50%, -50%) rotate(-90deg); }

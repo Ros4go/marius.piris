@@ -3,6 +3,8 @@ import { navigate } from '../../../core/router.js'
 import PersonaBg from '../../../components/PersonaBg.jsx'
 import { CHAPTERS } from './ue5Data.js'
 import { matchGlossary } from './glossary.js'
+import Dominicus from './Dominicus.jsx'
+import FlappyGame from './FlappyGame.jsx'
 import './ue5.css'
 
 /* ---------------------------------------------------------------------
@@ -370,6 +372,21 @@ function QuizView({ title, subtitle, questions, onExit, onFinish }) {
   const [selected, setSelected] = useState(null)
   const [score, setScore] = useState(0)
   const [log, setLog] = useState([])
+  const [birds, setBirds] = useState([])
+  const wrongCount = useRef(0)
+  const birdSeq = useRef(0)
+
+  // Une erreur -> N oiseaux traversent l'écran (1 à la 1re faute, 2 à la 2e, …)
+  const flyBirds = (n) => {
+    const add = Array.from({ length: n }, (_, i) => ({
+      id: ++birdSeq.current,
+      top: 6 + rand() * 68,
+      delay: i * 0.22,
+      dur: 2.6 + rand() * 1.3,
+    }))
+    setBirds((b) => [...b, ...add])
+  }
+  const removeBird = (id) => setBirds((b) => b.filter((x) => x.id !== id))
 
   const q = questions[idx]
   const answered = selected !== null
@@ -382,6 +399,7 @@ function QuizView({ title, subtitle, questions, onExit, onFinish }) {
     const ok = i === q.answer
     setSelected(i)
     if (ok) setScore((s) => s + 1)
+    else { wrongCount.current += 1; flyBirds(wrongCount.current) }
     setLog((l) => [...l, { q: q.q, chosen: q.choices[i], correct: q.choices[q.answer], ok }])
   }
   const next = () => {
@@ -391,6 +409,18 @@ function QuizView({ title, subtitle, questions, onExit, onFinish }) {
 
   return (
     <div className="ue5-quiz">
+      <div className="sp-flock" aria-hidden="true">
+        {birds.map((b) => (
+          <div
+            key={b.id}
+            className="sp-flybird"
+            style={{ top: b.top + '%', animationDelay: b.delay + 's', animationDuration: b.dur + 's' }}
+            onAnimationEnd={() => removeBird(b.id)}
+          >
+            <span className="sp-bird" />
+          </div>
+        ))}
+      </div>
       <div className="ue5-subhead" style={{ marginBottom: 12 }}>
         <button className="ue5-back" onClick={onExit}><span>◄ Quitter</span></button>
         <span className="ue5-subtitle" style={{ fontSize: 'clamp(18px,2.6vw,24px)' }}>{title}</span>
@@ -526,14 +556,20 @@ function ResultView({ score, total, log, title, storeKey, canContinue, onRetry, 
    VUE ACCUEIL (grille des chapitres)
    ===================================================================== */
 function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
+  const [flappy, setFlappy] = useState(false)
   return (
     <div>
+      {flappy && <FlappyGame onClose={() => setFlappy(false)} />}
       <button className="ue5-back" style={{ marginBottom: 16 }} onClick={onBackAtelier}><span>◄ Retour à l'Atelier</span></button>
       <div className="ue5-hero">
         <div>
           <div className="module-sub">UE5 · BLUEPRINT</div>
           <h1 className="module-head">Blueprint Bootcamp</h1>
         </div>
+        <button className="sp-idle-launch" onClick={() => setFlappy(true)} title="Clique le poulet : Super Poulet Flappy !">
+          <span className="sp-bird sp-idle" />
+          <span className="sp-idle-hint">▸ jouer</span>
+        </button>
         <div className="ue5-badge-ue"><span>Unreal Engine <b>5.4</b></span></div>
       </div>
 
@@ -613,6 +649,7 @@ export default function UE5Blueprint() {
   return (
     <div className="ue5">
       <PersonaBg label="UE5" />
+      <Dominicus active={view === 'cards' || view === 'quiz'} />
       <div className="ue5-inner">
         {view === 'home' && (
           <Home scores={scores} onCards={openCards} onQuiz={openSetup} onExam={startExam} onBackAtelier={() => navigate('/studio')} />
