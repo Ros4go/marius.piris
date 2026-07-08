@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Premier jet — générateur d'emails de candidature</title>
+<style>
+  :root{
+    --bg:#fbfbfd; --panel:#fff; --ink:#14161a; --muted:#6b7280;
+    --line:#e7e8ee; --accent:#4f5bd5; --accent-soft:#eef0fb; --ok:#12907e;
+    --radius:14px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  body[data-person="Thomas"]   { --accent:#5c6bc0; --accent-soft:#eef0fb; }
+  body[data-person="Eglantine"]{ --accent:#12907e; --accent-soft:#e7f4f1; }
+  body[data-person="Frédéric"] { --accent:#e0740a; --accent-soft:#fdf0e2; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  h1{font-size:18px;margin:0;letter-spacing:-.01em}
+  header{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header .tag{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  header .spacer{margin-left:auto}
+  .link-btn{background:none;border:none;color:var(--accent);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  main{display:grid;grid-template-columns:380px 1fr;min-height:calc(100vh - 62px)}
+  @media(max-width:880px){main{grid-template-columns:1fr}}
+  .col-left{border-right:1px solid var(--line);padding:18px;overflow:auto}
+  @media(max-width:880px){.col-left{border-right:none;border-bottom:1px solid var(--line)}}
+  .col-right{padding:24px;overflow:auto}
+  .connect{background:var(--accent-soft);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:16px}
+  .connect.hidden{display:none}
+  .connect label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:6px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row > input{flex:1;min-width:0}
+  .field{margin-bottom:12px}
+  .field > label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:5px}
+  input,textarea,select{width:100%;font-family:var(--sans);font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  textarea{resize:vertical;line-height:1.5}
+  details{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;background:var(--panel)}
+  details > summary{cursor:pointer;padding:12px 14px;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:8px}
+  details > summary::-webkit-details-marker{display:none}
+  details > summary::before{content:"\25B8";color:var(--muted);transition:.15s}
+  details[open] > summary::before{transform:rotate(90deg)}
+  .details-body{padding:0 14px 14px}
+  .saved{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ok);opacity:0;transition:.2s}
+  .saved.show{opacity:1}
+  .hint{font-size:12px;color:var(--muted);margin:-2px 0 10px}
+  .options{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .options .field{flex:1;margin-bottom:0;min-width:110px}
+  .todo{margin-bottom:16px}
+  .todo h3{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px}
+  .todo .card{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:7px;cursor:pointer;background:var(--panel);font-size:13px}
+  .todo .card:hover{border-color:var(--accent)}
+  .todo .card[aria-selected="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .todo .co{font-weight:600}
+  .todo .mt{color:var(--muted)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:22px}
+  .chip{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+  .chip.off{background:#f3f4f7;color:#9aa0ad}
+  #out{width:100%;min-height:360px;font-size:14px;line-height:1.65;padding:16px}
+  .count{font-size:12px;color:var(--muted);margin-top:6px;text-align:right}
+  .actions{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .btn{font:inherit;font-size:14px;padding:10px 16px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);transition:.12s}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:hover{border-color:var(--accent)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.2s}
+  .toast.show{opacity:1}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Premier jet</h1>
+  <span class="tag">emails de candidature</span>
+  <span class="spacer"></span>
+  <button class="link-btn" id="toggleConnect">Connecter un Sheet (avancé)</button>
+</header>
+
+<main>
+  <div class="col-left">
+    <div class="connect hidden" id="connectPanel">
+      <label for="sheetUrl">URL de l'application web (finit par /exec)</label>
+      <div class="row">
+        <input id="sheetUrl" type="url" placeholder="https://script.google.com/…/exec">
+        <button class="btn" id="connectBtn">Connecter</button>
+      </div>
+      <div id="personWrap" style="margin-top:12px;display:none">
+        <label for="personSel">Personne</label>
+        <select id="personSel">
+          <option value="">— choisir —</option>
+          <option>Thomas</option><option>Eglantine</option><option>Frédéric</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="todo" id="todo" style="display:none">
+      <h3 id="todoTitle">À rédiger</h3>
+      <div id="todoCards"></div>
+    </div>
+
+    <details id="profileBox" open>
+      <summary>Ton profil <span class="saved" id="savedProfile">enregistré</span></summary>
+      <div class="details-body">
+        <div class="row">
+          <div class="field" style="flex:1"><label for="p_prenom">Prénom</label><input id="p_prenom" placeholder="Alex"></div>
+          <div class="field" style="flex:1"><label for="p_nom">Nom</label><input id="p_nom" placeholder="Dupont"></div>
+        </div>
+        <div class="field"><label for="p_genre">Genre (pour les accords)</label>
+          <select id="p_genre"><option value="n">Non précisé</option><option value="h">Homme</option><option value="f">Femme</option></select>
+        </div>
+        <div class="field"><label for="p_metier">Comment tu te présentes</label><input id="p_metier" placeholder="développeur full-stack"></div>
+        <div class="field"><label for="p_domaine">Domaine (variantes ciblées)</label>
+          <select id="p_domaine">
+            <option value="">Général</option>
+            <option value="jeu">Jeu vidéo</option>
+            <option value="video">Vidéo &amp; audiovisuel</option>
+            <option value="web">Dev polyvalent</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1.4"><label for="p_ecole">École</label><input id="p_ecole" placeholder="ISART Digital"></div>
+          <div class="field" style="flex:1"><label for="p_annee">Année / niveau</label><input id="p_annee" placeholder="2e année"></div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1"><label for="p_duree">Durée</label><input id="p_duree" placeholder="12 mois"></div>
+          <div class="field" style="flex:1"><label for="p_rythme">Rythme</label><input id="p_rythme" placeholder="3 semaines / 1 semaine"></div>
+        </div>
+        <div class="field"><label for="p_debut">Dispo à partir de (optionnel)</label><input id="p_debut" placeholder="septembre 2026"></div>
+        <div class="field"><label for="p_comp">Compétences clés</label><input id="p_comp" placeholder="React, Node, PostgreSQL"></div>
+        <div class="field"><label for="p_port">Lien portfolio / CV</label><input id="p_port" placeholder="https://…"></div>
+        <div class="field" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="p_cvjoint" checked style="width:auto;margin:0">
+          <label for="p_cvjoint" style="margin:0;text-transform:none;font-family:var(--sans);font-size:13px;letter-spacing:0;color:var(--ink)">Je joins mon CV en pièce jointe</label>
+        </div>
+        <div class="field"><label for="p_projet">Projet phare à montrer (optionnel)</label><input id="p_projet" placeholder="un lien vers ton meilleur projet"></div>
+        <div class="field"><label for="p_tel">Téléphone</label><input id="p_tel" placeholder="06 12 34 56 78"></div>
+        <div class="field"><label for="p_linkedin">Lien LinkedIn</label><input id="p_linkedin" placeholder="https://linkedin.com/in/…"></div>
+        <div class="field"><label for="p_hook">Ta phrase perso</label>
+          <textarea id="p_hook" rows="2" placeholder="une phrase qui te ressemble : un projet dont tu es fier, une conviction… (réutilisée dans chaque mail)"></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details id="companyBox" open>
+      <summary>Entreprise ciblée</summary>
+      <div class="details-body">
+        <div class="field"><label for="c_ent">Nom de l'entreprise</label><input id="c_ent" placeholder="Studio Nova Fox"></div>
+        <div class="field"><label for="c_contact">Nom du contact</label><input id="c_contact" placeholder="Julie Marchand"></div>
+        <div class="field"><label for="c_poste">Poste du contact (à qui tu écris)</label><input id="c_poste" placeholder="Lead Programmer"></div>
+        <div class="field"><label for="c_postevise">Poste visé (optionnel)</label><input id="c_postevise" placeholder="vide = candidature spontanée"></div>
+        <div class="field"><label for="c_lieu">Lieu</label><input id="c_lieu" placeholder="Montpellier"></div>
+        <div class="field"><label for="c_pourquoi">Ta phrase perso sur eux (une vraie phrase)</label>
+          <textarea id="c_pourquoi" rows="2" placeholder="écris une phrase complète, comme tu la dirais : « J'ai passé 30 h sur votre dernier jeu et votre level design m'a scotché. »"></textarea>
+        </div>
+      </div>
+    </details>
+
+    <div class="options">
+      <div class="field"><label for="o_type">Type</label>
+        <select id="o_type"><option value="une alternance|alternance">Alternance</option><option value="un stage|stage">Stage</option><option value="un poste|poste">Poste</option></select>
+      </div>
+      <div class="field"><label for="o_ton">Ton</label>
+        <select id="o_ton"><option value="normal">Normal</option><option value="formel">Formel</option><option value="direct">Direct</option><option value="random">Au hasard</option></select>
+      </div>
+      <div class="field"><label for="o_long">Longueur</label>
+        <select id="o_long"><option value="normal">Normal</option><option value="court">Court</option></select>
+      </div>
+    </div>
+
+    <button class="btn primary" id="genBtn" style="width:100%">Générer une proposition</button>
+  </div>
+
+  <div class="col-right">
+    <div class="chips" id="chips"></div>
+    <textarea id="out" placeholder="Remplis au moins le nom de l'entreprise, puis clique « Générer une proposition ». Plus tu remplis de champs (surtout « pourquoi eux » et ta phrase perso), plus le mail se démarque."></textarea>
+    <div class="count" id="count"></div>
+    <div class="actions">
+      <button class="btn" id="againBtn">Autre variante</button>
+      <button class="btn" id="copyBtn">Copier</button>
+      <button class="btn" id="resetBtn">Vider l'entreprise</button>
+      <button class="btn primary" id="sendBtn" style="display:none">Envoyer en validation</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   BIBLIOTHÈQUE DE BLOCS — la qualité vient d'ici. Pas de tiret cadratin,
+   pas de vocabulaire "IA" (voir la liste noire plus bas).
+   Placeholders : {signataire} {metier} {comp} {port} {ent} {contact}
+     {prenom} {posteContact} {poste} {pourquoi} {pourquoiCap} {projet}
+     {typeLong} {typeCourt} {e}
+   ========================================================================= */
+const V = {
+  objet: [
+    "Candidature {typeCourt} : {metier}",
+    "{metier}, recherche {typeCourt}",
+    "Candidature {typeCourt} chez {ent}"
+  ],
+  salutContact: ["Bonjour {prenom},"],
+  salutFormel:  ["Madame, Monsieur,"],
+  salutNormal:  ["Bonjour,"],
+
+  accroche: {
+    normal: [
+      "Je vous écris au sujet d'{typeLong}{poste} au sein de {ent}.",
+      "Je recherche {typeLong}{poste}, et je me tourne vers {ent}.",
+      "Je souhaite faire {typeLong}{poste} chez {ent}."
+    ],
+    formel: [
+      "Je vous adresse ma candidature pour {typeLong}{poste} au sein de {ent}.",
+      "Je souhaite réaliser {typeLong}{poste} au sein de {ent}."
+    ],
+    direct: [
+      "Je cherche {typeLong}{poste} chez {ent}.",
+      "Je vais droit au but : je cherche {typeLong}{poste} chez {ent}."
+    ]
+  },
+  accrocheContact: {
+    normal: [
+      "Vous êtes {posteContact} chez {ent}, donc probablement la bonne personne : je recherche {typeLong}{poste}.",
+      "Comme vous êtes {posteContact} chez {ent}, je m'adresse directement à vous : je recherche {typeLong}{poste}."
+    ],
+    formel: ["Je m'adresse à vous en votre qualité de {posteContact} au sein de {ent} : je souhaite y réaliser {typeLong}{poste}."],
+    direct: ["Vous êtes {posteContact} chez {ent} : je cherche {typeLong}{poste}."]
+  },
+  accrochePourquoi: {
+    normal: [
+      "{pourquoi} D'où ma candidature en {typeCourt}{poste}.",
+      "{pourquoi} Je recherche {typeLong}{poste} chez vous."
+    ],
+    formel: ["{pourquoi} C'est ce qui motive ma candidature en {typeCourt}{poste} au sein de {ent}."],
+    direct: [
+      "{pourquoi} D'où ma candidature en {typeCourt}{poste}.",
+      "{pourquoi} Je cherche {typeLong}{poste} chez vous."
+    ]
+  },
+
+  pourquoiSans: {
+    normal: ["Votre domaine correspond à ce que je cherche.", "C'est le secteur dans lequel je veux travailler."],
+    formel: ["Votre secteur correspond à l'orientation de mon parcours."],
+    direct: ["Votre domaine, c'est celui que je vise."]
+  },
+
+  apportComp: {
+    normal: ["Je suis {metier}, à l'aise avec {comp}.", "Je suis {metier} ; côté technique, {comp}."],
+    formel: ["Je suis {metier} ; mes compétences en {comp} pourraient s'inscrire dans vos équipes."],
+    direct: ["Je suis {metier}. Concrètement : {comp}."]
+  },
+  apportSans: {
+    normal: ["Je suis {metier}.", "Je suis {metier}, et je cherche à contribuer à des projets concrets."],
+    formel: ["Je suis {metier} et souhaite contribuer à vos projets."],
+    direct: ["Je suis {metier}, prêt{e} à être utile rapidement."]
+  },
+  portfolio: ["Vous pouvez voir mon travail ici : {port}.", "Mon portfolio est ici : {port}."],
+  projet: ["Un exemple représentatif : {projet}.", "Un projet parlant : {projet}."],
+
+  dispo: {
+    normal: ["Je suis disponible pour en échanger.", "Je reste disponible pour en échanger.", "Je suis disponible si vous souhaitez en discuter."],
+    formel: ["Je me tiens à votre disposition pour un entretien.", "Je serais disponible pour un premier échange à votre convenance."],
+    direct: ["Je suis disponible pour un premier échange.", "Disponible pour en échanger, si vous le souhaitez."]
+  },
+  dispoCourt: ["Je reste disponible pour en échanger.", "Disponible pour un premier échange."],
+  conclusion: {
+    normal: ["Merci pour votre attention.", "Merci d'avance pour votre retour."],
+    formel: ["Je vous remercie de l'attention portée à ma candidature."],
+    direct: ["Merci d'avance pour votre retour."]
+  },
+  signature: ["Bien cordialement,\n{signataire}", "Cordialement,\n{signataire}"]
+};
+
+/* Variantes ciblées par domaine (Thomas=jeu, Eglantine=video, Frédéric=web). */
+const DOMAINES = {
+  jeu: {
+    apportComp: [
+      "Je suis {metier}, à l'aise sur {comp}.",
+      "Je suis {metier}, à l'aise sur le code et sur la création graphique ({comp})."
+    ],
+    apportSans: [
+      "Je suis {metier}.",
+      "Je suis {metier}, orienté création de jeux."
+    ],
+    pourquoiSans: [
+      "Vos jeux correspondent au type de projets sur lesquels je veux travailler.",
+      "Votre univers correspond à ce que je cherche."
+    ],
+    portfolio: ["Mes jeux et prototypes sont ici : {port}.", "Vous pouvez voir mes réalisations ici : {port}."]
+  },
+  video: {
+    apportComp: [
+      "Je suis {metier}, à l'aise sur {comp}.",
+      "Je suis {metier}, à l'aise sur le cadrage et la prise de vue ({comp})."
+    ],
+    apportSans: [
+      "Je suis {metier}.",
+      "Je suis {metier}, orienté image et cadrage."
+    ],
+    pourquoiSans: [
+      "Vos productions correspondent au type de projets où je veux travailler.",
+      "Votre univers visuel correspond à ce que je cherche."
+    ],
+    portfolio: ["Mon showreel est ici : {port}.", "Vous pouvez voir mon travail ici : {port}."]
+  },
+  web: {
+    apportComp: [
+      "Je suis {metier}, à l'aise sur {comp}, autant sur le développement que sur la recherche en informatique.",
+      "Je suis {metier} : {comp}, autant à l'aise pour développer que pour creuser un sujet en profondeur."
+    ],
+    apportSans: [
+      "Je suis {metier}, à l'aise autant sur le développement que sur la recherche en informatique.",
+      "Je suis {metier}, à la croisée du développement et de la recherche."
+    ],
+    pourquoiSans: [
+      "Votre stack et vos produits correspondent à ce sur quoi je veux travailler.",
+      "Le type de projets techniques que vous menez correspond à ce que je cherche."
+    ],
+    portfolio: ["Mes projets et mon GitHub sont ici : {port}.", "Vous pouvez voir mon code ici : {port}."]
+  }
+};
+
+/* Liste noire : vocabulaire trop "IA / lettre-type", retiré du rendu final. */
+const LLM_BLACKLIST = [
+  [/je me permets de vous écrire/gi, "je vous écris"],
+  [/je me permets de vous adresser/gi, "je vous adresse"],
+  [/je me permets de vous contacter/gi, "je vous contacte"],
+  [/je me permets de /gi, ""],
+  [/n['’]hésitez pas à /gi, "vous pouvez "],
+  [/fort de mon expérience,?\s*/gi, ""],
+  [/dynamique et motivé[e]?/gi, "motivé"]
+];
+
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function val(id){ return document.getElementById(id).value.trim(); }
+function fill(str,d){ return str.replace(/\{(\w+)\}/g,(_,k)=>d[k]!==undefined?d[k]:""); }
+function tonOf(d){ return d.ton==="random" ? pick(["normal","formel","direct"]) : d.ton; }
+function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+function phrase(s){ s=(s||"").trim(); if(!s) return ""; s=cap(s); if(!/[.!?…]$/.test(s)) s+="."; return s; }
+function fragment(s){ return (s||"").trim().replace(/\s+/g," ").replace(/[.\s]+$/,""); }
+
+/* Majuscule propre sans casser les sigles (SNCF, iOS, McKinsey). */
+function smartCase(s){
+  if(!s) return "";
+  const petits = new Set(["de","du","des","la","le","les","et","d","à","of","the"]);
+  return s.trim().replace(/\s+/g," ").split(" ").map((w,i)=>{
+    if(/[A-Z]/.test(w)) return w;
+    if(i>0 && petits.has(w.toLowerCase())) return w.toLowerCase();
+    return w.charAt(0).toUpperCase()+w.slice(1);
+  }).join(" ");
+}
+
+function collectData(){
+  const [typeLong, typeCourt] = (document.getElementById("o_type").value||"une alternance|alternance").split("|");
+  const contact = smartCase(val("c_contact"));
+  const genre = document.getElementById("p_genre").value;
+  const e = genre==="f" ? "e" : (genre==="h" ? "" : "(e)");
+  const signataire = [val("p_prenom"), val("p_nom")].filter(Boolean).join(" ") || "…";
+  const pourquoi = phrase(val("c_pourquoi"));
+  return {
+    e, signataire, prenomBrut: val("p_prenom"), nomBrut: val("p_nom"), tel: val("p_tel"), linkedin: val("p_linkedin"),
+    domaine: document.getElementById("p_domaine").value,
+    ecole: val("p_ecole"), annee: val("p_annee"), duree: val("p_duree"), rythme: val("p_rythme"), debut: val("p_debut"),
+    metier: val("p_metier") || ("candidat"+e),
+    comp: val("p_comp"),
+    port: val("p_port"),
+    cvJoint: document.getElementById("p_cvjoint").checked,
+    hook: phrase(val("p_hook")),
+    ent: smartCase(val("c_ent")) || "votre structure",
+    contact,
+    posteContact: val("c_poste"),
+    prenom: contact ? contact.split(/\s+/)[0] : "",
+    poste: val("c_postevise") ? " pour le poste de "+val("c_postevise") : "",
+    lieu: val("c_lieu"),
+    pourquoi,
+    pourquoiCap: cap(pourquoi),
+    projet: fragment(val("p_projet")),
+    typeLong, typeCourt,
+    ton: document.getElementById("o_ton").value,
+    court: document.getElementById("o_long").value === "court"
+  };
+}
+
+/* Phrase de cadrage (école / année / durée / rythme / dispo), en variantes aléatoires,
+   n'assemble que ce qui est rempli. */
+function formationPhrase(d){
+  const sits = [];
+  if(d.ecole && d.annee){ sits.push("Je suis en "+d.annee+" à "+d.ecole); sits.push("En "+d.annee+" à "+d.ecole); }
+  else if(d.ecole){ sits.push("Je suis à "+d.ecole); }
+  else if(d.annee){ sits.push("Je suis en "+d.annee); }
+
+  const rech = [];
+  if(d.duree){ rech.push("je cherche "+d.typeLong+" de "+d.duree); rech.push("disponible en "+d.typeCourt+" sur "+d.duree); }
+  else { rech.push("je cherche "+d.typeLong); rech.push("disponible en "+d.typeCourt); }
+
+  const debut  = d.debut ? " à partir de "+d.debut : "";
+  const rythme = d.rythme ? " (rythme "+d.rythme+")" : "";
+
+  if(!sits.length && !d.duree && !d.rythme && !d.debut) return "";
+
+  const sit = sits.length ? pick(sits) : "";
+  const re  = pick(rech) + debut + rythme;
+
+  if(sit && re){
+    return /^En /.test(sit) ? (sit + ", " + re + ".") : (sit + " et " + re + ".");
+  }
+  if(sit) return sit + ".";
+  return cap(re) + ".";
+}
+
+/* Signature : formule + NOM Prénom - étudiant à école en année, puis tél et LinkedIn. */
+/* Bloc CV : regroupe la pièce jointe ET les liens (portfolio, projet phare) en un seul endroit. */
+function cvBlock(d){
+  const extra = d.projet ? "un projet en particulier ("+d.projet+")" : "";
+  if(d.cvJoint){
+    const parts = [];
+    if(d.port) parts.push("mon portfolio ("+d.port+")");
+    if(extra)  parts.push(extra);
+    const suite = parts.join(", et ");
+    return suite ? ("Vous trouverez mon CV en pièce jointe, ainsi que "+suite+".")
+                 : "Vous trouverez mon CV en pièce jointe.";
+  }
+  // CV non joint : les liens tiennent lieu de CV
+  if(d.port)   return "Mon CV et mon portfolio sont ici : "+d.port + (extra ? ", avec "+extra : "") + ".";
+  if(d.projet) return "Vous pouvez voir un projet représentatif ici : "+d.projet+".";
+  return "";
+}
+
+function signatureBlock(d){
+  const closing = pick(["Bien cordialement,", "Cordialement,"]);
+  const nomMaj = (d.nomBrut||"").toUpperCase();
+  const identite = [nomMaj, d.prenomBrut].filter(Boolean).join(" ") || "…";
+  let etu = "";
+  if(d.ecole && d.annee) etu = " - étudiant"+d.e+" à "+d.ecole+" en "+d.annee;
+  else if(d.ecole)       etu = " - étudiant"+d.e+" à "+d.ecole;
+  else if(d.annee)       etu = " - étudiant"+d.e+" en "+d.annee;
+  const lignes = [closing, identite+etu];
+  if(d.tel) lignes.push(d.tel);
+  if(d.linkedin) lignes.push(d.linkedin);
+  return lignes.join("\n");
+}
+
+function generer(){
+  const d = collectData();
+  const ton = tonOf(d);
+  const dom = DOMAINES[d.domaine];
+  const list = obj => (V[obj][ton] && V[obj][ton].length) ? V[obj][ton] : V[obj].normal;
+
+  const objet = fill(pick(V.objet), d);
+  const salut = d.contact ? pick(V.salutContact) : (ton==="formel"? pick(V.salutFormel):pick(V.salutNormal));
+
+  // Ouverture : si un détail réel est fourni, le mail DÉMARRE par lui
+  let ouverture;
+  if(d.pourquoi){
+    ouverture = fill(pick(list("accrochePourquoi")), d);
+  }else{
+    let pool = list("accroche").slice();
+    if(d.posteContact && d.contact) pool = pool.concat(list("accrocheContact"));
+    ouverture = fill(pick(pool), d);
+    if(!d.court) ouverture += " " + fill(pick(dom && dom.pourquoiSans ? dom.pourquoiSans : list("pourquoiSans")), d);
+  }
+
+  // Ce que j'apporte (+ portfolio + projet concret)
+  let apport = d.comp
+    ? fill(pick(dom && dom.apportComp ? dom.apportComp : list("apportComp")), d)
+    : fill(pick(dom && dom.apportSans ? dom.apportSans : list("apportSans")), d);
+
+  const hook = d.hook || "";  // phrase perso, telle qu'écrite
+
+  let cloture = d.court
+    ? pick(V.dispoCourt)
+    : fill(pick(list("dispo")), d) + " " + fill(pick(list("conclusion")), d);
+  const cv = cvBlock(d);
+  if(cv) cloture = cv + " " + cloture;
+
+  const paras = ["Objet : "+objet, fill(salut,d), ouverture, apport, hook, formationPhrase(d), cloture, signatureBlock(d)]
+    .filter(Boolean);
+  document.getElementById("out").value = finaliser(paras.join("\n\n"));
+  majChips(d);
+  majCount();
+}
+
+/* Nettoyage + anti-IA + suppression du cadratin */
+function nettoyer(t){
+  return t
+    .replace(/\s*[—–]\s*/g, ", ")   // BANNIR le tiret cadratin/demi-cadratin
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/,\s*,/g, ",")
+    .replace(/,\s*([.,])/g, "$1")
+    .replace(/ +([.,])/g, "$1")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\.{2,}/g, ".")
+    .replace(/ +\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+function deLLM(t){
+  LLM_BLACKLIST.forEach(([re,rep])=>{ t = t.replace(re, rep); });
+  return t;
+}
+function recap(t){
+  return t.replace(/(^|[.!?]\s+|\n\n)([a-zàâäéèêëîïôöùûüç])/g, (m,p,c)=>p+c.toUpperCase());
+}
+function finaliser(t){ return recap(deLLM(nettoyer(t))); }
+
+function majChips(d){
+  const items = [
+    ["Contact nommé", !!d.contact],
+    ["Poste visé", !!d.poste],
+    ["Raison précise", !!d.pourquoi],
+    ["Phrase perso", !!d.hook],
+    ["Projet mis en avant", !!d.projet],
+    ["Compétences", !!d.comp],
+    ["Portfolio", !!d.port],
+    ["Domaine ciblé", !!d.domaine],
+    ["Formation", !!(d.ecole||d.annee||d.duree||d.rythme)],
+    ["Mode court", d.court]
+  ];
+  document.getElementById("chips").innerHTML = items.map(([lab,on])=>
+    '<span class="chip '+(on?"":"off")+'">'+lab+'</span>').join("");
+}
+function majCount(){
+  const t=document.getElementById("out").value.trim();
+  const mots = t ? t.split(/\s+/).length : 0;
+  document.getElementById("count").textContent = t ? (mots+" mots · "+t.length+" caractères") : "";
+}
+
+/* ---------- Persistance du profil ---------- */
+const PROFILE_IDS = ["p_prenom","p_nom","p_genre","p_domaine","p_ecole","p_annee","p_duree","p_rythme","p_debut","p_metier","p_comp","p_port","p_cvjoint","p_projet","p_tel","p_linkedin","p_hook"];
+function saveProfile(){
+  try{
+    const o={}; PROFILE_IDS.forEach(id=>{ const el=document.getElementById(id); o[id]= el.type==="checkbox" ? el.checked : el.value; });
+    localStorage.setItem("rj_profile", JSON.stringify(o));
+    flash(document.getElementById("savedProfile"));
+  }catch(e){}
+}
+function loadProfile(){
+  try{
+    const o=JSON.parse(localStorage.getItem("rj_profile")||"{}");
+    PROFILE_IDS.forEach(id=>{
+      if(o[id]===undefined) return;
+      const el=document.getElementById(id);
+      if(el.type==="checkbox") el.checked=o[id]; else if(o[id]) el.value=o[id];
+    });
+    const u=localStorage.getItem("rj_sheeturl"); if(u) document.getElementById("sheetUrl").value=u;
+  }catch(e){}
+}
+PROFILE_IDS.forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("input", debounce(saveProfile,500));
+  el.addEventListener("change", saveProfile);
+});
+function flash(el){ el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1200); }
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+
+/* ---------- Boutons ---------- */
+document.getElementById("genBtn").addEventListener("click", generer);
+document.getElementById("againBtn").addEventListener("click", generer);
+document.getElementById("out").addEventListener("input", majCount);
+document.getElementById("copyBtn").addEventListener("click", async()=>{
+  const t=document.getElementById("out").value;
+  if(!t) return toast("Rien à copier.");
+  try{ await navigator.clipboard.writeText(t); toast("Copié"); }
+  catch(e){ document.getElementById("out").select(); toast("Sélectionné, fais Ctrl+C"); }
+});
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  ["c_ent","c_contact","c_poste","c_postevise","c_lieu","c_pourquoi"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("out").value=""; majChips(collectData()); majCount();
+  toast("Entreprise vidée");
+});
+
+/* ---------- Mode connecté (Sheet) ---------- */
+let sheet = { url:null, person:null, row:null };
+document.getElementById("toggleConnect").addEventListener("click",()=>{
+  document.getElementById("connectPanel").classList.toggle("hidden");
+});
+document.getElementById("connectBtn").addEventListener("click",()=>{
+  const u=document.getElementById("sheetUrl").value.trim();
+  if(!/\/exec$/.test(u)) return toast("L'URL doit finir par /exec");
+  sheet.url=u; try{localStorage.setItem("rj_sheeturl",u);}catch(e){}
+  document.getElementById("personWrap").style.display="block";
+  toast("Sheet connecté");
+});
+document.getElementById("personSel").addEventListener("change",e=>{
+  sheet.person=e.target.value;
+  document.body.dataset.person = sheet.person || "";
+  const map={"Thomas":"jeu","Eglantine":"video","Frédéric":"web"};
+  if(map[sheet.person]){ document.getElementById("p_domaine").value=map[sheet.person]; saveProfile(); }
+  if(sheet.person) chargerARediger();
+});
+
+async function chargerARediger(){
+  const box=document.getElementById("todo"), cards=document.getElementById("todoCards");
+  box.style.display="block";
+  document.getElementById("todoTitle").textContent="À rédiger — "+sheet.person;
+  cards.innerHTML="<p class='mt' style='font-size:13px'>Chargement…</p>";
+  try{
+    const r=await fetch(sheet.url+"?action=list&person="+encodeURIComponent(sheet.person));
+    const data=await r.json();
+    const rows=data.rows||[];
+    if(!rows.length){ cards.innerHTML="<p class='mt' style='font-size:13px'>Rien à rédiger.</p>"; return; }
+    cards.innerHTML="";
+    rows.forEach(c=>{
+      const el=document.createElement("div"); el.className="card"; el.tabIndex=0; el.setAttribute("role","button");
+      el.innerHTML="<div class='co'>"+esc(c.entreprise||"(sans nom)")+"</div><div class='mt'>"+esc([c.contact,c.poste].filter(Boolean).join(" · "))+"</div>";
+      el.addEventListener("click",()=>choisirLigne(c,el));
+      cards.appendChild(el);
+    });
+  }catch(e){ cards.innerHTML="<p class='mt' style='font-size:13px'>Connexion impossible. Vérifie l'URL et le déploiement (accès « tout le monde »).</p>"; }
+}
+function choisirLigne(c,el){
+  sheet.row=c.row;
+  document.querySelectorAll("#todoCards .card").forEach(x=>x.setAttribute("aria-selected","false"));
+  el.setAttribute("aria-selected","true");
+  set("c_ent",c.entreprise); set("c_contact",c.contact); set("c_poste",c.poste);
+  set("c_lieu",c.localisation); set("c_pourquoi",c.note);
+  set("c_postevise","");
+  if(c.brouillon){ document.getElementById("out").value=c.brouillon; majCount(); }
+  document.getElementById("sendBtn").style.display="inline-block";
+  document.getElementById("companyBox").open=true;
+  toast("Contact chargé, génère et envoie");
+}
+document.getElementById("sendBtn").addEventListener("click",async()=>{
+  if(!sheet.url||!sheet.person||!sheet.row) return toast("Aucun contact du Sheet sélectionné.");
+  const draft=document.getElementById("out").value.trim();
+  if(!draft) return toast("Le brouillon est vide.");
+  const b=document.getElementById("sendBtn"); b.disabled=true; b.textContent="Envoi…";
+  try{
+    await fetch(sheet.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({action:"saveDraft",person:sheet.person,row:sheet.row,draft})});
+    toast("Envoyé en validation");
+    chargerARediger(); sheet.row=null; b.style.display="none";
+  }catch(e){ toast("Échec de l'envoi."); }
+  b.disabled=false; b.textContent="Envoyer en validation";
+});
+
+function set(id,v){ document.getElementById(id).value=v||""; }
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+const _toast=document.getElementById("toast");
+function toast(m){ _toast.textContent=m; _toast.classList.add("show"); setTimeout(()=>_toast.classList.remove("show"),2000); }
+
+loadProfile();
+</script>
+</body>
+</html>
