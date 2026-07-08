@@ -100,6 +100,16 @@ const CATALOG = [
     path: '/studio/ue5',
     tags: ['UE5', 'Blueprint', 'Révision'],
   },
+  {
+    id: 'redac-emails',
+    cat: 'outil',
+    title: 'Premier jet',
+    tagline: "Aide à la rédaction d'emails de candidature : stage, alternance ou poste.",
+    icon: '✉️',
+    kind: 'external',
+    href: '/generateur-emails.html',
+    tags: ['Emails', 'Candidature', 'Rédaction'],
+  },
 ]
 
 // One slanted roster panel — character-select style.
