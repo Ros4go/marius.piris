@@ -175,7 +175,8 @@
         <p class="hint">La civilité sert au ton « Formel » : « Madame Marchand, » au lieu de « Bonjour Julie, ».</p>
         <div class="field"><label for="c_poste">Poste du contact (à qui tu écris)</label><input id="c_poste" placeholder="Lead Programmer"></div>
         <div class="field"><label for="c_postevise">Poste visé (optionnel)</label><input id="c_postevise" placeholder="vide = candidature spontanée"></div>
-        <div class="field"><label for="c_lieu">Lieu</label><input id="c_lieu" placeholder="Montpellier"></div>
+        <div class="field"><label for="c_lieu">Lieu de l'entreprise</label><input id="c_lieu" placeholder="Montpellier"></div>
+        <p class="hint">Contexte pour toi, jamais inséré dans le mail : c'est leur adresse, pas ta mobilité.</p>
         <div class="field"><label for="c_pourquoi">Ta phrase perso sur eux (une vraie phrase)</label>
           <textarea id="c_pourquoi" rows="2" placeholder="écris une phrase complète, comme tu la dirais : « J'ai passé 30 h sur votre dernier jeu et votre level design m'a scotché. »"></textarea>
         </div>
@@ -411,7 +412,6 @@ function collectData(){
     nomContact: mots.slice(1).join(" "),
     posteContact: val("c_poste"),
     poste: val("c_postevise") ? " pour le poste de "+val("c_postevise") : "",
-    lieu: val("c_lieu"),
     pourquoi: metaPourquoi ? "" : phrase(brutPourquoi),
     metaPourquoi,
     projet: fragment(val("p_projet")),
@@ -430,16 +430,16 @@ function formationPhrase(d){
   else if(d.annee){ sits.push("Je suis en "+d.annee); }
 
   const bits = [];
-  if(d.lieu) bits.push("à "+d.lieu);
   if(d.typeDuree && d.duree) bits.push("sur "+d.duree);
   if(d.debut) bits.push("à partir de "+d.debut);
+  // Le rythme modifie une disponibilité, il n'en est jamais une à lui seul.
   const rythme = d.rythme ? " (rythme "+d.rythme+")" : "";
-  const dispo = (bits.length || rythme) ? ("disponible "+bits.join(" ")).trim()+rythme : "";
+  const dispo = bits.length ? "disponible "+bits.join(" ")+rythme : "";
 
-  if(!sits.length && !dispo) return "";
-  if(!sits.length) return cap(dispo)+".";
+  if(!sits.length) return dispo ? cap(dispo)+"." : "";
   const sit = pick(sits);
-  return dispo ? (sit+", "+dispo+".") : (sit+".");
+  if(dispo) return sit+", "+dispo+".";
+  return sit+rythme+".";
 }
 
 /* Pièce jointe, portfolio et projet phare, dans les mots du domaine choisi.
@@ -557,7 +557,6 @@ function majChips(d){
     ["Portfolio", !!d.port],
     ["Domaine ciblé", !!d.domaine],
     ["Formation", !!(d.ecole||d.annee||d.duree||d.rythme)],
-    ["Lieu", !!d.lieu],
     ["Mode court", d.court]
   ];
   document.getElementById("chips").innerHTML = items.map(([lab,on])=>
