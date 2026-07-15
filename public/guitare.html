@@ -51,13 +51,17 @@
   /* HOME */
   .home{display:none;} .home.show{display:block;animation:fade .25s ease;}
   .hero{margin:8px 0 26px;} .hero p{color:var(--muted);font-size:14px;margin-top:8px;max-width:50ch;line-height:1.5;}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
-  .card{text-align:left;background:linear-gradient(160deg,#221c16,var(--board));border:1px solid var(--line);
-    border-radius:16px;padding:20px;cursor:pointer;font-family:inherit;color:var(--text);transition:.16s;}
-  .card:hover{border-color:var(--tonic);transform:translateY(-3px);box-shadow:0 16px 40px -28px var(--tonic);}
-  .card .ic{font-size:26px;}
-  .card .t{font-family:'Instrument Serif',serif;font-size:22px;margin:10px 0 4px;}
-  .card .d{color:var(--muted);font-size:12.5px;line-height:1.45;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;}
+  .cards-h{grid-column:1/-1;font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);
+    margin:16px 0 2px;} .cards-h:first-child{margin-top:0;}
+  .card{display:flex;align-items:center;gap:14px;text-align:left;background:var(--board);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;cursor:pointer;font-family:inherit;color:var(--text);transition:.15s;}
+  .card:hover{border-color:var(--tonic);} .card:hover .go{color:var(--tonic);transform:translateX(3px);}
+  .card .ic{font-size:22px;flex:none;}
+  .card .cbody{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .card .t{font-family:'Instrument Serif',serif;font-size:19px;line-height:1.1;}
+  .card .d{color:var(--muted);font-size:12px;line-height:1.35;}
+  .card .go{margin-left:auto;color:var(--line);font-size:16px;transition:.15s;flex:none;}
 
   .visname{font-family:'Instrument Serif',serif;font-size:24px;color:var(--tonic);margin:6px 0 2px;}
   .formula{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:4px 0 18px;color:var(--muted);font-size:13px;}
@@ -203,7 +207,10 @@
   .marks button:hover{border-color:var(--wire);color:var(--text);}
   .mut.on{background:var(--tonic);color:#1a1208;border-color:var(--tonic);opacity:1;}
   .trainer{border:1px solid var(--line);border-radius:12px;padding:13px 14px;}
-  .trainer-h{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);margin-bottom:11px;}
+  .trainer-h{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--muted);}
+  summary.trainer-h{cursor:pointer;list-style:none;} summary.trainer-h::-webkit-details-marker{display:none;}
+  summary.trainer-h::before{content:'▸ ';color:var(--tonic);} details[open] summary.trainer-h{margin-bottom:11px;}
+  details[open] summary.trainer-h::before{content:'▾ ';}
   .tr-row{display:flex;flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;}
   .tr-cfg{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
   .tr-cfg input{width:52px;padding:6px 8px;}
@@ -226,6 +233,14 @@
   .pdot{position:relative;z-index:2;width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:var(--scale);color:#221c14;cursor:pointer;}
   .pdot.tonic{background:var(--tonic);color:#1a1208;box-shadow:0 0 0 2px rgba(255,157,60,.3);}
   .gcell.posdim{opacity:.2;}
+  /* liaisons entre positions */
+  .pdot.ghost,.vdot.ghost{background:transparent;color:var(--hat);border:1.5px dashed var(--hat);opacity:.85;}
+  .pdot.pivot,.vdot.pivot{background:var(--hat);color:#08110f;box-shadow:0 0 0 2px rgba(95,176,165,.35);}
+  .pdot.pivot.tonic,.vdot.pivot.tonic{background:var(--tonic);box-shadow:0 0 0 2px var(--hat);}
+  #posLink.on{background:var(--tonic);color:#1a1208;border-color:var(--tonic);font-weight:600;}
+  .legend .l-pivot{background:var(--hat);}
+  .poslink-tip{font-size:12.5px;color:var(--muted);line-height:1.5;margin:2px 0 12px;max-width:60ch;}
+  .poslink-tip b{color:var(--hat);}
 
   /* ---------- MANCHE VERTICAL (mobile) ---------- */
   .neckrow.vert{flex-direction:column;}
@@ -336,7 +351,7 @@
   <!-- HOME -->
   <section class="home show" id="home">
     <div class="hero"><h1>Marous<em>Five</em></h1>
-      <p>Boîte à outils guitare : manche &amp; modes, accords, jeux d'oreille, métronome. Le réglage tonique · mode · accordage (en haut) s'applique à tous les ateliers.</p></div>
+      <p>Ta boîte à outils guitare.</p></div>
     <div class="cards" id="cards"></div>
   </section>
 
@@ -356,8 +371,8 @@
   <!-- ACCORDS + DOIGTÉS -->
   <section class="view" id="v-accords">
     <button class="back" data-home>← Menu</button>
-    <h2>Accords & doigtés</h2>
-    <p class="lead">Les accords de la tonalité. Clique : tu l'entends et son doigté s'affiche (accordage standard ; chiffre = doigt).</p>
+    <h2>Accords</h2>
+    <p class="lead">Clique un accord pour l'entendre et voir son doigté.</p>
     <div class="chords" id="chords"></div>
     <div style="border-top:1px solid var(--line);margin:22px 0 16px;padding-top:18px;display:flex;gap:13px;align-items:flex-end;flex-wrap:wrap">
       <div class="field"><label>Ou cherche un accord</label><select id="droot"></select></div>
@@ -370,8 +385,8 @@
   <!-- JEU -->
   <section class="view" id="v-jeu">
     <button class="back" data-home>← Menu</button>
-    <h2>Entraînement Oreille</h2>
-    <p class="lead">Entraîne-toi librement : note sur le manche, note ou intervalle à l'oreille, accordage en fréquence. Pas de score ici — c'est pour bosser.</p>
+    <h2>Oreille</h2>
+    <p class="lead">Choisis un mode et entraîne-toi, sans score.</p>
     <div class="game-top">
       <div class="gmodes" id="gmode">
         <button data-g="p2n" class="on">Case → Note</button>
@@ -388,7 +403,10 @@
 
     <!-- ear / intv : écoute -->
     <div class="listen" id="g-listen" style="display:none">
-      <button class="bigplay" id="greplay">🔊 Réécouter</button>
+      <div class="freqrow">
+        <button class="bigplay" id="greplay">🔊 Réécouter</button>
+        <button class="mut" id="gla440" title="Son de référence La 440 Hz — une fois par question">🔔 La 440 (1)</button>
+      </div>
     </div>
 
     <!-- freq : trouver la fréquence -->
@@ -415,7 +433,7 @@
     <h2>Challenge du jour</h2>
     <p class="lead" id="rankDate"></p>
     <div id="rk-intro">
-      <p class="lead">10 exercices enchaînés — manche, oreille, intervalles, fréquence — <b>identiques pour tout le monde aujourd'hui</b> (tirés de la date, accordage standard). Score sur 1000 à la fin.</p>
+      <p class="lead">10 exercices, les mêmes pour tout le monde aujourd'hui. Score sur 1000.</p>
       <button class="btn" id="rkStart">Commencer le défi</button>
     </div>
     <div id="rk-run" style="display:none">
@@ -433,22 +451,24 @@
   <!-- POSITIONS / CAGED -->
   <section class="view" id="v-pos">
     <button class="back" data-home>← Menu</button>
-    <h2>Positions (CAGED)</h2>
-    <p class="lead">Les 5 « boxes » d'une pentatonique le long du manche. Choisis une position pour l'isoler. Tonique et accordage viennent du menu en haut.</p>
+    <h2>Positions</h2>
+    <p class="lead">Choisis une box pour l'isoler sur le manche.</p>
     <div class="game-top" style="gap:13px;align-items:flex-end">
       <div class="field"><label>Gamme</label><select id="posScale"></select></div>
       <div class="toggle" id="posDisp" style="display:inline-flex"><button data-v="notes" class="on">Notes</button><button data-v="degres">Degrés</button></div>
+      <button class="mut" id="posLink" title="Montre comment glisser vers la position suivante" disabled>↔ Liaisons</button>
     </div>
     <div class="toggle" id="posSel" style="display:inline-flex;flex-wrap:wrap;margin:12px 0;border:none;gap:7px"></div>
+    <div class="poslink-tip" id="posLinkTip" style="display:none"></div>
     <div id="pos-board-wrap" style="overflow-x:auto;overflow-y:hidden"><div class="gboard" id="posBoard"></div><div class="gfrets" id="posFrets"></div></div>
-    <div class="legend" style="margin-top:14px"><span><i class="l-tonic"></i>Fondamentale</span><span><i class="l-scale"></i>Notes de la gamme</span></div>
+    <div class="legend" style="margin-top:14px"><span><i class="l-tonic"></i>Fondamentale</span><span><i class="l-scale"></i>Notes de la gamme</span><span id="posLinkLeg" style="display:none"><i class="l-pivot"></i>Note commune (pivot)</span></div>
   </section>
 
   <!-- ACCORDEUR -->
   <section class="view" id="v-tuner">
     <button class="back" data-home>← Menu</button>
     <h2>Accordeur</h2>
-    <p class="lead">Joue une corde : l'aiguille indique la note et l'écart en cents. Le micro nécessite https ou localhost.</p>
+    <p class="lead">Joue une corde, l'aiguille fait le reste.</p>
     <div id="tunerStart"><button class="btn" id="tunerOn">🎤 Activer le micro</button></div>
     <div id="tunerUI" style="display:none">
       <div class="tuner-note" id="tunerNote">—</div>
@@ -464,15 +484,15 @@
   <section class="view" id="v-guide">
     <button class="back" data-home>← Menu</button>
     <h2>Guide des modes</h2>
-    <p class="lead">Le caractère de chaque mode — clique une carte pour l'essayer.</p>
+    <p class="lead">Clique un mode pour l'essayer.</p>
     <div class="feature" id="feature"></div><div class="modes-grid" id="mgrid"></div>
   </section>
 
   <!-- MÉTRONOME -->
   <section class="view" id="v-metro">
     <button class="back" data-home>← Menu</button>
-    <h2>Métronome circulaire</h2>
-    <p class="lead">Règle temps et tempo ; clique une tranche pour cycler son son : silence → grosse caisse → caisse claire → cymbale → clic.</p>
+    <h2>Métronome</h2>
+    <p class="lead">Clique une tranche du cercle pour changer son son.</p>
     <div class="metro-wrap">
       <div class="ring" id="ring"><div class="ring-center" id="playbtn"><div class="play" id="playicon">▶</div><div class="bpm"><span id="bpmc">100</span> BPM</div><div class="mbar" id="metroBar"></div></div></div>
       <div class="metro-ctrl">
@@ -497,8 +517,8 @@
           <button class="mut on" id="accent">Accent T1</button>
           <button class="mut" id="countin">Décompte</button>
         </div>
-        <div class="trainer">
-          <div class="trainer-h">Entraînement</div>
+        <details class="trainer">
+          <summary class="trainer-h">Entraînement avancé (speed / gap)</summary>
           <div class="ctrl-row tr-row">
             <button class="mut" id="spdOn">Speed trainer</button>
             <span class="tr-cfg">+<input type="number" id="spdInc" value="5" min="1" max="30"> BPM toutes les <input type="number" id="spdEvery" value="2" min="1" max="16"> mes. (max <input type="number" id="spdMax" value="200" min="40" max="320">)</span>
@@ -507,7 +527,7 @@
             <button class="mut" id="gapOn">Gap trainer</button>
             <span class="tr-cfg"><input type="number" id="gapBars" value="1" min="1" max="4"> mes. muette(s) toutes les <input type="number" id="gapEvery" value="4" min="2" max="16"></span>
           </div>
-        </div>
+        </details>
         <div class="palette"><span><i style="background:var(--kick)"></i>Grosse caisse</span><span><i style="background:var(--snare)"></i>Caisse claire</span><span><i style="background:var(--hat)"></i>Cymbale</span><span><i style="background:var(--click)"></i>Clic</span></div>
       </div>
     </div>
@@ -570,18 +590,21 @@ const CTX_VIEWS=['v-manche','v-accords','v-pos','v-jeu','v-guide'];
 const HASH2VIEW={manche:'v-manche',accords:'v-accords',positions:'v-pos',jeu:'v-jeu',rank:'v-rank',tuner:'v-tuner',guide:'v-guide',metro:'v-metro'};
 const VIEW2HASH={'v-manche':'manche','v-accords':'accords','v-pos':'positions','v-jeu':'jeu','v-rank':'rank','v-tuner':'tuner','v-guide':'guide','v-metro':'metro'};
 const CARDS=[
-  {v:'v-manche',ic:'🎸',t:'Manche & modes',d:'Les notes du mode sur 24 frettes. Notes ou degrés, clic = son.'},
-  {v:'v-accords',ic:'🎼',t:'Accords & doigtés',d:'Accords de la tonalité + diagrammes (formes E/A, barrés).'},
-  {v:'v-pos',ic:'🗺️',t:'Positions (CAGED)',d:'Les 5 boxes d\'une pentatonique le long du manche.'},
-  {v:'v-tuner',ic:'🎤',t:'Accordeur',d:'Accorde au micro : note jouée + écart en cents.'},
-  {v:'v-jeu',ic:'🎧',t:'Entraînement Oreille',d:'Manche, note & intervalle à l\'oreille, fréquence. Sans pression, sans score.'},
-  {v:'v-rank',ic:'🏆',t:'Challenge du jour',d:'10 exos tirés de la date, mêmes pour tous. Score sur 1000.'},
-  {v:'v-guide',ic:'🧭',t:'Guide des modes',d:'Caractère et styles de chaque mode, en un coup d\'œil.'},
-  {v:'v-metro',ic:'🥁',t:'Métronome',d:'Circulaire : 2–12 temps, 30–320 BPM, son par temps.'},
+  {g:'Apprendre',v:'v-manche',ic:'🎸',t:'Manche & modes',d:'Visualise le mode sur le manche'},
+  {g:'Apprendre',v:'v-accords',ic:'🎼',t:'Accords',d:'Accords de la tonalité + doigtés'},
+  {g:'Apprendre',v:'v-pos',ic:'🗺️',t:'Positions',d:'Les 5 boxes pentatoniques'},
+  {g:'Apprendre',v:'v-guide',ic:'🧭',t:'Guide des modes',d:'Le caractère de chaque mode'},
+  {g:'S\'entraîner',v:'v-jeu',ic:'🎧',t:'Oreille',d:'Quiz libres, sans score'},
+  {g:'S\'entraîner',v:'v-rank',ic:'🏆',t:'Challenge du jour',d:'10 exos, score sur 1000'},
+  {g:'Outils',v:'v-tuner',ic:'🎤',t:'Accordeur',d:'Au micro, précis au cent'},
+  {g:'Outils',v:'v-metro',ic:'🥁',t:'Métronome',d:'Visuel, tap tempo'},
 ];
 const cardsEl=$('cards');
-CARDS.forEach(c=>{const b=document.createElement('button');b.className='card';
-  b.innerHTML=`<div class="ic">${c.ic}</div><div class="t">${c.t}</div><div class="d">${c.d}</div>`;
+let lastGroup=null;
+CARDS.forEach(c=>{
+  if(c.g!==lastGroup){lastGroup=c.g;const h=document.createElement('div');h.className='cards-h';h.textContent=c.g;cardsEl.appendChild(h);}
+  const b=document.createElement('button');b.className='card';
+  b.innerHTML=`<span class="ic">${c.ic}</span><span class="cbody"><span class="t">${c.t}</span><span class="d">${c.d}</span></span><span class="go">→</span>`;
   b.onclick=()=>{location.hash=VIEW2HASH[c.v];};cardsEl.appendChild(b);});
 function show(v){
   stopFreq();stopChalFreq();stopTuner(); // kill any continuous tone / mic
@@ -613,13 +636,13 @@ function ctx(){
     const d=noiseBuf.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;}
   if(actx.state==='suspended')actx.resume();return actx;
 }
-function playNote(midi){const c=ctx(),t=c.currentTime,f=midiToFreq(midi);
+function playNote(midi,dur=1.25){const c=ctx(),t=c.currentTime,f=midiToFreq(midi);
   const o1=c.createOscillator(),o2=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();
   o1.type='triangle';o2.type='sine';o1.frequency.value=f;o2.frequency.value=f*2;
-  lp.type='lowpass';lp.frequency.setValueAtTime(3800,t);lp.frequency.exponentialRampToValueAtTime(700,t+0.5);
-  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.006);g.gain.exponentialRampToValueAtTime(0.0001,t+1.25);
-  o1.connect(lp);o2.connect(lp);lp.connect(g);g.connect(master);o1.start(t);o2.start(t);o1.stop(t+1.3);o2.stop(t+1.3);}
-function playChord(midis){midis.forEach((m,i)=>setTimeout(()=>playNote(m),i*30));}
+  lp.type='lowpass';lp.frequency.setValueAtTime(3800,t);lp.frequency.exponentialRampToValueAtTime(700,t+Math.min(0.5,dur*0.4));
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.5,t+0.006);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o1.connect(lp);o2.connect(lp);lp.connect(g);g.connect(master);o1.start(t);o2.start(t);o1.stop(t+dur+0.05);o2.stop(t+dur+0.05);}
+function playChord(midis){midis.forEach((m,i)=>setTimeout(()=>playNote(m,2.6),i*30));} // accords : on laisse sonner
 function noise(t,dur){const s=ctx().createBufferSource();s.buffer=noiseBuf;s.start(t);s.stop(t+dur);return s;}
 function kick(t){const c=ctx(),o=c.createOscillator(),g=c.createGain();o.type='sine';
   o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+0.12);
@@ -836,6 +859,7 @@ function newQuestion(){
     else game.target=noteAt(game.s,game.f); // la note cible existe dans la fenêtre
   }else if(game.mode==='ear'){
     game.target=randMidi();game.opts=sampleChoices(FR[CHROMA[game.target%12]],CHROMA.map(n=>FR[n]));
+    game.la440=1; // étalon La 440 : 1 écoute par question
   }else if(game.mode==='intv'){
     game.root=randMidi();game.iv=INTERVALS[Math.floor(Math.random()*INTERVALS.length)].s;
     game.opts=sampleChoices(INTERVALS.find(i=>i.s===game.iv).name,INTERVALS.map(i=>i.name));
@@ -852,6 +876,7 @@ function showBlocks(){
   $('g-listen').style.display=listen?'':'none';
   $('g-freq').style.display=fq?'':'none';
   $('answers').style.display=fq?'none':'';
+  $('gla440').style.display=game.mode==='ear'?'':'none'; // étalon : oreille absolue seulement
 }
 function addAns(label,cb){const b=document.createElement('button');b.className='ans';b.textContent=label;b.onclick=()=>cb(b);$('answers').appendChild(b);}
 function markAns(correct,btn){[...$('answers').children].forEach(b=>{
@@ -877,6 +902,7 @@ function renderGame(){
     requestAnimationFrame(()=>{const wrap=$('g-board');if(!wrap)return;const cx=((game.f0+game.Wf/2+0.5)/cols)*gb.scrollWidth;wrap.scrollLeft=cx-wrap.clientWidth/2;});
   }else if(game.mode==='ear'){
     $('qbox').innerHTML='Quelle note entends-tu ?';game.opts.forEach(o=>addAns(o,b=>answerEar(o,b)));
+    const cal=$('gla440');cal.textContent=`🔔 La 440 (${game.la440})`;cal.disabled=!game.la440;
   }else if(game.mode==='intv'){
     $('qbox').innerHTML='Quel intervalle ?';game.opts.forEach(o=>addAns(o,b=>answerIntv(o,b)));
   }else if(game.mode==='freq'){
@@ -948,6 +974,8 @@ $('freqListen').onclick=listenTarget;
 $('freqGuessMute').onclick=()=>{if(!freq)return;const b=$('freqGuessMute');b.classList.toggle('off');freq.gGain.gain.value=b.classList.contains('off')?0:0.07;};
 
 $('greplay').onclick=()=>{if(game.mode==='ear')playNote(game.target);else if(game.mode==='intv')playInterval(game.root,game.iv);};
+$('gla440').onclick=()=>{if(game.mode!=='ear'||!game.la440)return;game.la440--;playNote(69); // La4 = 440 Hz
+  const b=$('gla440');b.textContent='🔔 La 440 (0)';b.disabled=true;};
 $('gmode').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;game.mode=e.target.dataset.g;
   [...$('gmode').children].forEach(b=>b.classList.toggle('on',b===e.target));newQuestion();});
 $('newq').onclick=newQuestion;
@@ -978,7 +1006,7 @@ function genChallenge(seedStr){
 let chal=null;
 function showRk(s){$('rk-intro').style.display=s==='intro'?'':'none';$('rk-run').style.display=s==='run'?'':'none';$('rk-result').style.display=s==='result'?'':'none';}
 function rkEnter(){stopChalFreq();$('rankDate').textContent=`Défi du ${todayStr()} — les mêmes exercices pour tout le monde aujourd'hui.`;showRk('intro');}
-function startChallenge(){stopChalFreq();chal={exos:genChallenge(todayStr()),idx:0,score:0,results:[]};showRk('run');renderExo();}
+function startChallenge(){stopChalFreq();chal={exos:genChallenge(todayStr()),idx:0,score:0,results:[],la440:1};showRk('run');renderExo();}
 function grade(points){const e=chal.exos[chal.idx];chal.score+=points;chal.results.push({type:e.type,points});$('rkScore').textContent=`${chal.score} pts`;
   const nb=$('rkNext');nb.style.display='';nb.textContent=(chal.idx>=chal.exos.length-1)?'Voir le résultat →':'Exercice suivant →';}
 function nextExo(){stopChalFreq();chal.idx++;if(chal.idx>=chal.exos.length)finishChallenge();else renderExo();}
@@ -1005,6 +1033,13 @@ function correction(q,txt){const d=document.createElement('div');d.className='qb
 function renderChalMC(q,question,opts,correct,playFn,e){
   lbl(q,question);
   const play=document.createElement('button');play.className='bigplay';play.textContent='🔊 Réécouter';play.onclick=playFn;q.appendChild(play);
+  if(e.type==='ear'){ // étalon La 440 : UNE seule écoute pour tout le défi
+    const cal=document.createElement('button');cal.className='mut';cal.style.marginLeft='10px';
+    cal.textContent=`🔔 La 440 (${chal.la440})`;cal.disabled=!chal.la440;
+    cal.title='Son de référence La 440 Hz — une seule fois pour tout le défi';
+    cal.onclick=()=>{if(!chal.la440)return;chal.la440--;playNote(69);cal.textContent='🔔 La 440 (0)';cal.disabled=true;};
+    q.appendChild(cal);
+  }
   const ans=document.createElement('div');ans.className='answers';ans.style.marginTop='14px';
   opts.forEach(o=>{const b=document.createElement('button');b.className='ans';b.textContent=o;b.onclick=()=>{if(e._done)return;e._done=true;const ok=o===correct;
     [...ans.children].forEach(x=>{if(x.textContent===correct)x.style.borderColor='var(--hat)';else if(x===b)x.style.borderColor='var(--snare)';});
@@ -1237,29 +1272,58 @@ const POS_SCALES={
   penta_min:{name:'Pentatonique mineure',iv:[0,3,5,7,10],deg:['1','♭3','4','5','♭7']},
   penta_maj:{name:'Pentatonique majeure',iv:[0,2,4,7,9],deg:['1','2','3','5','6']},
 };
-let posDisp='notes',posCurrent=-1,posBoxes=[];
+let posDisp='notes',posCurrent=-1,posLink=false,posBoxes=[];
 Object.entries(POS_SCALES).forEach(([k,v])=>$('posScale').add(new Option(v.name,k)));$('posScale').value='penta_min';
 function buildPosSel(){const sel=$('posSel');sel.innerHTML='';
   const mk=(label,idx)=>{const b=document.createElement('button');b.textContent=label;if(posCurrent===idx)b.className='on';
     b.onclick=()=>{posCurrent=idx;renderPositions();};sel.appendChild(b);};
   mk('Tout',-1);posBoxes.forEach((_,i)=>mk('Pos. '+(i+1),i));}
+// Fenêtre d'une box = les 2 notes de gamme les plus proches du centre, corde par corde.
+// Le centre est décalé par corde selon l'accordage (une tierce au lieu d'une quarte
+// remonte les notes d'une frette) — c'est ce qui corrige la corde Si en position 3.
+function boxWindow(center,tun,scalePcs,FRN){
+  let lo=Infinity,hi=-Infinity,off=0;
+  tun.forEach((open,si)=>{
+    if(si>0)off+=5-(open-tun[si-1]); // 5 = quarte (référence) ; tierce (4) => +1 frette
+    const c=center+off,cands=[];
+    const a=Math.max(0,Math.round(c)-6),b=Math.min(FRN,Math.round(c)+6);
+    for(let f=a;f<=b;f++)if(scalePcs.includes((open+f)%12))cands.push(f);
+    cands.sort((x,y)=>Math.abs(x-c)-Math.abs(y-c));
+    cands.slice(0,2).forEach(f=>{if(f<lo)lo=f;if(f>hi)hi=f;});});
+  return lo<=hi?[lo,hi]:null;
+}
 function renderPositions(){
   const FRN=21,rootPc=CHROMA.indexOf($('root').value),scaleKey=$('posScale').value,sc=POS_SCALES[scaleKey],
     scalePcs=sc.iv.map(i=>(rootPc+i)%12),tun=TUNINGS[$('tuning').value].m,low=tun[0];
-  // 5 boxes pentatoniques : départs [0,2,4,7,9] frettes depuis la fondamentale (Mi grave).
-  // En majeur, on s'appuie sur la mineure relative (mêmes boxes, mêmes notes).
+  // 5 boxes pentatoniques ancrées sur la fondamentale (Mi grave). En majeur on s'appuie
+  // sur la mineure relative (mêmes notes, même quadrillage). Départs indicatifs [0,2,4,7,9].
   const REL=[0,2,4,7,9],anchorPc=scaleKey==='penta_maj'?(rootPc+9)%12:rootPc;
   let R=0;while(R<12&&(low+R)%12!==anchorPc)R++;
-  posBoxes=REL.map(r=>{const wins=[];for(const o of[-12,0,12]){const s=R+o+r;if(s>=0&&s+3<=FRN)wins.push([s,s+3]);}return wins;});
+  posBoxes=REL.map(rel=>{const wins=[];for(const o of[-12,0,12]){const st=R+rel+o;if(st<0||st+3>FRN)continue;
+    const w=boxWindow(st+1.5,tun,scalePcs,FRN);if(w)wins.push(w);}return wins;});
   if(posCurrent>=posBoxes.length)posCurrent=-1;
   buildPosSel();
+  // état du bouton Liaisons (n'a de sens que sur une position précise)
+  const linkable=posCurrent>=0;$('posLink').disabled=!linkable;
+  if(!linkable)posLink=false;$('posLink').classList.toggle('on',posLink);
   const wins=posCurrent>=0?posBoxes[posCurrent]:null,inWin=f=>!wins||wins.some(w=>f>=w[0]&&f<=w[1]);
+  const nextIdx=(posCurrent+1)%(posBoxes.length||1),nextWins=posLink&&wins?posBoxes[nextIdx]:null;
+  const inNext=f=>nextWins&&nextWins.some(w=>f>=w[0]&&f<=w[1]);
+  const shown=f=>!wins||inWin(f)||inNext(f);
+  const dotCls=f=>{if(!nextWins)return '';const c=inWin(f),n=inNext(f);return c&&n?' pivot':(!c&&n?' ghost':'');};
+  // légende + explication du mode liaisons
+  $('posLinkLeg').style.display=posLink&&wins?'':'none';
+  const tip=$('posLinkTip');
+  if(posLink&&wins){tip.style.display='';tip.innerHTML=`Position <b style="color:var(--tonic)">${posCurrent+1}</b> en plein, position <b style="color:var(--tonic)">${nextIdx+1}</b> en pointillés. Les <b>notes pleines cyan</b> sont communes aux deux : c'est là que tu glisses ta main d'une position à l'autre.`;}
+  else tip.style.display='none';
   const board=$('posBoard'),vertical=NECK_MQ.matches;
   if(vertical){
     $('posFrets').style.display='none';
     buildVNeck(board,tun,FRN,(si,f)=>{
       const pc=(tun[si]+f)%12;if(!scalePcs.includes(pc))return null;
-      const d=document.createElement('div');d.className='vdot'+(pc===rootPc?' tonic':'')+((wins&&!inWin(f))?' dim':'');
+      if(wins&&!shown(f))return posLink?null:(()=>{const d=document.createElement('div');d.className='vdot dim';
+        const di=sc.iv.indexOf((pc-rootPc+12)%12);d.textContent=posDisp==='notes'?FR[CHROMA[pc]]:sc.deg[di];d.onclick=()=>playNote(tun[si]+f);return d;})();
+      const d=document.createElement('div');d.className='vdot'+(pc===rootPc?' tonic':'')+dotCls(f)+((wins&&!shown(f))?' dim':'');
       const di=sc.iv.indexOf((pc-rootPc+12)%12);d.textContent=posDisp==='notes'?FR[CHROMA[pc]]:sc.deg[di];
       d.onclick=()=>playNote(tun[si]+f);return d;});
   }else{
@@ -1267,20 +1331,21 @@ function renderPositions(){
     board.style.gridTemplateColumns=`repeat(${FRN+1},minmax(30px,1fr))`;board.innerHTML='';
     [...tun].reverse().forEach(open=>{for(let f=0;f<=FRN;f++){
       const pc=(open+f)%12,inScale=scalePcs.includes(pc);
-      const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'')+((wins&&!inWin(f))?' posdim':'');
+      const cell=document.createElement('div');cell.className='gcell'+(f===0?' open':'')+((wins&&!shown(f))?' posdim':'');
       const st=document.createElement('div');st.className='gs';cell.appendChild(st);
-      if(inScale){const d=document.createElement('div');d.className='pdot'+(pc===rootPc?' tonic':'');
+      if(inScale){const d=document.createElement('div');d.className='pdot'+(pc===rootPc?' tonic':'')+dotCls(f);
         const di=sc.iv.indexOf((pc-rootPc+12)%12);d.textContent=posDisp==='notes'?FR[CHROMA[pc]]:sc.deg[di];
         const midi=open+f;d.onclick=()=>playNote(midi);cell.appendChild(d);}
       board.appendChild(cell);}});
     const gf=$('posFrets');gf.style.gridTemplateColumns=`repeat(${FRN+1},minmax(30px,1fr))`;gf.innerHTML='';
-    for(let f=0;f<=FRN;f++){const sp=document.createElement('span');sp.textContent=f;if(wins&&inWin(f))sp.className='mark';gf.appendChild(sp);}
+    for(let f=0;f<=FRN;f++){const sp=document.createElement('span');sp.textContent=f;if(wins&&(inWin(f)||inNext(f)))sp.className='mark';gf.appendChild(sp);}
     if(wins&&wins.length){const w=wins[0];requestAnimationFrame(()=>{const wrap=$('pos-board-wrap');const cx=((w[0]+(w[1]-w[0])/2+0.5)/(FRN+1))*board.scrollWidth;wrap.scrollLeft=cx-wrap.clientWidth/2;});}
   }
 }
 $('posScale').addEventListener('change',()=>{posCurrent=-1;renderPositions();});
 $('posDisp').addEventListener('click',e=>{if(e.target.tagName!=='BUTTON')return;posDisp=e.target.dataset.v;
   [...$('posDisp').children].forEach(b=>b.classList.toggle('on',b===e.target));renderPositions();});
+$('posLink').addEventListener('click',()=>{if(posCurrent<0)return;posLink=!posLink;renderPositions();});
 ['root','tuning'].forEach(id=>$(id).addEventListener('change',()=>{if($('v-pos').classList.contains('show')){posCurrent=-1;renderPositions();}}));
 // bascule horizontal/vertical du manche au redimensionnement / rotation
 let neckRsz;window.addEventListener('resize',()=>{clearTimeout(neckRsz);neckRsz=setTimeout(()=>{
