@@ -6,8 +6,8 @@
   "description": "Hub modulaire style Persona — portfolio, jeux et modules de Marius Piris",
   "scripts": {
     "dev": "vite",
-    "check:ue5": "node scripts/check-ue5-data.mjs",
-    "build": "npm run check:ue5 && vite build",
+    "check:bootcamp": "node scripts/check-bootcamp-data.mjs",
+    "build": "npm run check:bootcamp && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

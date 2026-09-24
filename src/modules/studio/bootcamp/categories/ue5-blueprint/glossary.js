@@ -1,3 +1,5 @@
+import { makeGlossaryMatcher } from '../../glossary.js'
+
 // Glossaire des termes "complexes" d'UE5, expliqués en langage SIMPLE (débutant).
 // Une définition ne s'affiche QUE si son terme apparaît (mot entier) dans la
 // question/les choix — sinon rien. Volontairement resserré aux termes qui comptent.
@@ -70,26 +72,5 @@ export const GLOSSARY = [
   { term: 'Service', aliases: ['service', 'services'], def: "Dans un Behavior Tree : une petite tâche qui tourne en fond, à intervalle régulier, tant que sa branche est active (ex. vérifier où est le joueur)." },
 ]
 
-// Match "mot entier" insensible à la casse (évite que "Unreal" attrape "real").
-const isWord = (c) => c != null && /[a-z0-9àâäçéèêëîïôöùûü]/i.test(c)
-function containsWord(hay, needle) {
-  let from = 0
-  while (true) {
-    const i = hay.indexOf(needle, from)
-    if (i < 0) return false
-    if (!isWord(hay[i - 1]) && !isWord(hay[i + needle.length])) return true
-    from = i + 1
-  }
-}
 
-// Renvoie jusqu'à `max` définitions dont un terme apparaît (mot entier) dans `text`.
-export function matchGlossary(text, max = 2) {
-  const low = ' ' + String(text || '').toLowerCase() + ' '
-  const hits = []
-  for (const g of GLOSSARY) {
-    const keys = [g.term, ...(g.aliases || [])]
-    if (keys.some((k) => containsWord(low, k.toLowerCase()))) hits.push(g)
-  }
-  hits.sort((a, b) => b.term.length - a.term.length)
-  return hits.slice(0, max)
-}
+export const matchGlossary = makeGlossaryMatcher(GLOSSARY)

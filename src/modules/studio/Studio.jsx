@@ -1,17 +1,23 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { useRoute, navigate, segments } from '../../core/router.js'
 import PersonaBg from '../../components/PersonaBg.jsx'
 
 // Chargés à la demande : ces deux modules pèsent l'essentiel du bundle,
 // inutile de les télécharger pour afficher l'accueil ou le catalogue.
 const FrometonsGame = lazy(() => import('../games/frometons/FrometonsGame.jsx'))
-const UE5Blueprint = lazy(() => import('./ue5/UE5Blueprint.jsx'))
+const Bootcamp = lazy(() => import('./bootcamp/Bootcamp.jsx'))
+
+// Redirection déclarative (appeler navigate() pendant le rendu est interdit).
+function Redirect({ to }) {
+  useEffect(() => { navigate(to) }, [to])
+  return null
+}
 
 // Mots défilants de la bande verticale (droite) — ambiance arcade / catalogue.
 const ATELIER_WORDS = [
   'Arcade', 'Jouer', '1 Avenue Frochot', 'Echoes of Above', 'Worm With a Shotgun', 'Casting Scales', 'Mytho-Logie',
   'Frometons', 'Neuvième Vie', 'Pot of Greed', 'Super Sushi',
-  'MarousFive', 'Idle', 'Plateforme', 'Rogue-lite', 'Rythme', 'Guitare',
+  'MarousFive', 'Idle', 'Plateforme', 'Rogue-lite', 'Rythme', 'Guitare', 'Bootcamp',
   'Unity', 'Godot', 'itch.io', 'High Score', 'Combo', 'Insert Coin',
 ]
 
@@ -137,14 +143,14 @@ const CATALOG = [
     tags: ['Guitare', 'Modes', 'Métronome'],
   },
   {
-    id: 'ue5-blueprint',
+    id: 'bootcamp',
     cat: 'outil',
-    title: 'Blueprint Bootcamp',
-    tagline: 'Réviser UE5 Blueprint : fiches + quiz (éditeur, events, widgets, signaux, IA…).',
-    icon: '🔷',
+    title: 'Game Dev Bootcamp',
+    tagline: 'Réviser le game dev par catégories : fiches mémo + quiz + examen blanc. Première catégorie : UE5 Blueprint.',
+    icon: '🎓',
     kind: 'route',
-    path: '/studio/ue5',
-    tags: ['UE5', 'Blueprint', 'Révision'],
+    path: '/studio/bootcamp',
+    tags: ['Révision', 'Quiz', 'UE5'],
   },
   {
     id: 'redac-emails',
@@ -248,13 +254,16 @@ export default function Studio() {
     )
   }
 
-  if (seg[1] === 'ue5') {
+  if (seg[1] === 'bootcamp') {
     return (
       <Suspense fallback={null}>
-        <UE5Blueprint />
+        <Bootcamp />
       </Suspense>
     )
   }
+
+  // Ancienne URL du module « Blueprint Bootcamp » : on renvoie vers sa catégorie.
+  if (seg[1] === 'ue5') return <Redirect to="/studio/bootcamp/ue5-blueprint" />
 
   return (
     <div className="studio">

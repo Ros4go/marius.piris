@@ -1,0 +1,2439 @@
+[
+  {
+    "id": "donnees",
+    "num": "01",
+    "special": false,
+    "title": "Données et décision",
+    "summary": "Ce qu'est une donnée, sous quelles formes elle existe, son cycle de vie de la collecte à la destruction, comment on la stocke (disques, bases SQL, cloud, machines virtuelles, IaaS/PaaS/SaaS) et surtout à quoi elle sert : aider à décider. Quand il y en a trop, on la résume avec des statistiques descriptives et de la visualisation, avec des outils clic-bouton ou en programmant.",
+    "topics": [
+      "définition d'une donnée",
+      "formes de données (tabulaire, série temporelle, image, carte, texte)",
+      "cycle de vie : collecte, stockage, mise à disposition, utilisation, archivage",
+      "collecte par capteur ou par logiciel",
+      "stockage : disque, fichiers, bases SQL",
+      "datacenter, cloud, machine virtuelle",
+      "IaaS, PaaS, SaaS",
+      "la donnée comme outil d'aide à la décision",
+      "statistiques descriptives et data viz",
+      "outils : Tableau, Power BI vs Python, R",
+      "écosystème Python (numpy, pandas, matplotlib, sklearn…)"
+    ],
+    "fiches": [
+      {
+        "title": "Qu'est-ce qu'une donnée ?",
+        "front": "Donne la définition d'une donnée vue en cours",
+        "body": "Le cours définit la donnée comme une **information stockée à propos d'un phénomène** (« stored information about a phenomenon »). Le phénomène, c'est ce qu'on observe : la température d'une pièce, les ventes d'un magasin, les déplacements d'un joueur dans un niveau. L'information, c'est ce qu'on en retient : un nombre, un texte, une image. Et le mot important est **stockée** : tant que l'observation n'est pas enregistrée quelque part, ce n'est pas une donnée exploitable. Une donnée n'a pas de valeur en soi, elle en prend quand elle permet de comprendre ou de décider.",
+        "keypoints": [
+          "Donnée = **information stockée** sur un **phénomène**",
+          "Phénomène = ce qu'on observe (température, ventes, clics d'un joueur)",
+          "Pas de stockage, pas de donnée exploitable",
+          "Sa valeur vient de l'usage qu'on en fait"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Les formes de données",
+        "front": "Cite les grandes formes de données et comment l'ordinateur les voit",
+        "body": "Les données prennent plusieurs formes. **Tabulaire** : un tableau type CSV ou Excel, une **ligne par observation** et une **colonne par variable** (exemple du cours : une colonne Age, une colonne Salary). **Série temporelle ou signal** : une valeur qui évolue dans le temps, relevée par un capteur, un son. **Image** : pour l'ordinateur, une image est une **grille de nombres**, un par pixel (de 0 à 255 par canal de couleur), le cours montre des biopsies affichées comme des tableaux de chiffres. **Carte / géographique** : des couches superposées (rues, clients, densité). **Texte** : livres, avis, messages. Toutes finissent par être **converties en nombres** pour être traitées par un modèle.",
+        "keypoints": [
+          "**Tabulaire** : ligne = observation, colonne = variable",
+          "**Série temporelle** : valeur dans le temps (capteur, son)",
+          "**Image** = grille de nombres (pixels 0–255)",
+          "**Carte** = couches géographiques ; **Texte** = mots",
+          "Tout devient des nombres avant d'entrer dans un modèle"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Le cycle de vie de la donnée",
+        "front": "Les 5 étapes du cycle de vie d'une donnée, dans l'ordre",
+        "body": "Une donnée suit un cycle de vie en cinq étapes : **collecte**, **stockage**, **mise à disposition** (la rendre accessible à ceux qui en ont besoin), **utilisation** (analyse, décision, entraînement d'un modèle) puis **archivage ou destruction**. La collecte se fait de deux façons dans le cours : un **capteur** produit une donnée qui va dans une **base de données**, ou un **utilisateur** interagit avec un **logiciel** qui enregistre une donnée dans la base. Un jeu vidéo est un cas typique du second : chaque action du joueur peut devenir une donnée.",
+        "keypoints": [
+          "Collecte → Stockage → Mise à disposition → Utilisation → Archivage/destruction",
+          "Collecte par **capteur** → donnée → base de données",
+          "Collecte par **utilisateur** → logiciel → base de données",
+          "Un jeu enregistre les actions des joueurs : c'est de la collecte"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Stocker : du disque dur au cloud",
+        "front": "Où et comment stocke-t-on les données ?",
+        "body": "Physiquement, les données vivent sur des **disques durs**, dont le coût par gigaoctet s'est effondré : environ **10 millions de dollars le Go en 1980** contre **quelques centimes en 2009**, ce qui explique qu'on stocke tout aujourd'hui. Logiquement, on les range dans des **fichiers** (csv, xlsx) ou dans des **bases de données SQL** qu'on interroge avec des requêtes (SELECT … FROM … JOIN …). Les serveurs sont soit dans le **datacenter de l'organisation** (elle possède et gère les machines), soit dans le **cloud** (elle loue des machines chez un prestataire). Une **machine virtuelle** permet de découper un serveur physique en plusieurs ordinateurs virtuels indépendants, loués séparément.",
+        "keypoints": [
+          "Coût du Go divisé par des millions entre 1980 et 2009",
+          "**Fichiers** (csv, xlsx) ou **bases SQL** (requêtes SELECT/JOIN)",
+          "**Datacenter** = ses propres serveurs ; **cloud** = serveurs loués",
+          "**Machine virtuelle** = plusieurs ordinateurs virtuels sur un serveur physique"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "IaaS, PaaS, SaaS",
+        "front": "Explique les trois niveaux de service du cloud et le compromis valeur / flexibilité",
+        "body": "Le cloud se vend à trois niveaux. **IaaS** (Infrastructure as a Service) : on loue des machines virtuelles, du stockage, du réseau, et on installe tout soi-même. **PaaS** (Platform as a Service) : on reçoit un environnement prêt à faire tourner son code (base de données gérée, serveur applicatif), sans gérer les machines. **SaaS** (Software as a Service) : on utilise directement un logiciel fini, comme Gmail ou Google Docs. Le cours résume le compromis par deux flèches : plus on monte vers le SaaS, plus la **valeur** livrée est grande (c'est prêt à l'emploi), mais moins on a de **flexibilité** (on ne contrôle plus grand-chose).",
+        "keypoints": [
+          "**IaaS** : machines virtuelles et stockage, on installe tout",
+          "**PaaS** : environnement prêt pour déployer son code",
+          "**SaaS** : logiciel fini, prêt à l'emploi",
+          "Valeur ↑ vers le SaaS, flexibilité ↑ vers l'IaaS"
+        ],
+        "tier": 3
+      },
+      {
+        "title": "À quoi sert la donnée ? À décider",
+        "front": "Quelle est la valeur d'une donnée selon le cours, avec des exemples de décisions en game dev",
+        "body": "Pour le cours, la valeur de la donnée tient en une phrase : c'est un **outil d'aide à la décision**. Les exemples donnés parlent directement au jeu vidéo : **développer un produit ou un jeu** sur un marché donné, **choisir un segment cible** pour son jeu, **décider de garder ou de changer une feature** ou une mécanique, **bannir un joueur**, **ajuster l'équilibrage**, **investir** dans une technologie ou **embaucher**. Sans données, ces décisions se prennent à l'intuition ; avec, on peut les mesurer, les comparer, les justifier.",
+        "keypoints": [
+          "Valeur de la donnée = **aide à la décision**",
+          "Garder ou changer une **mécanique de jeu**",
+          "**Bannir** un joueur, ajuster l'**équilibrage**",
+          "Choisir un **marché**, un **segment cible**, investir, embaucher"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Trop de données : résumer",
+        "front": "Quand il y a trop de données pour tout lire, que fait-on ?",
+        "body": "Personne ne lit 74 lignes et 11 colonnes une par une, encore moins des millions. On **résume**. Première méthode, les **statistiques descriptives** : pour chaque variable, le nombre d'observations, la **moyenne**, l'**écart-type** (la dispersion), le **minimum** et le **maximum**. Le tableau du cours indique par exemple un prix moyen de 6 165 pour 74 voitures, avec un min de 3 291 et un max de 15 906. Deuxième méthode, la **data viz** : des graphiques et des cartes qui rendent visibles des tendances, des groupes, des anomalies que les chiffres cachent.",
+        "keypoints": [
+          "**Stats descriptives** : nb d'observations, moyenne, écart-type, min, max",
+          "L'**écart-type** mesure la dispersion autour de la moyenne",
+          "**Data viz** : graphiques et cartes pour voir tendances et anomalies",
+          "Résumer, c'est perdre du détail pour gagner en lisibilité"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Les outils : clic-bouton ou code",
+        "front": "Deux familles d'outils pour analyser des données, et les briques de l'écosystème Python",
+        "body": "Deux familles d'outils. Les **outils d'éditeurs**, sans code : **Tableau**, **Power BI**, **Qlik**, **Apache Superset**. Rapides pour un tableau de bord, limités dès qu'on veut du sur-mesure ou de l'IA. La **programmation** : **Python** et son écosystème, ou **R**. Dans Python, tout repose sur **numpy** (calcul scientifique, vecteurs et matrices). **pandas** charge et manipule les données tabulaires (csv, sql, parquet), **matplotlib** dessine les graphiques, **scipy** fait du traitement du signal, **scikit-learn** fournit les modèles de machine learning classiques, **PyTorch** et **Keras** le deep learning, **Spark / PySpark** le big data, et **Streamlit** transforme un script en application web. Ces librairies feront l'objet d'une catégorie Python à part.",
+        "keypoints": [
+          "Sans code : **Tableau, Power BI, Qlik, Superset**",
+          "Avec code : **Python** (ou R)",
+          "**numpy** = base de tout ; **pandas** = tableaux ; **matplotlib** = graphiques",
+          "**scikit-learn** = ML ; **PyTorch / Keras** = deep learning",
+          "**Spark** = big data ; **Streamlit** = app web en Python"
+        ],
+        "tier": 2
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Comment le cours définit-il une donnée ?",
+        "choices": [
+          "Une information stockée à propos d'un phénomène observé",
+          "Un nombre mesuré par un capteur et transmis à un logiciel",
+          "Une information transformée en connaissance par une analyse",
+          "Un enregistrement structuré dans une base de données relationnelle"
+        ],
+        "answer": 0,
+        "explain": "« Stored information about a phenomenon ». Le capteur n'est qu'un moyen de collecte parmi d'autres, la base relationnelle qu'un moyen de stockage parmi d'autres, et la connaissance est ce qu'on tire de la donnée, pas la donnée elle-même.",
+        "difficulty": "facile",
+        "topic": "définition"
+      },
+      {
+        "q": "Pour un modèle, à quoi se ramène une image ?",
+        "choices": [
+          "Une grille de nombres, une valeur par pixel et par canal de couleur",
+          "Une liste de formes et d'objets reconnus, étiquetés par le capteur",
+          "Une chaîne de caractères qui décrit son contenu en langage naturel",
+          "Une série temporelle, une valeur par ligne de pixels balayée"
+        ],
+        "answer": 0,
+        "explain": "Le cours montre des biopsies affichées comme des tableaux de chiffres entre 0 et 255. Reconnaître les objets, c'est justement le travail du modèle, pas une propriété de l'image.",
+        "difficulty": "facile",
+        "topic": "formes de données"
+      },
+      {
+        "q": "Quel est l'ordre correct du cycle de vie de la donnée ?",
+        "choices": [
+          "Collecte, stockage, mise à disposition, utilisation, archivage",
+          "Collecte, mise à disposition, stockage, utilisation, archivage",
+          "Stockage, collecte, mise à disposition, utilisation, archivage",
+          "Collecte, stockage, utilisation, mise à disposition, archivage"
+        ],
+        "answer": 0,
+        "explain": "On ne peut pas mettre à disposition ce qui n'est pas stocké, ni utiliser ce qui n'est pas mis à disposition. L'archivage ou la destruction ferment le cycle.",
+        "difficulty": "moyen",
+        "topic": "cycle de vie"
+      },
+      {
+        "q": "Selon le cours, où se situe la valeur de la donnée ?",
+        "choices": [
+          "Dans les décisions qu'elle permet de prendre et de justifier",
+          "Dans le volume accumulé, plus il y en a plus elle vaut cher",
+          "Dans les modèles d'IA qu'elle permet d'entraîner ensuite",
+          "Dans les graphiques et tableaux de bord qu'elle alimente"
+        ],
+        "answer": 0,
+        "explain": "« Valeur donnée : outil d'aide à la décision ». Modèles, graphiques et volume ne valent que par les décisions qu'ils améliorent.",
+        "difficulty": "facile",
+        "topic": "usage"
+      },
+      {
+        "q": "Lequel de ces exemples le cours cite-t-il comme décision de game dev appuyée par la donnée ?",
+        "choices": [
+          "Décider de garder ou de changer une mécanique de jeu",
+          "Choisir le moteur de jeu au lancement du projet",
+          "Fixer la date de sortie en fonction des concurrents",
+          "Choisir la palette de couleurs de l'interface"
+        ],
+        "answer": 0,
+        "explain": "La liste du cours : développer un jeu sur un marché, choisir un segment cible, garder ou changer une feature ou une mécanique, bannir un joueur, ajuster l'équilibrage, investir, embaucher.",
+        "difficulty": "facile",
+        "topic": "usage"
+      },
+      {
+        "q": "Qu'est-ce qu'une machine virtuelle ?",
+        "choices": [
+          "Un ordinateur simulé, plusieurs pouvant se partager un serveur physique",
+          "Un serveur physique réservé à un seul client dans un datacenter",
+          "Un espace de stockage distant accessible par internet",
+          "Un logiciel qui répartit les requêtes entre plusieurs serveurs"
+        ],
+        "answer": 0,
+        "explain": "Le schéma du cours découpe un serveur en neuf machines virtuelles, chacune louable et administrable comme un ordinateur indépendant.",
+        "difficulty": "moyen",
+        "topic": "stockage"
+      },
+      {
+        "q": "Parmi IaaS, PaaS et SaaS, lequel offre le plus de flexibilité ?",
+        "choices": [
+          "L'IaaS, où l'on gère soi-même machines et installation",
+          "Le PaaS, qui laisse le code libre mais gère les machines",
+          "Le SaaS, où tout est configurable depuis l'interface",
+          "Les trois, la flexibilité ne dépend que du prestataire"
+        ],
+        "answer": 0,
+        "explain": "Flèches du cours : flexibilité maximale en bas (IaaS), valeur livrée maximale en haut (SaaS). Plus c'est prêt à l'emploi, moins on contrôle.",
+        "difficulty": "difficile",
+        "topic": "cloud"
+      },
+      {
+        "q": "Quelle est la différence entre le datacenter d'une organisation et le cloud ?",
+        "choices": [
+          "Les serveurs sont loués chez un prestataire au lieu d'être possédés",
+          "Les serveurs du cloud sont virtuels et n'existent pas physiquement",
+          "Le cloud stocke les données, le datacenter fait les calculs",
+          "Le datacenter est en interne, le cloud est réservé au grand public"
+        ],
+        "answer": 0,
+        "explain": "Les deux schémas du cours : à gauche les serveurs sont dans le rectangle « Organisation », à droite dans un nuage extérieur. Le cloud a bien des serveurs physiques, ils appartiennent au prestataire.",
+        "difficulty": "moyen",
+        "topic": "cloud"
+      },
+      {
+        "q": "Quand on a trop de données pour tout lire, quels sont les deux moyens de résumer vus en cours ?",
+        "choices": [
+          "Les statistiques descriptives et la visualisation de données",
+          "L'échantillonnage aléatoire et la suppression des doublons",
+          "La compression des fichiers et l'archivage des anciennes lignes",
+          "Le clustering non supervisé et la réduction de dimension"
+        ],
+        "answer": 0,
+        "explain": "Un tableau de moyennes, écarts-types, min et max d'un côté ; des graphiques et des cartes de l'autre. Le clustering viendra avec le machine learning, ce n'est pas un résumé au sens du cours.",
+        "difficulty": "facile",
+        "topic": "résumer"
+      },
+      {
+        "q": "Dans un tableau de statistiques descriptives, que mesure l'écart-type (Std. Dev.) ?",
+        "choices": [
+          "La dispersion des valeurs autour de leur moyenne",
+          "L'écart entre la valeur minimale et la valeur maximale",
+          "La différence entre la moyenne et la médiane",
+          "La proportion de valeurs manquantes dans la colonne"
+        ],
+        "answer": 0,
+        "explain": "Petit écart-type : les valeurs sont serrées autour de la moyenne. Grand : elles sont dispersées. L'écart min-max s'appelle l'étendue.",
+        "difficulty": "moyen",
+        "topic": "résumer"
+      },
+      {
+        "q": "Dans l'écosystème Python du cours, quelle librairie sert de base à la plupart des autres ?",
+        "choices": [
+          "numpy, sur lequel s'appuient pandas, scipy et scikit-learn",
+          "pandas, qui charge les fichiers csv utilisés par les autres",
+          "scipy, la librairie de calcul scientifique de référence",
+          "matplotlib, dont dépendent tous les outils de visualisation"
+        ],
+        "answer": 0,
+        "explain": "Le schéma place numpy au centre : vecteurs et matrices. pandas, scipy, scikit-learn sont « basés sur » numpy, matplotlib et les frameworks de deep learning sont compatibles avec.",
+        "difficulty": "moyen",
+        "topic": "outils"
+      },
+      {
+        "q": "Un manager veut un tableau de bord sans écrire de code. Vers quel type d'outil le cours l'oriente-t-il ?",
+        "choices": [
+          "Un outil d'éditeur comme Tableau, Power BI ou Qlik",
+          "Un notebook Python avec pandas et matplotlib",
+          "Une application Streamlit configurée par un développeur",
+          "Une base SQL interrogée directement avec des requêtes"
+        ],
+        "answer": 0,
+        "explain": "Le cours oppose les outils d'éditeurs (Tableau, Power BI, Qlik, Superset) à la programmation (Python, R). Streamlit reste du code Python.",
+        "difficulty": "facile",
+        "topic": "outils"
+      },
+      {
+        "q": "Qu'est-il arrivé au coût du stockage par gigaoctet entre 1980 et 2009 ?",
+        "choices": [
+          "Divisé par des millions, de millions de dollars à quelques centimes",
+          "Divisé par mille environ, de milliers de dollars à quelques dollars",
+          "Divisé par dix environ, la technologie ayant peu évolué",
+          "Resté stable, la capacité ayant augmenté à coût égal"
+        ],
+        "answer": 0,
+        "explain": "Le graphique de Komorowski est en échelle logarithmique : d'environ 10 millions de dollars le Go en 1980 à environ 0,1 dollar en 2009.",
+        "difficulty": "moyen",
+        "topic": "stockage"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Cours « From data to AI » – Laurent Cetinsoy (Nowledgeable), diapos 1 à 27",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": []
+  },
+  {
+    "id": "ia-ml",
+    "num": "02",
+    "special": false,
+    "title": "IA, machine learning et paradigmes",
+    "summary": "Les cercles IA, machine learning, deep learning ; la différence entre un programme classique écrit à la main et un programme « défini par les données » ; l'induction ; les quatre paradigmes d'apprentissage (supervisé, non supervisé, auto-supervisé, renforcement) ; régression contre classification ; les cinq étapes d'un projet ML et l'exercice Teachable Machine.",
+    "topics": [
+      "IA ⊃ machine learning ⊃ deep learning",
+      "Dartmouth 1956, naissance du terme IA",
+      "programme classique (recette) vs ML (data defined programs)",
+      "induction",
+      "apprentissage supervisé : X et y",
+      "apprentissage non supervisé : pas de y, clustering",
+      "apprentissage par renforcement, auto-supervisé",
+      "régression vs classification",
+      "les 5 étapes d'un projet ML",
+      "Teachable Machine : classe « autre »",
+      "familles de modèles, ensembling"
+    ],
+    "fiches": [
+      {
+        "title": "IA, machine learning, deep learning : trois cercles",
+        "front": "Comment s'emboîtent IA, machine learning et deep learning ? D'où vient le mot IA ?",
+        "body": "Le cours montre trois cercles emboîtés. L'**intelligence artificielle** est le plus grand : un programme qui **perçoit, raisonne, agit et s'adapte**. Dedans, le **machine learning** : des algorithmes dont la **performance s'améliore quand on leur donne plus de données**, autrement dit qui apprennent au lieu d'être programmés règle par règle. Encore dedans, le **deep learning** : le sous-ensemble du ML qui utilise des **réseaux de neurones à plusieurs couches** apprenant sur d'énormes volumes de données. Le terme « intelligence artificielle » est né à l'été 1956 lors du **Dartmouth Summer Research Project** (McCarthy, Minsky, Rochester, Shannon), avec le pari que tout aspect de l'apprentissage peut être décrit assez précisément pour qu'une machine le simule.",
+        "keypoints": [
+          "**IA** ⊃ **ML** ⊃ **deep learning**",
+          "IA : programme qui perçoit, raisonne, agit, s'adapte",
+          "ML : la performance s'améliore avec plus de données",
+          "DL : réseaux de neurones multicouches, gros volumes",
+          "Terme « IA » : **Dartmouth, 1956**"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Programme classique vs machine learning",
+        "front": "« ML = data defined programs » : qu'est-ce que ça veut dire ?",
+        "body": "Un programme classique est une **recette écrite par un humain** : le cours prend compute_VAT_price(ex_vat_price, vat_rate) qui renvoie ex_vat_price × (1 + vat_rate). Ça marche parce qu'on **connaît la règle** : 150 000 hors taxe à 20 % donne 180 000. Mais pour « cette biopsie est-elle cancéreuse ? » ou « cette photo montre-t-elle un hamster ? », personne ne sait écrire la règle à la main. Alors on **fait apprendre la règle à partir d'exemples** : c'est le machine learning, résumé par la formule du cours **« ML = Data defined programs »**. Le programme n'est plus défini par le code qu'on tape mais par les données qu'on lui montre.",
+        "keypoints": [
+          "Programme classique = **recette explicite** (ex : calcul de TVA)",
+          "On l'utilise quand la **règle est connue**",
+          "ML = la règle est **apprise depuis des exemples**",
+          "**« Data defined programs »** : les données définissent le programme"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "L'induction",
+        "front": "Qu'est-ce que l'induction et pourquoi le cours dit qu'elle est « la gloire de la science et le scandale de la philosophie » ?",
+        "body": "L'**induction**, c'est **généraliser à partir de cas particuliers** : après avoir vu beaucoup de hamsters et beaucoup d'octodons, on se sent capable de reconnaître l'espèce d'un animal jamais vu. Le philosophe C.D. Broad la qualifie de **« gloire de la science et scandale de la philosophie »** : toute la science repose dessus (on tire des lois de l'observation), et pourtant **rien ne garantit logiquement** que le futur ressemblera au passé ou que le prochain exemple suivra la règle. Le machine learning est de l'**induction automatisée** : il extrait une règle de données passées. D'où une conséquence pratique : il faut toujours **tester sur des données jamais vues**, car la règle peut ne pas se généraliser.",
+        "keypoints": [
+          "Induction = **du particulier au général** (des exemples à la règle)",
+          "Fondement de la science, mais sans garantie logique",
+          "Le ML = de l'induction automatisée",
+          "Conséquence : **tester sur des données nouvelles**"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Apprentissage supervisé",
+        "front": "Qu'est-ce que l'apprentissage supervisé ? Que sont X et y ?",
+        "body": "En **supervisé**, chaque exemple vient avec sa **bonne réponse**. Les entrées sont notées **X** (les **features**) et les réponses attendues **y** (les **labels**). Dans le cours : des photos en X, et en y le mot « Hamster » ou « Octodon ». On cherche une fonction **f_w** telle que **f_w(X) ≈ y**. L'image du cours : un parent montre une fleur à un enfant et lui dit son nom. La **régression** (prédire un nombre) et la **classification** (prédire une catégorie) sont les deux grandes tâches supervisées. Le prix à payer : il faut **annoter** les données, c'est-à-dire fournir les y, souvent à la main.",
+        "keypoints": [
+          "Supervisé = on a les **labels y** pour chaque exemple",
+          "**X** = features (entrées), **y** = réponses attendues",
+          "But : trouver **f_w** avec f_w(X) ≈ y",
+          "Régression et classification sont supervisées",
+          "Coût : il faut **annoter** les données"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Apprentissage non supervisé",
+        "front": "Qu'est-ce que l'apprentissage non supervisé ? Donne un exemple",
+        "body": "En **non supervisé**, on n'a que les **X**, « pas de y :( » comme dit la diapo. Le modèle doit **trouver une structure tout seul**. L'exemple type est le **clustering** : à partir d'un nuage de points sans étiquette, l'algorithme (k-means par exemple) regroupe les points qui se ressemblent en trois groupes colorés. Autres usages : réduire le nombre de dimensions (PCA), détecter des anomalies. Attention, tes notes le soulignent : **clusteriser est utile mais il y a plein de manières de le faire**. Le résultat dépend du nombre de groupes demandé, de la notion de distance choisie, de l'algorithme. Rien ne dit que les groupes trouvés ont un sens métier.",
+        "keypoints": [
+          "Non supervisé = **pas de labels**, seulement X",
+          "Le modèle cherche une **structure** (groupes, dimensions, anomalies)",
+          "**Clustering** (k-means) : regrouper les points semblables",
+          "Résultat sensible aux choix : nombre de groupes, distance, algorithme"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Renforcement et auto-supervisé",
+        "front": "Les deux autres paradigmes cités : renforcement et auto-supervisé, en une phrase chacun",
+        "body": "Le cours cite deux autres paradigmes, détaillés plus tard dans le semestre. Le **reinforcement learning** (apprentissage par renforcement) : un **agent** agit dans un **environnement** et reçoit des **récompenses** ; il apprend par **essais et erreurs** quelle action prendre dans quelle situation, comme une souris dans un labyrinthe. C'est la technique derrière les IA de jeux et la robotique. L'**auto-supervisé** (self-supervised) : le label est fabriqué **à partir des données elles-mêmes**, par exemple cacher un mot d'une phrase et demander au modèle de le deviner (« texte à trou »). C'est ainsi qu'on pré-entraîne les grands modèles de langue.",
+        "keypoints": [
+          "**Renforcement** : agent, environnement, récompense, essais-erreurs",
+          "Utilisé pour les IA de jeux et les robots",
+          "**Auto-supervisé** : le label vient des données (texte à trou)",
+          "Base du pré-entraînement des modèles de langue"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Régression vs classification",
+        "front": "Régression ou classification : quelle différence ? Un exemple de chaque",
+        "body": "Deux tâches supervisées qui se distinguent par ce qu'on prédit. La **régression** prédit une **valeur réelle continue** : le **prix d'une maison**, la durée avant qu'un client ne parte (churn) en minutes, une température. La **classification** prédit une **catégorie**, une valeur discrète : **le client va-t-il acheter mon jeu ?**, le patient est-il malade (0 = non, 1 = oui), hamster ou octodon. La mécanique d'apprentissage est la même (des exemples, une loss, un entraînement), seule la **forme de la sortie** change, et donc la loss et la dernière couche du modèle.",
+        "keypoints": [
+          "**Régression** → nombre continu (prix, durée)",
+          "**Classification** → catégorie (oui/non, malade/sain, espèce)",
+          "Même mécanique d'apprentissage, sortie différente",
+          "Exemples cours : prix d'une maison ; client achète-t-il ; patient malade 0/1"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Les 5 étapes d'un projet de machine learning",
+        "front": "Cite les 5 étapes d'un projet ML dans l'ordre",
+        "body": "Le cours découpe un projet en cinq étapes. **1. Problem understanding** : quel problème on résout, comment on mesurera le succès (le KPI). **2. Data gathering and pre-processing** : collecter les données, les nettoyer, les mettre en forme. **3. AI training** : entraîner le modèle. **4. Evaluation / improvement** : mesurer sur des données de test, corriger, recommencer. **5. Productization** : intégrer le modèle dans une application réelle. Le message implicite du cours : l'entraînement n'est qu'une étape sur cinq, et les étapes 1 et 2 pèsent souvent plus lourd que l'algorithme.",
+        "keypoints": [
+          "1. **Comprendre le problème** et son KPI",
+          "2. **Collecter et préparer** les données",
+          "3. **Entraîner** le modèle",
+          "4. **Évaluer** et améliorer",
+          "5. **Mettre en production** dans une application"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Teachable Machine : l'exercice et sa leçon",
+        "front": "Dans l'exercice Teachable Machine, que se passe-t-il avec une image qui n'a rien à voir, et comment corriger ?",
+        "body": "L'exercice : collecter au moins 5 images par catégorie, créer un projet de **classification d'images** sur teachablemachine.withgoogle.com, **annoter** les images, **entraîner**, puis **tester** avec de nouvelles images, dont des images ambiguës. Dernière étape : montrer une image **qui n'a rien à voir** avec les catégories. Le modèle répond quand même l'une des classes, souvent avec une confiance élevée, parce qu'il **ne connaît que ces classes** : il choisit la moins mauvaise. La correction proposée : ajouter une **classe « autre »** remplie d'images variées, pour que « rien à voir » devienne une réponse possible. Leçon générale : un modèle ne prédit que dans le monde qu'on lui a montré.",
+        "keypoints": [
+          "5 images par catégorie, annoter, entraîner, tester sur du **jamais vu**",
+          "Image hors sujet → le modèle choisit **quand même une classe**",
+          "Il ne connaît que les classes vues à l'entraînement",
+          "Correction : une classe **« autre »** avec des images variées"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Familles de modèles et ensembling",
+        "front": "Cite des familles de modèles supervisées et non supervisées. Qu'est-ce que l'ensembling ?",
+        "body": "Côté **supervisé**, le cours cite la **régression linéaire**, la **régression logistique** (classification), l'**arbre de décision**, le **random forest** et les **réseaux de neurones**, fonctions mathématiques à des millions ou milliards de paramètres. Côté **non supervisé** : **k-means**, **DBSCAN**, **mélange gaussien**, **PCA** et **auto-encodeur**. L'**ensembling**, ou « sagesse de la foule », consiste à **combiner plusieurs modèles** : on donne les mêmes X à dix modèles et on **moyenne leurs prédictions** (en régression) ou on fait voter (en classification). Un random forest est justement un ensemble d'arbres de décision.",
+        "keypoints": [
+          "Supervisé : régression linéaire, logistique, arbre, **random forest**, réseaux de neurones",
+          "Non supervisé : **k-means**, DBSCAN, mélange gaussien, PCA, auto-encodeur",
+          "**Ensembling** = combiner plusieurs modèles (moyenne ou vote)",
+          "Random forest = ensemble d'arbres de décision"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Quelle relation lie IA, machine learning et deep learning ?",
+        "choices": [
+          "Le deep learning est inclus dans le machine learning, lui-même inclus dans l'IA",
+          "Le machine learning est inclus dans le deep learning, lui-même inclus dans l'IA",
+          "L'IA est incluse dans le machine learning, le deep learning étant à part",
+          "Les trois se recoupent sans qu'aucun ne soit inclus dans un autre"
+        ],
+        "answer": 0,
+        "explain": "Trois cercles emboîtés : IA (perçoit, raisonne, agit) ⊃ ML (apprend des données) ⊃ DL (réseaux de neurones multicouches). Le deep learning est le plus petit.",
+        "difficulty": "facile",
+        "topic": "définitions"
+      },
+      {
+        "q": "Que signifie la formule du cours « ML = data defined programs » ?",
+        "choices": [
+          "Le comportement du programme est déduit des données plutôt qu'écrit à la main",
+          "Le programme se limite à lire, transformer et écrire des données",
+          "Le programme est défini dans un langage orienté données comme SQL",
+          "Le programme génère lui-même les données dont il a besoin pour apprendre"
+        ],
+        "answer": 0,
+        "explain": "Dans un programme classique, l'humain écrit la recette (calcul de TVA). En ML, on montre des exemples et la règle est apprise.",
+        "difficulty": "facile",
+        "topic": "programme vs ML"
+      },
+      {
+        "q": "Dans quel cas un programme classique reste-t-il préférable au machine learning ?",
+        "choices": [
+          "Quand la règle est connue et s'écrit directement, comme un calcul de TVA",
+          "Quand les données sont trop nombreuses pour être traitées à la main",
+          "Quand la règle existe mais que personne ne sait l'expliciter",
+          "Quand le résultat attendu est une catégorie plutôt qu'un nombre"
+        ],
+        "answer": 0,
+        "explain": "Si on connaît la règle, on la code. Le ML sert précisément quand la règle est impossible à écrire, comme reconnaître un hamster sur une photo.",
+        "difficulty": "moyen",
+        "topic": "programme vs ML"
+      },
+      {
+        "q": "Quelle est LA différence entre apprentissage supervisé et non supervisé ?",
+        "choices": [
+          "La présence, ou non, des réponses attendues y pour chaque exemple",
+          "La présence, ou non, d'un jeu de validation séparé de l'entraînement",
+          "La nature des données, numériques en supervisé et images en non supervisé",
+          "L'intervention, ou non, d'un humain pendant la phase d'entraînement"
+        ],
+        "answer": 0,
+        "explain": "Tout tient aux labels. Le jeu de validation sert à détecter le sur-apprentissage dans les deux cas, et « supervisé » ne veut pas dire qu'un humain surveille l'entraînement.",
+        "difficulty": "facile",
+        "topic": "paradigmes"
+      },
+      {
+        "q": "Lequel de ces problèmes relève du non supervisé ?",
+        "choices": [
+          "Regrouper des joueurs en profils sans catégorie définie à l'avance",
+          "Prédire le prix d'une maison à partir de ventes déjà conclues",
+          "Reconnaître un hamster sur des photos annotées par des humains",
+          "Détecter si un patient est malade à partir de dossiers étiquetés"
+        ],
+        "answer": 0,
+        "explain": "Pas de y, on cherche une structure dans les X : c'est du clustering. Les trois autres ont des réponses attendues connues.",
+        "difficulty": "moyen",
+        "topic": "paradigmes"
+      },
+      {
+        "q": "Prédire le prix d'une maison, c'est…",
+        "choices": [
+          "une régression, la sortie étant une valeur numérique continue",
+          "une classification, la sortie étant une tranche de prix",
+          "un clustering, les maisons étant regroupées par prix similaire",
+          "une régression logistique, le prix étant ensuite seuillé"
+        ],
+        "answer": 0,
+        "explain": "Un prix est un nombre réel, pas une catégorie. La classification ne s'appliquerait qu'à des tranches fixées d'avance, ce que le cours ne fait pas.",
+        "difficulty": "facile",
+        "topic": "régression vs classification"
+      },
+      {
+        "q": "Prédire si un patient est malade (0 = non, 1 = oui), c'est…",
+        "choices": [
+          "une classification binaire, deux catégories possibles",
+          "une régression, la sortie étant le nombre 0 ou 1",
+          "un clustering à deux groupes, malades et sains",
+          "une détection d'anomalie, les malades étant rares"
+        ],
+        "answer": 0,
+        "explain": "0 et 1 sont des étiquettes de catégorie, pas des quantités. C'est l'exemple du cours dans la case « Classification : variable discrète ».",
+        "difficulty": "facile",
+        "topic": "régression vs classification"
+      },
+      {
+        "q": "Qu'est-ce que l'induction ?",
+        "choices": [
+          "Tirer une règle générale de cas particuliers observés",
+          "Appliquer une règle générale connue à un cas particulier",
+          "Vérifier une règle en la testant sur tous les cas possibles",
+          "Reproduire exactement les exemples déjà rencontrés"
+        ],
+        "answer": 0,
+        "explain": "Des exemples vers la règle. L'inverse, de la règle au cas, est la déduction. Le ML fait de l'induction, d'où le « scandale de la philosophie » : rien ne garantit que la règle tienne sur de nouveaux cas.",
+        "difficulty": "moyen",
+        "topic": "induction"
+      },
+      {
+        "q": "Quelle est la première étape d'un projet de machine learning selon le cours ?",
+        "choices": [
+          "Comprendre le problème et définir l'indicateur de succès",
+          "Collecter le maximum de données avant toute autre chose",
+          "Choisir le modèle le plus performant de l'état de l'art",
+          "Entraîner un modèle simple pour obtenir une base de comparaison"
+        ],
+        "answer": 0,
+        "explain": "Problem understanding, puis données, entraînement, évaluation, mise en production. Collecter sans savoir quoi optimiser est l'erreur classique.",
+        "difficulty": "facile",
+        "topic": "projet ML"
+      },
+      {
+        "q": "Sur Teachable Machine, on donne au modèle une image qui n'a rien à voir avec ses catégories. Que se passe-t-il, et comment corriger ?",
+        "choices": [
+          "Il choisit quand même une classe ; on ajoute une classe « autre »",
+          "Il répond « inconnu » ; on abaisse le seuil de confiance",
+          "Il renvoie 50 % sur chaque classe ; on ajoute des images par classe",
+          "Il refuse l'image ; on réentraîne avec des images plus variées"
+        ],
+        "answer": 0,
+        "explain": "Le modèle ne connaît que les classes vues : il prend la moins mauvaise, souvent avec une confiance élevée. Lui donner une classe « rien à voir » lui permet de la choisir.",
+        "difficulty": "moyen",
+        "topic": "Teachable Machine"
+      },
+      {
+        "q": "Qu'est-ce qu'un label ?",
+        "choices": [
+          "La réponse attendue d'un exemple, que le modèle doit apprendre à prédire",
+          "Le nom donné à une colonne d'entrée du dataset pour la repérer",
+          "Le score de confiance associé à chaque prédiction du modèle",
+          "La catégorie prédite par le modèle sur un exemple jamais vu"
+        ],
+        "answer": 0,
+        "explain": "Le y fourni avec l'exemple : « Hamster » sous la photo, le vrai prix de la maison. Ce que le modèle prédit s'appelle ŷ, pas le label.",
+        "difficulty": "facile",
+        "topic": "paradigmes"
+      },
+      {
+        "q": "Comment tes notes résument-elles le reinforcement learning ?",
+        "choices": [
+          "Un apprentissage par essais et erreurs guidé par des récompenses",
+          "Un apprentissage renforcé par des exemples supplémentaires annotés",
+          "Un apprentissage où un expert corrige chaque décision du modèle",
+          "Un apprentissage qui complète des textes à trous à grande échelle"
+        ],
+        "answer": 0,
+        "explain": "Un agent agit, reçoit une récompense ou une punition, et ajuste son comportement. Le texte à trou, c'est l'auto-supervisé.",
+        "difficulty": "moyen",
+        "topic": "paradigmes"
+      },
+      {
+        "q": "À quelle famille appartient le random forest ?",
+        "choices": [
+          "Supervisée : un ensemble d'arbres de décision qui votent",
+          "Non supervisée : des arbres qui regroupent les données proches",
+          "Par renforcement : des arbres récompensés à chaque bonne décision",
+          "Auto-supervisée : des arbres entraînés sur des données non annotées"
+        ],
+        "answer": 0,
+        "explain": "Le cours le range avec la régression linéaire, la régression logistique et les arbres de décision. Plusieurs arbres votent : c'est aussi de l'ensembling.",
+        "difficulty": "difficile",
+        "topic": "familles de modèles"
+      },
+      {
+        "q": "Qu'est-ce que l'ensembling, « the wisdom of the crowd » ?",
+        "choices": [
+          "Combiner les prédictions de plusieurs modèles, par moyenne ou par vote",
+          "Faire annoter chaque exemple par plusieurs personnes puis voter",
+          "Fusionner plusieurs datasets pour entraîner un seul modèle plus gros",
+          "Comparer plusieurs modèles sur le jeu de test et ne garder que le meilleur"
+        ],
+        "answer": 0,
+        "explain": "Même X donné à plusieurs modèles, prédictions combinées : moyenne en régression, vote en classification. Garder un seul modèle, c'est de la sélection, pas de l'ensembling.",
+        "difficulty": "moyen",
+        "topic": "familles de modèles"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Cours « From data to AI » – diapos 28 à 61 et 84 à 89",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": [
+      {
+        "label": "Teachable Machine (Google) – l'exercice de classification d'images",
+        "url": "https://teachablemachine.withgoogle.com",
+        "kind": "doc"
+      }
+    ]
+  },
+  {
+    "id": "ingredients",
+    "num": "03",
+    "special": false,
+    "title": "Les ingrédients du machine learning",
+    "summary": "La recette commune à tout apprentissage supervisé : un dataset (X, y), un modèle vu comme une fonction à boutons (les paramètres), une fonction d'erreur (la loss) et une procédure d'entraînement itérative. Comment on note tout ça (X, y, ŷ, f_w), ce qu'est une feature, pourquoi on sépare entraînement et test, ce qu'est le sur-apprentissage et pourquoi de mauvaises données donnent un mauvais modèle.",
+    "topics": [
+      "les 4 ingrédients : dataset, modèle, loss, entraînement",
+      "notation X (matrice), y (vecteur), ŷ (prédictions)",
+      "features",
+      "modèle = famille de fonctions, paramètres w ou θ",
+      "loss = fonction d'erreur à minimiser",
+      "entraînement itératif = chercher une fonction dans un espace de fonctions",
+      "jeu d'entraînement / jeu de test",
+      "overfitting = apprentissage par cœur",
+      "garbage in, garbage out",
+      "courbes d'apprentissage"
+    ],
+    "fiches": [
+      {
+        "title": "Les quatre ingrédients",
+        "front": "Quels sont les 4 ingrédients du machine learning et ce qu'ils produisent ?",
+        "body": "Le schéma central du cours réunit quatre ingrédients. Un **dataset** : des exemples. Un **modèle**, entendu comme une **famille de fonctions** parmi lesquelles on va choisir. Une **fonction d'erreur**, la **loss**, qui compare les **prédictions** aux **valeurs attendues** et renvoie un nombre. Une **procédure d'entraînement** qui utilise les trois autres pour produire le résultat : un **modèle entraîné**, c'est-à-dire **une fonction unique**, une règle, dont les paramètres sont maintenant fixés. Tes notes le résument bien : « data set + model (fonction maths) + fonction d'erreur (loss) + une procédure d'entraînement ».",
+        "keypoints": [
+          "**Dataset** : les exemples",
+          "**Modèle** : une famille de fonctions possibles",
+          "**Loss** : mesure l'écart prédiction / attendu",
+          "**Procédure d'entraînement** : choisit la meilleure fonction",
+          "Résultat : **un modèle entraîné = une fonction unique**"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Le dataset : X, y et ŷ",
+        "front": "Que représentent X, y et ŷ ? Quelles sont leurs tailles ?",
+        "body": "Un dataset supervisé, c'est un couple **(X, y)**. **X** est une **matrice** : **une ligne par exemple** (une maison, une photo, un joueur) et **une colonne par feature** (surface, nombre de pièces, jardin). Avec n exemples et p features, X fait n lignes et p colonnes. **y** est un **vecteur** de taille n : la réponse attendue de chaque ligne, le prix réel de chaque maison. **ŷ**, prononcé « y chapeau », est le vecteur des **prédictions** du modèle : même taille que y, une prédiction par exemple, et c'est en comparant ŷ à y qu'on mesure l'erreur. Le modèle lui-même est noté **f_w**, f pour fonction, w pour ses poids.",
+        "keypoints": [
+          "**X** = matrice, ligne = exemple, colonne = feature (n × p)",
+          "**y** = vecteur des réponses attendues (taille n)",
+          "**ŷ** = vecteur des prédictions du modèle (taille n)",
+          "**f_w** = le modèle, fonction à poids w",
+          "Erreur = comparer ŷ et y"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Les features",
+        "front": "Qu'est-ce qu'une feature ? Exemples pour une maison, pour une image",
+        "body": "Une **feature** est une **variable d'entrée**, une information qu'on donne au modèle pour qu'il prédise. Pour le prix d'une maison, le cours prend trois features : **size** (X1, la surface), **number_of_rooms** (X2) et **garden_or_not** (X3, codé 0 ou 1). Chaque feature est une colonne de X. Pour une image, les features sont ses **pixels**, des milliers de nombres. Choisir, nettoyer et fabriquer de bonnes features est une part énorme du travail réel : un modèle ne peut pas exploiter une information qu'on ne lui a pas donnée, et une feature inutile ou fausse le perturbe.",
+        "keypoints": [
+          "Feature = **variable d'entrée** = colonne de X",
+          "Maison : **size**, **number_of_rooms**, **garden_or_not** (0/1)",
+          "Image : chaque **pixel** est une feature",
+          "Bien choisir ses features est une part majeure du travail"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Un modèle = une fonction avec des boutons",
+        "front": "Pourquoi le cours compare un modèle à une table de mixage ? Que sont θ ou w ?",
+        "body": "Le cours écrit **F_θ(x)** : une fonction F qui reçoit une entrée x (une biopsie) et renvoie une prédiction (bénin 0, cancéreux 1). L'indice **θ** (thêta), aussi noté **w**, désigne les **paramètres** : des nombres réglables, représentés par une **table de mixage** pleine de boutons. Une même formule avec des boutons différents donne des prédictions différentes : avant entraînement le modèle est **w0 + w1·X1 + w2·X2**, une **famille** de fonctions (toutes les positions de boutons possibles) ; après entraînement, les boutons sont réglés, par exemple **50 + 100·X1 + 50·X2**, et il ne reste **qu'une seule fonction**. **Entraîner = régler les boutons.**",
+        "keypoints": [
+          "**F_θ(x)** : θ (ou w) = les paramètres, les boutons",
+          "Une famille de fonctions = toutes les positions de boutons",
+          "Avant : w0 + w1·X1 + w2·X2 ; après : 50 + 100·X1 + 50·X2",
+          "**Entraîner = régler les boutons**"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "La loss, ou fonction d'erreur",
+        "front": "À quoi sert la loss et que transforme-t-elle ?",
+        "body": "La **loss** (fonction d'erreur, fonction de coût) prend les **prédictions** et les **valeurs attendues** et renvoie **un seul nombre** : petit si le modèle est bon, grand s'il est mauvais. Son rôle est de transformer la question vague « mon modèle est-il bon ? » en un problème précis : **rendre ce nombre le plus petit possible**, un problème de **minimisation**. Exemple du cours : deux jeux de poids donnent 160 000 ou 210 000 pour la même maison, lequel choisir ? On ne peut pas décider à l'œil ; on calcule l'erreur de chaque jeu de poids sur les **vraies ventes passées**, et le plus petit gagne. Pour la régression, la loss standard est la **MSE**, détaillée au chapitre suivant.",
+        "keypoints": [
+          "Loss : (prédictions, attendus) → **un nombre**",
+          "Petit = bon modèle, grand = mauvais",
+          "Transforme « est-il bon ? » en **problème de minimisation**",
+          "Départage deux jeux de poids sur les données réelles",
+          "Régression : loss = **MSE**"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "La procédure d'entraînement",
+        "front": "Comment se déroule un entraînement, et que veut dire « chercher une fonction dans un espace de fonctions » ?",
+        "body": "L'entraînement est **itératif** : on part de poids quelconques, on **prédit**, on **mesure l'erreur** avec la loss, on **ajuste les poids** dans le sens qui réduit l'erreur, et on **recommence** des centaines de fois. Tes notes donnent la vision d'ensemble : **« entraîner un modèle = chercher une fonction dans un espace de fonctions »**. L'espace, c'est la famille de fonctions du modèle (toutes les valeurs possibles des poids) ; l'entraînement s'y déplace pour trouver celle dont la loss est minimale. L'algorithme standard pour se déplacer intelligemment s'appelle la **descente de gradient** : il utilise la pente de la loss pour savoir dans quel sens bouger chaque poids. C'est l'objet des chapitres 05 à 08.",
+        "keypoints": [
+          "Boucle : **prédire → mesurer l'erreur → ajuster → recommencer**",
+          "Entraîner = **chercher une fonction dans un espace de fonctions**",
+          "L'espace = toutes les valeurs possibles des poids",
+          "Algorithme standard : la **descente de gradient**"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Jeu d'entraînement, jeu de test, overfitting",
+        "front": "Pourquoi séparer train et test ? Qu'est-ce que l'overfitting ?",
+        "body": "On coupe le dataset en deux. Le **jeu d'entraînement** (train) sert à **chercher la formule** : c'est là que la règle est apprise. Le **jeu de test** sert à **évaluer la formule** sur des exemples **jamais vus** pendant l'entraînement. Pourquoi ? À cause de l'**overfitting**, que le cours traduit par **apprentissage par cœur** : un modèle peut devenir excellent sur les exemples qu'il a vus, en les mémorisant, et rester mauvais sur des exemples nouveaux. Comme un élève qui a appris les annales par cœur et rate le vrai bac. Seule une mesure sur du jamais vu dit si le modèle a **généralisé** ou juste **mémorisé**.",
+        "keypoints": [
+          "**Train** : chercher la formule ; **test** : l'évaluer sur du jamais vu",
+          "**Overfitting = apprentissage par cœur**",
+          "Excellent sur le train, mauvais sur le test = overfitting",
+          "Seul le test dit si le modèle **généralise**"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Garbage in, garbage out et courbes d'apprentissage",
+        "front": "Que signifie « garbage in, garbage out » ? Que montre une courbe d'apprentissage ?",
+        "body": "**Garbage in, garbage out** : si les données d'entrée sont fausses, biaisées ou mal annotées, le modèle apprend ces erreurs et les reproduit. Aucun algorithme ne rattrape des données pourries, d'où le poids de l'étape 2 du projet. La **courbe d'apprentissage** du cours trace l'erreur en fonction de la **taille du jeu d'entraînement** : avec peu de données, l'erreur d'entraînement est très basse (facile de mémoriser 100 exemples) et l'erreur de validation très haute ; quand on ajoute des données, l'erreur de validation **baisse** et les deux courbes se **rapprochent**. Plus de données = moins de par cœur, meilleure généralisation.",
+        "keypoints": [
+          "**Garbage in, garbage out** : données fausses → modèle faux",
+          "Aucun algorithme ne compense de mauvaises données",
+          "Courbe d'apprentissage : erreur vs **taille du train set**",
+          "Plus de données → erreur de validation baisse, l'écart train/validation se réduit"
+        ],
+        "tier": 2
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Quels sont les quatre ingrédients du machine learning selon le cours ?",
+        "choices": [
+          "Un dataset, une famille de fonctions, une loss, une procédure d'entraînement",
+          "Un dataset, des features, des labels, un jeu de test mis de côté",
+          "Un modèle, une loss, un learning rate, un nombre d'itérations",
+          "Des données, un GPU, un framework, une métrique d'évaluation"
+        ],
+        "answer": 0,
+        "explain": "Dataset + modèle (famille de fonctions) + loss + entraînement → un modèle entraîné. Features, labels et jeu de test sont des parties du dataset ; learning rate et itérations, des réglages de la procédure.",
+        "difficulty": "facile",
+        "topic": "ingrédients"
+      },
+      {
+        "q": "Dans un dataset supervisé (X, y), qu'est-ce que X ?",
+        "choices": [
+          "La matrice des entrées, une ligne par exemple et une colonne par feature",
+          "La matrice des entrées, une ligne par feature et une colonne par exemple",
+          "Le vecteur des réponses attendues, une valeur par exemple",
+          "Le vecteur des poids du modèle, une valeur par feature"
+        ],
+        "answer": 0,
+        "explain": "Les exemples en lignes, les features en colonnes : n × p. Le vecteur des réponses est y, celui des poids est w.",
+        "difficulty": "facile",
+        "topic": "notation"
+      },
+      {
+        "q": "Que note-t-on ŷ (« y chapeau ») ?",
+        "choices": [
+          "Les prédictions du modèle, une par exemple, à comparer à y",
+          "Les réponses attendues, une par exemple, fournies avec le dataset",
+          "Les erreurs du modèle, une par exemple, différence entre y et la prédiction",
+          "La moyenne des valeurs de y, utilisée comme prédiction de référence"
+        ],
+        "answer": 0,
+        "explain": "ŷ = f_w(X). Une prédiction par ligne de X, donc autant de valeurs que y. L'erreur est ŷ − y, ce n'est pas ŷ lui-même.",
+        "difficulty": "facile",
+        "topic": "notation"
+      },
+      {
+        "q": "Qu'est-ce qu'une feature ?",
+        "choices": [
+          "Une variable d'entrée, comme la surface d'une maison",
+          "Une variable de sortie, comme le prix d'une maison",
+          "Un paramètre appris, comme le poids de la surface",
+          "Une ligne du dataset, comme une maison particulière"
+        ],
+        "answer": 0,
+        "explain": "Size, number_of_rooms, garden_or_not : les colonnes de X. La sortie est le label, le poids est un paramètre, la ligne est un exemple.",
+        "difficulty": "facile",
+        "topic": "features"
+      },
+      {
+        "q": "Dans F_θ(x), que représente θ, illustré par une table de mixage ?",
+        "choices": [
+          "Les paramètres du modèle, réglés par l'entraînement",
+          "Les hyperparamètres fixés à la main, comme le learning rate",
+          "Les features de l'entrée, réglées par le prétraitement",
+          "Le seuil de décision, réglé après l'entraînement"
+        ],
+        "answer": 0,
+        "explain": "θ (ou w) désigne les poids : les boutons que l'entraînement tourne jusqu'à ce que la loss soit minimale. Le learning rate, lui, est choisi par l'humain.",
+        "difficulty": "moyen",
+        "topic": "modèle"
+      },
+      {
+        "q": "Quel est le rôle de la loss ?",
+        "choices": [
+          "Résumer en un nombre l'écart entre prédictions et valeurs attendues",
+          "Décider si le modèle est bon en le comparant à un seuil fixé",
+          "Mesurer le temps et les ressources consommés par l'entraînement",
+          "Sélectionner les features les plus utiles à la prédiction"
+        ],
+        "answer": 0,
+        "explain": "Un seul nombre, petit si le modèle est bon, que l'entraînement cherche à minimiser. Il n'y a pas de seuil « bon / mauvais » dans la loss elle-même.",
+        "difficulty": "facile",
+        "topic": "loss"
+      },
+      {
+        "q": "Que produit la procédure d'entraînement à la fin ?",
+        "choices": [
+          "Une fonction unique, avec des valeurs de poids fixées",
+          "Une famille de fonctions, parmi lesquelles on choisira ensuite",
+          "Un dataset augmenté des prédictions du modèle",
+          "Une loss minimale, indépendante des poids"
+        ],
+        "answer": 0,
+        "explain": "Avant : une famille (w0 + w1·X1 + w2·X2). Après : une seule fonction, par exemple 50 + 100·X1 + 50·X2. La famille est l'entrée de l'entraînement, pas sa sortie.",
+        "difficulty": "moyen",
+        "topic": "entraînement"
+      },
+      {
+        "q": "Pourquoi garde-t-on un jeu de test à part ?",
+        "choices": [
+          "Pour mesurer le modèle sur des exemples jamais vus à l'entraînement",
+          "Pour corriger les poids une dernière fois avant la mise en production",
+          "Pour vérifier que le code d'entraînement s'exécute sans erreur",
+          "Pour choisir les features en observant leur effet sur la loss"
+        ],
+        "answer": 0,
+        "explain": "Un modèle peut mémoriser ses exemples. Seule une mesure sur du jamais vu révèle s'il généralise. Si on s'en sert pour corriger les poids, il n'est plus jamais vu.",
+        "difficulty": "facile",
+        "topic": "évaluation"
+      },
+      {
+        "q": "Un modèle a 1 % d'erreur sur le jeu d'entraînement et 40 % sur le jeu de test. Que se passe-t-il ?",
+        "choices": [
+          "Le modèle a appris par cœur : c'est du sur-apprentissage",
+          "Le modèle est sous-entraîné : il faut plus d'itérations",
+          "Le jeu de test contient des erreurs d'annotation",
+          "Le learning rate est trop grand : la loss a divergé"
+        ],
+        "answer": 0,
+        "explain": "Excellent sur le vu, mauvais sur le jamais vu : la définition de l'overfitting. Un modèle sous-entraîné ou divergent serait mauvais aussi sur le train.",
+        "difficulty": "moyen",
+        "topic": "overfitting"
+      },
+      {
+        "q": "Que signifie « garbage in, garbage out » ?",
+        "choices": [
+          "Des données fausses ou biaisées donnent un modèle faux, quel que soit l'algorithme",
+          "Un modèle trop complexe produit des prédictions inutilisables en pratique",
+          "Les données inutiles doivent être supprimées avant l'entraînement",
+          "Un modèle mal évalué finit toujours par être jeté"
+        ],
+        "answer": 0,
+        "explain": "Le modèle apprend ce qu'on lui montre, erreurs comprises. D'où le poids de l'étape « données » dans un projet.",
+        "difficulty": "facile",
+        "topic": "données"
+      },
+      {
+        "q": "Sur la courbe d'apprentissage du cours, que devient l'erreur de validation quand la taille du jeu d'entraînement augmente ?",
+        "choices": [
+          "Elle baisse et se rapproche de l'erreur d'entraînement",
+          "Elle monte, car le modèle a plus d'exemples à mémoriser",
+          "Elle reste stable, seule l'erreur d'entraînement bouge",
+          "Elle rejoint zéro dès quelques milliers d'exemples"
+        ],
+        "answer": 0,
+        "explain": "Avec peu de données, le modèle mémorise : train très bas, validation très haut. Plus de données forcent la généralisation et les deux courbes convergent, sans atteindre zéro.",
+        "difficulty": "difficile",
+        "topic": "courbes d'apprentissage"
+      },
+      {
+        "q": "« Entraîner un modèle = chercher une fonction dans un espace de fonctions ». Quel est cet espace ?",
+        "choices": [
+          "Toutes les fonctions obtenues en faisant varier les poids du modèle",
+          "Toutes les fonctions mathématiques connues, parmi lesquelles on cherche",
+          "Tous les exemples du dataset, vus comme les points d'une fonction",
+          "Toutes les loss possibles, dont on garde la plus petite"
+        ],
+        "answer": 0,
+        "explain": "La famille de fonctions du modèle. Une régression linéaire ne cherchera jamais une sinusoïde : l'espace est borné par la forme choisie.",
+        "difficulty": "difficile",
+        "topic": "entraînement"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Cours « From data to AI » – diapos 62 à 70 et 78 à 80",
+        "url": "https://nowledgeable.com"
+      },
+      {
+        "label": "Courbes d'apprentissage – r-bloggers, « Why big data? Learning curves »",
+        "url": "https://www.r-bloggers.com/why-big-data-learning-curves/"
+      }
+    ],
+    "images": [],
+    "links": []
+  },
+  {
+    "id": "regression-lineaire",
+    "num": "04",
+    "special": false,
+    "title": "Régression linéaire",
+    "summary": "Le premier vrai modèle du cours : une somme pondérée des features plus un biais. Comment l'écrire (y = w0 + w1·X1 + …, puis produit scalaire w·x avec x0 = 1), comment lire ses poids, comment calculer une prédiction à la main, et comment mesurer son erreur avec la MSE. En bonus, la régression logistique : la même somme passée dans une sigmoïde pour classer.",
+    "topics": [
+      "modèle linéaire : y = w0 + w1·X1 + w2·X2 + w3·X3",
+      "w0 = biais / ordonnée à l'origine",
+      "astuce x0 = 1 et produit scalaire w·x",
+      "interprétation des poids (signe, ordre de grandeur)",
+      "calcul d'une prédiction à la main",
+      "MSE : mean squared error",
+      "pourquoi le carré",
+      "régression logistique, sigmoïde, seuil",
+      "outil interactif Nowledgeable"
+    ],
+    "fiches": [
+      {
+        "title": "Le modèle de la régression linéaire",
+        "front": "Écris le modèle de régression linéaire pour 3 features. Que sont w0 et les wi ?",
+        "body": "La **régression linéaire** est le modèle le plus simple du cours : la prédiction est une **somme pondérée des features plus une constante**. Pour trois features : **y = w0 + w1·X1 + w2·X2 + w3·X3**. Avec les maisons : **Price = w0 + w1·size + w2·nb_rooms + w3·garden_or_not**. **w0** est le **biais** ou **ordonnée à l'origine** : la prédiction quand toutes les features valent 0. Chaque **wi** est le **poids** de la feature i : de combien la prédiction bouge quand cette feature augmente de 1. Le mot « linéaire » vient de là : la prédiction est une droite (une feature), un plan (deux), un hyperplan au-delà. Les inconnues sont les **w**, pas les X : les X sont les données.",
+        "keypoints": [
+          "**y = w0 + w1·X1 + w2·X2 + w3·X3**",
+          "**w0** = biais, prédiction quand tout vaut 0",
+          "**wi** = effet d'une unité de plus de la feature i",
+          "3 features → **4 paramètres** (w0 à w3)",
+          "Les inconnues sont les w ; les X sont les données"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Écriture compacte : le produit scalaire",
+        "front": "Comment écrire la régression linéaire comme un produit scalaire ? À quoi sert x0 = 1 ?",
+        "body": "Tes notes contiennent l'astuce clé. On ajoute une feature fictive **x0 qui vaut toujours 1**. Alors le biais rentre dans la somme : **ŷ = w0·x0 + w1·x1 + … + wp·xp = Σ wi·xi**, ce qui est exactement le **produit scalaire** des deux vecteurs **w = (w0, w1, …, wp)** et **x = (1, x1, …, xp)** : **ŷ = w·X**. Intérêt : une seule formule, sans cas particulier pour le biais ; en code, une boucle qui somme les produits, ou un produit matriciel numpy pour tous les exemples d'un coup. Exemple : w = (50, 100, 50), x = (1, 3, 2) → ŷ = 50·1 + 100·3 + 50·2 = 450.",
+        "keypoints": [
+          "Astuce : **x0 = 1** pour tous les exemples",
+          "**ŷ = Σ wi·xi = w·x** (produit scalaire)",
+          "w = (w0, …, wp), x = (1, x1, …, xp)",
+          "Une seule formule, pas de cas particulier pour le biais",
+          "En code : une boucle de produits, ou un produit matriciel"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Lire les poids d'un modèle entraîné",
+        "front": "price = 50 + 339·size + 17 000·nb_rooms + 30 000·jardin : que dit chaque poids ?",
+        "body": "Après entraînement, le cours obtient **price = 50 + 339·size + 17 000·nb_rooms + 30 000·jardin**. Lecture : chaque **mètre carré** de plus ajoute **339** au prix, chaque **pièce** de plus ajoute **17 000**, et un **jardin** ajoute **30 000**. Le signe compte : un poids **négatif**, comme le **−50 000·garden_or_not** de la diapo en rouge, voudrait dire qu'un jardin **fait baisser** le prix, ce qui contredit l'intuition. Lequel des deux jeux de poids est juste, 160 000 ou 210 000 pour la même maison ? Ce n'est pas l'intuition qui tranche mais la **loss** calculée sur les **ventes réelles** : les poids qui donnent la plus petite erreur gagnent.",
+        "keypoints": [
+          "Un poids = l'effet d'**une unité de plus** de la feature",
+          "339 €/m², 17 000 €/pièce, 30 000 € pour un jardin",
+          "Poids **négatif** = la feature fait **baisser** la prédiction",
+          "C'est la **loss sur les données réelles** qui départage les poids"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Calculer une prédiction à la main",
+        "front": "Price = 100 + 100·size + 10·nb_rooms + 10·garden. Prix d'une maison de 100 m², 3 pièces, avec jardin ?",
+        "body": "Exercice type du cours : **Price = 100 + 100·size + 10·nb_rooms + 10·garden_or_not**, pour une maison de **100 m², 3 pièces et un jardin**. On remplace chaque feature par sa valeur : 100 + 100·**100** + 10·**3** + 10·**1** = 100 + 10 000 + 30 + 10 = **10 140**. La même maison sans jardin : garden_or_not = 0, donc 10 130. C'est tout ce que fait un modèle linéaire à l'inférence : des multiplications et une addition. Le calcul est trivial ; la difficulté du machine learning est ailleurs, dans le **choix des poids**.",
+        "keypoints": [
+          "Remplacer chaque feature par sa valeur, multiplier, additionner",
+          "100 + 100·100 + 10·3 + 10·1 = **10 140**",
+          "Sans jardin : 10 130",
+          "Prédire est facile ; trouver les poids est le vrai problème"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "La MSE : mean squared error",
+        "front": "Donne la formule de la MSE et calcule-la pour y = [2, 4] et ŷ = [3, 3]",
+        "body": "La loss standard de la régression est la **MSE**, erreur quadratique moyenne : **MSE = (1/n) · Σ (ŷi − yi)²**. Pour chaque exemple i, on calcule l'**erreur** ŷi − yi (prédiction moins attendu), on la met **au carré**, puis on fait la **moyenne** sur les n exemples. Exemple : y = [2, 4], ŷ = [3, 3]. Erreurs : 3 − 2 = 1 et 3 − 4 = −1. Carrés : 1 et 1. Moyenne : (1 + 1) / 2 = **1**. En C++ dans le module Nowledgeable : une boucle qui accumule error·error puis divise par y.size(). Une MSE de 0 signifie des prédictions parfaites.",
+        "keypoints": [
+          "**MSE = (1/n) Σ (ŷi − yi)²**",
+          "Pour chaque exemple : erreur → carré → puis moyenne",
+          "y = [2, 4], ŷ = [3, 3] → erreurs 1 et −1 → **MSE = 1**",
+          "MSE = 0 ⇔ prédictions parfaites",
+          "C'est un nombre : on peut le minimiser"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Pourquoi mettre l'erreur au carré ?",
+        "front": "Pourquoi la MSE met-elle les erreurs au carré plutôt que de les additionner ?",
+        "body": "Trois raisons. **1. Éviter les annulations** : sans carré, une erreur de +10 sur une maison et de −10 sur une autre donneraient une erreur moyenne nulle alors que le modèle se trompe deux fois ; le carré rend tout **positif**. **2. Pénaliser les grosses erreurs** : une erreur de 10 pèse 100, une erreur de 2 pèse 4 ; le modèle est poussé à éviter les gros ratés. **3. Les maths** : le carré est **dérivable partout** (contrairement à la valeur absolue en 0) et sa dérivée est simple, **2·(ŷ − y)**, ce qui rend le gradient facile à calculer, comme on le verra au chapitre 08.",
+        "keypoints": [
+          "Évite que +10 et −10 s'**annulent**",
+          "Rend chaque erreur **positive**",
+          "**Pénalise** fortement les grosses erreurs (10 → 100)",
+          "**Dérivable** partout, dérivée simple 2·(ŷ − y)"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Régression logistique : classer avec une sigmoïde",
+        "front": "Comment la régression logistique transforme-t-elle la régression linéaire en classifieur binaire ?",
+        "body": "Pour une **classification binaire** (malade ou pas, maison vendue en 4 mois ou pas), on garde la **même somme pondérée** mais on la passe dans une **sigmoïde** : **y = sigmoid(w0 + w1·X1 + w2·X2 + w3·X3)**, avec **sigmoid(x) = 1 / (1 + exp(−x))**. La sigmoïde écrase n'importe quel nombre **entre 0 et 1** : la sortie se lit comme une **probabilité**. On décide ensuite avec un **seuil** : au-dessus de 0,5 → classe 1, en dessous → classe 0. Exemple du cours : **y = sigmoid(−52 + 0,4·age + 0,7·vibration)** pour prédire une panne machine, ou **HouseSoldIn4Month = sigmoid(w0 + w1·size + …)**. Malgré son nom, c'est un modèle de **classification**.",
+        "keypoints": [
+          "Même somme pondérée, passée dans **sigmoid(x) = 1/(1+exp(−x))**",
+          "Sortie **entre 0 et 1** = probabilité",
+          "**Seuil** (0,5) pour décider la classe",
+          "sigmoid(0) = 0,5 ; grand positif → ≈ 1 ; grand négatif → ≈ 0",
+          "« Régression » logistique = un modèle de **classification** binaire"
+        ],
+        "tier": 3
+      },
+      {
+        "title": "Voir sa régression bouger",
+        "front": "Que montre l'outil interactif de régression du cours ?",
+        "body": "Le cours renvoie vers un outil interactif Nowledgeable : à gauche, des **curseurs** pour chaque poids (l'exemple affiche **8 + 1·x1 + −4·x2 + 1·x3 + 0·x4**) ; à droite, les **points** du dataset (chats et chiens) et la **courbe** du modèle qui se déforme en temps réel quand on bouge un curseur. Le but est de régler les poids à la main pour que la courbe passe près des points. C'est exactement ce que l'entraînement fait **automatiquement** : bouger les curseurs dans le sens qui réduit l'erreur. Bonne intuition à garder pour la descente de gradient : chaque poids est un curseur, le gradient dit dans quel sens le pousser.",
+        "keypoints": [
+          "Curseurs = poids ; courbe = modèle ; points = données",
+          "Régler à la main pour rapprocher la courbe des points",
+          "L'entraînement fait la même chose **automatiquement**",
+          "Gradient = « dans quel sens pousser chaque curseur »"
+        ],
+        "tier": 2
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Quelle est la forme du modèle de régression linéaire ?",
+        "choices": [
+          "Une somme des features pondérées par des poids, plus un biais",
+          "Un produit des features pondérées par des poids, plus un biais",
+          "Une moyenne des features, chacune divisée par son poids",
+          "Une somme des features au carré, pondérées par des poids"
+        ],
+        "answer": 0,
+        "explain": "Chaque feature est multipliée par son poids, on additionne, on ajoute w0. Une droite, un plan ou un hyperplan : rien de multiplié entre features, rien au carré.",
+        "difficulty": "facile",
+        "topic": "modèle"
+      },
+      {
+        "q": "Que représente w0 dans y = w0 + w1·X1 + w2·X2 ?",
+        "choices": [
+          "La prédiction quand toutes les features valent zéro",
+          "Le poids de la feature la plus importante du modèle",
+          "La valeur moyenne des réponses y du dataset",
+          "L'erreur minimale que le modèle peut atteindre"
+        ],
+        "answer": 0,
+        "explain": "Si X1 = X2 = 0, il reste y = w0 : l'ordonnée à l'origine. Ce n'est la moyenne de y que dans des cas très particuliers.",
+        "difficulty": "facile",
+        "topic": "modèle"
+      },
+      {
+        "q": "À quoi sert l'astuce x0 = 1 ?",
+        "choices": [
+          "À écrire le biais comme un poids ordinaire dans le produit scalaire",
+          "À ramener toutes les features entre 0 et 1 avant le calcul",
+          "À fixer la première prédiction du modèle à la valeur 1",
+          "À retirer le biais du modèle pour simplifier la formule"
+        ],
+        "answer": 0,
+        "explain": "w0·1 = w0 : le biais devient un terme comme les autres et ŷ = w·x. On ne le retire pas, on l'intègre.",
+        "difficulty": "moyen",
+        "topic": "produit scalaire"
+      },
+      {
+        "q": "Price = 100 + 100·size + 10·nb_rooms + 10·garden. Prix prédit pour 50 m², 2 pièces, sans jardin ?",
+        "choices": [
+          "5 120",
+          "5 130",
+          "5 020",
+          "5 100"
+        ],
+        "answer": 0,
+        "explain": "100 + 100·50 + 10·2 + 10·0 = 100 + 5 000 + 20 + 0 = 5 120. 5 130 compterait un jardin, 5 020 oublie les pièces, 5 100 oublie pièces et jardin… et garde le biais.",
+        "difficulty": "moyen",
+        "topic": "prédiction"
+      },
+      {
+        "q": "Dans un modèle entraîné, le poids de garden_or_not vaut −50 000. Que signifie ce signe ?",
+        "choices": [
+          "Un jardin fait baisser la prédiction de 50 000",
+          "Un jardin fait monter la prédiction de 50 000",
+          "Le jardin est ignoré, un poids négatif étant sans effet",
+          "Le modèle n'a pas convergé, un poids ne pouvant être négatif"
+        ],
+        "answer": 0,
+        "explain": "Un poids négatif tire la prédiction vers le bas quand la feature vaut 1. Rien n'interdit un poids négatif ; c'est la loss sur les données réelles qui dira s'il est justifié.",
+        "difficulty": "facile",
+        "topic": "poids"
+      },
+      {
+        "q": "Quelle est la formule de la MSE ?",
+        "choices": [
+          "La moyenne des carrés des écarts entre prédictions et attendus",
+          "La somme des carrés des écarts entre prédictions et attendus",
+          "La moyenne des écarts en valeur absolue entre prédictions et attendus",
+          "Le carré de la moyenne des écarts entre prédictions et attendus"
+        ],
+        "answer": 0,
+        "explain": "(1/n) Σ (ŷi − yi)². Sans le 1/n c'est une somme, pas une moyenne ; avec la valeur absolue c'est la MAE ; et le carré s'applique à chaque écart, pas à la moyenne.",
+        "difficulty": "facile",
+        "topic": "MSE"
+      },
+      {
+        "q": "y = [2, 4] et ŷ = [3, 3]. Quelle est la MSE ?",
+        "choices": [
+          "1",
+          "0",
+          "2",
+          "0,5"
+        ],
+        "answer": 0,
+        "explain": "Erreurs 3−2 = 1 et 3−4 = −1, carrés 1 et 1, moyenne 1. Sans le carré la somme des erreurs ferait 0 ; sans la moyenne, 2.",
+        "difficulty": "moyen",
+        "topic": "MSE"
+      },
+      {
+        "q": "Pourquoi la MSE met-elle les erreurs au carré ?",
+        "choices": [
+          "Pour que les erreurs ne s'annulent pas et que les grosses pèsent plus",
+          "Pour que la loss reste toujours comprise entre 0 et 1",
+          "Pour que le résultat s'exprime dans la même unité que y",
+          "Pour que les petites erreurs comptent autant que les grosses"
+        ],
+        "answer": 0,
+        "explain": "+10 et −10 donneraient 0 sans carré. Le carré rend tout positif, pèse davantage les grosses erreurs, et sa dérivée est simple. Il change l'unité, il ne la conserve pas.",
+        "difficulty": "moyen",
+        "topic": "MSE"
+      },
+      {
+        "q": "Une régression linéaire avec 3 features possède combien de paramètres ?",
+        "choices": [
+          "4",
+          "3",
+          "6",
+          "2"
+        ],
+        "answer": 0,
+        "explain": "w0, w1, w2, w3 : un poids par feature plus le biais. Le biais compte comme un paramètre à apprendre.",
+        "difficulty": "moyen",
+        "topic": "modèle"
+      },
+      {
+        "q": "Que renvoie la fonction sigmoïde ?",
+        "choices": [
+          "Une valeur strictement comprise entre 0 et 1",
+          "Une valeur comprise entre −1 et 1",
+          "Un entier valant exactement 0 ou 1",
+          "Une valeur positive sans borne supérieure"
+        ],
+        "answer": 0,
+        "explain": "sigmoid(x) = 1/(1+exp(−x)) écrase tout réel dans ]0, 1[. C'est ensuite un seuil qui transforme cette probabilité en 0 ou 1.",
+        "difficulty": "moyen",
+        "topic": "logistique"
+      },
+      {
+        "q": "À quoi sert la régression logistique ?",
+        "choices": [
+          "Classer en deux catégories à partir d'une somme pondérée",
+          "Prédire une valeur continue avec une courbe en S",
+          "Regrouper des exemples sans labels en deux clusters",
+          "Réduire le nombre de features avant une régression"
+        ],
+        "answer": 0,
+        "explain": "Malgré son nom, c'est un classifieur binaire : la somme pondérée passe dans une sigmoïde puis un seuil. Malade ou pas, vendue en 4 mois ou pas.",
+        "difficulty": "facile",
+        "topic": "logistique"
+      },
+      {
+        "q": "Que vaut sigmoid(0), et à quoi correspond cette valeur ?",
+        "choices": [
+          "0,5, le seuil entre les deux classes",
+          "0, la classe négative par défaut",
+          "1, la classe positive par défaut",
+          "Indéfinie, exp(0) n'existant pas"
+        ],
+        "answer": 0,
+        "explain": "1/(1+exp(0)) = 1/(1+1) = 0,5. Une somme pondérée nulle donne 50 % : on est pile sur le seuil de décision.",
+        "difficulty": "difficile",
+        "topic": "logistique"
+      },
+      {
+        "q": "Deux jeux de poids prédisent 160 000 et 210 000 pour la même maison. Comment décider lequel garder ?",
+        "choices": [
+          "Comparer la loss de chaque jeu de poids sur les ventes réelles",
+          "Prendre la moyenne des deux prédictions, soit 185 000",
+          "Garder le jeu de poids dont toutes les valeurs sont positives",
+          "Garder le jeu de poids qui donne le prix le plus élevé"
+        ],
+        "answer": 0,
+        "explain": "X → modèle → prédiction, comparée aux valeurs attendues par la fonction d'erreur. Le signe des poids ou la hauteur du prix ne disent rien de la qualité.",
+        "difficulty": "moyen",
+        "topic": "loss"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Cours « From data to AI » – diapos 69 à 84",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": [
+      {
+        "label": "Régression linéaire interactive (Nowledgeable) – bouger les poids et voir la courbe",
+        "url": "https://nowledgeable.com/invitation/student/a84d44505c0f4bb4baeeb336444e3c66",
+        "kind": "doc"
+      }
+    ]
+  },
+  {
+    "id": "derivees",
+    "num": "05",
+    "special": true,
+    "title": "Dérivées : la pente d'une fonction",
+    "summary": "Premier chapitre de maths, calé sur le module Nowledgeable « révision dérivée et gradient ». Ce qu'est une dérivée (la pente), les dérivées de base à connaître par cœur, les règles de calcul (somme, produit, chaîne) avec tous les exercices du module corrigés, et pourquoi tout ça sert au machine learning : lire le signe de la dérivée pour savoir dans quel sens descendre.",
+    "topics": [
+      "dérivée = pente = taux de variation",
+      "signe de la dérivée : monte, descend, plat",
+      "dérivées de base : constante, x, xⁿ, exp, log",
+      "règle de la somme et du facteur constant",
+      "règle du produit",
+      "règle de la chaîne (fonction composée)",
+      "corrigés du module : 2x, 3x+1, x², x³, 2x²−x, 3(x−2)³, exp(−x²), 3x³+2x², log(x)·x",
+      "lien avec le machine learning : dérivée de la loss"
+    ],
+    "fiches": [
+      {
+        "title": "Qu'est-ce qu'une dérivée ?",
+        "front": "Explique avec tes mots ce qu'est la dérivée d'une fonction en un point",
+        "body": "La **dérivée** de f au point x, notée **f′(x)**, est la **pente** de la courbe de f à cet endroit précis : elle dit **de combien f(x) change quand x augmente d'un tout petit peu**. On l'appelle aussi **taux de variation**. Formellement c'est la limite de (f(x + h) − f(x)) / h quand h tend vers 0, mais l'image à garder est celle d'une **route** : dérivée **positive**, la route **monte** ; **négative**, elle **descend** ; **nulle**, elle est **plate**, ce qui arrive au sommet d'une bosse ou au fond d'un creux. Exemple avec f(x) = x² : en x = 3 la pente vaut 6 (ça monte fort), en x = −1 elle vaut −2 (ça descend), en x = 0 elle vaut 0 (le fond du bol).",
+        "keypoints": [
+          "**f′(x)** = pente de la courbe au point x",
+          "= de combien f change quand x bouge d'un peu",
+          "f′ > 0 : ça **monte** ; f′ < 0 : ça **descend** ; f′ = 0 : **plat**",
+          "f(x) = x² : f′(3) = 6, f′(−1) = −2, f′(0) = 0"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Les dérivées de base à connaître",
+        "front": "Dérivée de : une constante, x, a·x, xⁿ, exp(x), log(x) ? Et les 4 premières fonctions du module ?",
+        "body": "Six formules suffisent pour presque tout le cours. Une **constante** se dérive en **0** (elle ne bouge pas). **x** se dérive en **1**. **a·x** se dérive en **a** (la pente d'une droite est son coefficient). **xⁿ** se dérive en **n·xⁿ⁻¹** : on fait descendre l'exposant devant et on lui retire 1, donc x² → 2x et x³ → 3x². **exp(x)** se dérive en **exp(x)** (elle est sa propre dérivée). **log(x)**, le logarithme népérien, se dérive en **1/x**. Premier exercice du module : f(x) = 2x → f′(x) = **2** ; f(x) = 3x + 1 → f′(x) = **3** (le +1 est une constante, dérivée 0) ; f(x) = x² → **2x** ; f(x) = x³ → **3x²**.",
+        "keypoints": [
+          "constante → **0** ; x → **1** ; a·x → **a**",
+          "**xⁿ → n·xⁿ⁻¹** : x² → 2x, x³ → 3x²",
+          "exp(x) → **exp(x)** ; log(x) → **1/x**",
+          "Module : 2x → 2 ; 3x + 1 → 3 ; x² → 2x ; x³ → 3x²"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Règles : somme, facteur constant, produit",
+        "front": "Dérive 2x² − x, 3x³ + 2x² et log(x)·x en citant la règle utilisée",
+        "body": "**Somme** : la dérivée d'une somme est la somme des dérivées, (f + g)′ = f′ + g′. **Facteur constant** : un nombre devant reste devant, (a·f)′ = a·f′. Avec ces deux règles : f(x) = 2x² − x → 2·(2x) − 1 = **4x − 1**. Et 3x³ + 2x² → 3·(3x²) + 2·(2x) = **9x² + 4x**. **Produit** : quand deux fonctions sont **multipliées**, on ne peut pas dériver chacune séparément ; la règle est **(f·g)′ = f′·g + f·g′** (« dérivée du premier fois le second, plus le premier fois dérivée du second »). Exercice du module : log(x)·x → (1/x)·x + log(x)·1 = **1 + log(x)**.",
+        "keypoints": [
+          "(f + g)′ = f′ + g′ ; (a·f)′ = a·f′",
+          "2x² − x → **4x − 1**",
+          "3x³ + 2x² → **9x² + 4x**",
+          "**(f·g)′ = f′·g + f·g′**",
+          "log(x)·x → (1/x)·x + log(x)·1 = **1 + log(x)**"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "La règle de la chaîne",
+        "front": "Comment dériver une fonction composée ? Dérive 3(x − 2)³ et exp(−x²)",
+        "body": "Une fonction **composée** est une fonction dans une fonction : f(g(x)), une **extérieure** f appliquée à une **intérieure** g. Règle de la **chaîne** : **(f(g(x)))′ = f′(g(x)) · g′(x)**. En pratique : **on dérive l'extérieure en laissant l'intérieure telle quelle, puis on multiplie par la dérivée de l'intérieure**. Exercice 1 : 3(x − 2)³. Intérieure : x − 2, dérivée 1. Extérieure : 3u³, dérivée 9u². Résultat : 9(x − 2)² · 1 = **9(x − 2)²**. Exercice 2 : exp(−x²). Intérieure : −x², dérivée −2x. Extérieure : exp(u), dérivée exp(u). Résultat : exp(−x²) · (−2x) = **−2x·exp(−x²)**. À retenir aussi : (x − 2)² → 2(x − 2), qui servira à la descente de gradient. Cette règle est la colonne vertébrale du deep learning : la rétropropagation, c'est la règle de la chaîne appliquée couche après couche.",
+        "keypoints": [
+          "**Dériver l'extérieure (intérieure inchangée) × dériver l'intérieure**",
+          "3(x − 2)³ → 9(x − 2)² · 1 = **9(x − 2)²**",
+          "exp(−x²) → exp(−x²) · (−2x) = **−2x·exp(−x²)**",
+          "(x − 2)² → **2(x − 2)**",
+          "Base de la rétropropagation en deep learning"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Pourquoi la dérivée sert au machine learning",
+        "front": "Quel est le rapport entre la dérivée et l'entraînement d'un modèle ?",
+        "body": "La **loss** est une fonction des **poids** : change un poids, l'erreur change. La dérivée de la loss par rapport à un poids répond à la seule question qui compte pour l'entraînement : **si j'augmente ce poids, l'erreur monte-t-elle ou baisse-t-elle, et à quelle vitesse ?** Dérivée positive → augmenter le poids augmente l'erreur, il faut le **diminuer**. Dérivée négative → il faut l'**augmenter**. Dérivée nulle → on est au **fond**, l'erreur est minimale pour ce poids. C'est le fil conducteur des quatre chapitres de maths : **dérivée** (ce chapitre) → **gradient** (plusieurs poids) → **descente de gradient** (l'algorithme) → **entraînement** de la régression linéaire.",
+        "keypoints": [
+          "La loss est une fonction des poids",
+          "Dérivée de la loss par rapport à un poids = **sens et vitesse** de variation de l'erreur",
+          "f′ > 0 → **diminuer** le poids ; f′ < 0 → **augmenter** le poids",
+          "f′ = 0 → au **fond**, erreur minimale",
+          "Fil : dérivée → gradient → descente de gradient → entraînement"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Lire le signe : (x − 2)² comme exemple",
+        "front": "f(x) = (x − 2)². Que valent f′(3), f′(1), f′(2), et que faut-il faire pour descendre ?",
+        "body": "Prenons **f(x) = (x − 2)²**, une parabole dont le fond est en x = 2 (là f vaut 0). Sa dérivée, par la règle de la chaîne : **f′(x) = 2(x − 2)**. En **x = 3** : f′(3) = 2 > 0, la courbe monte, donc pour descendre il faut aller **vers la gauche** (diminuer x). En **x = 1** : f′(1) = −2 < 0, la courbe descend, donc pour descendre il faut aller **vers la droite** (augmenter x). En **x = 2** : f′(2) = 0, on est au fond, on ne bouge plus. Règle générale : **pour descendre, on bouge dans le sens opposé au signe de la dérivée**. C'est exactement ce que fait la descente de gradient, itération après itération.",
+        "keypoints": [
+          "f(x) = (x − 2)² → **f′(x) = 2(x − 2)**, minimum en x = 2",
+          "f′(3) = **2** > 0 : aller vers la gauche",
+          "f′(1) = **−2** < 0 : aller vers la droite",
+          "f′(2) = **0** : au fond, on s'arrête",
+          "Descendre = bouger **à l'opposé du signe** de la dérivée"
+        ],
+        "tier": 2
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Que représente la dérivée f′(x) d'une fonction en un point ?",
+        "choices": [
+          "La pente de la courbe au point x",
+          "La hauteur de la courbe au point x",
+          "L'aire sous la courbe jusqu'au point x",
+          "La distance entre la courbe et l'axe des x"
+        ],
+        "answer": 0,
+        "explain": "De combien f change quand x augmente d'un tout petit peu. La hauteur, c'est f(x) ; l'aire, c'est l'intégrale.",
+        "difficulty": "facile",
+        "topic": "définition"
+      },
+      {
+        "q": "Quelle est la dérivée de f(x) = 3x + 1 ?",
+        "choices": [
+          "3",
+          "3x",
+          "4",
+          "1"
+        ],
+        "answer": 0,
+        "explain": "a·x se dérive en a, et la constante +1 se dérive en 0. Répondre 4, c'est dériver le 1 en 1.",
+        "difficulty": "facile",
+        "topic": "dérivées de base"
+      },
+      {
+        "q": "Quelle est la dérivée de x³ ?",
+        "choices": [
+          "3x²",
+          "2x²",
+          "3x",
+          "x³/3"
+        ],
+        "answer": 0,
+        "explain": "xⁿ → n·xⁿ⁻¹ : l'exposant descend devant et perd 1. x³/3 serait une primitive de x², pas une dérivée.",
+        "difficulty": "facile",
+        "topic": "dérivées de base"
+      },
+      {
+        "q": "Quelle est la dérivée de f(x) = 2x² − x ?",
+        "choices": [
+          "4x − 1",
+          "4x + 1",
+          "2x − 1",
+          "4x"
+        ],
+        "answer": 0,
+        "explain": "2·(2x) − 1 = 4x − 1. Le −x se dérive en −1, pas en +1, et il ne disparaît pas.",
+        "difficulty": "facile",
+        "topic": "règles"
+      },
+      {
+        "q": "Quelle est la dérivée de 3(x − 2)³ ?",
+        "choices": [
+          "9(x − 2)²",
+          "3(x − 2)²",
+          "9(x − 2)³",
+          "9x²"
+        ],
+        "answer": 0,
+        "explain": "Chaîne : extérieure 3u³ → 9u², intérieure x − 2 → 1. Oublier le 3 devant donne 3(x − 2)², oublier de baisser l'exposant donne 9(x − 2)³.",
+        "difficulty": "moyen",
+        "topic": "chaîne"
+      },
+      {
+        "q": "Quelle est la dérivée de exp(−x²) ?",
+        "choices": [
+          "−2x·exp(−x²)",
+          "exp(−x²)",
+          "−x²·exp(−x²)",
+          "−2x·exp(−2x)"
+        ],
+        "answer": 0,
+        "explain": "Extérieure exp(u) → exp(u) inchangée, intérieure −x² → −2x, on multiplie. Répondre exp(−x²) seul, c'est oublier la dérivée de l'intérieure.",
+        "difficulty": "moyen",
+        "topic": "chaîne"
+      },
+      {
+        "q": "Quelle est la dérivée de log(x)·x ?",
+        "choices": [
+          "log(x) + 1",
+          "1/x",
+          "log(x) − 1",
+          "1"
+        ],
+        "answer": 0,
+        "explain": "Règle du produit : (1/x)·x + log(x)·1 = 1 + log(x). Multiplier les deux dérivées entre elles (1/x fois 1) est l'erreur classique.",
+        "difficulty": "moyen",
+        "topic": "règles"
+      },
+      {
+        "q": "Quelle est la dérivée de 3x³ + 2x² ?",
+        "choices": [
+          "9x² + 4x",
+          "9x² + 2x",
+          "3x² + 2x",
+          "9x + 4"
+        ],
+        "answer": 0,
+        "explain": "3·(3x²) + 2·(2x) = 9x² + 4x. Chaque terme garde son coefficient devant, et chaque exposant baisse de 1.",
+        "difficulty": "facile",
+        "topic": "règles"
+      },
+      {
+        "q": "Si f′(x) > 0 en un point, que fait la fonction à cet endroit ?",
+        "choices": [
+          "Elle monte quand x augmente",
+          "Elle descend quand x augmente",
+          "Elle est positive en ce point",
+          "Elle passe par un maximum"
+        ],
+        "answer": 0,
+        "explain": "Dérivée positive = pente positive = la route monte vers la droite. Le signe de la dérivée ne dit rien du signe de f elle-même.",
+        "difficulty": "facile",
+        "topic": "signe"
+      },
+      {
+        "q": "Que peut-on dire d'un point où la dérivée vaut 0 ?",
+        "choices": [
+          "La pente y est nulle : minimum, maximum ou palier",
+          "La fonction y vaut zéro, la courbe touche l'axe",
+          "La courbe y traverse l'axe des abscisses",
+          "La fonction y change de signe, de positif à négatif"
+        ],
+        "answer": 0,
+        "explain": "Pente nulle : sommet d'une bosse, fond d'un creux ou palier. Pour f(x) = (x − 2)², c'est en x = 2, le minimum, où f vaut 0 par coïncidence.",
+        "difficulty": "moyen",
+        "topic": "signe"
+      },
+      {
+        "q": "Comment dérive-t-on une fonction composée f(g(x)) ?",
+        "choices": [
+          "Dérivée de l'extérieure, intérieure inchangée, fois dérivée de l'intérieure",
+          "Dérivée de l'extérieure et dérivée de l'intérieure, additionnées",
+          "Dérivée de l'intérieure, appliquée ensuite à la dérivée de l'extérieure",
+          "Dérivée de l'extérieure seulement, l'intérieure étant une constante"
+        ],
+        "answer": 0,
+        "explain": "(f(g(x)))′ = f′(g(x)) · g′(x). C'est la règle de la chaîne, base de la rétropropagation.",
+        "difficulty": "moyen",
+        "topic": "chaîne"
+      },
+      {
+        "q": "Pourquoi la dérivée est-elle centrale en machine learning ?",
+        "choices": [
+          "Elle dit dans quel sens et à quelle vitesse changer un poids pour réduire la loss",
+          "Elle permet de calculer la loss sans parcourir tout le dataset",
+          "Elle indique quelles features contribuent le plus à la prédiction",
+          "Elle mesure la vitesse de l'entraînement en itérations par seconde"
+        ],
+        "answer": 0,
+        "explain": "Dérivée positive : diminuer le poids ; négative : l'augmenter ; nulle : on est au fond. C'est le moteur de la descente de gradient.",
+        "difficulty": "facile",
+        "topic": "lien ML"
+      },
+      {
+        "q": "f(x) = (x − 2)². Que vaut f′(1), et dans quel sens bouger x pour descendre ?",
+        "choices": [
+          "−2, la courbe descend, on augmente x",
+          "−2, la courbe descend, on diminue x",
+          "2, la courbe monte, on diminue x",
+          "2, la courbe monte, on augmente x"
+        ],
+        "answer": 0,
+        "explain": "f′(x) = 2(x − 2), donc f′(1) = −2. Signe négatif → on va à l'opposé, vers les x plus grands, vers le minimum en 2.",
+        "difficulty": "difficile",
+        "topic": "signe"
+      },
+      {
+        "q": "Quelle est la dérivée d'une constante, par exemple f(x) = 7 ?",
+        "choices": [
+          "0",
+          "7",
+          "1",
+          "7x"
+        ],
+        "answer": 0,
+        "explain": "Une constante ne varie pas quand x bouge : pente nulle. 7x serait une primitive.",
+        "difficulty": "facile",
+        "topic": "dérivées de base"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Module Nowledgeable « révision dérivée et gradient », exercices 1 à 4",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": []
+  },
+  {
+    "id": "gradient",
+    "num": "06",
+    "special": true,
+    "title": "Dérivées partielles et gradient",
+    "summary": "Quand la fonction dépend de plusieurs variables (une loss dépend de tous les poids), on dérive par rapport à une variable à la fois : c'est la dérivée partielle. Le gradient rassemble ces dérivées dans un vecteur qui pointe vers la montée la plus raide. Exercices 5 et 6 du module corrigés, dont le plus important du cours : le gradient de (w0 + w1·x − y)², qui est le gradient de la MSE.",
+    "topics": [
+      "fonction à plusieurs variables",
+      "dérivée partielle ∂f/∂x : les autres variables sont des constantes",
+      "corrigé : f(x, y) = x·y + y²",
+      "gradient ∇f = vecteur des dérivées partielles",
+      "direction de plus forte montée, −∇f pour descendre",
+      "corrigé : f(w0, w1) = (w0 + w1·x − y)²",
+      "exemple numérique",
+      "gradient de la MSE sur n exemples"
+    ],
+    "fiches": [
+      {
+        "title": "Fonctions à plusieurs variables",
+        "front": "Pourquoi une loss est-elle une fonction à plusieurs variables ? Que devient la dérivée ?",
+        "body": "Jusqu'ici f dépendait d'une seule variable x : sa courbe est une ligne et sa dérivée une pente. Une fonction comme **f(x, y) = x·y + y²** dépend de **deux** variables : son graphe est une **surface**, un paysage avec des collines et des creux. Une **loss** est de ce type : elle dépend de **tous les poids** du modèle, w0, w1, w2… Autant de variables que de paramètres, des millions pour un réseau de neurones. La question de l'entraînement devient : **si je bouge un seul poids, l'erreur monte-t-elle ou descend-elle ?** Il faut donc une pente **par variable** : c'est la dérivée partielle.",
+        "keypoints": [
+          "Une variable → courbe et pente ; plusieurs → **surface** (paysage)",
+          "La loss dépend de **tous les poids** : fonction à plusieurs variables",
+          "Question clé : l'effet de **chaque poids séparément** sur l'erreur",
+          "Réponse : une pente par variable, la **dérivée partielle**"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "La dérivée partielle",
+        "front": "Qu'est-ce que ∂f/∂x ? Calcule ∂f/∂x et ∂f/∂y pour f(x, y) = x·y + y²",
+        "body": "La **dérivée partielle** de f par rapport à x, notée **∂f/∂x** (le ∂ se lit « d rond »), c'est **la dérivée de f en considérant x comme la variable et toutes les autres comme des constantes**, des nombres fixés. On applique ensuite les règles habituelles. Exercice 5 du module : **f(x, y) = x·y + y²**. Par rapport à x : le terme x·y, c'est « une constante y fois x », dérivée **y** ; le terme y² est une constante, dérivée 0. Donc **∂f/∂x = y**. Par rapport à y : x·y, c'est « une constante x fois y », dérivée **x** ; y² se dérive en **2y**. Donc **∂f/∂y = x + 2y**. Deux pentes différentes pour le même point, une par direction.",
+        "keypoints": [
+          "**∂f/∂x** : dériver selon x, **les autres variables sont des constantes**",
+          "f(x, y) = x·y + y² → **∂f/∂x = y**",
+          "f(x, y) = x·y + y² → **∂f/∂y = x + 2y**",
+          "Une pente par direction"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Le gradient",
+        "front": "Qu'est-ce que le gradient ∇f ? Que vaut-il pour x·y + y² au point (1, 2) ? Vers où pointe-t-il ?",
+        "body": "Le **gradient** de f, noté **∇f** (nabla), est le **vecteur qui rassemble toutes les dérivées partielles** : ∇f = (∂f/∂x, ∂f/∂y, …), une composante par variable. Pour f(x, y) = x·y + y² : **∇f(x, y) = (y, x + 2y)**. Au point (1, 2) : (2, 1 + 4) = **(2, 5)**. Propriété fondamentale : le gradient **pointe dans la direction où f monte le plus vite**, et sa longueur dit à quelle vitesse. Donc pour **descendre** le plus vite, on va dans la direction **opposée**, **−∇f**. Pour une loss, −∇ indique comment bouger tous les poids à la fois pour réduire l'erreur au maximum.",
+        "keypoints": [
+          "**∇f = (∂f/∂x, ∂f/∂y, …)** : une composante par variable",
+          "x·y + y² → ∇f = (y, x + 2y) ; en (1, 2) : **(2, 5)**",
+          "Pointe vers la **montée la plus raide**",
+          "**−∇f** = direction de descente la plus raide",
+          "Pour une loss : comment bouger tous les poids d'un coup"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Le gradient d'une loss : l'exercice clé du module",
+        "front": "f(w0, w1) = (w0 + w1·x − y)². Calcule ∂f/∂w0 et ∂f/∂w1. Que sont x et y ici ?",
+        "body": "Exercice 6, le plus important : **f(w0, w1) = (w0 + w1·x − y)²**. Piège : les **variables sont w0 et w1**, les poids ; **x et y sont des données fixées**, un exemple du dataset (une feature et sa valeur attendue). C'est l'erreur au carré d'une régression linéaire sur un seul exemple. On pose l'intérieure **u = w0 + w1·x − y**, donc f = u², extérieure de dérivée 2u. Règle de la chaîne. Par rapport à w0 : ∂u/∂w0 = 1, donc **∂f/∂w0 = 2(w0 + w1·x − y)**. Par rapport à w1 : ∂u/∂w1 = x, donc **∂f/∂w1 = 2x·(w0 + w1·x − y)**. Lecture : les deux contiennent l'**erreur** (prédiction − attendu) ; pour w1 elle est **multipliée par la feature x**. Ce sont exactement grad0 et grad1 du code C++ du chapitre 08.",
+        "keypoints": [
+          "Variables : **w0, w1** ; x et y : **données fixées**",
+          "u = w0 + w1·x − y, f = u², chaîne : 2u · ∂u/∂w",
+          "**∂f/∂w0 = 2(w0 + w1·x − y)**",
+          "**∂f/∂w1 = 2x·(w0 + w1·x − y)**",
+          "= erreur, et erreur × feature"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Un exemple numérique",
+        "front": "x = 2, y = 5, w0 = 1, w1 = 1. Calcule l'erreur, f et le gradient. Que dit son signe ?",
+        "body": "Prenons un exemple avec **x = 2, y = 5** et des poids **w0 = 1, w1 = 1**. Prédiction : 1 + 1·2 = **3**. Erreur : 3 − 5 = **−2**. Loss : (−2)² = **4**. Gradient : ∂f/∂w0 = 2·(−2) = **−4** ; ∂f/∂w1 = 2·2·(−2) = **−8**. Donc ∇f = **(−4, −8)**. Lecture du signe : les deux composantes sont **négatives**, ce qui veut dire que l'erreur **diminue si on augmente w0 et w1**. Logique : on prédit 3 alors qu'on veut 5, il faut prédire plus, donc des poids plus grands. Et la composante de w1 est deux fois plus grande, car x = 2 : ce poids a plus d'effet sur la prédiction. La descente de gradient fera précisément ça : ajouter un peu à w0 et un peu plus à w1.",
+        "keypoints": [
+          "Prédiction 3, erreur −2, loss 4",
+          "∂f/∂w0 = 2·(−2) = **−4**",
+          "∂f/∂w1 = 2·2·(−2) = **−8**",
+          "Signe négatif → **augmenter** les poids réduit l'erreur",
+          "w1 pèse plus car x = 2"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Gradient de la MSE sur n exemples",
+        "front": "Donne le gradient de la MSE d'une régression à une variable sur n exemples",
+        "body": "Sur tout le dataset, la loss est la moyenne : **MSE(w0, w1) = (1/n) Σ (w0 + w1·xi − yi)²**. La dérivée d'une somme est la somme des dérivées, et le 1/n reste devant. En notant **ei = w0 + w1·xi − yi** l'erreur sur l'exemple i : **∂MSE/∂w0 = (2/n) Σ ei** et **∂MSE/∂w1 = (2/n) Σ ei·xi**. En mots : pour w0, **deux fois la moyenne des erreurs** ; pour w1, **deux fois la moyenne des erreurs pondérées par la feature**. C'est mot pour mot la fonction linear_mse_gradient du module C++ : une boucle qui accumule error et error·X[i], puis multiplie par 2/n. Pour p features, on aurait une composante par feature, chacune en Σ ei·x_i,j.",
+        "keypoints": [
+          "MSE = (1/n) Σ (w0 + w1·xi − yi)², ei = erreur de l'exemple i",
+          "**∂MSE/∂w0 = (2/n) Σ ei**",
+          "**∂MSE/∂w1 = (2/n) Σ ei·xi**",
+          "Moyenne des erreurs, et moyenne des erreurs × feature, fois 2",
+          "= linear_mse_gradient du module C++"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Que signifie ∂f/∂x pour une fonction f(x, y) ?",
+        "choices": [
+          "La dérivée selon x, les autres variables étant traitées comme des constantes",
+          "La dérivée selon x, les autres variables étant mises à zéro",
+          "La dérivée selon x puis selon y, appliquées l'une après l'autre",
+          "La variation de f quand toutes les variables augmentent ensemble"
+        ],
+        "answer": 0,
+        "explain": "Une seule variable bouge, les autres sont figées à leur valeur, pas mises à zéro : dans x·y + y², le y reste présent dans ∂f/∂x = y.",
+        "difficulty": "facile",
+        "topic": "dérivée partielle"
+      },
+      {
+        "q": "f(x, y) = x·y + y². Que vaut ∂f/∂x ?",
+        "choices": [
+          "y",
+          "x + 2y",
+          "y + 2y",
+          "x"
+        ],
+        "answer": 0,
+        "explain": "x·y est « y fois x », dérivée y ; y² est une constante par rapport à x, dérivée 0. Dériver le y² en 2y ici serait dériver selon y.",
+        "difficulty": "facile",
+        "topic": "dérivée partielle"
+      },
+      {
+        "q": "f(x, y) = x·y + y². Que vaut ∂f/∂y ?",
+        "choices": [
+          "x + 2y",
+          "x + y",
+          "2x + y",
+          "2x + 2y"
+        ],
+        "answer": 0,
+        "explain": "x·y est « x fois y », dérivée x ; y² se dérive en 2y. Oublier l'un des deux termes donne x seul ou 2y seul.",
+        "difficulty": "facile",
+        "topic": "dérivée partielle"
+      },
+      {
+        "q": "Qu'est-ce que le gradient d'une fonction ?",
+        "choices": [
+          "Le vecteur de toutes ses dérivées partielles",
+          "La somme de toutes ses dérivées partielles",
+          "La plus grande de ses dérivées partielles",
+          "La dérivée seconde de la fonction"
+        ],
+        "answer": 0,
+        "explain": "∇f = (∂f/∂x, ∂f/∂y, …), une composante par variable. On garde chaque pente séparément, on ne les additionne pas.",
+        "difficulty": "facile",
+        "topic": "gradient"
+      },
+      {
+        "q": "Vers où pointe le gradient ?",
+        "choices": [
+          "La direction où la fonction monte le plus vite",
+          "La direction où la fonction descend le plus vite",
+          "La direction du minimum le plus proche",
+          "La direction où la fonction ne varie pas"
+        ],
+        "answer": 0,
+        "explain": "Montée la plus raide. La descente de gradient prend donc l'opposé, −∇f, ce qui ne pointe pas forcément droit sur le minimum mais vers le bas.",
+        "difficulty": "moyen",
+        "topic": "gradient"
+      },
+      {
+        "q": "f(w0, w1) = (w0 + w1·x − y)². Que vaut ∂f/∂w0 ?",
+        "choices": [
+          "2(w0 + w1·x − y)",
+          "2x(w0 + w1·x − y)",
+          "(w0 + w1·x − y)",
+          "2(w0 + w1·x + y)"
+        ],
+        "answer": 0,
+        "explain": "Chaîne : u = w0 + w1·x − y, f = u², ∂u/∂w0 = 1, donc 2u·1. Le facteur x n'apparaît que pour w1, et le signe de y reste négatif.",
+        "difficulty": "moyen",
+        "topic": "gradient de la loss"
+      },
+      {
+        "q": "f(w0, w1) = (w0 + w1·x − y)². Que vaut ∂f/∂w1 ?",
+        "choices": [
+          "2x(w0 + w1·x − y)",
+          "2(w0 + w1·x − y)",
+          "2w1(w0 + w1·x − y)",
+          "x(w0 + w1·x − y)"
+        ],
+        "answer": 0,
+        "explain": "∂u/∂w1 = x (le coefficient de w1), donc 2u·x. Ni 2u seul, ni un facteur w1, et le 2 du carré reste.",
+        "difficulty": "moyen",
+        "topic": "gradient de la loss"
+      },
+      {
+        "q": "Dans f(w0, w1) = (w0 + w1·x − y)², que sont x et y ?",
+        "choices": [
+          "Des données fixées : un exemple du dataset",
+          "Des variables, au même titre que w0 et w1",
+          "Des poids supplémentaires à apprendre",
+          "Des constantes valant respectivement 1 et 0"
+        ],
+        "answer": 0,
+        "explain": "On cherche l'effet des poids sur l'erreur. Les données ne bougent pas pendant l'entraînement, mais elles gardent leur valeur, elles ne valent pas 1 et 0.",
+        "difficulty": "moyen",
+        "topic": "gradient de la loss"
+      },
+      {
+        "q": "x = 2, y = 5, w0 = 1, w1 = 1. Quel est le gradient de (w0 + w1·x − y)² ?",
+        "choices": [
+          "(−4, −8)",
+          "(4, 8)",
+          "(−2, −4)",
+          "(−4, −4)"
+        ],
+        "answer": 0,
+        "explain": "Erreur = 1 + 2 − 5 = −2. ∂/∂w0 = 2·(−2) = −4 ; ∂/∂w1 = 2·2·(−2) = −8. (−2, −4) oublie le facteur 2 du carré, (−4, −4) oublie le facteur x.",
+        "difficulty": "difficile",
+        "topic": "exemple numérique"
+      },
+      {
+        "q": "Le gradient de la loss par rapport à w0 est négatif. Que faut-il faire à w0 pour réduire l'erreur ?",
+        "choices": [
+          "L'augmenter, la loss descend dans ce sens",
+          "Le diminuer, la loss descend dans ce sens",
+          "Le laisser tel quel, le minimum est atteint",
+          "L'inverser, un poids négatif étant interdit"
+        ],
+        "answer": 0,
+        "explain": "Pente négative : la loss descend quand w0 augmente. On bouge toujours à l'opposé du signe du gradient.",
+        "difficulty": "moyen",
+        "topic": "exemple numérique"
+      },
+      {
+        "q": "Sur n exemples, quel est le gradient de la MSE par rapport à w1 ?",
+        "choices": [
+          "(2/n) Σ (w0 + w1·xi − yi)·xi",
+          "(2/n) Σ (w0 + w1·xi − yi)",
+          "(1/n) Σ (w0 + w1·xi − yi)·xi",
+          "(2/n) Σ (w0 + w1·xi − yi)²"
+        ],
+        "answer": 0,
+        "explain": "Deux fois la moyenne des erreurs pondérées par la feature. Sans le xi c'est le gradient de w0 ; sans le 2 il manque la dérivée du carré ; avec le carré c'est la MSE elle-même.",
+        "difficulty": "difficile",
+        "topic": "MSE"
+      },
+      {
+        "q": "∇f(x, y) = (y, x + 2y). Que vaut le gradient au point (1, 2) ?",
+        "choices": [
+          "(2, 5)",
+          "(1, 5)",
+          "(2, 3)",
+          "(5, 2)"
+        ],
+        "answer": 0,
+        "explain": "Première composante y = 2 ; seconde x + 2y = 1 + 4 = 5. (2, 3) oublie de doubler y, (5, 2) inverse l'ordre.",
+        "difficulty": "moyen",
+        "topic": "gradient"
+      },
+      {
+        "q": "Pour faire baisser une fonction le plus vite possible, dans quelle direction bouger ?",
+        "choices": [
+          "Dans la direction opposée au gradient",
+          "Dans la direction du gradient",
+          "Perpendiculairement au gradient",
+          "Vers l'origine du repère"
+        ],
+        "answer": 0,
+        "explain": "Le gradient pointe vers la montée la plus raide ; son opposé est la descente la plus raide. Perpendiculairement, la fonction ne varie presque pas.",
+        "difficulty": "facile",
+        "topic": "gradient"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Module Nowledgeable « révision dérivée et gradient », exercices 5 et 6",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": []
+  },
+  {
+    "id": "descente-de-gradient",
+    "num": "07",
+    "special": true,
+    "title": "Descente de gradient",
+    "summary": "L'algorithme qui entraîne presque tout en machine learning. L'idée, la formule x ← x − α·f′(x), puis les exercices papier-crayon du module Nowledgeable déroulés chiffre par chiffre : (x − 2)² depuis x0 = 3 puis x0 = 1 avec α = 0,1, l'effet de α = 0,3, et la version à deux variables (x − 2)² + (y + 1)². Quand s'arrêter, ce qui se passe si α est trop grand, et comment on code l'algorithme de façon générique.",
+    "topics": [
+      "principe : descendre la pente pas à pas",
+      "formule de mise à jour x ← x − α·f′(x)",
+      "learning rate α",
+      "corrigé : (x − 2)², x0 = 3, α = 0,1, 5 itérations",
+      "corrigé : x0 = 1",
+      "corrigé : α = 0,3 ; α trop grand (oscillation, divergence)",
+      "corrigé : (x − 2)² + (y + 1)² depuis (3, 0)",
+      "convergence, critères d'arrêt, minimum local",
+      "gradient_descent générique (std::function)"
+    ],
+    "fiches": [
+      {
+        "title": "L'idée de la descente de gradient",
+        "front": "Explique la descente de gradient avec l'image de la montagne, et donne la formule de mise à jour",
+        "body": "La **descente de gradient** est un **algorithme de minimisation** : il cherche le x qui rend f(x) le plus petit possible. L'image : tu es sur une montagne dans le **brouillard**, tu ne vois pas le fond de la vallée. Ce que tu peux sentir, c'est **la pente sous tes pieds** : la dérivée. Tu fais un **pas vers le bas**, tu re-sens la pente, tu refais un pas, et ainsi de suite. La formule : **x_nouveau = x − α · f′(x)**. Le signe **moins** fait aller à l'opposé de la pente (si ça monte à droite, on va à gauche). **α** (alpha), le **learning rate**, règle la **taille du pas**. On répète jusqu'à ce que x ne bouge presque plus : on est au fond. Le cours illustre ça avec un bol en 3D dont on descend les parois.",
+        "keypoints": [
+          "But : **minimiser** f, trouver le fond du bol",
+          "On ne voit pas le fond, on sent la **pente** (dérivée)",
+          "**x ← x − α · f′(x)**",
+          "Le moins = à l'opposé de la pente ; **α** = taille du pas",
+          "On répète jusqu'à ce que ça ne bouge plus"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Pas à pas : (x − 2)² depuis x0 = 3, α = 0,1",
+        "front": "f(x) = (x − 2)², x0 = 3, α = 0,1. Déroule les 5 premières itérations",
+        "body": "f(x) = (x − 2)², donc **f′(x) = 2(x − 2)**. On applique x ← x − 0,1 · f′(x). **Itération 1** : f′(3) = 2, x1 = 3 − 0,1·2 = **2,8**. **Itération 2** : f′(2,8) = 1,6, x2 = 2,8 − 0,16 = **2,64**. **Itération 3** : f′(2,64) = 1,28, x3 = 2,64 − 0,128 = **2,512**. **Itération 4** : f′(2,512) = 1,024, x4 = 2,512 − 0,1024 = **2,4096**. **Itération 5** : f′(2,4096) = 0,8192, x5 = **2,32768**. La suite se rapproche de **2**, le minimum, sans jamais le dépasser. Remarque : chaque pas est plus petit que le précédent (0,2 puis 0,16 puis 0,128…) parce que **la pente diminue** en approchant du fond. À chaque itération, l'écart à 2 est multiplié par 0,8.",
+        "keypoints": [
+          "f′(x) = 2(x − 2), x ← x − 0,1·f′(x)",
+          "3 → **2,8** → **2,64** → **2,512** → **2,4096** → **2,32768**",
+          "Converge vers **2**, le minimum",
+          "Les pas rétrécissent car la **pente diminue**",
+          "Écart à 2 multiplié par **0,8** à chaque itération"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Depuis l'autre côté : x0 = 1",
+        "front": "Même fonction, même α, mais x0 = 1. Que se passe-t-il ?",
+        "body": "Depuis **x0 = 1**, à gauche du minimum. f′(1) = 2(1 − 2) = **−2**, négatif. x1 = 1 − 0,1·(−2) = 1 + 0,2 = **1,2**. Puis f′(1,2) = −1,6 → x2 = **1,36** ; f′ = −1,28 → x3 = **1,488** ; f′ = −1,024 → x4 = **1,5904** ; f′ = −0,8192 → x5 = **1,67232**. Cette fois **x augmente** à chaque itération, parce que le gradient est négatif et que le « moins α fois négatif » ajoute. La suite converge encore vers **2**, par la gauche. C'est la force de l'algorithme : **le signe de la dérivée donne automatiquement la bonne direction**, on n'a pas besoin de savoir de quel côté est le minimum.",
+        "keypoints": [
+          "f′(1) = **−2** : pente négative",
+          "1 → **1,2** → **1,36** → **1,488** → **1,5904** → **1,67232**",
+          "x **augmente** : − α × (négatif) = on ajoute",
+          "Converge vers **2** par la gauche",
+          "Le signe de f′ donne la direction tout seul"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Le rôle de α : 0,3 et les valeurs trop grandes",
+        "front": "Refais x0 = 3 avec α = 0,3. Puis que se passe-t-il avec α = 1 ? α = 1,1 ?",
+        "body": "Avec **α = 0,3** depuis 3 : f′(3) = 2 → x1 = 3 − 0,6 = **2,4** ; f′ = 0,8 → x2 = **2,16** ; x3 = **2,064** ; x4 = **2,0256** ; x5 = **2,01024**. Après 5 itérations on est à 2,01 contre 2,33 avec α = 0,1 : un α **plus grand converge plus vite** ici. Mais attention. Avec **α = 1** : x1 = 3 − 1·2 = 1, puis f′(1) = −2 → x2 = 1 + 2 = 3, puis 1, puis 3… ça **oscille** sans jamais converger. Avec **α = 1,1** : x1 = 3 − 2,2 = 0,8 ; f′(0,8) = −2,4 → x2 = 0,8 + 2,64 = 3,44 ; puis 0,272… les valeurs **s'éloignent** de plus en plus : ça **diverge**. Règle : **α trop petit = lent, α trop grand = oscillation ou divergence**. Anecdote : pour cette parabole précise, α = 0,5 tombe pile sur 2 en un seul pas, mais c'est un cas particulier, pas une règle.",
+        "keypoints": [
+          "α = 0,3 : 3 → 2,4 → 2,16 → 2,064 → 2,0256 → **2,01024** (plus rapide)",
+          "α = 1 : 3 → 1 → 3 → 1… **oscille**",
+          "α = 1,1 : 3 → 0,8 → 3,44 → 0,27… **diverge**",
+          "**Trop petit = lent ; trop grand = oscille ou diverge**",
+          "Le bon α dépend de la fonction : on le teste"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Plusieurs variables : (x − 2)² + (y + 1)²",
+        "front": "f(x, y) = (x − 2)² + (y + 1)², départ (3, 0), α = 0,1. Gradient et 5 itérations",
+        "body": "Avec plusieurs variables, on remplace la dérivée par le **gradient** et on met à jour **chaque variable avec sa propre dérivée partielle, en même temps** : **w ← w − α · ∇f(w)**. Ici ∇f(x, y) = (**2(x − 2)**, **2(y + 1)**). Départ **(3, 0)**, α = 0,1. Pour x : f′ = 2 → 3 − 0,2 = **2,8**, puis **2,64**, **2,512**, **2,4096**, **2,32768** (exactement comme au chapitre à une variable). Pour y : ∂f/∂y en 0 = 2 → 0 − 0,2 = **−0,2**, puis −1,6·0,1 → **−0,36**, **−0,488**, **−0,5904**, **−0,67232**. Le point converge vers **(2, −1)**, le fond du bol. Les deux coordonnées descendent indépendamment, chacune guidée par sa pente. Avec un million de poids, c'est pareil : un million de mises à jour simultanées.",
+        "keypoints": [
+          "**w ← w − α · ∇f(w)** : chaque variable avec sa dérivée partielle",
+          "∇f = (2(x − 2), 2(y + 1))",
+          "x : 3 → 2,8 → 2,64 → 2,512 → 2,4096 → **2,32768**",
+          "y : 0 → −0,2 → −0,36 → −0,488 → −0,5904 → **−0,67232**",
+          "Converge vers **(2, −1)**"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Convergence et critères d'arrêt",
+        "front": "Quand arrête-t-on la descente de gradient ? Qu'est-ce qu'un minimum local ?",
+        "body": "**Converger**, c'est se rapprocher de plus en plus d'une valeur stable : les x successifs ne bougent presque plus. Trois critères d'arrêt courants : un **nombre d'itérations** fixé à l'avance (le n_iterations du module), un **gradient devenu très petit** (la pente est quasi nulle, on est au fond), ou une **loss qui ne baisse plus** d'une itération à l'autre. Subtilité : la parabole n'a **qu'un seul creux**, on est sûr d'y arriver. Une fonction plus tourmentée peut avoir plusieurs creux ; l'algorithme peut se retrouver au fond d'un **minimum local**, un creux qui n'est pas le plus profond, sans le savoir, parce que la pente y est nulle aussi. C'est un des problèmes du deep learning, dont les loss ont des millions de dimensions.",
+        "keypoints": [
+          "Convergence = les valeurs **se stabilisent**",
+          "Arrêt : **nb d'itérations**, **gradient ≈ 0**, ou **loss stable**",
+          "Parabole : un seul creux, convergence garantie",
+          "**Minimum local** : un creux qui n'est pas le plus bas, pente nulle quand même"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Coder la descente de gradient (version générique)",
+        "front": "Décris la fonction gradient_descent(n_iterations, learning_rate, x_init, f_derivative) du module",
+        "body": "Le module C++ demande une fonction **générique** : `gradient_descent(n_iterations, learning_rate, x_init, f_derivative)`. x est un **vecteur** (une composante par variable), et **f_derivative** est **une fonction passée en paramètre** (`std::function<vector<float>(const vector<float>&)>`) qui renvoie le gradient au point donné. Le corps tient en trois lignes : `x = x_init` ; répéter `n_iterations` fois : `g = f_derivative(x)` puis pour chaque composante j, `x[j] = x[j] − learning_rate · g[j]` ; renvoyer `x`. Passer la dérivée en paramètre est ce qui rend le code **réutilisable** : la même fonction minimise (x − 2)², (x − 2)² + (y + 1)², ou la MSE d'une régression linéaire, il suffit de lui donner le bon gradient. C'est ce qu'on fait au chapitre 08 avec linear_mse_gradient.",
+        "keypoints": [
+          "Entrées : nb d'itérations, α, point de départ (vecteur), **fonction gradient**",
+          "Boucle : `g = f_derivative(x)` puis `x[j] -= learning_rate · g[j]`",
+          "Renvoie le x final",
+          "La dérivée en paramètre = algorithme **générique**",
+          "Servira avec linear_mse_gradient pour entraîner la régression"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Quelle est la formule de mise à jour de la descente de gradient à une variable ?",
+        "choices": [
+          "x ← x − α · f′(x)",
+          "x ← x + α · f′(x)",
+          "x ← x − α · f(x)",
+          "x ← α · x − f′(x)"
+        ],
+        "answer": 0,
+        "explain": "On bouge à l'opposé de la pente (le moins), d'un pas proportionnel à la dérivée et au learning rate. Avec un plus on monterait ; avec f(x) on n'utiliserait pas la pente.",
+        "difficulty": "facile",
+        "topic": "formule"
+      },
+      {
+        "q": "À quoi sert la descente de gradient ?",
+        "choices": [
+          "Trouver le point où une fonction est minimale, pas à pas",
+          "Calculer la dérivée d'une fonction en un point, pas à pas",
+          "Trouver le point où une fonction est maximale, pas à pas",
+          "Tracer la courbe d'une fonction, point par point"
+        ],
+        "answer": 0,
+        "explain": "C'est un algorithme de minimisation. Elle utilise la dérivée, elle ne la calcule pas ; et pour un maximum, on ferait une montée de gradient.",
+        "difficulty": "facile",
+        "topic": "principe"
+      },
+      {
+        "q": "f(x) = (x − 2)², x0 = 3, α = 0,1. Que vaut x1 ?",
+        "choices": [
+          "2,8",
+          "3,2",
+          "2,9",
+          "2,6"
+        ],
+        "answer": 0,
+        "explain": "f′(3) = 2(3 − 2) = 2. x1 = 3 − 0,1·2 = 2,8. 3,2 c'est le signe inversé ; 2,9 c'est oublier le facteur 2 de la dérivée.",
+        "difficulty": "moyen",
+        "topic": "corrigé"
+      },
+      {
+        "q": "Même exercice. Que vaut x2 ?",
+        "choices": [
+          "2,64",
+          "2,6",
+          "2,62",
+          "2,48"
+        ],
+        "answer": 0,
+        "explain": "f′(2,8) = 1,6. x2 = 2,8 − 0,16 = 2,64. Le pas n'est plus 0,2 comme au premier tour : la pente a diminué.",
+        "difficulty": "moyen",
+        "topic": "corrigé"
+      },
+      {
+        "q": "Vers quelle valeur converge la descente de gradient sur (x − 2)² ?",
+        "choices": [
+          "2",
+          "0",
+          "1",
+          "3"
+        ],
+        "answer": 0,
+        "explain": "Le fond du bol est en x = 2, là où f′(x) = 2(x − 2) = 0. La fonction y vaut 0, mais c'est x = 2 qu'on cherche, pas x = 0.",
+        "difficulty": "facile",
+        "topic": "corrigé"
+      },
+      {
+        "q": "f(x) = (x − 2)², x0 = 1, α = 0,1. Que vaut x1 ?",
+        "choices": [
+          "1,2",
+          "0,8",
+          "1,1",
+          "1,4"
+        ],
+        "answer": 0,
+        "explain": "f′(1) = −2. x1 = 1 − 0,1·(−2) = 1 + 0,2 = 1,2. Gradient négatif → on augmente x ; 0,8 c'est se tromper de sens.",
+        "difficulty": "moyen",
+        "topic": "corrigé"
+      },
+      {
+        "q": "Pourquoi les pas de la descente de gradient rétrécissent-ils en approchant du minimum, à α constant ?",
+        "choices": [
+          "La pente diminue près du fond, et le pas vaut α·f′(x)",
+          "Le learning rate est divisé par deux à chaque itération",
+          "La fonction est plus plate loin du minimum qu'à proximité",
+          "Les erreurs d'arrondi réduisent le pas à chaque itération"
+        ],
+        "answer": 0,
+        "explain": "Sur (x − 2)², les pas valent 0,2 puis 0,16 puis 0,128 : la dérivée 2(x − 2) tend vers 0 quand x approche de 2. α, lui, ne bouge pas.",
+        "difficulty": "moyen",
+        "topic": "principe"
+      },
+      {
+        "q": "f(x) = (x − 2)², x0 = 3, α = 0,3. Que vaut x1 ?",
+        "choices": [
+          "2,4",
+          "2,7",
+          "2,1",
+          "2,2"
+        ],
+        "answer": 0,
+        "explain": "f′(3) = 2. x1 = 3 − 0,3·2 = 2,4. Trois fois plus grand pas qu'avec α = 0,1 ; 2,7 oublie le facteur 2.",
+        "difficulty": "moyen",
+        "topic": "learning rate"
+      },
+      {
+        "q": "Que risque-t-on avec un learning rate trop grand ?",
+        "choices": [
+          "Sauter par-dessus le minimum, osciller ou diverger",
+          "Avancer trop lentement et ne jamais atteindre le minimum",
+          "Rester bloqué sur un plateau où la pente est nulle",
+          "Converger vers un minimum local au lieu du global"
+        ],
+        "answer": 0,
+        "explain": "Avec α = 1 sur (x − 2)² on oscille entre 3 et 1 ; avec α = 1,1 on s'éloigne à chaque pas. La lenteur, c'est le risque d'un α trop petit.",
+        "difficulty": "facile",
+        "topic": "learning rate"
+      },
+      {
+        "q": "f(x) = (x − 2)², x0 = 3, α = 1. Que se passe-t-il ?",
+        "choices": [
+          "x alterne entre 3 et 1 sans converger",
+          "x atteint 2 dès la première itération",
+          "x s'éloigne de plus en plus de 2",
+          "x converge vers 2 en quelques itérations"
+        ],
+        "answer": 0,
+        "explain": "x1 = 3 − 2 = 1, f′(1) = −2, x2 = 1 + 2 = 3, et ainsi de suite. C'est α = 0,5 qui tomberait pile sur 2, et α = 1,1 qui divergerait.",
+        "difficulty": "difficile",
+        "topic": "learning rate"
+      },
+      {
+        "q": "Quel est le gradient de f(x, y) = (x − 2)² + (y + 1)² ?",
+        "choices": [
+          "(2(x − 2), 2(y + 1))",
+          "(2(x − 2), 2(y − 1))",
+          "((x − 2), (y + 1))",
+          "(2(x − 2) + 2(y + 1), 0)"
+        ],
+        "answer": 0,
+        "explain": "Dérivée partielle selon x : 2(x − 2) ; selon y : 2(y + 1). Une composante par variable, le signe du +1 conservé, le facteur 2 du carré présent.",
+        "difficulty": "moyen",
+        "topic": "multi-variables"
+      },
+      {
+        "q": "f(x, y) = (x − 2)² + (y + 1)², départ (3, 0), α = 0,1. Où est-on après une itération ?",
+        "choices": [
+          "(2,8 ; −0,2)",
+          "(2,8 ; 0,2)",
+          "(2,9 ; −0,1)",
+          "(2,8 ; −0,1)"
+        ],
+        "answer": 0,
+        "explain": "Gradient en (3, 0) : (2, 2). x = 3 − 0,2 = 2,8 ; y = 0 − 0,2 = −0,2. Le y descend vers −1, pas vers +1.",
+        "difficulty": "difficile",
+        "topic": "multi-variables"
+      },
+      {
+        "q": "Vers quel point converge la descente de gradient sur (x − 2)² + (y + 1)² ?",
+        "choices": [
+          "(2, −1)",
+          "(2, 1)",
+          "(−2, 1)",
+          "(0, 0)"
+        ],
+        "answer": 0,
+        "explain": "Le minimum est là où les deux termes valent 0 : x − 2 = 0 et y + 1 = 0, donc x = 2 et y = −1. Attention aux signes.",
+        "difficulty": "moyen",
+        "topic": "multi-variables"
+      },
+      {
+        "q": "Lequel de ces choix est un critère d'arrêt valable pour la descente de gradient ?",
+        "choices": [
+          "Un gradient proche de zéro ou une loss qui ne baisse plus",
+          "Une loss exactement nulle sur le jeu d'entraînement",
+          "Un learning rate devenu inférieur à un seuil fixé",
+          "Un point x qui revient sur une valeur déjà visitée"
+        ],
+        "answer": 0,
+        "explain": "Convergence = les valeurs se stabilisent. La loss n'atteint presque jamais exactement zéro, et α ne varie pas tout seul.",
+        "difficulty": "moyen",
+        "topic": "convergence"
+      },
+      {
+        "q": "Pourquoi gradient_descent prend-elle f_derivative en paramètre (std::function) ?",
+        "choices": [
+          "Pour que le même code minimise toute fonction dont on fournit le gradient",
+          "Pour éviter de recalculer le gradient à chaque itération de la boucle",
+          "Pour permettre au compilateur d'optimiser la mise à jour des poids",
+          "Pour garantir la même précision au gradient et aux poids"
+        ],
+        "answer": 0,
+        "explain": "L'algorithme ne change pas d'une fonction à l'autre, seul le gradient change. Le gradient est bien recalculé à chaque itération, c'est le principe.",
+        "difficulty": "moyen",
+        "topic": "code"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Module Nowledgeable « Descente de gradient », exercices 1 à 4",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": [
+      {
+        "label": "Notebook Colab du module (descente de gradient en Python)",
+        "url": "https://colab.research.google.com/drive/1127RNozgO4H-ywwDpKcMO1bRA_yYz7NV?usp=sharing",
+        "kind": "doc"
+      }
+    ]
+  },
+  {
+    "id": "entrainer-regression",
+    "num": "08",
+    "special": true,
+    "title": "Entraîner une régression linéaire",
+    "summary": "On assemble tout : le modèle w0 + w1·x, la loss MSE, son gradient et la descente de gradient deviennent les fonctions du module C++ « Linear Regression » : predict, mse, linear_mse_gradient, gradient_descent générique et la classe LinearRegression avec sa méthode fit. Un entraînement complet déroulé à la main sur deux exemples, pour voir la MSE passer de 17 à 1,685 en une itération.",
+    "topics": [
+      "pipeline : modèle → loss → gradient → descente → poids",
+      "linear_regression_predict(X, weights)",
+      "mse(y, y_pred)",
+      "linear_mse_gradient(X, y, weights)",
+      "gradient_descent générique avec std::function",
+      "classe LinearRegression : setWeights, predict, fit, getWeights, mse",
+      "signe de l'erreur : prédiction − attendu",
+      "entraînement à la main sur X = [1, 2], y = [3, 5]"
+    ],
+    "fiches": [
+      {
+        "title": "Assembler les briques",
+        "front": "Résume le pipeline d'entraînement d'une régression linéaire à une variable",
+        "body": "Une régression linéaire à **une variable** a deux paramètres : **ŷ = w0 + w1·x**. On a maintenant tout pour l'entraîner. Le **modèle** (chapitre 04) donne les prédictions. La **loss MSE** (chapitre 04) mesure l'erreur. Le **gradient de la MSE** (chapitre 06) dit dans quel sens bouger w0 et w1. La **descente de gradient** (chapitre 07) répète la mise à jour. Entraîner, méthode **fit**, c'est donc boucler : **prédire → calculer le gradient → mettre à jour w ← w − α·∇MSE → recommencer**. Chaque brique est une petite fonction testable seule, et c'est exactement le découpage du module C++.",
+        "keypoints": [
+          "Modèle : **ŷ = w0 + w1·x**, 2 paramètres",
+          "Loss : **MSE** ; gradient : (2/n) Σ e, (2/n) Σ e·x",
+          "Descente de gradient : **w ← w − α·∇MSE**",
+          "fit = prédire → gradient → mise à jour → recommencer",
+          "Une fonction par brique, testable séparément"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "linear_regression_predict",
+        "front": "Que fait linear_regression_predict(X, weights) et comment on l'écrit ?",
+        "body": "Première brique, faite dans le module : `vector<float> linear_regression_predict(vector<float> X, vector<float> weights)`. Pour **chaque valeur x de X**, la prédiction est **weights[0] + weights[1] · x**, et on la range dans un vecteur de sortie. Le résultat a **la même taille que X** : une prédiction par exemple. En C++ : une boucle `for (float x : X)` qui fait `predictions.push_back(weights[0] + weights[1] * x)`. C'est l'inférence : une fois les poids trouvés, prédire n'est qu'une multiplication et une addition par exemple.",
+        "keypoints": [
+          "Pour chaque x : **weights[0] + weights[1] · x**",
+          "Renvoie un vecteur de **même taille que X**",
+          "Boucle for + push_back",
+          "Prédire = une multiplication et une addition par exemple"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "mse(y, y_pred)",
+        "front": "Comment coder mse(y, y_pred) ? L'ordre y − ŷ ou ŷ − y change-t-il quelque chose ?",
+        "body": "Deuxième brique, faite : `float mse(vector<float> y, vector<float> y_pred)`. On parcourt les indices i, on calcule `error = y[i] − y_pred[i]`, on ajoute `error * error` à une somme, et à la fin on **divise par y.size()**. Point de détail utile : dans la MSE, l'ordre de la soustraction **ne change rien**, parce que le carré efface le signe : (y − ŷ)² = (ŷ − y)². Ce n'est plus vrai pour le gradient, où le signe compte (voir la brique suivante). Une MSE de 0 = prédictions parfaites ; on l'utilise pour **suivre l'entraînement** (elle doit baisser) et pour **évaluer** sur le jeu de test.",
+        "keypoints": [
+          "Somme des `error * error`, puis **/ y.size()**",
+          "Dans la MSE, y − ŷ ou ŷ − y : **même résultat** (carré)",
+          "Sert à suivre l'entraînement et à évaluer",
+          "MSE = 0 ⇔ prédictions parfaites"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "linear_mse_gradient",
+        "front": "Décris linear_mse_gradient(X, y, weights) ligne par ligne, et le piège du signe",
+        "body": "Troisième brique, faite : `vector<float> linear_mse_gradient(X, y, weights)`, qui renvoie un vecteur de taille 2. On initialise grad0 = 0 et grad1 = 0. Pour chaque i : `prediction = weights[0] + weights[1] * X[i]`, puis **`error = prediction − y[i]`**, puis `grad0 += error` et `grad1 += error * X[i]`. À la fin : `grad0 = 2 * grad0 / n` et `grad1 = 2 * grad1 / n`, et on renvoie {grad0, grad1}. C'est la formule du chapitre 06 traduite en boucle. **Piège du signe** : le gradient de (ŷ − y)² est 2(ŷ − y), donc l'erreur doit être **prédiction − attendu**. Si on écrit y[i] − prediction, on obtient l'opposé du gradient, et la mise à jour w − α·g **monterait** la loss au lieu de la descendre. Soit on garde le bon ordre, soit on inverse le signe de la mise à jour.",
+        "keypoints": [
+          "`prediction = w0 + w1 · X[i]`, **`error = prediction − y[i]`**",
+          "`grad0 += error` ; `grad1 += error · X[i]`",
+          "Facteur final **2/n** sur chacun",
+          "Renvoie {grad0, grad1}",
+          "Signe : erreur = **prédiction − attendu**, sinon on monte la loss"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "gradient_descent générique",
+        "front": "Comment écrire gradient_descent(n_iterations, learning_rate, x_init, f_derivative) pour des vecteurs ?",
+        "body": "Quatrième brique, à faire dans le module : `vector<float> gradient_descent(int n_iterations, float learning_rate, const vector<float>& x_init, const function<vector<float>(const vector<float>&)>& f_derivative)`. On copie `x = x_init`. On répète **n_iterations** fois : `g = f_derivative(x)` puis, pour chaque composante j, `x[j] = x[j] − learning_rate * g[j]`. On renvoie x. Rien de spécifique à la régression : c'est le chapitre 07, avec des vecteurs. Pour brancher la régression, on passe une **lambda** qui capture X et y : `[&](const vector<float>& w) { return linear_mse_gradient(X, y, w); }`. Ainsi f_derivative(w) renvoie bien le gradient de la MSE au point w.",
+        "keypoints": [
+          "`x = x_init` ; boucle n_iterations",
+          "`g = f_derivative(x)` puis `x[j] -= learning_rate · g[j]`",
+          "Renvoie x",
+          "Branchement : lambda `[&](w) { return linear_mse_gradient(X, y, w); }`",
+          "Générique : même code pour toute fonction"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "La classe LinearRegression",
+        "front": "Quelles méthodes a la classe LinearRegression et que fait fit ?",
+        "body": "Dernière brique, à faire : une classe **LinearRegression** qui range les poids dans un attribut `weights` et expose cinq méthodes. **setWeights(weights)** et **getWeights()** : écrire et lire les poids. **predict(X)** : appelle linear_regression_predict(X, weights). **mse(X, y)** : calcule mse(y, predict(X)), l'erreur du modèle sur un jeu de données. **fit(X, y, learning_rate)** : **l'entraînement**, qui appelle gradient_descent avec un nombre d'itérations, le learning_rate, les poids actuels comme point de départ, et la lambda du gradient de la MSE ; le vecteur renvoyé devient les nouveaux poids. Poids initiaux : (0, 0) ou des petites valeurs aléatoires. Bonus du module : une classe Vector avec les opérateurs + et * surchargés pour écrire `w = w − alpha * g` directement.",
+        "keypoints": [
+          "Attribut `weights` ; **setWeights / getWeights**",
+          "**predict(X)** → linear_regression_predict",
+          "**mse(X, y)** → mse(y, predict(X))",
+          "**fit(X, y, lr)** → weights = gradient_descent(n, lr, weights, gradient MSE)",
+          "Bonus : classe Vector avec + et * surchargés"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Un entraînement à la main",
+        "front": "X = [1, 2], y = [3, 5], w = (0, 0), α = 0,1. Déroule une itération complète",
+        "body": "Dataset minuscule : **X = [1, 2], y = [3, 5]**. Ces points sont sur la droite y = 2x + 1, donc les poids parfaits sont **(w0, w1) = (1, 2)**. Départ **w = (0, 0)**, **α = 0,1**. **Prédictions** : [0, 0]. **Erreurs** (prédiction − attendu) : [−3, −5]. **MSE** : (9 + 25) / 2 = **17**. **Gradient** : grad0 = 2·(−3 − 5)/2 = **−8** ; grad1 = 2·(−3·1 + −5·2)/2 = 2·(−13)/2 = **−13**. **Mise à jour** : w0 = 0 − 0,1·(−8) = **0,8** ; w1 = 0 − 0,1·(−13) = **1,3**. **Nouvelles prédictions** : 0,8 + 1,3 = 2,1 et 0,8 + 2,6 = 3,4. Erreurs : −0,9 et −1,6. **Nouvelle MSE** : (0,81 + 2,56) / 2 = **1,685**. En une itération, l'erreur passe de 17 à 1,685. En continuant, w se rapproche de (1, 2).",
+        "keypoints": [
+          "w = (0, 0) : prédictions [0, 0], erreurs [−3, −5], **MSE = 17**",
+          "Gradient : grad0 = **−8**, grad1 = **−13**",
+          "Mise à jour (α = 0,1) : w = **(0,8 ; 1,3)**",
+          "Nouvelles prédictions [2,1 ; 3,4], **MSE = 1,685**",
+          "Limite : **(1, 2)**, la droite y = 2x + 1"
+        ],
+        "tier": 3
+      },
+      {
+        "title": "Ce qu'il faut retenir",
+        "front": "Le résumé en une phrase de tout le pipeline, de la donnée à la prédiction",
+        "body": "De la donnée à la prédiction : des **exemples (X, y)** → un **modèle** à poids ŷ = w·x → une **loss** (MSE) qui note les poids → le **gradient** de la loss qui dit comment les corriger → la **descente de gradient** qui applique la correction en boucle → des **poids entraînés** → des **prédictions** sur des données jamais vues, évaluées sur le **jeu de test**. Le notebook Colab du module fait exactement la même chose en Python avec numpy ; les réseaux de neurones font pareil avec des millions de poids et la règle de la chaîne pour calculer le gradient couche par couche. Si tu sais dérouler l'exemple à la main du chapitre, tu as compris l'entraînement.",
+        "keypoints": [
+          "(X, y) → modèle w·x → loss → gradient → descente de gradient → poids → prédictions",
+          "Évaluer sur le **jeu de test**, jamais vu",
+          "Même pipeline en Python (Colab) et en deep learning",
+          "Savoir dérouler l'exemple à la main = avoir compris"
+        ],
+        "tier": 1
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Que calcule linear_regression_predict pour chaque valeur x de X ?",
+        "choices": [
+          "weights[0] + weights[1] · x",
+          "weights[0] · x + weights[1]",
+          "weights[1] · x",
+          "(weights[0] + weights[1]) · x"
+        ],
+        "answer": 0,
+        "explain": "Le biais plus la pente fois x. weights[0] est le biais, pas un coefficient de x, et il ne disparaît pas.",
+        "difficulty": "facile",
+        "topic": "predict"
+      },
+      {
+        "q": "Dans mse(y, y_pred), calculer (y[i] − y_pred[i])² ou (y_pred[i] − y[i])² change-t-il le résultat ?",
+        "choices": [
+          "Non, le carré rend le résultat identique",
+          "Oui, le résultat change de signe",
+          "Oui, seule la valeur absolue le rend identique",
+          "Non, à condition de diviser par n après"
+        ],
+        "answer": 0,
+        "explain": "(a − b)² = (b − a)², division par n ou pas. En revanche, pour le gradient, l'ordre compte.",
+        "difficulty": "facile",
+        "topic": "mse"
+      },
+      {
+        "q": "Dans linear_mse_gradient, qu'accumule grad1 à chaque exemple ?",
+        "choices": [
+          "error · X[i]",
+          "error",
+          "error · weights[1]",
+          "error² · X[i]"
+        ],
+        "answer": 0,
+        "explain": "grad0 accumule l'erreur seule ; grad1 l'erreur pondérée par la feature, conformément à ∂MSE/∂w1 = (2/n) Σ e·x. Pas de carré : il a déjà été dérivé.",
+        "difficulty": "moyen",
+        "topic": "gradient"
+      },
+      {
+        "q": "Par quel facteur multiplie-t-on grad0 et grad1 à la fin de linear_mse_gradient ?",
+        "choices": [
+          "2 / n",
+          "1 / n",
+          "2",
+          "1 / (2n)"
+        ],
+        "answer": 0,
+        "explain": "Le 2 vient de la dérivée du carré, le 1/n de la moyenne de la MSE. Oublier le 2 donne un gradient deux fois trop petit.",
+        "difficulty": "moyen",
+        "topic": "gradient"
+      },
+      {
+        "q": "Quelle est la ligne de mise à jour dans gradient_descent, pour chaque composante j ?",
+        "choices": [
+          "x[j] = x[j] − learning_rate · g[j]",
+          "x[j] = x[j] + learning_rate · g[j]",
+          "x[j] = x[j] − g[j] / learning_rate",
+          "x[j] = learning_rate · (x[j] − g[j])"
+        ],
+        "answer": 0,
+        "explain": "On soustrait le gradient multiplié par le pas. Diviser par le learning rate ferait des pas énormes.",
+        "difficulty": "facile",
+        "topic": "descente"
+      },
+      {
+        "q": "Que fait la méthode fit de LinearRegression ?",
+        "choices": [
+          "Lance la descente de gradient sur la MSE et remplace les poids par le résultat",
+          "Calcule les prédictions sur X et renvoie la MSE obtenue avec les poids actuels",
+          "Cherche le learning rate qui minimise la MSE sur le jeu de test",
+          "Initialise les poids à partir de la moyenne de y et de la pente moyenne"
+        ],
+        "answer": 0,
+        "explain": "fit = entraînement : gradient_descent(n_iter, learning_rate, weights, gradient de la MSE), puis weights = résultat. Calculer la MSE, c'est la méthode mse.",
+        "difficulty": "facile",
+        "topic": "classe"
+      },
+      {
+        "q": "X = [1, 2], y = [3, 5], w = (0, 0). Quelle est la MSE initiale ?",
+        "choices": [
+          "17",
+          "8",
+          "34",
+          "4"
+        ],
+        "answer": 0,
+        "explain": "Prédictions [0, 0], erreurs [−3, −5], carrés 9 et 25, moyenne 34/2 = 17. 34 oublie la moyenne, 8 oublie le carré.",
+        "difficulty": "moyen",
+        "topic": "exemple"
+      },
+      {
+        "q": "Même situation. Quel est le gradient de la MSE en w = (0, 0) ?",
+        "choices": [
+          "(−8, −13)",
+          "(8, 13)",
+          "(−4, −6,5)",
+          "(−8, −5)"
+        ],
+        "answer": 0,
+        "explain": "grad0 = 2·(−3 − 5)/2 = −8 ; grad1 = 2·(−3·1 − 5·2)/2 = −13. (−4, −6,5) oublie le facteur 2 ; (−8, −5) n'a pas pondéré par x.",
+        "difficulty": "difficile",
+        "topic": "exemple"
+      },
+      {
+        "q": "Même situation, α = 0,1. Que valent les poids après une itération ?",
+        "choices": [
+          "(0,8 ; 1,3)",
+          "(−0,8 ; −1,3)",
+          "(0,4 ; 0,65)",
+          "(0,8 ; 0,5)"
+        ],
+        "answer": 0,
+        "explain": "w0 = 0 − 0,1·(−8) = 0,8 ; w1 = 0 − 0,1·(−13) = 1,3. Le signe négatif du gradient fait monter les poids.",
+        "difficulty": "difficile",
+        "topic": "exemple"
+      },
+      {
+        "q": "Après cette itération, que devient la MSE ?",
+        "choices": [
+          "1,685",
+          "3,37",
+          "0",
+          "2,5"
+        ],
+        "answer": 0,
+        "explain": "Prédictions 2,1 et 3,4, erreurs −0,9 et −1,6, carrés 0,81 et 2,56, somme 3,37, moyenne 1,685. De 17 à 1,685 en un pas, mais pas encore zéro.",
+        "difficulty": "difficile",
+        "topic": "exemple"
+      },
+      {
+        "q": "Vers quels poids converge l'entraînement sur X = [1, 2], y = [3, 5] ?",
+        "choices": [
+          "(1, 2)",
+          "(2, 1)",
+          "(0,8 ; 1,3)",
+          "(3, 5)"
+        ],
+        "answer": 0,
+        "explain": "3 = 2·1 + 1 et 5 = 2·2 + 1 : les points sont sur la droite y = 2x + 1, biais 1 et pente 2, MSE finale 0. (0,8 ; 1,3) n'est que la première étape.",
+        "difficulty": "moyen",
+        "topic": "exemple"
+      },
+      {
+        "q": "On code error = y[i] − prediction au lieu de prediction − y[i] dans le gradient. Conséquence ?",
+        "choices": [
+          "Le gradient est inversé et la mise à jour w − α·g fait monter la loss",
+          "La MSE devient négative et l'entraînement s'arrête aussitôt",
+          "Rien ne change, le carré ayant déjà éliminé le signe",
+          "Le gradient est divisé par deux et l'entraînement ralentit"
+        ],
+        "answer": 0,
+        "explain": "La dérivée de (ŷ − y)² est 2(ŷ − y). Inverser l'ordre donne l'opposé du gradient : la descente devient une montée, sauf à écrire w + α·g.",
+        "difficulty": "difficile",
+        "topic": "gradient"
+      },
+      {
+        "q": "Combien de paramètres possède une régression linéaire à une variable ?",
+        "choices": [
+          "2",
+          "1",
+          "3",
+          "n"
+        ],
+        "answer": 0,
+        "explain": "ŷ = w0 + w1·x : le biais et la pente. Le vecteur weights du module a deux cases, et le gradient aussi.",
+        "difficulty": "facile",
+        "topic": "modèle"
+      },
+      {
+        "q": "Pourquoi passe-t-on une lambda [&](w) { return linear_mse_gradient(X, y, w); } à gradient_descent ?",
+        "choices": [
+          "Pour fournir une fonction qui ne dépend que de w, X et y étant capturés",
+          "Pour éviter la copie de X et y à chaque itération de la boucle",
+          "Pour que gradient_descent puisse modifier X et y pendant l'entraînement",
+          "Pour différer le calcul du gradient jusqu'à la fin de la boucle"
+        ],
+        "answer": 0,
+        "explain": "gradient_descent attend une fonction w → gradient. La lambda fixe le dataset et ne laisse varier que les poids.",
+        "difficulty": "moyen",
+        "topic": "descente"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Module Nowledgeable « Linear Regression C++ », exercices 1 à 7",
+        "url": "https://nowledgeable.com"
+      }
+    ],
+    "images": [],
+    "links": [
+      {
+        "label": "Notebook Colab du module descente de gradient (version Python)",
+        "url": "https://colab.research.google.com/drive/1127RNozgO4H-ywwDpKcMO1bRA_yYz7NV?usp=sharing",
+        "kind": "doc"
+      }
+    ]
+  }
+]
