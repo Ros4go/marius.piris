@@ -1,11 +1,16 @@
+import { lazy, Suspense } from 'react'
 import { useRoute, navigate, segments } from '../../core/router.js'
 import PersonaBg from '../../components/PersonaBg.jsx'
-import FrometonsGame from '../games/frometons/FrometonsGame.jsx'
-import UE5Blueprint from './ue5/UE5Blueprint.jsx'
+
+// Chargés à la demande : ces deux modules pèsent l'essentiel du bundle,
+// inutile de les télécharger pour afficher l'accueil ou le catalogue.
+const FrometonsGame = lazy(() => import('../games/frometons/FrometonsGame.jsx'))
+const UE5Blueprint = lazy(() => import('./ue5/UE5Blueprint.jsx'))
 
 // Mots défilants de la bande verticale (droite) — ambiance arcade / catalogue.
 const ATELIER_WORDS = [
-  'Arcade', 'Jouer', 'Frometons', 'Neuvième Vie', 'Pot of Greed', 'Super Sushi',
+  'Arcade', 'Jouer', '1 Avenue Frochot', 'Echoes of Above', 'Worm With a Shotgun', 'Casting Scales', 'Mytho-Logie',
+  'Frometons', 'Neuvième Vie', 'Pot of Greed', 'Super Sushi',
   'MarousFive', 'Idle', 'Plateforme', 'Rogue-lite', 'Rythme', 'Guitare',
   'Unity', 'Godot', 'itch.io', 'High Score', 'Combo', 'Insert Coin',
 ]
@@ -28,12 +33,63 @@ const FX = [
 //   - page autonome / lien -> { kind: 'external', href: '/xxx.html' }
 //   - image OU icon (emoji) pour la vignette
 const CATALOG = [
+  // --- Jeux (du plus récent au plus ancien) ---
+  {
+    id: 'avenue-frochot',
+    cat: 'jeu',
+    title: '1 Avenue Frochot',
+    tagline: "Aventure horrifique en FPS : une nuit dans un hôtel où tout le monde ment, mais chaque mensonge cache une part de vérité.",
+    image: '/assets/images/avenue-frochot.webp',
+    kind: 'external',
+    href: 'https://rosago.itch.io/1-avenue-frochot',
+    tags: ['Horreur', 'Unity', 'Brackeys Jam'],
+  },
+  {
+    id: 'echoes-of-above',
+    cat: 'jeu',
+    title: 'Echoes of Above',
+    tagline: "Action-aventure sur Steam : frappe les projectiles ennemis en plein vol et renvoie-les dans un monde mythologique abandonné des dieux. Projet ISART Digital, en équipe de plus de 20.",
+    image: '/assets/images/echoes-of-above.webp',
+    kind: 'external',
+    href: 'https://store.steampowered.com/app/4196130/Echoes_of_Above/',
+    tags: ['Action', 'Steam', 'ISART Digital'],
+  },
+  {
+    id: 'worm-with-a-shotgun',
+    cat: 'jeu',
+    title: 'Worm With a Shotgun',
+    tagline: "Action en jam de 3 jours : un ver armé d'un fusil à pompe défonce les bâtiments avant de manquer d'oxygène.",
+    image: '/assets/images/worm-with-a-shotgun.webp',
+    kind: 'external',
+    href: 'https://komixa.itch.io/worm-with-a-shotgun',
+    tags: ['Action', 'Unity', 'Gone Fishing Jam'],
+  },
+  {
+    id: 'casting-scales',
+    cat: 'jeu',
+    title: 'Casting Scales',
+    tagline: 'Rogue-lite musical : ton piano est ton grimoire et ta barre de vie, joue des gammes pour lancer des sorts.',
+    image: '/assets/images/casting-scales.webp',
+    kind: 'external',
+    href: 'https://rosago.itch.io/casting-scales',
+    tags: ['Rythme', 'Rogue-lite', 'Kenney Jam'],
+  },
+  {
+    id: 'mytho-logie',
+    cat: 'jeu',
+    title: 'Mytho-Logie',
+    tagline: "Détourne des affiches de propagande à coups de stickers, au cœur d'une guerre entre Apollon et Artémis.",
+    image: '/assets/images/Mytho_Logie_Poster.webp',
+    kind: 'external',
+    href: 'https://camille-bonnus.itch.io/mytho-logie',
+    tags: ['Simulation', 'Unity', 'itch.io'],
+  },
   {
     id: 'frometons-clicker',
     cat: 'jeu',
     title: 'Frometons Clicker',
     tagline: 'Jeu incrémental : produis des frometons et gère un marché fromager.',
-    image: '/assets/images/Fromecoin.png',
+    image: '/assets/images/Fromecoin.webp',
     fit: 'contain',
     kind: 'route',
     path: '/studio/frometons',
@@ -44,10 +100,10 @@ const CATALOG = [
     cat: 'jeu',
     title: 'La Neuvième Vie',
     tagline: "Jeu d'aventure et de plateforme 2D, 100% JavaScript.",
-    image: '/NeuviemeVie/imageLogo/Cat.png',
+    image: '/games/neuvieme-vie/imageLogo/Cat.png',
     fit: 'contain',
     kind: 'external',
-    href: '/NeuviemeVie/index.html',
+    href: '/games/neuvieme-vie/index.html',
     tags: ['Plateforme', '2D', 'JavaScript'],
   },
   {
@@ -71,23 +127,13 @@ const CATALOG = [
     tags: ['Rythme', 'Godot', 'itch.io'],
   },
   {
-    id: 'chair',
-    cat: 'jeu',
-    title: 'CHAIR',
-    tagline: 'Dungeon crawler CSS en vue FPS — combat organique, biomes procéduraux.',
-    icon: '💀',
-    kind: 'external',
-    href: '/src/modules/games/chair/',
-    tags: ['Dungeon', 'FPS', 'Roguelike'],
-  },
-  {
     id: 'guitare',
     cat: 'outil',
     title: 'MarousFive',
     tagline: 'Manche & modes, accords + doigtés, jeu de notes et métronome.',
     icon: '🎸',
     kind: 'external',
-    href: '/guitare.html',
+    href: '/pages/guitare.html',
     tags: ['Guitare', 'Modes', 'Métronome'],
   },
   {
@@ -107,7 +153,7 @@ const CATALOG = [
     tagline: "Aide à la rédaction d'emails de candidature : stage, alternance ou poste.",
     icon: '✉️',
     kind: 'external',
-    href: '/generateur-emails.html',
+    href: '/pages/generateur-emails.html',
     tags: ['Emails', 'Candidature', 'Rédaction'],
   },
 ]
@@ -195,13 +241,19 @@ export default function Studio() {
         >
           <span>◄ Retour</span>
         </button>
-        <FrometonsGame />
+        <Suspense fallback={null}>
+          <FrometonsGame />
+        </Suspense>
       </div>
     )
   }
 
   if (seg[1] === 'ue5') {
-    return <UE5Blueprint />
+    return (
+      <Suspense fallback={null}>
+        <UE5Blueprint />
+      </Suspense>
+    )
   }
 
   return (

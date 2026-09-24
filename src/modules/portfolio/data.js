@@ -7,9 +7,110 @@ export const bio = [
   `Mon parcours m'a permis d'explorer divers aspects du développement, de la <strong>génération procédurale</strong> à l'<strong>intelligence artificielle</strong> (Flocking AI, Behavior Trees), en passant par le <strong>développement multijoueur</strong>. Mon objectif est de fusionner l'art et la technologie pour créer des expériences mémorables et immersives.`,
 ]
 
-export const cvUrl = '/assets/CV_PIRIS_Marius_GP3.pdf'
+export const cvUrl = '/assets/cv/CV_PIRIS_Marius_GP3.pdf'
 
 export const projects = [
+  {
+    title: '1 Avenue Frochot',
+    description: `'1 Avenue Frochot' est un <strong>jeu d'aventure horrifique en vue à la première personne</strong>, réalisé en duo avec Komixa pour la <strong>Brackeys Game Jam 2026.2</strong>, sous Unity.
+      <br/><br/>
+      Vous passez une nuit dans un hôtel dont les clients vous confient les secrets du bâtiment. Mais chacun ment, et chaque mensonge cache une part de vérité. À votre réveil, il faudra avoir compris ce qu'ils voulaient vraiment dire, sous peine de ne jamais ressortir.
+      <br/><br/>
+      Mes contributions incluent :
+      <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+        <li>Programmation gameplay : contrôleur FPS, interactions et dialogues</li>
+        <li>Logique narrative : indices contradictoires et conditions de fin</li>
+        <li>Ambiance et effets (espaces liminaux, polaroïds)</li>
+        <li>Build WebGL et publication sur itch.io</li>
+      </ul>
+      Jouable dans le navigateur.`,
+    link: 'https://rosago.itch.io/1-avenue-frochot',
+    images: [
+      '/assets/images/avenue-frochot.webp',
+      'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3NS5wbmc=/original/BSGHA%2F.png',
+      'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3Ni5wbmc=/original/V3MM20.png',
+      'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3Ny5wbmc=/original/m612Ql.png',
+      'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3OC5wbmc=/original/dTuUKU.png',
+    ],
+    videoUrl: null,
+    skills: ['Unity', 'C#', 'FPS', 'Horror', 'Narrative', 'Game Jam', 'Teamwork'],
+  },
+  {
+    title: 'Echoes of Above',
+    description: `'Echoes of Above' est un <strong>jeu d'action-aventure publié sur Steam</strong>, développé en une quarantaine de jours par une <strong>équipe de plus de 20 étudiants d'Isart Digital Paris</strong> dans le cadre du projet de fin d'études.
+      <br/><br/>
+      Vous incarnez un moine guerrier envoyé purifier un paradis sacré envahi par des forces démoniaques, dans des ruines inspirées des mythologies khmère et bouddhiste. Le cœur du jeu : <strong>frapper les projectiles ennemis en plein vol</strong> pour les renvoyer, et exploiter l'environnement pour survivre à des combats d'arène intenses.
+      <br/><br/>
+      En tant que game programmer au sein de l'équipe, j'ai travaillé sur :
+      <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+        <li>Systèmes de gameplay et de combat (renvoi de projectiles, interactions avec l'environnement)</li>
+        <li>Intégration des contenus produits par les artistes et game designers</li>
+        <li>Itérations en production avec une équipe pluridisciplinaire de grande taille</li>
+        <li>Préparation et suivi du build pour la sortie Steam</li>
+      </ul>
+      Sorti le 23 juin 2026, gratuit sur Steam.`,
+    link: 'https://store.steampowered.com/app/4196130/Echoes_of_Above/',
+    images: [
+      '/assets/images/echoes-of-above.webp',
+      'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/14f7fa7c9fad1dcc38cf1d7f2fdf392b8540b651/ss_14f7fa7c9fad1dcc38cf1d7f2fdf392b8540b651.1920x1080.jpg',
+      'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/0c1bd6336d1bf2eafac20ac278f4c8c6766eaee8/ss_0c1bd6336d1bf2eafac20ac278f4c8c6766eaee8.1920x1080.jpg',
+      'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/84f2ce6e73738182785c1224c188fa92d36b1de2/ss_84f2ce6e73738182785c1224c188fa92d36b1de2.1920x1080.jpg',
+      'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/1f143256ef8d52b52f6ccf9248217b5547fa5b32/ss_1f143256ef8d52b52f6ccf9248217b5547fa5b32.1920x1080.jpg',
+    ],
+    videoUrl: null,
+    skills: ['Unreal Engine 5', 'Action-Adventure', '3D', 'Combat System', 'Steam', 'Production', 'Teamwork'],
+  },
+  {
+    title: 'Worm With a Shotgun',
+    description: `'Worm With a Shotgun' est un <strong>jeu d'action en vue de dessus</strong> réalisé en <strong>3 jours</strong> pour la Gone Fishing Game Jam II, en équipe de trois avec Komixa et Darkelik, sous Unity.
+      <br/><br/>
+      Envoyé par Feather Triduck pour exterminer les Pécheurs de la Mer, le Ver prend son fusil à pompe et traverse les bâtiments pour les abattre avant de manquer d'oxygène.
+      <br/><br/>
+      Mes contributions incluent :
+      <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+        <li>Contrôleur du ver et tir au fusil à pompe (recul, destruction des bâtiments)</li>
+        <li>Gestion de la jauge d'oxygène et de la boucle de niveau</li>
+        <li>Intégration des sprites et des effets</li>
+        <li>Build WebGL et publication sur itch.io</li>
+      </ul>
+      Jouable dans le navigateur.`,
+    link: 'https://komixa.itch.io/worm-with-a-shotgun',
+    images: [
+      '/assets/images/worm-with-a-shotgun.webp',
+      'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxMS5wbmc=/original/JYPnEi.png',
+      'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxMi5wbmc=/original/gzMcK8.png',
+      'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxNS5wbmc=/original/rKdP9Q.png',
+      'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxMy5wbmc=/original/epHn0Z.png',
+    ],
+    videoUrl: null,
+    skills: ['Unity', 'C#', 'Action', '2D', 'Top-Down', 'Game Jam', 'Teamwork'],
+  },
+  {
+    title: 'Casting Scales',
+    description: `'Casting Scales' est un <strong>rogue-lite musical</strong> réalisé <strong>en solo en 48 heures</strong> pour la Kenney Jam 2026 (thème : SCALE), sous Unity.
+      <br/><br/>
+      Votre piano est votre grimoire, et aussi votre barre de vie : jouez des accords et des gammes pour lancer des sorts, et chaque coup reçu fissure les touches avec lesquelles vous jouez. 13 éléments à découvrir, des variations de sorts selon la technique de jeu, et à la fin du combat, le jeu génère un fichier .wav de la mélodie que vous avez jouée.
+      <br/><br/>
+      Réalisé seul, j'ai pris en charge l'intégralité du développement :
+      <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+        <li>Système de reconnaissance d'accords et de gammes en temps réel</li>
+        <li>Support des claviers MIDI (main droite pour les sorts, main gauche pour se déplacer)</li>
+        <li>Synthèse audio et export .wav de la mélodie du combat</li>
+        <li>Vagues d'ennemis, éléments et système de sorts</li>
+        <li>Interface et intégration des assets Kenney</li>
+      </ul>
+      Jouable dans le navigateur.`,
+    link: 'https://rosago.itch.io/casting-scales',
+    images: [
+      '/assets/images/casting-scales.webp',
+      'https://img.itch.zone/aW1nLzI4NTk2NzQ4LnBuZw==/original/C%2FZj4f.png',
+      'https://img.itch.zone/aW1nLzI4NTk2NzkyLnBuZw==/original/pK3W%2FI.png',
+      'https://img.itch.zone/aW1hZ2UvNDc5NDIxNS8yODU5NjE0Ni5wbmc=/original/REjjN%2B.png',
+      'https://img.itch.zone/aW1hZ2UvNDc5NDIxNS8yODU5NjE1MS5wbmc=/original/5E3iRG.png',
+    ],
+    videoUrl: null,
+    skills: ['Unity', 'C#', 'Rhythm Game', 'Rogue-Lite', 'MIDI', 'Audio', 'Solo Dev', 'Game Jam'],
+  },
   {
     title: 'Sirius Project',
     description: `Le 'Sirius Project' est une démonstration technique de pointe développée sous <strong>Unreal Engine 5</strong>, axée sur la <strong>génération procédurale de sorts et d'environnements</strong>.
@@ -28,11 +129,11 @@ export const projects = [
       Ce projet offre une expérience visuelle riche et interactive.`,
     link: null,
     images: [
-      '/assets/images/Sirius_TechArt0.png',
-      '/assets/images/Sirius_TechArt1.png',
-      '/assets/images/Sirius_TechArt2.png',
-      '/assets/images/Sirius_TechArt3.png',
-      '/assets/images/Sirius_TechArt4.png',
+      '/assets/images/Sirius_TechArt0.webp',
+      '/assets/images/Sirius_TechArt1.webp',
+      '/assets/images/Sirius_TechArt2.webp',
+      '/assets/images/Sirius_TechArt3.webp',
+      '/assets/images/Sirius_TechArt4.webp',
     ],
     videoUrl: 'https://www.youtube.com/embed/9DvdSvEg0Sw',
     skills: ['Unreal Engine 5', 'C++', 'Tech-Art', 'Procedural Generation', 'Shaders', 'VFX', 'Game Design', 'Teamwork'],
@@ -53,11 +154,11 @@ export const projects = [
       Ce projet fut un défi technique stimulant, réalisé en quelques jours, démontrant ma capacité à livrer des solutions créatives sous pression.`,
     link: null,
     images: [
-      '/assets/images/MythoLogie1.png',
-      '/assets/images/MythoLogie4.png',
-      '/assets/images/MythoLogie2.png',
-      '/assets/images/MythoLogie3.png',
-      '/assets/images/Mytho_Logie_Poster.png',
+      '/assets/images/MythoLogie1.webp',
+      '/assets/images/MythoLogie4.webp',
+      '/assets/images/MythoLogie2.webp',
+      '/assets/images/MythoLogie3.webp',
+      '/assets/images/Mytho_Logie_Poster.webp',
     ],
     videoUrl: 'https://www.youtube.com/embed/iL_0Sh8zlkU',
     skills: ['Unity', 'C#', 'Puzzle Game', '2D', 'Game Jam', 'Narrative', 'CSV Database'],

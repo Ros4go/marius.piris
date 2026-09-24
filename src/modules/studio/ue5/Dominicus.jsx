@@ -62,7 +62,7 @@ export default function Dominicus({ active }) {
     >
       <img
         className="dom-img"
-        src="/assets/images/dominicus-maximus.png"
+        src="/assets/images/dominicus-maximus.webp"
         alt=""
         draggable="false"
         onClick={dismiss}

@@ -6,7 +6,8 @@
   "description": "Hub modulaire style Persona — portfolio, jeux et modules de Marius Piris",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "check:ue5": "node scripts/check-ue5-data.mjs",
+    "build": "npm run check:ue5 && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -14,10 +15,10 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.5.2",
-    "postcss": "^8.4.49",
+    "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
     "tailwindcss": "^3.4.19",
-    "vite": "^5.4.11"
+    "vite": "^8.3.0"
   }
 }

@@ -63,7 +63,7 @@ export default function Menu({ modules, onSelect }) {
       <span className="persona-bar b2" />
 
       <div className="portrait-wrap">
-        <img className="portrait" src="/assets/images/marius_profile.png" alt="Marius Piris" />
+        <img className="portrait" src="/assets/images/marius_profile.webp" alt="Marius Piris" fetchpriority="high" decoding="async" />
       </div>
 
       <div className="hero-inner accueil-inner">

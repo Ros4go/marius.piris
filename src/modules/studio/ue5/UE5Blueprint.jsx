@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { navigate } from '../../../core/router.js'
 import PersonaBg from '../../../components/PersonaBg.jsx'
-import { CHAPTERS } from './ue5Data.js'
+import { loadChapters } from './ue5Data.js'
 import { matchGlossary } from './glossary.js'
 import Dominicus from './Dominicus.jsx'
 import FlappyGame from './FlappyGame.jsx'
@@ -556,14 +556,14 @@ function ResultView({ score, total, log, title, storeKey, canContinue, onRetry, 
 /* =====================================================================
    VUE ACCUEIL (grille des chapitres)
    ===================================================================== */
-function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
+function Home({ chapters, scores, onCards, onQuiz, onExam, onBackAtelier }) {
   const [flappy, setFlappy] = useState(false)
   const [examDiff, setExamDiff] = useState('mix')
   const examCounts = useMemo(() => {
     const c = { mix: 0, facile: 0, moyen: 0, difficile: 0 }
-    CHAPTERS.forEach((ch) => ch.quiz.forEach((q) => { c.mix++; c[q.difficulty] = (c[q.difficulty] || 0) + 1 }))
+    chapters.forEach((ch) => ch.quiz.forEach((q) => { c.mix++; c[q.difficulty] = (c[q.difficulty] || 0) + 1 }))
     return c
-  }, [])
+  }, [chapters])
   return (
     <div>
       {flappy && <FlappyGame onClose={() => setFlappy(false)} />}
@@ -605,7 +605,7 @@ function Home({ scores, onCards, onQuiz, onExam, onBackAtelier }) {
           </div>
         </div>
 
-        {CHAPTERS.map((c) => {
+        {chapters.map((c) => {
           const sc = scores[c.id]
           return (
             <div className={'ue5-chap' + (c.special ? ' special' : '')} key={c.id}>
@@ -639,6 +639,20 @@ export default function UE5Blueprint() {
   const [result, setResult] = useState(null)
   const [scores, setScores] = useState(loadScores())
 
+  // Contenu (chapitres, fiches, quiz) chargé à la demande depuis le JSON — voir ue5Data.js.
+  const [chapters, setChapters] = useState(null)
+  const [loadError, setLoadError] = useState(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  useEffect(() => {
+    let alive = true
+    setLoadError(null)
+    loadChapters().then(
+      (data) => { if (alive) setChapters(data) },
+      (e) => { if (alive) setLoadError(e) }
+    )
+    return () => { alive = false }
+  }, [reloadKey])
+
   useEffect(() => {
     const inner = document.querySelector('.content-inner')
     if (inner) inner.scrollTop = 0
@@ -659,7 +673,7 @@ export default function UE5Blueprint() {
     setView('quiz')
   }
   const startExam = (size, diff = 'mix') => {
-    const all = CHAPTERS.flatMap((c) => c.quiz.map((raw) => ({ raw, chap: c.title })))
+    const all = chapters.flatMap((c) => c.quiz.map((raw) => ({ raw, chap: c.title })))
     const pool = diff === 'mix' ? all : all.filter((x) => x.raw.difficulty === diff)
     const chosen = shuffle(pool).slice(0, Math.min(size, pool.length))
     const questions = chosen.map(({ raw, chap }) => prepareQuestion(raw, chap))
@@ -677,8 +691,20 @@ export default function UE5Blueprint() {
       <PersonaBg label="UE5" />
       <Dominicus active={view === 'cards' || view === 'quiz'} />
       <div className="ue5-inner">
-        {view === 'home' && (
-          <Home scores={scores} onCards={openCards} onQuiz={openSetup} onExam={startExam} onBackAtelier={() => navigate('/studio')} />
+        {loadError && (
+          <div className="ue5-deck-end">
+            <div className="ue5-deck-end-emoji">⚠️</div>
+            <h3>Contenu indisponible</h3>
+            <p>Impossible de charger les fiches et les quiz ({String(loadError.message || loadError)}).</p>
+            <div className="ue5-deck-end-btns">
+              <button className="btn" onClick={() => setReloadKey((k) => k + 1)}><span>↻ Réessayer</span></button>
+              <button className="btn ghost" onClick={() => navigate('/studio')}><span>◄ Retour à l'Atelier</span></button>
+            </div>
+          </div>
+        )}
+        {!loadError && !chapters && <p className="ue5-hero-tag">Chargement du contenu…</p>}
+        {chapters && view === 'home' && (
+          <Home chapters={chapters} scores={scores} onCards={openCards} onQuiz={openSetup} onExam={startExam} onBackAtelier={() => navigate('/studio')} />
         )}
         {view === 'cards' && chapter && (
           <CardsView chapter={chapter} onBack={backChapters} onQuiz={() => openSetup(chapter)} />

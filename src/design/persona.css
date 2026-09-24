@@ -542,14 +542,15 @@ body {
   height: 100%;
   z-index: 2;
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.09), transparent);
-  transform: skewX(12deg);
+  transform: translateX(0) skewX(12deg);
   pointer-events: none;
   animation: miGleam 6s ease-in-out infinite;
 }
+/* même trajet qu'avant (left -60% -> 150% pour une largeur de 38%), mais en transform : composé par le GPU, zéro repaint */
 @keyframes miGleam {
-  0% { left: -60%; }
-  35% { left: 150%; }
-  100% { left: 150%; }
+  0% { transform: translateX(0) skewX(12deg); }
+  35% { transform: translateX(552.6%) skewX(12deg); }
+  100% { transform: translateX(552.6%) skewX(12deg); }
 }
 .home-menu .mi:nth-of-type(2)::after { animation-delay: 1.5s; }
 .home-menu .mi:nth-of-type(3)::after { animation-delay: 3s; }
@@ -951,6 +952,7 @@ body {
   background-image: radial-gradient(rgba(236, 0, 22, 0.5) 1.1px, transparent 1.5px);
   background-size: 14px 14px;
   opacity: 0.12;
+  will-change: transform;
   animation: studioDrift 8s linear infinite;
 }
 .persona-wm {
@@ -973,20 +975,18 @@ body {
   width: clamp(60px, 8vw, 130px);
   background: linear-gradient(90deg, transparent, rgba(236, 0, 22, 0.2), transparent);
   transform: skewX(-18deg) translateX(-30vw);
-  filter: blur(2px);
   will-change: transform;
 }
 .persona-bar.b1 { animation: studioBar 16s linear -8s infinite; } /* délai négatif → démarre au milieu de l'écran */
 .persona-bar.b2 { width: clamp(40px, 5vw, 80px); opacity: 0.7; animation: studioBar 25s linear -5s infinite; } /* entre par la gauche dès le départ */
 @media (prefers-reduced-motion: reduce) { .persona-bar, .persona-bg::before { animation: none; } }
 
-/* ===== Perf mobile : on coupe les effets coûteux (blur animé, drift de fond, gleams en 'left') ===== */
+/* ===== Perf mobile : on coupe les effets d'ambiance (drift de fond, gleams) ===== */
 @media (max-width: 768px) {
-  .persona-bar { filter: none; }            /* le blur animé est le plus gros coût GPU */
   .persona-bg::before { animation: none; }  /* drift de la trame = repaint plein écran/frame */
   .halftone { animation: none; }            /* idem sur l'accueil (+ mix-blend coûteux) */
   .mi::after,
-  .ci::after { display: none; }             /* lueurs animant 'left' → paint continu */
+  .ci::after { display: none; }             /* lueurs : une couche composée de moins par bouton */
 }
 
 /* header : identité à gauche, actions à droite */
@@ -1285,15 +1285,16 @@ body {
   height: 100%;
   z-index: 1;
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.07), transparent);
-  transform: skewX(-16deg);
+  transform: translateX(0) skewX(-16deg);
   pointer-events: none;
   animation: ciShine 6s ease-in-out infinite;
   animation-delay: var(--d, 0s);
 }
+/* même trajet qu'avant (left -70% -> 150% pour une largeur de 45%), mais en transform */
 @keyframes ciShine {
-  0% { left: -70%; }
-  26% { left: 150%; }
-  100% { left: 150%; }
+  0% { transform: translateX(0) skewX(-16deg); }
+  26% { transform: translateX(488.9%) skewX(-16deg); }
+  100% { transform: translateX(488.9%) skewX(-16deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .ci::after { animation: none; }
@@ -1313,7 +1314,7 @@ body {
 /* fond animé : composant <PersonaBg label="ATELIER" /> (.persona-bg / .persona-bar) */
 /* keyframes partagées par PersonaBg (halftone qui dérive + barres qui balaient) */
 @keyframes studioDrift {
-  to { background-position: 13px 13px; }
+  to { transform: translate(13px, 13px); }
 }
 @keyframes studioBar {
   from { transform: skewX(-18deg) translateX(-30vw); }

@@ -1,0 +1,9 @@
+/* Feuille Tailwind de la page autonome pages/archipelago.html.
+   Remplace le CDN Play (https://cdn.tailwindcss.com, ~400 ko de JS exécuté à
+   chaque visite) par un CSS compilé au build, purgé aux seules classes de la page.
+   La config dédiée ne scanne que cette page, pour ne pas gonfler le CSS du hub. */
+@config "../../tailwind.archipelago.config.js";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

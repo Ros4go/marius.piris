@@ -16,7 +16,7 @@ import Contact from '../modules/contact/Contact.jsx'
 export const modules = [
   // --- Modules (the point of the site) ---
   { id: 'studio', num: '01', label: 'Jeux & Outils', en: 'ARCADE & ATELIER', kind: 'route', path: '/studio', component: Studio, group: 'module' },
-  { id: 'jdr', num: '02', label: 'Archipelago', en: 'JDR · WIKI', kind: 'external', href: '/archipelago.html', group: 'module' },
+  { id: 'jdr', num: '02', label: 'Archipelago', en: 'JDR · WIKI', kind: 'external', href: '/pages/archipelago.html', group: 'module' },
   // --- À propos (the CV is just one part) ---
   { id: 'portfolio', num: '03', label: 'Profil', en: 'CV · RÉSUMÉ', kind: 'route', path: '/portfolio', component: Portfolio, group: 'about' },
   { id: 'contact', num: '04', label: 'Contact', en: 'ME JOINDRE', kind: 'route', path: '/contact', component: Contact, group: 'about', aoa: true },

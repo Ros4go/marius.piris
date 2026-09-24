@@ -153,7 +153,7 @@ function applyOfflineProgress(state) {
 // Frometons Clicker — incremental game. Ported from the original single-file
 // app. Self-contained; persists to localStorage key 'frometonsGame'.
 export default function FrometonsGame() {
-  const frometonsImage = '/assets/images/Fromecoin.png'
+  const frometonsImage = '/assets/images/Fromecoin.webp'
   const [isFrometonsSectionVisible] = React.useState(true)
   const [floatingTexts, setFloatingTexts] = React.useState([])
   const clickButtonRef = React.useRef(null)

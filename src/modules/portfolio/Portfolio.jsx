@@ -141,6 +141,8 @@ export default function Portfolio() {
                   src={proj.images[0]}
                   alt={proj.title}
                   className="proj-thumb"
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     e.target.onerror = null
                     e.target.src = 'https://placehold.co/600x400/6B7280/FFFFFF?text=Image+non+disponible'
