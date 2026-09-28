@@ -1,0 +1,2799 @@
+[
+  {
+    "id": "ecosysteme",
+    "num": "01",
+    "special": false,
+    "title": "L'écosystème Python de la data",
+    "summary": "Pourquoi Python est devenu la langue de la data, qui fait quoi parmi numpy, pandas, matplotlib, scipy, scikit-learn, PyTorch, Spark et Streamlit, les imports que tout le monde écrit pareil, script contre notebook (Jupyter, Colab), installer avec pip, et les réflexes pour se dépanner seul : shape, type, help, lire un Traceback.",
+    "topics": [
+      "pourquoi Python en data : simple, énorme écosystème, boucles cachées dans les librairies",
+      "la carte des librairies et leur empilement sur numpy",
+      "imports conventionnels : np, pd, plt, st",
+      "script .py contre notebook Jupyter / Colab",
+      "pip install, environnement virtuel, streamlit run",
+      "se dépanner : shape, dtype, type(), help(), Traceback"
+    ],
+    "fiches": [
+      {
+        "title": "Pourquoi Python pour la data ?",
+        "front": "Pourquoi Python domine-t-il la data science, alors qu'il est lent ?",
+        "body": "Python est un langage **simple à lire et à écrire** : pas de types à déclarer, pas de point-virgule, une syntaxe proche de l'anglais. Pris seul, il est **lent** : une boucle Python sur un million de nombres est cent fois plus lente qu'en C++.\nLe secret, c'est que **les boucles ne sont pas dans Python**. Les librairies de data (numpy en tête) sont écrites en C et appelées depuis Python. On écrit `v1 + v2`, et l'addition case par case se fait en C, à pleine vitesse. Python sert de **télécommande** à du code rapide.\nRésultat : la régression linéaire codée en C++ en 80 lignes (predict, mse, gradient, descente) tient en **10 lignes de numpy**, et tourne aussi vite. Ajoute l'**écosystème** (une librairie pour tout : tableaux, graphiques, machine learning, deep learning, apps web) et une communauté énorme : c'est la langue commune de la data.",
+        "keypoints": [
+          "Python = **simple** à écrire ; seul, il est **lent**",
+          "Les librairies (numpy…) sont en C : **les boucles sont cachées dedans**",
+          "Python = la **télécommande** de code rapide",
+          "80 lignes de C++ → **10 lignes de numpy** ; écosystème et communauté"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Qui fait quoi : la carte des librairies",
+        "front": "Cite les librairies Python de la data et le rôle de chacune. Laquelle est à la base des autres ?",
+        "body": "**numpy** : les tableaux de nombres (vecteurs, matrices) et le calcul vectorisé. **Tout repose dessus.**\n**pandas** : les tableaux **étiquetés** (colonnes nommées), le chargement de CSV, le nettoyage, les agrégations. Construit sur numpy.\n**matplotlib** : les graphiques (nuages de points, courbes, histogrammes). Seaborn et plotly sont des couches au-dessus.\n**scipy** : calcul scientifique, statistiques, traitement du signal. Sur numpy.\n**scikit-learn** (sklearn) : le machine learning classique clé en main : régression linéaire et logistique, arbres, k-means, train_test_split. Sur numpy.\n**PyTorch**, **Keras / TensorFlow** : le deep learning, avec différentiation automatique et GPU.\n**Spark / PySpark** : le big data, quand les données ne tiennent plus sur une machine.\n**Streamlit** : transformer un script en application web avec des widgets, sans HTML ni JavaScript.\nL'empilement à retenir : numpy en bas, pandas / scipy / scikit-learn dessus, matplotlib et Streamlit à côté pour montrer.",
+        "keypoints": [
+          "**numpy** : tableaux et calcul vectoriel, **la base de tout**",
+          "**pandas** : tableaux étiquetés, CSV ; **matplotlib** : graphiques",
+          "**scikit-learn** : ML classique ; **PyTorch / Keras** : deep learning",
+          "**Spark** : big data ; **Streamlit** : app web en Python"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Les imports conventionnels",
+        "front": "Écris les lignes d'import standard de numpy, pandas, matplotlib, Streamlit et scikit-learn",
+        "body": "Toute la communauté écrit les mêmes alias, et les docs les supposent :\n`import numpy as np`\n`import pandas as pd`\n`import matplotlib.pyplot as plt`\n`import streamlit as st`\n`from sklearn.linear_model import LinearRegression`\n`from sklearn.model_selection import train_test_split`\n**as** donne un surnom court : on écrit `np.array`, `pd.read_csv`, `plt.subplots`, `st.write`. **from … import …** va chercher une classe ou une fonction précise dans un sous-module.\nÀ éviter : `from numpy import *`, qui déverse des centaines de noms dans ton programme et rend le code illisible (d'où vient `sum` ? de Python ou de numpy ?). Le préfixe `np.` dit toujours d'où vient une fonction.",
+        "keypoints": [
+          "`import numpy as np` · `import pandas as pd` · `import matplotlib.pyplot as plt` · `import streamlit as st`",
+          "`from sklearn.linear_model import LinearRegression`",
+          "**as** = surnom court ; **from … import** = un nom précis",
+          "Jamais `from numpy import *` : on perd la provenance des fonctions"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Script ou notebook ?",
+        "front": "Quelle différence entre un fichier .py et un notebook Jupyter / Colab ? Quand utiliser lequel ?",
+        "body": "Un **script** est un fichier `app.py` qu'on lance d'un coup : `python app.py` (ou `streamlit run app.py`). Il s'exécute du haut en bas, produit ses sorties, et se termine. C'est la forme d'un programme fini : une app, un entraînement lancé la nuit.\nUn **notebook** (Jupyter, ou **Google Colab** dans le navigateur, gratuit, rien à installer) est découpé en **cellules** qu'on exécute une par une. Chaque cellule affiche son résultat juste en dessous : un tableau, un graphique, un nombre. Les variables restent en mémoire entre les cellules. C'est l'outil pour **explorer** : charger des données, regarder, essayer un learning rate, corriger, réessayer.\nLe piège du notebook : l'**ordre d'exécution**. Si tu exécutes la cellule 5 puis modifies la cellule 2 sans la relancer, l'état en mémoire ne correspond plus au code affiché. Réflexe : « Redémarrer et tout exécuter » avant de conclure.",
+        "keypoints": [
+          "**Script .py** : lancé d'un coup, pour un programme fini (app, entraînement)",
+          "**Notebook** (Jupyter, Colab) : cellules exécutées une à une, résultats affichés, pour **explorer**",
+          "Colab = notebook dans le navigateur, gratuit",
+          "Piège : l'**ordre d'exécution** des cellules ; « redémarrer et tout exécuter »"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Installer et lancer : pip",
+        "front": "Comment installer numpy, pandas, matplotlib et Streamlit, et vérifier que ça marche ?",
+        "body": "**pip** est l'installeur de paquets de Python :\n`pip install numpy pandas matplotlib streamlit scikit-learn`\nBonne pratique : un **environnement virtuel** par projet, pour ne pas mélanger les versions :\n`python -m venv .venv` puis `.venv\\Scripts\\activate` (Windows) ou `source .venv/bin/activate` (Mac / Linux), et seulement ensuite `pip install …`.\nVérifier : `python -c \"import numpy; print(numpy.__version__)\"`.\nLancer : `python script.py` pour un script, `streamlit run app.py` pour une app Streamlit (le navigateur s'ouvre sur localhost:8501), `jupyter notebook` pour un notebook local, ou Colab dans le navigateur où numpy, pandas et matplotlib sont déjà installés (`!pip install streamlit` dans une cellule pour le reste).\n`pip freeze > requirements.txt` liste les versions installées pour reproduire l'environnement ailleurs.",
+        "keypoints": [
+          "`pip install numpy pandas matplotlib streamlit scikit-learn`",
+          "Un **environnement virtuel** par projet : `python -m venv .venv` puis activate",
+          "`python script.py` · `streamlit run app.py` (localhost:8501) · `jupyter notebook`",
+          "Colab : déjà installé ; `requirements.txt` pour reproduire"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Se dépanner seul",
+        "front": "Un tableau n'a pas la forme attendue, une erreur s'affiche : quels réflexes ?",
+        "body": "Quatre réflexes avant de demander de l'aide.\n**1. Regarder l'objet** : `type(x)` (liste ? ndarray ? DataFrame ?), `x.shape` (sa forme), `x.dtype` (ses types : int64, float64, bool), `x[:5]` ou `df.head()` (un aperçu). Neuf bugs sur dix en data sont des **formes** qui ne correspondent pas : (10,) contre (10, 1), (2, 10) contre (10, 2).\n**2. Lire la doc** depuis le code : `help(np.clip)`, ou `np.clip?` dans un notebook. Les docs officielles (numpy.org, pandas.pydata.org, matplotlib.org, docs.streamlit.io) ont toutes des exemples copiables.\n**3. Lire le Traceback de bas en haut** : la dernière ligne donne le type d'erreur et le message (`ValueError: operands could not be broadcast together with shapes (3,) (4,)` = deux tableaux de tailles différentes qu'on essaie d'additionner) ; les lignes au-dessus disent où.\n**4. Isoler** : reproduire le problème sur un tableau minuscule qu'on peut vérifier à la main, comme X = [1, 2], y = [3, 5].",
+        "keypoints": [
+          "`type(x)`, `x.shape`, `x.dtype`, `x[:5]` / `df.head()` : **regarder avant de deviner**",
+          "La plupart des bugs = **formes** incompatibles",
+          "`help(np.clip)` ; docs officielles avec exemples",
+          "Traceback : lire la **dernière ligne** d'abord ; reproduire sur un mini-exemple"
+        ],
+        "tier": 2
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Pourquoi du code numpy est-il rapide alors que Python est un langage lent ?",
+        "choices": [
+          "Les opérations sur les tableaux sont exécutées en C, à l'intérieur de la librairie",
+          "numpy compile le script Python entier en code machine avant de le lancer",
+          "numpy exécute les boucles Python sur plusieurs cœurs en parallèle",
+          "Les tableaux numpy sont plus petits en mémoire, donc plus vite parcourus"
+        ],
+        "answer": 0,
+        "explain": "v1 + v2 déclenche une boucle écrite en C. Python ne fait que passer la main. C'est pour ça qu'on évite les boucles for en Python sur des tableaux : elles ramènent tout dans le langage lent.",
+        "difficulty": "facile",
+        "topic": "pourquoi Python"
+      },
+      {
+        "q": "Quelle librairie sert de base à pandas, scipy et scikit-learn ?",
+        "choices": [
+          "numpy",
+          "matplotlib",
+          "PyTorch",
+          "Streamlit"
+        ],
+        "answer": 0,
+        "explain": "Toutes manipulent des tableaux numpy en dessous. matplotlib dessine, PyTorch fait du deep learning, Streamlit affiche : aucune n'est la base des autres.",
+        "difficulty": "facile",
+        "topic": "librairies"
+      },
+      {
+        "q": "Quelle librairie utilise-t-on pour charger un fichier CSV avec des colonnes nommées ?",
+        "choices": [
+          "pandas",
+          "numpy",
+          "matplotlib",
+          "scikit-learn"
+        ],
+        "answer": 0,
+        "explain": "pd.read_csv renvoie un DataFrame, un tableau à colonnes nommées. numpy sait lire des nombres bruts mais sans noms de colonnes ni types mélangés.",
+        "difficulty": "facile",
+        "topic": "librairies"
+      },
+      {
+        "q": "Quelle librairie fournit une régression linéaire prête à l'emploi et train_test_split ?",
+        "choices": [
+          "scikit-learn",
+          "numpy",
+          "pandas",
+          "Streamlit"
+        ],
+        "answer": 0,
+        "explain": "sklearn.linear_model.LinearRegression et sklearn.model_selection.train_test_split. numpy permet de la coder soi-même, pandas prépare les données, Streamlit affiche le résultat.",
+        "difficulty": "facile",
+        "topic": "librairies"
+      },
+      {
+        "q": "Que fait la ligne import numpy as np ?",
+        "choices": [
+          "Elle charge numpy et lui donne le surnom np pour écrire np.array",
+          "Elle copie toutes les fonctions de numpy dans le programme sans préfixe",
+          "Elle installe numpy s'il n'est pas présent sur la machine",
+          "Elle ne charge que la fonction np de numpy"
+        ],
+        "answer": 0,
+        "explain": "as crée un alias. L'import sans préfixe serait from numpy import *, déconseillé. L'installation, c'est pip, pas import.",
+        "difficulty": "facile",
+        "topic": "imports"
+      },
+      {
+        "q": "Pourquoi éviter from numpy import * ?",
+        "choices": [
+          "On ne sait plus d'où vient chaque fonction, et des noms Python sont écrasés",
+          "C'est plus lent, chaque fonction étant recompilée à l'import",
+          "Ça n'importe que les fonctions dont le nom commence par une étoile",
+          "numpy interdit cette syntaxe et lève une erreur"
+        ],
+        "answer": 0,
+        "explain": "Des centaines de noms arrivent sans préfixe : sum, min, max, abs de numpy remplacent ceux de Python. Avec np., la provenance est toujours visible.",
+        "difficulty": "moyen",
+        "topic": "imports"
+      },
+      {
+        "q": "Quel est le principal piège d'un notebook Jupyter ou Colab ?",
+        "choices": [
+          "L'état en mémoire peut ne plus correspondre au code, selon l'ordre d'exécution des cellules",
+          "Les variables sont effacées à chaque cellule, il faut tout recalculer",
+          "Impossible d'afficher un graphique, il faut un script pour ça",
+          "Le code y est plus lent que dans un script, chaque cellule étant interprétée"
+        ],
+        "answer": 0,
+        "explain": "Modifier une cellule sans la relancer laisse l'ancienne valeur en mémoire. Les variables persistent justement entre cellules ; le remède est « redémarrer et tout exécuter ».",
+        "difficulty": "moyen",
+        "topic": "notebook"
+      },
+      {
+        "q": "Comment lance-t-on une application Streamlit écrite dans app.py ?",
+        "choices": [
+          "streamlit run app.py",
+          "python app.py --web",
+          "pip run streamlit app.py",
+          "jupyter run app.py"
+        ],
+        "answer": 0,
+        "explain": "streamlit run démarre le serveur et ouvre le navigateur sur localhost:8501. python app.py exécuterait le script une fois sans interface.",
+        "difficulty": "facile",
+        "topic": "pip"
+      },
+      {
+        "q": "À quoi sert un environnement virtuel (python -m venv .venv) ?",
+        "choices": [
+          "À isoler les librairies d'un projet, avec leurs versions, des autres projets",
+          "À faire tourner Python plus vite en le compilant pour la machine",
+          "À exécuter le code sur une machine virtuelle dans le cloud",
+          "À partager automatiquement le code avec les autres membres du projet"
+        ],
+        "answer": 0,
+        "explain": "Chaque projet a son propre dossier de paquets : pas de conflit entre un projet qui veut numpy 1.x et un autre numpy 2.x. Rien à voir avec la vitesse ni le cloud.",
+        "difficulty": "moyen",
+        "topic": "pip"
+      },
+      {
+        "q": "Une erreur s'affiche sur vingt lignes. Où lire en premier ?",
+        "choices": [
+          "La dernière ligne : le type d'erreur et son message",
+          "La première ligne : elle indique la cause initiale",
+          "Le milieu : c'est là que se trouve le code fautif",
+          "Nulle part : on relance le programme en espérant que ça passe"
+        ],
+        "answer": 0,
+        "explain": "Un Traceback se lit de bas en haut : la dernière ligne dit quoi (ValueError, shapes (3,) (4,)…), les lignes au-dessus disent où.",
+        "difficulty": "facile",
+        "topic": "dépannage"
+      },
+      {
+        "q": "Un calcul plante avec « operands could not be broadcast together with shapes (3,) (4,) ». Que vérifier en premier ?",
+        "choices": [
+          "La forme des deux tableaux avec .shape : ils n'ont pas la même taille",
+          "La version de numpy avec pip, le message signalant une incompatibilité",
+          "Le type des valeurs avec .dtype : des entiers mélangés à des flottants",
+          "La mémoire disponible : le tableau est trop grand pour être diffusé"
+        ],
+        "answer": 0,
+        "explain": "Le message donne les formes : 3 éléments contre 4, impossible de les combiner case par case. Regarder .shape des deux opérandes règle presque toujours ce genre d'erreur.",
+        "difficulty": "moyen",
+        "topic": "dépannage"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Tutoriel officiel Python (en français)",
+        "url": "https://docs.python.org/fr/3/tutorial/index.html"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/NumPy_logo_2020.svg",
+        "caption": "numpy : la base de tout l'écosystème, tableaux et calcul vectoriel",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:NumPy_logo_2020.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Pandas_logo.svg",
+        "caption": "pandas : les tableaux étiquetés et les fichiers CSV",
+        "credit": "Wikimedia Commons · BSD",
+        "link": "https://commons.wikimedia.org/wiki/File:Pandas_logo.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg",
+        "caption": "scikit-learn : le machine learning classique prêt à l'emploi",
+        "credit": "Wikimedia Commons · BSD",
+        "link": "https://commons.wikimedia.org/wiki/File:Scikit_learn_logo_small.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Jupyter_logo.svg",
+        "caption": "Jupyter : le notebook, des cellules exécutées une à une",
+        "credit": "Wikimedia Commons · BSD",
+        "link": "https://commons.wikimedia.org/wiki/File:Jupyter_logo.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Google_Colaboratory_SVG_Logo.svg",
+        "caption": "Google Colab : un notebook dans le navigateur, numpy et pandas déjà installés",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Google_Colaboratory_SVG_Logo.svg"
+      },
+      {
+        "url": "https://img.youtube.com/vi/82KLS2C_gNQ/hqdefault.jpg",
+        "caption": "Machine Learnia : la formation Python spécial machine learning (1/30), en français",
+        "credit": "Machine Learnia · YouTube",
+        "link": "https://www.youtube.com/watch?v=82KLS2C_gNQ"
+      }
+    ],
+    "links": [
+      {
+        "label": "Machine Learnia – Formation Python machine learning, épisode 1/30 (en français)",
+        "url": "https://www.youtube.com/watch?v=82KLS2C_gNQ",
+        "kind": "youtube"
+      },
+      {
+        "label": "Machine Learnia – la playlist complète « Python spécial machine learning » (30 vidéos : numpy, pandas, matplotlib, sklearn)",
+        "url": "https://www.youtube.com/playlist?list=PLO_fdPEVlfKqMDNmCFzQISI2H_nJcEDJq",
+        "kind": "doc"
+      },
+      {
+        "label": "Machine Learnia – les notebooks de la série (GitHub)",
+        "url": "https://github.com/MachineLearnia/Python-Machine-Learning",
+        "kind": "doc"
+      },
+      {
+        "label": "Tutoriel officiel Python, en français",
+        "url": "https://docs.python.org/fr/3/tutorial/index.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – guide pour débutants absolus",
+        "url": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+        "kind": "doc"
+      },
+      {
+        "label": "pandas – tutoriels de démarrage",
+        "url": "https://pandas.pydata.org/docs/getting_started/intro_tutorials/index.html",
+        "kind": "doc"
+      },
+      {
+        "label": "matplotlib – quick start",
+        "url": "https://matplotlib.org/stable/users/explain/quick_start.html",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – get started",
+        "url": "https://docs.streamlit.io/get-started",
+        "kind": "doc"
+      },
+      {
+        "label": "Google Colab – un notebook sans rien installer",
+        "url": "https://colab.research.google.com/",
+        "kind": "doc"
+      },
+      {
+        "label": "Jupyter",
+        "url": "https://jupyter.org/",
+        "kind": "doc"
+      },
+      {
+        "label": "Kaggle Learn – Python (cours gratuit, exercices)",
+        "url": "https://www.kaggle.com/learn/python",
+        "kind": "doc"
+      },
+      {
+        "label": "NumPy",
+        "url": "https://fr.wikipedia.org/wiki/NumPy",
+        "kind": "wiki"
+      },
+      {
+        "label": "pandas",
+        "url": "https://fr.wikipedia.org/wiki/Pandas",
+        "kind": "wiki"
+      }
+    ]
+  },
+  {
+    "id": "numpy",
+    "num": "02",
+    "special": false,
+    "title": "numpy : tableaux et vectorisation",
+    "summary": "Le ndarray et sa forme, créer des tableaux (zeros, identity, arange, random), le slicing, la vectorisation qui remplace les boucles, les masques booléens pour filtrer, seuiller avec np.minimum et np.clip, le piège vue / copie, les tableaux 2D et le paramètre axis, sélectionner les colonnes impaires, reshape, stack contre concatenate, et les fonctions qui remplacent la boucle for. Chaque exercice est corrigé.",
+    "topics": [
+      "ndarray : shape, ndim, dtype, size",
+      "np.array, np.zeros, np.identity, np.arange, np.random.randn / randint",
+      "slicing : v[:6], v[1:], v[:-1], v[1::2]",
+      "vectorisation : v1 + v2, v[1:] − v[:-1] (differences)",
+      "masques booléens : v[v > 0], v[v % 2 == 0], & | ~",
+      "seuiller : np.minimum, np.clip",
+      "vue contre copie : v1[0:2] modifie l'original",
+      "2D : A[i, j], A[:, 0], np.mean(A, axis=0)",
+      "colonnes impaires : ta2d[:, 1::2]",
+      "reshape (20, 5), reshape(-1, 1)",
+      "stack (dimension en plus) contre concatenate (prolonge), axis=-1 → (9, 16, 2)",
+      "fonctions vectorisées : sum, mean, argmax, where, diff, dot / @"
+    ],
+    "fiches": [
+      {
+        "title": "Le ndarray : un tableau typé",
+        "front": "Crée un vecteur numpy [1, 2, 3]. Quelle différence avec une liste Python ? Que sont shape, ndim, dtype ?",
+        "body": "`import numpy as np` puis `a = np.array([1, 2, 3])` : on passe une liste, on obtient un **ndarray**, le tableau numpy.\nDifférences avec une liste Python : toutes les cases ont **le même type** (ici int64), la **taille est fixe**, et surtout les **opérations agissent case par case** : `a * 2` donne [2, 4, 6], alors qu'avec une liste `[1, 2, 3] * 2` donne [1, 2, 3, 1, 2, 3].\nLes attributs à connaître : **`a.shape`** = la forme, un tuple : (3,) pour un vecteur de 3, (4, 3) pour une matrice 4 lignes × 3 colonnes. **`a.ndim`** = le nombre de dimensions (1 pour un vecteur, 2 pour une matrice). **`a.dtype`** = le type des valeurs (int64, float64, bool). **`a.size`** = le nombre total de cases.\nUn vecteur est un tableau 1D, une matrice un tableau 2D, une image couleur un tableau 3D (hauteur, largeur, 3).",
+        "keypoints": [
+          "`np.array([1, 2, 3])` → ndarray, **un seul type**, taille fixe",
+          "Opérations **case par case** : `a * 2` = [2, 4, 6] (une liste, elle, se répète)",
+          "`shape` (forme, tuple), `ndim` (dimensions), `dtype` (type), `size` (nb de cases)",
+          "1D = vecteur (3,) ; 2D = matrice (4, 3) ; 3D = image (h, l, 3)"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Créer des tableaux : zeros, identity, arange, random",
+        "front": "Crée : une matrice 10×10 de zéros, l'identité 5×5, les valeurs de 0 à 19,9 par pas de 0,1, 10 valeurs aléatoires normales, 10 entiers entre −10 et 9",
+        "body": "`np.zeros((10, 10))` : matrice de zéros. Attention, la forme est **un tuple** entre parenthèses : `np.zeros(10, 10)` est une erreur. `np.ones((3, 2))` pareil avec des 1.\n`np.identity(5)` (ou `np.eye(5)`) : la matrice identité 5×5, des 1 sur la diagonale.\n`np.arange(0, 20, 0.1)` : de 0 **inclus** à 20 **exclu**, par pas de 0,1 → 200 valeurs, de 0 à 19,9. Comme `range`, la borne haute est exclue. `np.linspace(0, 1, 5)` donne 5 valeurs également espacées de 0 à 1 **inclus**.\n`np.random.randn(10)` : 10 valeurs tirées selon une **loi normale** centrée réduite (moyenne 0, écart-type 1). `np.random.rand(10)` : uniformes entre 0 et 1. `np.random.randint(-10, 10, 10)` : 10 entiers entre −10 inclus et 10 **exclu**, donc de −10 à 9.\nDepuis numpy 1.17 on préfère `rng = np.random.default_rng(0)` puis `rng.normal(size=10)`, `rng.integers(-10, 10, size=10)` : même idée, avec une **graine** (0) pour reproduire les tirages.",
+        "keypoints": [
+          "`np.zeros((10, 10))` : la forme est un **tuple** ; `np.identity(5)`",
+          "`np.arange(0, 20, 0.1)` : fin **exclue**, 200 valeurs de 0 à 19,9",
+          "`np.random.randn(10)` : loi normale ; `randint(-10, 10, 10)` : entiers, 10 exclu",
+          "Moderne : `rng = np.random.default_rng(0)` puis `rng.normal`, `rng.integers`"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Slicing : découper un vecteur",
+        "front": "Comment prendre les 6 premières valeurs, tout sauf le premier, tout sauf le dernier, un élément sur deux, les indices impairs ?",
+        "body": "La syntaxe `v[début:fin:pas]`, fin exclue, avec des valeurs par défaut (0, la longueur, 1) :\n`v[:6]` : les six premières (indices 0 à 5). C'est la réponse à l'exercice v2 = v1[:6].\n`v[6:]` : de l'indice 6 à la fin.\n`v[1:]` : tout sauf le premier. `v[:-1]` : tout sauf le dernier (un indice négatif compte depuis la fin : `v[-1]` est le dernier élément).\n`v[::2]` : un élément sur deux à partir de 0 (indices pairs). `v[1::2]` : à partir de 1, un sur deux (indices **impairs**).\n`v[::-1]` : le vecteur à l'envers.\nLe slicing marche aussi sur les listes Python, mais numpy l'étend aux dimensions : `A[1:3, :]` prend les lignes 1 et 2, toutes les colonnes.",
+        "keypoints": [
+          "`v[début:fin:pas]`, **fin exclue** ; `v[:6]` = les 6 premières",
+          "`v[1:]` sauf le premier ; `v[:-1]` sauf le dernier ; `v[-1]` le dernier",
+          "`v[::2]` indices pairs ; `v[1::2]` indices **impairs** ; `v[::-1]` à l'envers",
+          "En 2D : `A[1:3, :]` lignes 1 et 2, toutes les colonnes"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Vectorisation : pas de boucle for",
+        "front": "Additionne deux vecteurs. Code differences(v) qui renvoie v[i+1] − v[i], sans boucle ni np.diff",
+        "body": "`v1 + v2` additionne **case par case** : [1, 2, 3, 4, 5] + [2, 3, 4, 5, 6] = [3, 5, 7, 9, 11]. Il faut la même forme. Pareil pour `-`, `*`, `/`, `**` : `v ** 2` met chaque case au carré. Et les fonctions numpy s'appliquent à tout le tableau : `np.exp(v)`, `np.sqrt(v)`, `np.log(v)`.\nUn **scalaire** est diffusé sur toutes les cases : `v * 2`, `v + 1`, `v > 0`. C'est le **broadcasting**.\nExercice differences : on veut w[i] = v[i+1] − v[i]. Les v[i+1], c'est `v[1:]` ; les v[i], c'est `v[:-1]`. Donc :\n`def differences(v): return v[1:] - v[:-1]`\nSur [1, 3, 2, 3] : [3, 2, 3] − [1, 3, 2] = **[2, −1, 1]**. La version `-(v[:-1] - v[1:])` donne la même chose, avec un signe en plus pour rien. C'est exactement ce que fait `np.diff`.\nLa règle : chaque fois qu'on écrit une boucle `for` sur un tableau, se demander « quelle opération vectorisée fait ça ? ». Elle existe presque toujours, et elle est cent fois plus rapide.",
+        "keypoints": [
+          "`v1 + v2` : case par case, mêmes formes ; `v ** 2`, `np.exp(v)` : sur tout le tableau",
+          "Scalaire diffusé : `v * 2`, `v > 0` (**broadcasting**)",
+          "differences : **`v[1:] - v[:-1]`** → [2, −1, 1] (= `np.diff`)",
+          "Réflexe : une boucle for sur un tableau = chercher l'opération vectorisée"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Masques booléens : filtrer sans boucle",
+        "front": "Garde les valeurs strictement positives de v1, celles > 3, et les valeurs paires. Comment combiner deux conditions ?",
+        "body": "`mask = v1 > 0` ne renvoie pas un booléen mais **un tableau de booléens**, un par case : [True, False, True, …]. C'est l'**index booléen**, ou masque.\n`v1[mask]` (ou directement `v1[v1 > 0]`) garde les cases où le masque est True : les valeurs strictement positives. `result = v1[v1 > 3]` : les valeurs > 3. `vector[vector % 2 == 0]` : les valeurs **paires** (reste de la division par 2 nul).\nCombiner : `&` pour ET, `|` pour OU, `~` pour NON, avec des **parenthèses** obligatoires : `v[(v > 0) & (v < 5)]`. Les mots `and` / `or` ne marchent pas sur des tableaux.\nUn masque sert aussi à **modifier** : `v[v < 0] = 0` met à zéro toutes les valeurs négatives. Et `np.sum(mask)` compte les True, `np.mean(mask)` donne la proportion (utile pour estimer une probabilité).\n« Un masque, c'est un filtre » : oui, et aussi un outil de mise à jour ciblée, sans boucle.",
+        "keypoints": [
+          "`v1 > 0` → tableau de **True/False** (le masque)",
+          "`v1[v1 > 0]`, `v1[v1 > 3]`, `v[v % 2 == 0]` (paires)",
+          "Combiner : `(a) & (b)`, `(a) | (b)`, `~a`, **parenthèses** obligatoires",
+          "Modifier : `v[v < 0] = 0` ; compter : `np.sum(mask)` ; proportion : `np.mean(mask)`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Seuiller : np.minimum et np.clip",
+        "front": "Code vector_threshold(v, t) qui ramène à t toutes les valeurs au-dessus de t, sans boucle. Trois façons ?",
+        "body": "On veut [1, 2, 3] avec t = 2 → [1, 2, 2], et [−1, 0, 1, 2] avec t = 0 → [−1, 0, 0, 0].\n**1. `np.minimum(v, t)`** : le minimum case par case entre la valeur et le seuil. La plus directe.\n**2. `np.clip(v, None, t)`** : clip borne un tableau entre un min et un max ; `None` pour ne pas borner en bas. `np.clip(v, 0, 1)` bornerait entre 0 et 1 des deux côtés (utile pour des probabilités).\n**3. Le masque** : `v = v.copy(); v[v > t] = t`. Modifie sur place, d'où le copy si on veut garder l'original.\nLa version `np.clip(v, np.min(v), t)` vue dans l'exercice fonctionne aussi : borner en bas par le minimum du vecteur ne change rien. Elle fait juste un calcul de plus pour rien.\nÀ retenir : `np.minimum` / `np.maximum` comparent **deux tableaux** (ou un tableau et un scalaire) case par case ; `np.min` / `np.max` renvoient **une seule valeur**, le plus petit ou le plus grand élément. Deux fonctions différentes malgré le nom.",
+        "keypoints": [
+          "**`np.minimum(v, t)`** : minimum case par case avec le seuil",
+          "`np.clip(v, None, t)` ; `np.clip(v, 0, 1)` borne des deux côtés",
+          "Masque : `v[v > t] = t` (modifie sur place, copy avant si besoin)",
+          "`np.minimum` (case par case) ≠ `np.min` (une seule valeur)"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Vue ou copie : le piège du slicing",
+        "front": "v1 = [−1, 2, 6, −4], v2 = v1[0:2], v2[0] = 0. v1 a-t-il changé ? Pourquoi ?",
+        "body": "**Oui, v1 a changé** : il vaut maintenant [0, 2, 6, −4]. C'est la réponse à l'exercice, et le piège numéro un de numpy.\nUne tranche `v1[0:2]` ne copie pas les données : elle crée une **vue**, un nouvel objet qui regarde **la même mémoire**. Modifier la vue modifie l'original, et inversement. numpy fait ça pour la vitesse : découper une image de 100 Mo ne coûte rien.\nPour une vraie copie indépendante : `v2 = v1[0:2].copy()`.\nLa règle : le **slicing** (`v[a:b]`, `A[:, 0]`) donne une **vue** ; l'**indexation booléenne** (`v[v > 0]`) et l'indexation par liste d'indices (`v[[0, 2]]`) donnent une **copie**. `reshape` donne une vue quand c'est possible.\nSymptôme classique : « mon tableau original a été modifié sans que je le touche ». Vérifier avec `v2.base is v1` (True pour une vue) ou `np.shares_memory(v1, v2)`.",
+        "keypoints": [
+          "**Oui, v1 change** : une tranche est une **vue** sur la même mémoire",
+          "Copie indépendante : `v1[0:2].copy()`",
+          "Slicing → vue ; masque booléen ou liste d'indices → copie",
+          "Diagnostic : `np.shares_memory(v1, v2)`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Tableaux 2D : lignes, colonnes, axis",
+        "front": "A a 4 lignes et 3 colonnes. Comment lire A[i, j], une ligne, une colonne, la moyenne de chaque colonne, de chaque ligne ?",
+        "body": "`A.shape` vaut `(4, 3)` : **4 lignes, 3 colonnes**, toujours dans cet ordre (lignes d'abord). `A[i, j]` est la case ligne i, colonne j. `A[0]` (ou `A[0, :]`) est la **première ligne** entière, `A[:, 0]` la **première colonne**.\nLes fonctions d'agrégation prennent un paramètre **axis**, l'axe qu'on **écrase** :\n`np.mean(A, axis=0)` écrase les lignes → une moyenne **par colonne**, résultat de forme (3,).\n`np.mean(A, axis=1)` écrase les colonnes → une moyenne **par ligne**, résultat de forme (4,).\n`np.mean(A)` sans axis → une seule valeur, la moyenne de tout.\nC'est la réponse à l'exercice column_mean / row_mean, et la vérification demandée : column_mean a 3 valeurs (autant que de colonnes), row_mean en a 4.\nMême logique pour `np.sum`, `np.max`, `np.min`, `np.std`, `np.argmax`. En data : X a une ligne par exemple et une colonne par feature, donc `X.mean(axis=0)` est la moyenne de chaque feature.",
+        "keypoints": [
+          "`A.shape = (4, 3)` : **lignes, colonnes** ; `A[i, j]`, `A[0]` ligne, `A[:, 0]` colonne",
+          "**axis = l'axe qu'on écrase** : `axis=0` → une valeur par colonne (3,)",
+          "`axis=1` → une valeur par ligne (4,) ; sans axis → une seule valeur",
+          "X (n exemples × p features) : `X.mean(axis=0)` = moyenne par feature"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Colonnes impaires d'un tableau 2D",
+        "front": "Récupère toutes les valeurs de ta2d dont la colonne est d'indice impair. Pourquoi ta2d[0][id] est-il faux ?",
+        "body": "La réponse tient en une ligne : **`ta2d_impaire = ta2d[:, 1::2]`**. Lecture : `:` toutes les lignes, `1::2` les colonnes 1, 3, 5… (à partir de 1, une sur deux). Le résultat garde toutes les lignes et la moitié des colonnes.\nLa tentative `ta2d[0][id]` ne prend que **la première ligne** (`ta2d[0]`) puis filtre ses colonnes : on perd les autres lignes. Le masque `id` construit sur `range(ta2d[0].size)` était juste, mais appliqué au mauvais objet.\nVersion masque correcte, si on y tient : `cols = np.arange(ta2d.shape[1]) % 2 == 1` puis `ta2d[:, cols]`. Le masque s'applique sur l'axe des colonnes, en gardant toutes les lignes avec `:`.\nÀ retenir : en 2D, on indexe **les deux axes en même temps** avec une virgule, `A[lignes, colonnes]`. `A[0][id]` enchaîne deux indexations et la première a déjà jeté les autres lignes.",
+        "keypoints": [
+          "**`ta2d[:, 1::2]`** : toutes les lignes, colonnes 1, 3, 5…",
+          "`ta2d[0][id]` ne garde que la **première ligne** : faux",
+          "Masque : `cols = np.arange(ta2d.shape[1]) % 2 == 1` ; `ta2d[:, cols]`",
+          "En 2D : indexer les deux axes d'un coup, `A[lignes, colonnes]`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "reshape : changer la forme sans changer les données",
+        "front": "Redimensionne une matrice 10×10 en 20 lignes × 5 colonnes. Que signifie reshape(-1, 1) ?",
+        "body": "`m = A.reshape(20, 5)` (ou `np.reshape(A, (20, 5))`) : les 100 valeurs sont relues **ligne par ligne** et rangées dans la nouvelle forme. Condition : le **nombre total de cases ne change pas** (10 × 10 = 20 × 5 = 100). `A.reshape(7, 7)` lèverait une erreur.\n`-1` veut dire « déduis cette dimension » : `A.reshape(-1, 5)` donne (20, 5), `A.reshape(-1)` aplatit en un vecteur de 100.\n**`x.reshape(-1, 1)`** transforme un vecteur (n,) en **colonne** (n, 1) : c'est ce que scikit-learn exige quand on a une seule feature (`model.fit(x.reshape(-1, 1), y)`), parce qu'il attend toujours une matrice « n exemples × p features ».\nreshape renvoie une **vue** quand c'est possible (même piège que le slicing). `.ravel()` aplatit en vue, `.flatten()` en copie. `A.T` transpose (lignes ↔ colonnes), ce qui n'est pas un reshape : (4, 3) devient (3, 4) mais les données sont réorganisées, pas relues dans l'ordre.",
+        "keypoints": [
+          "`A.reshape(20, 5)` : même nombre de cases (100), relues ligne par ligne",
+          "`-1` = « déduis » : `reshape(-1, 5)`, `reshape(-1)` aplatit",
+          "**`x.reshape(-1, 1)`** : vecteur → colonne (n, 1), format attendu par scikit-learn",
+          "reshape = vue si possible ; `A.T` transpose (autre chose)"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "stack et concatenate",
+        "front": "Deux vecteurs de 10 : comment obtenir une matrice (2, 10) ? Deux tableaux (9, 16) : comment obtenir (9, 16, 2) ? Différence stack / concatenate ?",
+        "body": "**`np.stack((v1, v2))`** empile deux vecteurs (10,) en créant une **dimension en plus** : résultat (2, 10), v1 en première ligne, v2 en seconde. C'est l'exercice mat = np.stack((v1, v2)).\n**`np.concatenate((v1, v2))`** colle bout à bout sur une dimension **existante** : résultat (20,), aucune dimension créée.\nLa règle : **stack empile** (une dimension de plus, les entrées doivent avoir exactement la même forme) ; **concatenate prolonge** (même nombre de dimensions, les formes doivent coïncider sauf sur l'axe de collage). Résumé de l'exercice : « stack = matrice, concatenate = fusion », c'est ça.\nLe paramètre **axis** dit où mettre la nouvelle dimension. Pour a et b de forme (9, 16) :\n`np.stack((a, b))` ou `axis=0` → **(2, 9, 16)**\n`np.stack((a, b), axis=-1)` (ou `axis=2`) → **(9, 16, 2)**, la dimension ajoutée en dernier. C'est la réponse à l'exercice resté vide : `X = np.stack((a, b), axis=-1)`.\nCas typique : deux images en niveaux de gris (h, l) empilées en (h, l, 2), ou plusieurs features (n,) empilées en `np.stack((f1, f2), axis=1)` → (n, 2), une colonne par feature. `np.vstack` et `np.hstack` sont des raccourcis de concatenate.",
+        "keypoints": [
+          "**stack** : dimension **en plus**, mêmes formes ; (10,) + (10,) → **(2, 10)**",
+          "**concatenate** : prolonge une dimension existante ; (10,) + (10,) → **(20,)**",
+          "`axis` place la nouvelle dimension : `np.stack((a, b), axis=-1)` sur (9, 16) → **(9, 16, 2)**",
+          "Features en colonnes : `np.stack((f1, f2), axis=1)` → (n, 2)"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Les fonctions qui remplacent la boucle",
+        "front": "Cite les fonctions numpy pour : somme, moyenne, écart-type, min/max, indice du max, choix conditionnel, différences, produit scalaire",
+        "body": "`np.sum(v)`, `np.mean(v)`, `np.std(v)` (écart-type), `np.min(v)`, `np.max(v)` : une valeur, ou une par ligne / colonne avec axis.\n`np.argmax(v)`, `np.argmin(v)` : l'**indice** du max / du min, pas sa valeur. C'est l'argmin du chapitre sur la descente de gradient, et la base d'epsilon-greedy (`np.argmax(Q)` = le meilleur choix connu).\n`np.where(cond, a, b)` : a là où cond est vrai, b ailleurs, case par case. `np.where(v > 0, v, 0)` remplace les négatifs par 0 sans toucher v.\n`np.diff(v)` : les différences v[i+1] − v[i], ce qu'on a recodé. `np.cumsum(v)` : sommes cumulées.\n`np.dot(w, x)` ou **`w @ x`** : le **produit scalaire** Σ wi·xi, c'est-à-dire la régression linéaire avec x0 = 1. Sur des matrices, `X @ w` calcule toutes les prédictions d'un coup. `np.linalg.norm(v)` : la longueur d'un vecteur (utile pour la taille d'un gradient).\n`np.abs`, `np.round`, `np.sort`, `np.unique` complètent la boîte à outils. Le réflexe reste le même : chercher la fonction avant d'écrire la boucle.",
+        "keypoints": [
+          "`sum`, `mean`, `std`, `min`, `max` (+ axis) ; `argmax` / `argmin` = l'**indice**",
+          "`np.where(cond, a, b)` : choix case par case",
+          "`np.diff`, `np.cumsum` ; `np.linalg.norm` = longueur (taille d'un gradient)",
+          "**`w @ x`** = produit scalaire = régression linéaire ; `X @ w` = toutes les prédictions"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "a = np.array([1, 2, 3]). Que vaut a * 2 ?",
+        "choices": [
+          "[2, 4, 6]",
+          "[1, 2, 3, 1, 2, 3]",
+          "[[1, 2, 3], [1, 2, 3]]",
+          "Une erreur, on ne multiplie pas un tableau par un entier"
+        ],
+        "answer": 0,
+        "explain": "Sur un ndarray, l'opération s'applique case par case. [1, 2, 3, 1, 2, 3] serait le résultat sur une liste Python.",
+        "difficulty": "facile",
+        "topic": "ndarray"
+      },
+      {
+        "q": "Que renvoie A.shape pour une matrice de 4 lignes et 3 colonnes ?",
+        "choices": [
+          "(4, 3)",
+          "(3, 4)",
+          "12",
+          "[4, 3]"
+        ],
+        "answer": 0,
+        "explain": "Un tuple (lignes, colonnes). 12 est A.size, le nombre total de cases.",
+        "difficulty": "facile",
+        "topic": "ndarray"
+      },
+      {
+        "q": "Combien de valeurs contient np.arange(0, 20, 0.1) ?",
+        "choices": [
+          "200, de 0 à 19,9",
+          "201, de 0 à 20",
+          "20, de 0 à 19",
+          "199, de 0,1 à 19,9"
+        ],
+        "answer": 0,
+        "explain": "Comme range, la borne haute est exclue : 0, 0,1, …, 19,9, soit 20 / 0,1 = 200 valeurs. np.linspace(0, 20, 201) inclurait 20.",
+        "difficulty": "moyen",
+        "topic": "création"
+      },
+      {
+        "q": "Comment créer une matrice 10 × 10 remplie de zéros ?",
+        "choices": [
+          "np.zeros((10, 10))",
+          "np.zeros(10, 10)",
+          "np.zeros[10, 10]",
+          "np.array(0, 10, 10)"
+        ],
+        "answer": 0,
+        "explain": "La forme est passée sous forme de tuple. np.zeros(10, 10) interprète le second 10 comme un dtype et échoue.",
+        "difficulty": "facile",
+        "topic": "création"
+      },
+      {
+        "q": "Que renvoie np.random.randint(-10, 10, 10) ?",
+        "choices": [
+          "10 entiers entre −10 inclus et 10 exclu",
+          "10 entiers entre −10 et 10 inclus",
+          "Un entier entre −10 et 10, tiré 10 fois de suite",
+          "10 flottants entre −10 et 10"
+        ],
+        "answer": 0,
+        "explain": "Convention numpy : borne basse incluse, borne haute exclue, le dernier argument est la taille. Pour des flottants, on utiliserait rand ou uniform.",
+        "difficulty": "moyen",
+        "topic": "création"
+      },
+      {
+        "q": "v = np.array([1, 3, 2, 3]). Que vaut v[1:] − v[:-1] ?",
+        "choices": [
+          "[2, −1, 1]",
+          "[−2, 1, −1]",
+          "[1, 3, 2]",
+          "[2, −1, 1, 0]"
+        ],
+        "answer": 0,
+        "explain": "v[1:] = [3, 2, 3], v[:-1] = [1, 3, 2], différence case par case [2, −1, 1]. C'est ce que fait np.diff. Le résultat a une case de moins que v.",
+        "difficulty": "moyen",
+        "topic": "vectorisation"
+      },
+      {
+        "q": "Que renvoie v > 0 quand v est un tableau numpy ?",
+        "choices": [
+          "Un tableau de booléens, un True ou False par case",
+          "Un seul booléen : True si toutes les valeurs sont positives",
+          "Le tableau des valeurs strictement positives de v",
+          "Le nombre de valeurs strictement positives"
+        ],
+        "answer": 0,
+        "explain": "C'est le masque. Les valeurs positives, c'est v[v > 0] ; leur nombre, np.sum(v > 0) ; « toutes positives », np.all(v > 0).",
+        "difficulty": "facile",
+        "topic": "masques"
+      },
+      {
+        "q": "Comment garder les valeurs de v comprises strictement entre 0 et 5 ?",
+        "choices": [
+          "v[(v > 0) & (v < 5)]",
+          "v[v > 0 and v < 5]",
+          "v[v > 0 & v < 5]",
+          "v[0 < v < 5]"
+        ],
+        "answer": 0,
+        "explain": "& pour le ET, avec des parenthèses car & est prioritaire sur >. and ne fonctionne pas sur des tableaux, et 0 < v < 5 non plus.",
+        "difficulty": "moyen",
+        "topic": "masques"
+      },
+      {
+        "q": "Quelle expression ramène à t toutes les valeurs de v supérieures à t, sans boucle ?",
+        "choices": [
+          "np.minimum(v, t)",
+          "np.min(v, t)",
+          "np.maximum(v, t)",
+          "v[v > t]"
+        ],
+        "answer": 0,
+        "explain": "Minimum case par case entre la valeur et le seuil. np.min renvoie une seule valeur, np.maximum ferait l'inverse (un plancher), et v[v > t] extrait les valeurs au lieu de les remplacer.",
+        "difficulty": "moyen",
+        "topic": "seuil"
+      },
+      {
+        "q": "v1 = np.array([−1, 2, 6, −4]) ; v2 = v1[0:2] ; v2[0] = 0. Que vaut v1 ?",
+        "choices": [
+          "[0, 2, 6, −4]",
+          "[−1, 2, 6, −4]",
+          "[0, 2]",
+          "Une erreur, v2 est en lecture seule"
+        ],
+        "answer": 0,
+        "explain": "Une tranche est une vue sur la même mémoire : modifier v2 modifie v1. Il aurait fallu v1[0:2].copy() pour un tableau indépendant.",
+        "difficulty": "moyen",
+        "topic": "vue / copie"
+      },
+      {
+        "q": "Laquelle de ces indexations renvoie une copie et non une vue ?",
+        "choices": [
+          "v[v > 0]",
+          "v[2:5]",
+          "v[::2]",
+          "A[:, 0]"
+        ],
+        "answer": 0,
+        "explain": "L'indexation booléenne construit un nouveau tableau. Les tranches (v[2:5], v[::2], A[:, 0]) sont des vues.",
+        "difficulty": "difficile",
+        "topic": "vue / copie"
+      },
+      {
+        "q": "A a 4 lignes et 3 colonnes. Quelle est la forme de np.mean(A, axis=0) ?",
+        "choices": [
+          "(3,) : une moyenne par colonne",
+          "(4,) : une moyenne par ligne",
+          "(1,) : la moyenne de tout",
+          "(4, 3) : chaque case divisée par 12"
+        ],
+        "answer": 0,
+        "explain": "axis=0 écrase les lignes, il reste une valeur par colonne. axis=1 donnerait (4,), une par ligne.",
+        "difficulty": "moyen",
+        "topic": "axis"
+      },
+      {
+        "q": "Comment obtenir la première colonne d'une matrice A ?",
+        "choices": [
+          "A[:, 0]",
+          "A[0]",
+          "A[0, :]",
+          "A[:][0]"
+        ],
+        "answer": 0,
+        "explain": "Toutes les lignes, colonne 0. A[0], A[0, :] et A[:][0] renvoient tous la première ligne.",
+        "difficulty": "facile",
+        "topic": "2D"
+      },
+      {
+        "q": "Comment récupérer toutes les colonnes d'indice impair d'un tableau 2D ta2d ?",
+        "choices": [
+          "ta2d[:, 1::2]",
+          "ta2d[0][1::2]",
+          "ta2d[1::2]",
+          "ta2d[1::2, :]"
+        ],
+        "answer": 0,
+        "explain": "Toutes les lignes, puis les colonnes 1, 3, 5… ta2d[0][1::2] ne garde que la première ligne ; ta2d[1::2] et ta2d[1::2, :] sélectionnent les lignes impaires.",
+        "difficulty": "moyen",
+        "topic": "2D"
+      },
+      {
+        "q": "A est une matrice 10 × 10. Que donne A.reshape(20, 5) ?",
+        "choices": [
+          "Une matrice 20 × 5 contenant les 100 mêmes valeurs, relues ligne par ligne",
+          "Une matrice 20 × 5 remplie de zéros, les données étant perdues",
+          "Une erreur : on ne peut pas changer le nombre de lignes",
+          "Une matrice 20 × 5 obtenue en dupliquant les lignes de A"
+        ],
+        "answer": 0,
+        "explain": "reshape réorganise les mêmes cases dans une autre forme, à condition que le total (100) soit conservé. A.reshape(7, 7) serait une erreur.",
+        "difficulty": "facile",
+        "topic": "reshape"
+      },
+      {
+        "q": "Pourquoi écrit-on x.reshape(-1, 1) avant model.fit(x, y) dans scikit-learn ?",
+        "choices": [
+          "sklearn veut une matrice (n, p) : une feature = une colonne",
+          "sklearn n'accepte que du 1D et −1 aplatit le tableau",
+          "−1 indique à sklearn que la dernière valeur est le label",
+          "reshape trie les exemples avant l'entraînement"
+        ],
+        "answer": 0,
+        "explain": "−1 laisse numpy déduire le nombre de lignes, 1 impose une colonne : (n,) devient (n, 1), un exemple par ligne, une feature par colonne.",
+        "difficulty": "moyen",
+        "topic": "reshape"
+      },
+      {
+        "q": "v1 et v2 sont deux vecteurs de 10 valeurs. Quelle est la forme de np.stack((v1, v2)) ? Et de np.concatenate((v1, v2)) ?",
+        "choices": [
+          "(2, 10) et (20,)",
+          "(20,) et (2, 10)",
+          "(10, 2) et (20,)",
+          "(2, 10) et (2, 10)"
+        ],
+        "answer": 0,
+        "explain": "stack ajoute une dimension (deux lignes de dix), concatenate prolonge la dimension existante (un vecteur de vingt).",
+        "difficulty": "moyen",
+        "topic": "stack"
+      },
+      {
+        "q": "a et b sont de forme (9, 16). Comment obtenir un tableau (9, 16, 2) ?",
+        "choices": [
+          "np.stack((a, b), axis=-1)",
+          "np.stack((a, b))",
+          "np.concatenate((a, b), axis=-1)",
+          "np.stack((a, b), axis=0)"
+        ],
+        "answer": 0,
+        "explain": "axis=-1 place la nouvelle dimension en dernier. Sans axis (ou axis=0) on obtient (2, 9, 16) ; concatenate sur le dernier axe donnerait (9, 32).",
+        "difficulty": "difficile",
+        "topic": "stack"
+      },
+      {
+        "q": "Que renvoie np.argmax([3, 9, 4]) ?",
+        "choices": [
+          "1",
+          "9",
+          "3",
+          "[False, True, False]"
+        ],
+        "answer": 0,
+        "explain": "argmax renvoie l'indice du maximum (9 est à l'indice 1), pas sa valeur. C'est la fonction qui choisit « le meilleur bras connu » dans epsilon-greedy.",
+        "difficulty": "facile",
+        "topic": "fonctions"
+      },
+      {
+        "q": "w = [1, 2] et x = [1, 3]. Que vaut w @ x ?",
+        "choices": [
+          "7",
+          "[1, 6]",
+          "[2, 5]",
+          "5"
+        ],
+        "answer": 0,
+        "explain": "Produit scalaire : 1×1 + 2×3 = 7. C'est une régression linéaire avec x0 = 1 : biais 1, pente 2, feature 3. [1, 6] serait w * x.",
+        "difficulty": "moyen",
+        "topic": "fonctions"
+      }
+    ],
+    "sources": [
+      {
+        "label": "numpy – guide officiel pour débutants",
+        "url": "https://numpy.org/doc/stable/user/absolute_beginners.html"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/NumPy_logo_2020.svg",
+        "caption": "numpy : des tableaux typés et des opérations case par case exécutées en C",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:NumPy_logo_2020.svg"
+      },
+      {
+        "url": "https://img.youtube.com/vi/NzDQTrqsxas/hqdefault.jpg",
+        "caption": "Machine Learnia : Python numpy pour le machine learning (10/30)",
+        "credit": "Machine Learnia · YouTube",
+        "link": "https://www.youtube.com/watch?v=NzDQTrqsxas"
+      }
+    ],
+    "links": [
+      {
+        "label": "Machine Learnia – PYTHON NUMPY machine learning (10/30), en français",
+        "url": "https://www.youtube.com/watch?v=NzDQTrqsxas",
+        "kind": "youtube"
+      },
+      {
+        "label": "Machine Learnia – la playlist complète (numpy : épisodes 10 et 11)",
+        "url": "https://www.youtube.com/playlist?list=PLO_fdPEVlfKqMDNmCFzQISI2H_nJcEDJq",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – guide pour débutants absolus (shape, slicing, stack, reshape)",
+        "url": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – indexation et masques booléens, vues et copies",
+        "url": "https://numpy.org/doc/stable/user/basics.indexing.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – broadcasting",
+        "url": "https://numpy.org/doc/stable/user/basics.broadcasting.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – np.stack",
+        "url": "https://numpy.org/doc/stable/reference/generated/numpy.stack.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – np.concatenate",
+        "url": "https://numpy.org/doc/stable/reference/generated/numpy.concatenate.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – np.clip",
+        "url": "https://numpy.org/doc/stable/reference/generated/numpy.clip.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – le module random (default_rng)",
+        "url": "https://numpy.org/doc/stable/reference/random/index.html",
+        "kind": "doc"
+      },
+      {
+        "label": "NumPy",
+        "url": "https://fr.wikipedia.org/wiki/NumPy",
+        "kind": "wiki"
+      }
+    ]
+  },
+  {
+    "id": "pandas-matplotlib",
+    "num": "03",
+    "special": false,
+    "title": "pandas et matplotlib : charger et voir",
+    "summary": "pandas pour charger un CSV dans un DataFrame, regarder ses colonnes et ses statistiques, sélectionner et filtrer avec des masques, créer un tableau à la main (les coordonnées de Paris, Lyon, Aix), passer de pandas à numpy pour nourrir un modèle, agréger avec groupby. matplotlib pour la figure, le nuage de points prix / surface, les courbes et histogrammes, et la droite de régression tracée par-dessus les points. Regarder les données avant de modéliser.",
+    "topics": [
+      "DataFrame, Series, pd.read_csv, head, shape, columns, dtypes, describe",
+      "sélection df['col'], df[['a', 'b']], filtre par masque, loc / iloc, nouvelle colonne",
+      "pd.DataFrame({...}) à la main, to_csv",
+      "de pandas à numpy : to_numpy(), X (n, p) et y (n,)",
+      "agréger : mean, groupby, sort_values, value_counts, valeurs manquantes",
+      "matplotlib : fig, ax = plt.subplots(), scatter, labels, plt.show",
+      "plot, hist, legend, savefig, droite de régression sur le nuage",
+      "regarder avant de modéliser : quartet d'Anscombe, corr"
+    ],
+    "fiches": [
+      {
+        "title": "pandas : le DataFrame",
+        "front": "Charge houses.csv avec pandas. Comment regarder ce qu'il contient ? Que sont un DataFrame et une Series ?",
+        "body": "`import pandas as pd` puis **`df = pd.read_csv('houses.csv')`** : le fichier devient un **DataFrame**, un tableau à **colonnes nommées** (size, price, nb_rooms, garden…) et à **index** (le numéro de ligne par défaut). Chaque colonne est une **Series**, un vecteur numpy avec un nom et un index.\nPremiers réflexes, dans l'ordre :\n`df.head()` : les 5 premières lignes (`df.head(10)` pour 10).\n`df.shape` : (nombre de lignes, nombre de colonnes), comme numpy.\n`df.columns` : les noms des colonnes ; `df.dtypes` : le type de chacune (int64, float64, object pour du texte).\n`df.describe()` : pour chaque colonne numérique, le nombre de valeurs, la **moyenne**, l'**écart-type**, le **min**, les quartiles et le **max**. Ce sont exactement les statistiques descriptives du cours de data, en une ligne.\n`df.info()` : types et valeurs manquantes par colonne.",
+        "keypoints": [
+          "**`df = pd.read_csv('houses.csv')`** → DataFrame = tableau à colonnes nommées",
+          "Une colonne = une **Series** (vecteur numpy + nom + index)",
+          "`head()`, `shape`, `columns`, `dtypes`, `info()`",
+          "**`describe()`** = moyenne, écart-type, min, max, quartiles : les stats descriptives en une ligne"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Sélectionner et filtrer",
+        "front": "Comment prendre la colonne price, deux colonnes, les maisons de plus de 200 000, une ligne précise, et ajouter une colonne prix au m² ?",
+        "body": "**Une colonne** : `df['price']` → une Series. **Plusieurs** : `df[['size', 'price']]` (une liste entre les crochets) → un DataFrame.\n**Filtrer** avec un masque booléen, exactement comme numpy : `df[df['price'] > 200000]` garde les lignes où la condition est vraie. Combiner : `df[(df['price'] > 200000) & (df['garden'] == 1)]`, parenthèses obligatoires, `&` et `|`.\n**Une ligne** : `df.iloc[0]` (par position, la première), `df.loc[3]` (par étiquette d'index). `df.loc[df['size'] > 100, 'price']` : les prix des grandes maisons (lignes filtrées, colonne choisie).\n**Nouvelle colonne** : `df['prix_m2'] = df['price'] / df['size']`, calculée en vectorisé sur toutes les lignes. `df['grande'] = df['size'] > 100` crée une colonne de booléens.\nSupprimer : `df.drop(columns=['prix_m2'])`. Renommer : `df.rename(columns={'size': 'surface'})`. Ces méthodes renvoient un **nouveau** DataFrame ; l'original ne change pas sauf `inplace=True` ou réaffectation.",
+        "keypoints": [
+          "`df['price']` (Series) ; `df[['size', 'price']]` (DataFrame)",
+          "Filtre : `df[df['price'] > 200000]` ; `&` / `|` avec parenthèses",
+          "`iloc[0]` par position, `loc[...]` par étiquette ; `df.loc[masque, 'col']`",
+          "Nouvelle colonne vectorisée : `df['prix_m2'] = df['price'] / df['size']`"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Créer un DataFrame à la main",
+        "front": "Crée un DataFrame avec les colonnes lat et lon pour Paris, Lyon et Aix-en-Provence",
+        "body": "Un dictionnaire **colonne → liste de valeurs** suffit :\n`villes = pd.DataFrame({`\n`    'ville': ['Paris', 'Lyon', 'Aix-en-Provence'],`\n`    'lat': [48.8566, 45.7640, 43.5297],`\n`    'lon': [2.3522, 4.8357, 5.4474],`\n`})`\nC'est le DataFrame demandé pour `st.map(villes)` dans Streamlit, qui cherche des colonnes nommées **lat** et **lon** (ou latitude / longitude).\nAutres façons : depuis un tableau numpy, `pd.DataFrame(A, columns=['a', 'b', 'c'])` ; depuis une liste de dictionnaires (une ligne chacun) ; depuis un dictionnaire de Series.\nDans l'autre sens : `df.to_csv('villes.csv', index=False)` écrit le fichier (`index=False` pour ne pas sauver le numéro de ligne), `df.to_excel`, `df.to_json`. Et `pd.read_csv` accepte une URL directement.",
+        "keypoints": [
+          "`pd.DataFrame({'lat': [...], 'lon': [...]})` : dictionnaire colonne → liste",
+          "Paris (48.8566, 2.3522), Lyon (45.7640, 4.8357), Aix (43.5297, 5.4474)",
+          "Depuis numpy : `pd.DataFrame(A, columns=[...])`",
+          "`df.to_csv('f.csv', index=False)` ; read_csv accepte une URL"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "De pandas à numpy : préparer X et y",
+        "front": "Comment passer d'un DataFrame aux tableaux X (n, p) et y (n) attendus par un modèle ?",
+        "body": "Un modèle (le nôtre en numpy, ou scikit-learn) veut des **tableaux numpy** : **X** de forme (n exemples, p features) et **y** de forme (n,). C'est exactement la notation du cours de data, et pandas y mène en une ligne :\n`X = df[['size', 'nb_rooms', 'garden']].to_numpy()` → forme (n, 3), une ligne par maison, une colonne par feature.\n`y = df['price'].to_numpy()` → forme (n,), le prix de chaque maison.\n`.to_numpy()` (ou l'ancien `.values`) rend le tableau numpy sous-jacent. Pour une seule feature, `df['size'].to_numpy()` donne (n,) ; scikit-learn voudra `.reshape(-1, 1)` ou, plus simple, `df[['size']].to_numpy()` avec la double paire de crochets qui donne déjà (n, 1).\nLe retour : `df['prediction'] = model.predict(X)` range les prédictions dans une nouvelle colonne, alignée ligne par ligne avec les données. Puis `df[['price', 'prediction']].head()` pour comparer, ou `df.to_csv` pour livrer.",
+        "keypoints": [
+          "**X = `df[['size', 'nb_rooms']].to_numpy()`** → (n, p) ; **y = `df['price'].to_numpy()`** → (n,)",
+          "Une feature : `df[['size']].to_numpy()` donne déjà (n, 1)",
+          "`.to_numpy()` (ou `.values`) = le tableau numpy sous-jacent",
+          "Retour : `df['prediction'] = model.predict(X)`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Agréger : mean, groupby, sort, valeurs manquantes",
+        "front": "Prix moyen ? Prix moyen par nombre de pièces ? Les 5 plus chères ? Combien de maisons avec jardin ? Des valeurs manquantes ?",
+        "body": "`df['price'].mean()` : la moyenne d'une colonne ; aussi `.median()`, `.std()`, `.min()`, `.max()`, `.sum()`.\n**`df.groupby('nb_rooms')['price'].mean()`** : le prix moyen **par** nombre de pièces, une ligne par valeur de nb_rooms. groupby = découper en groupes, puis agréger chaque groupe. `.agg(['mean', 'count'])` pour plusieurs statistiques.\n`df.sort_values('price', ascending=False).head(5)` : les 5 maisons les plus chères.\n`df['garden'].value_counts()` : combien de 0, combien de 1. `df['nb_rooms'].unique()` : les valeurs distinctes.\n**Valeurs manquantes** (NaN) : `df.isna().sum()` les compte par colonne. `df.dropna()` supprime les lignes incomplètes ; `df['size'].fillna(df['size'].mean())` remplace par la moyenne. Un modèle numpy plante sur un NaN : c'est l'étape « nettoyage » du projet de machine learning.\n`df.corr()` : la corrélation entre colonnes numériques (proche de 1 : quand l'une monte, l'autre aussi).",
+        "keypoints": [
+          "`df['price'].mean()` ; **`df.groupby('nb_rooms')['price'].mean()`**",
+          "`sort_values('price', ascending=False).head(5)` ; `value_counts()`",
+          "NaN : `df.isna().sum()`, `dropna()`, `fillna(moyenne)` : le nettoyage",
+          "`df.corr()` : corrélation entre colonnes"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "matplotlib : figure, axes, nuage de points",
+        "front": "Dessine le nuage de points du prix des maisons en fonction de leur taille, avec titres d'axes",
+        "body": "`import matplotlib.pyplot as plt`. Le schéma à toujours reprendre :\n`fig, ax = plt.subplots()` crée une **figure** (la feuille) et des **axes** (le graphique dessus).\n`ax.scatter(df['size'], df['price'])` dessine le **nuage de points** : un point par maison, taille en x, prix en y. C'est l'exercice de l'app Streamlit.\n`ax.set_xlabel('Surface (m²)')`, `ax.set_ylabel('Prix')`, `ax.set_title('Prix selon la surface')`.\n`plt.show()` affiche dans un script ou un notebook ; dans Streamlit, **`st.pyplot(fig)`** à la place.\nOptions utiles de scatter : `s=10` (taille des points), `alpha=0.5` (transparence quand ils se superposent), `c=df['garden']` (couleur selon une colonne).\nLe raccourci `plt.scatter(...)` sans créer fig/ax marche aussi, mais la forme `fig, ax` est celle qu'il faut pour passer la figure à Streamlit ou pour mettre plusieurs graphiques côte à côte (`plt.subplots(1, 2)`).",
+        "keypoints": [
+          "**`fig, ax = plt.subplots()`** : figure + axes",
+          "**`ax.scatter(df['size'], df['price'])`** : le nuage prix / surface",
+          "`set_xlabel`, `set_ylabel`, `set_title` ; `plt.show()` ou **`st.pyplot(fig)`**",
+          "`s`, `alpha`, `c=` pour taille, transparence, couleur"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Courbes, histogrammes, et la droite sur le nuage",
+        "front": "Trace une courbe, un histogramme, deux séries avec légende, et une droite de régression par-dessus le nuage",
+        "body": "**Courbe** : `ax.plot(x, y)` relie les points dans l'ordre (l'historique de températures, la trajectoire d'une descente de gradient). `marker='o'` pour voir les points.\n**Histogramme** : `ax.hist(df['price'], bins=20)` : la distribution d'une colonne, 20 barres. `density=True` pour une aire de 1, comparable à une densité de probabilité.\n**Plusieurs séries** : `ax.plot(x, y1, label='train')` puis `ax.plot(x, y2, label='test')` puis `ax.legend()`. Les courbes de loss d'un entraînement se tracent comme ça.\n**La droite apprise sur le nuage** : après une régression w0, w1 :\n`xs = np.linspace(df['size'].min(), df['size'].max(), 100)`\n`ax.scatter(df['size'], df['price'])`\n`ax.plot(xs, w0 + w1 * xs, color='red')`\nOn voit d'un coup d'œil si la droite « colle aux points ».\n`fig.savefig('figure.png', dpi=150)` enregistre. `plt.subplots(figsize=(8, 4))` règle la taille. `ax.grid(True)` ajoute une grille.",
+        "keypoints": [
+          "`ax.plot(x, y)` courbe ; `ax.hist(v, bins=20)` histogramme",
+          "`label=` + `ax.legend()` pour plusieurs séries",
+          "Droite sur le nuage : `xs = np.linspace(min, max, 100)` ; `ax.plot(xs, w0 + w1 * xs, color='red')`",
+          "`fig.savefig('f.png')` ; `figsize=` ; `ax.grid(True)`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Regarder avant de modéliser",
+        "front": "Pourquoi tracer les données avant d'entraîner un modèle ? Que montre le quartet d'Anscombe ?",
+        "body": "Le **quartet d'Anscombe** : quatre jeux de données dont `describe()` et `corr()` sont **identiques** (mêmes moyennes, mêmes écarts-types, même corrélation, même droite de régression) alors que les nuages sont **complètement différents** : une relation linéaire propre, une courbe, une droite parfaite avec un point aberrant, et une colonne de points avec un seul point à part. Les chiffres seuls ne le voient pas ; un `scatter` le voit en une seconde.\nRéflexes avant tout modèle : un **scatter** de chaque feature contre la cible (la relation est-elle linéaire ?), un **histogramme** de chaque colonne (valeurs aberrantes, échelles très différentes entre features), `df.isna().sum()` (trous), `df.describe()` (un prix négatif ? une surface de 10 000 m² ?).\nUn point aberrant tire une régression linéaire à lui seul, parce que la MSE met son erreur au carré. Le repérer avant vaut mieux qu'un modèle faux après. C'est l'étape 2 du projet de machine learning, « données », celle qui pèse le plus lourd.",
+        "keypoints": [
+          "**Quartet d'Anscombe** : mêmes stats, mêmes droites, nuages différents",
+          "Avant un modèle : `scatter` feature / cible, `hist`, `isna`, `describe`",
+          "Un point aberrant tire la régression (erreur au carré)",
+          "Regarder les données = l'étape la plus lourde du projet"
+        ],
+        "tier": 2
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Que renvoie pd.read_csv('houses.csv') ?",
+        "choices": [
+          "Un DataFrame : un tableau à colonnes nommées et à index",
+          "Un tableau numpy 2D contenant uniquement les nombres du fichier",
+          "Une liste de lignes, chaque ligne étant une chaîne de caractères",
+          "Un dictionnaire dont les clés sont les numéros de ligne"
+        ],
+        "answer": 0,
+        "explain": "Le DataFrame garde les noms de colonnes et gère des types mélangés (nombres, texte). Pour le tableau numpy, on ajoute .to_numpy().",
+        "difficulty": "facile",
+        "topic": "DataFrame"
+      },
+      {
+        "q": "Quelle méthode donne d'un coup moyenne, écart-type, min et max de chaque colonne numérique ?",
+        "choices": [
+          "df.describe()",
+          "df.summary()",
+          "df.stats()",
+          "df.info()"
+        ],
+        "answer": 0,
+        "explain": "describe() calcule les statistiques descriptives. info() donne les types et les valeurs manquantes ; summary() et stats() n'existent pas.",
+        "difficulty": "facile",
+        "topic": "DataFrame"
+      },
+      {
+        "q": "Comment garder les lignes de df où le prix dépasse 200 000 ?",
+        "choices": [
+          "df[df['price'] > 200000]",
+          "df['price' > 200000]",
+          "df.filter(price > 200000)",
+          "df[df.price > 200000 and df.price < 500000]"
+        ],
+        "answer": 0,
+        "explain": "Un masque booléen entre crochets, comme numpy. Pour deux conditions il faudrait & avec parenthèses, pas and.",
+        "difficulty": "facile",
+        "topic": "sélection"
+      },
+      {
+        "q": "Quelle différence entre df['price'] et df[['price']] ?",
+        "choices": [
+          "Le premier renvoie une Series, le second un DataFrame à une colonne",
+          "Le premier renvoie une copie, le second une vue",
+          "Le premier trie la colonne, le second la laisse dans l'ordre",
+          "Aucune, les deux écritures sont équivalentes"
+        ],
+        "answer": 0,
+        "explain": "Une liste entre crochets sélectionne des colonnes et renvoie un DataFrame, même avec une seule. Pratique pour obtenir directement une forme (n, 1).",
+        "difficulty": "moyen",
+        "topic": "sélection"
+      },
+      {
+        "q": "Comment créer un DataFrame à deux colonnes lat et lon à partir de listes ?",
+        "choices": [
+          "pd.DataFrame({'lat': [48.9, 45.8], 'lon': [2.4, 4.8]})",
+          "pd.DataFrame([48.9, 45.8], [2.4, 4.8], names=['lat', 'lon'])",
+          "pd.read_csv({'lat': [48.9, 45.8], 'lon': [2.4, 4.8]})",
+          "pd.Series('lat', [48.9, 45.8], 'lon', [2.4, 4.8])"
+        ],
+        "answer": 0,
+        "explain": "Un dictionnaire colonne → liste de valeurs. read_csv lit un fichier, Series ne fait qu'une colonne.",
+        "difficulty": "facile",
+        "topic": "création"
+      },
+      {
+        "q": "Comment obtenir la matrice X (n exemples × 2 features) à partir des colonnes size et nb_rooms ?",
+        "choices": [
+          "df[['size', 'nb_rooms']].to_numpy()",
+          "df['size', 'nb_rooms'].to_numpy()",
+          "np.array(df.size, df.nb_rooms)",
+          "df.to_numpy(['size', 'nb_rooms'])"
+        ],
+        "answer": 0,
+        "explain": "Sélection de deux colonnes (liste entre crochets) puis conversion en numpy : forme (n, 2), une ligne par exemple, une colonne par feature.",
+        "difficulty": "moyen",
+        "topic": "numpy"
+      },
+      {
+        "q": "Que calcule df.groupby('nb_rooms')['price'].mean() ?",
+        "choices": [
+          "Le prix moyen pour chaque valeur de nb_rooms",
+          "Le nombre de pièces moyen pour chaque prix",
+          "La moyenne du prix, puis celle de nb_rooms",
+          "Le prix moyen des maisons triées par nombre de pièces"
+        ],
+        "answer": 0,
+        "explain": "groupby découpe en groupes (une valeur de nb_rooms chacun), puis mean agrège le prix de chaque groupe : une ligne par nombre de pièces.",
+        "difficulty": "moyen",
+        "topic": "agrégation"
+      },
+      {
+        "q": "Comment compter les valeurs manquantes de chaque colonne ?",
+        "choices": [
+          "df.isna().sum()",
+          "df.count_nan()",
+          "df.describe()['nan']",
+          "len(df) − df.shape[0]"
+        ],
+        "answer": 0,
+        "explain": "isna() renvoie un tableau de booléens, sum() les compte colonne par colonne. Un NaN oublié fait planter un modèle numpy.",
+        "difficulty": "moyen",
+        "topic": "agrégation"
+      },
+      {
+        "q": "Quelle ligne dessine un nuage de points du prix en fonction de la surface avec matplotlib ?",
+        "choices": [
+          "ax.scatter(df['size'], df['price'])",
+          "ax.plot(df['size'], df['price'])",
+          "ax.hist(df['size'], df['price'])",
+          "ax.scatter(df['price'], df['size'])"
+        ],
+        "answer": 0,
+        "explain": "scatter(x, y) : la surface en abscisse, le prix en ordonnée. plot relierait les points par des traits, hist est un histogramme, et l'ordre inversé mettrait le prix en x.",
+        "difficulty": "facile",
+        "topic": "matplotlib"
+      },
+      {
+        "q": "Dans une app Streamlit, comment afficher une figure matplotlib fig ?",
+        "choices": [
+          "st.pyplot(fig)",
+          "plt.show()",
+          "st.write(plt)",
+          "fig.show(st)"
+        ],
+        "answer": 0,
+        "explain": "st.pyplot reçoit l'objet figure. plt.show() ouvre une fenêtre côté serveur, pas dans la page web.",
+        "difficulty": "facile",
+        "topic": "matplotlib"
+      },
+      {
+        "q": "Après une régression (w0, w1), comment tracer la droite apprise par-dessus le nuage ?",
+        "choices": [
+          "ax.plot(xs, w0 + w1 * xs) avec xs = np.linspace(min, max, 100)",
+          "ax.scatter(xs, w0 + w1 * xs) avec xs = df['size']",
+          "ax.hist(w0 + w1 * df['size'], bins=100)",
+          "ax.plot(w0, w1)"
+        ],
+        "answer": 0,
+        "explain": "On évalue la droite sur une grille régulière de x et on la trace en courbe. ax.plot(w0, w1) dessinerait un seul point.",
+        "difficulty": "moyen",
+        "topic": "matplotlib"
+      },
+      {
+        "q": "Que montre le quartet d'Anscombe ?",
+        "choices": [
+          "Des jeux de données aux statistiques identiques mais aux nuages très différents",
+          "Quatre méthodes de régression qui donnent des droites différentes",
+          "Que la corrélation suffit à décrire une relation entre deux variables",
+          "Quatre histogrammes identiques issus de moyennes différentes"
+        ],
+        "answer": 0,
+        "explain": "Mêmes moyennes, écarts-types, corrélation et droite de régression, mais une courbe, un point aberrant, une colonne de points. D'où le réflexe : scatter avant modèle.",
+        "difficulty": "moyen",
+        "topic": "regarder"
+      }
+    ],
+    "sources": [
+      {
+        "label": "pandas – 10 minutes to pandas",
+        "url": "https://pandas.pydata.org/docs/user_guide/10min.html"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Pandas_logo.svg",
+        "caption": "pandas : DataFrame, Series, read_csv, describe, groupby",
+        "credit": "Wikimedia Commons · BSD",
+        "link": "https://commons.wikimedia.org/wiki/File:Pandas_logo.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Matplotlib_icon.svg",
+        "caption": "matplotlib : figure, axes, scatter, plot, hist",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Matplotlib_icon.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Anscombe%27s_quartet_3.svg",
+        "caption": "Quartet d'Anscombe : quatre jeux de données, mêmes statistiques, mêmes droites, nuages différents",
+        "credit": "Wikimedia Commons · CC BY-SA 3.0",
+        "link": "https://commons.wikimedia.org/wiki/File:Anscombe%27s_quartet_3.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Linear_regression.svg",
+        "caption": "Ce qu'on veut voir sur le nuage : la droite de régression par-dessus les points",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Linear_regression.svg"
+      }
+    ],
+    "links": [
+      {
+        "label": "Machine Learnia – la playlist complète (pandas et matplotlib : épisodes 14 à 19)",
+        "url": "https://www.youtube.com/playlist?list=PLO_fdPEVlfKqMDNmCFzQISI2H_nJcEDJq",
+        "kind": "doc"
+      },
+      {
+        "label": "Machine Learnia – notebooks pandas / matplotlib de la série (GitHub)",
+        "url": "https://github.com/MachineLearnia/Python-Machine-Learning",
+        "kind": "doc"
+      },
+      {
+        "label": "pandas – 10 minutes to pandas",
+        "url": "https://pandas.pydata.org/docs/user_guide/10min.html",
+        "kind": "doc"
+      },
+      {
+        "label": "pandas – tutoriels de démarrage",
+        "url": "https://pandas.pydata.org/docs/getting_started/intro_tutorials/index.html",
+        "kind": "doc"
+      },
+      {
+        "label": "pandas – read_csv",
+        "url": "https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html",
+        "kind": "doc"
+      },
+      {
+        "label": "matplotlib – tutoriel pyplot",
+        "url": "https://matplotlib.org/stable/tutorials/pyplot.html",
+        "kind": "doc"
+      },
+      {
+        "label": "matplotlib – quick start (figure, axes)",
+        "url": "https://matplotlib.org/stable/users/explain/quick_start.html",
+        "kind": "doc"
+      },
+      {
+        "label": "Kaggle Learn – pandas (cours gratuit, exercices)",
+        "url": "https://www.kaggle.com/learn/pandas",
+        "kind": "doc"
+      },
+      {
+        "label": "pandas",
+        "url": "https://fr.wikipedia.org/wiki/Pandas",
+        "kind": "wiki"
+      },
+      {
+        "label": "Matplotlib",
+        "url": "https://fr.wikipedia.org/wiki/Matplotlib",
+        "kind": "wiki"
+      }
+    ]
+  },
+  {
+    "id": "streamlit",
+    "num": "04",
+    "special": false,
+    "title": "Streamlit : une app data en Python",
+    "summary": "Transformer un script Python en application web sans HTML : installer et lancer, st.write, le premier widget st.text_input, les familles de widgets, afficher un CSV, les graphiques natifs (line_chart, map) et matplotlib via st.pyplot, le modèle d'exécution (tout le script est relancé à chaque interaction) et ses deux conséquences : le cache avec @st.cache_data et la mémoire avec st.session_state, la navigation multipage par la sidebar, et une app complète qui branche une régression linéaire sur un slider.",
+    "topics": [
+      "pip install streamlit, streamlit run app.py, localhost:8501",
+      "st.write, st.title, st.dataframe",
+      "st.text_input et la condition if name",
+      "le modèle d'exécution : le script est relancé à chaque interaction",
+      "familles de widgets : boutons, sélection, numérique, texte, date, fichiers",
+      "afficher un CSV : read_csv + st.write / st.dataframe",
+      "st.line_chart, bar_chart, scatter_chart, map ; st.pyplot(fig)",
+      "@st.cache_data : ne pas recharger à chaque clic",
+      "st.session_state : se souvenir entre deux tours",
+      "sidebar et navigation multipage",
+      "st.map avec lat / lon",
+      "une app complète : données → widget → modèle → affichage"
+    ],
+    "fiches": [
+      {
+        "title": "Qu'est-ce que Streamlit, et comment le lancer ?",
+        "front": "Écris l'app minimale et la commande pour la lancer. Que voit-on ?",
+        "body": "**Streamlit** est une librairie qui transforme un **script Python** en **application web** : tableaux de bord, démos de modèles, petits outils internes. Aucun HTML, CSS ou JavaScript : on écrit du Python, Streamlit fabrique la page.\n`pip install streamlit`, puis un fichier `premier_streamlit.py` :\n`import streamlit as st`\n`st.write('hello !')`\nDans un terminal : **`streamlit run premier_streamlit.py`**. Le serveur démarre et le navigateur s'ouvre sur `http://localhost:8501` avec « hello ! ». Modifier le fichier, sauver : la page propose de se recharger (« Rerun » ou « Always rerun »).\nÀ retenir : ce n'est pas `python fichier.py` (qui exécuterait le script une fois, sans page), c'est `streamlit run`. Et un script Streamlit reste un script Python normal : imports, fonctions, pandas, matplotlib, tout marche dedans.",
+        "keypoints": [
+          "Script Python → **app web** sans HTML / JS",
+          "`import streamlit as st` ; `st.write('hello !')`",
+          "**`streamlit run app.py`** → `localhost:8501`",
+          "Pas `python app.py` ; le fichier reste du Python normal"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "st.write : afficher n'importe quoi",
+        "front": "Que peut-on passer à st.write ? Quelles autres fonctions d'affichage ?",
+        "body": "**`st.write(x)`** est le couteau suisse : il affiche du **texte**, un **nombre**, un **DataFrame** (sous forme de tableau interactif triable), une **figure** matplotlib, un dictionnaire, du **Markdown** (`st.write('## Titre')`). Il devine le bon rendu selon le type.\nLes fonctions dédiées, plus précises : `st.title('Mon app')`, `st.header`, `st.subheader`, `st.markdown('**gras**')`, `st.text` (brut), `st.code('x = 1', language='python')`.\nPour les données : `st.dataframe(df)` (tableau interactif : tri, défilement) et `st.table(df)` (tableau statique, tout affiché). `st.metric('Prix prédit', '210 000 €', '+5 %')` pour un chiffre clé avec sa variation. `st.json`, `st.image`, `st.audio`, `st.video` pour le reste.\nDans le doute, `st.write`. La page se construit **dans l'ordre du script** : chaque appel ajoute un bloc en dessous du précédent.",
+        "keypoints": [
+          "**`st.write`** : texte, nombre, DataFrame, figure, Markdown, il devine",
+          "`st.title`, `st.header`, `st.markdown`, `st.code`",
+          "`st.dataframe(df)` (interactif) vs `st.table(df)` (statique) ; `st.metric`",
+          "La page suit **l'ordre du script**, bloc après bloc"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Première interaction : st.text_input",
+        "front": "Demande un prénom et affiche « Bonjour … » seulement s'il est renseigné. Que révèle un print dans le script ?",
+        "body": "`name = st.text_input('Ton prénom')`\n`if name:`\n`    st.write(f'Bonjour {name}')`\nUn widget **renvoie directement sa valeur** : pas de callback, pas d'événement à brancher. `st.text_input` renvoie la chaîne saisie (vide au départ, d'où le `if name`, qui est faux pour une chaîne vide). La f-string `f'Bonjour {name}'` insère la variable dans le texte.\nL'expérience demandée : ajouter `print('exécuté')` dans le script et regarder le **terminal**. À chaque fois qu'on valide le champ, la ligne s'affiche à nouveau. Ce n'est pas seulement le `if` qui est réévalué : **tout le script est relancé** depuis la première ligne. C'est le modèle d'exécution de Streamlit, et il explique tout ce qui suit (cache, session_state).",
+        "keypoints": [
+          "`name = st.text_input('Ton prénom')` : le widget **renvoie sa valeur**",
+          "`if name: st.write(f'Bonjour {name}')` (chaîne vide = faux)",
+          "Un `print` dans le script réapparaît dans le terminal à **chaque interaction**",
+          "→ tout le script est relancé, pas seulement le `if`"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Le modèle d'exécution : tout est relancé",
+        "front": "Que se passe-t-il dans Streamlit quand l'utilisateur clique ou tape ? Quelles conséquences ?",
+        "body": "À **chaque interaction** (clic sur un bouton, saisie, déplacement d'un slider), Streamlit **ré-exécute le script du haut en bas**, comme si on le lançait pour la première fois, et redessine la page avec les nouvelles valeurs des widgets. C'est ce qui rend le code si simple : pas d'événements, pas d'état à gérer à la main, juste un script linéaire.\nDeux conséquences à connaître.\n**1.** Une opération **coûteuse** (charger un gros CSV, entraîner un modèle, appeler une API) est refaite à chaque clic. Remède : le **cache** (`@st.cache_data`).\n**2.** Une **variable ordinaire ne survit pas** d'un tour à l'autre : `compteur = 0` puis `compteur += 1` sur un clic redonne toujours 1, puisque le script repart de zéro. Remède : **`st.session_state`**, la mémoire qui survit aux relances.\nRègle mentale : « mon script est un film qu'on rejoue en entier à chaque clic ; ce qui doit survivre va dans session_state, ce qui coûte cher va dans le cache ».",
+        "keypoints": [
+          "Chaque interaction = **le script est rejoué en entier**, du haut en bas",
+          "Conséquence 1 : le coûteux est refait → **`@st.cache_data`**",
+          "Conséquence 2 : les variables repartent de zéro → **`st.session_state`**",
+          "Simple à écrire : pas d'événements, un script linéaire"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Les familles de widgets",
+        "front": "À part les champs texte et les boutons, quels widgets d'interaction propose Streamlit ?",
+        "body": "La doc les range par familles, et chacun **renvoie sa valeur** :\n**Boutons** : `st.button('Go')` (True au clic, le temps d'un tour), `st.download_button`, `st.link_button`.\n**Sélection** : `st.checkbox`, `st.radio('Choix', [...])`, `st.selectbox` (liste déroulante), `st.multiselect`, `st.slider('Surface', 10, 300, 80)`, `st.select_slider`, `st.toggle`.\n**Numérique** : `st.number_input('Pièces', min_value=1, max_value=10)`, et le slider.\n**Texte** : `st.text_input`, `st.text_area`, `st.chat_input`.\n**Date et heure** : `st.date_input`, `st.time_input`.\n**Autres entrées** : `st.file_uploader('CSV')` (l'utilisateur envoie son fichier), `st.camera_input`, `st.audio_input`, `st.color_picker`, `st.data_editor` (un DataFrame éditable), la pagination.\nPour un modèle : un **slider** par feature (surface, pièces), une **checkbox** pour le jardin, et la prédiction se recalcule à chaque mouvement, puisque le script est rejoué.",
+        "keypoints": [
+          "**Boutons**, **sélection** (checkbox, radio, selectbox, multiselect, slider), **numérique**",
+          "**Texte**, **date / heure**, **autres** (file_uploader, camera, data_editor)",
+          "Chaque widget **renvoie sa valeur** ; `st.button` vaut True le temps d'un tour",
+          "Un modèle : un slider par feature, la prédiction suit"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Afficher un CSV",
+        "front": "Charge houses.csv avec pandas et affiche-le dans l'app. Comment laisser l'utilisateur envoyer son propre fichier ?",
+        "body": "`import pandas as pd`\n`df = pd.read_csv('houses.csv')`\n`st.write(df)` (ou `st.dataframe(df)`)\nLe tableau apparaît, **triable** en cliquant sur les en-têtes, avec défilement. `st.write(df.describe())` affiche les statistiques à côté. `st.write(df.shape)` pour vérifier le nombre de lignes.\nPour un fichier fourni par l'utilisateur :\n`fichier = st.file_uploader('Ton CSV', type='csv')`\n`if fichier is not None:`\n`    df = pd.read_csv(fichier)`\n`    st.dataframe(df)`\n`read_csv` accepte directement l'objet renvoyé par le widget. Le `if` est nécessaire : tant que rien n'est envoyé, `fichier` vaut None, et le script est rejoué à chaque interaction.\nAvec un `st.multiselect('Colonnes', df.columns)` on laisse choisir les colonnes à afficher : `st.dataframe(df[colonnes])`.",
+        "keypoints": [
+          "`df = pd.read_csv('houses.csv')` ; **`st.write(df)`** ou `st.dataframe(df)` : tableau triable",
+          "`st.file_uploader('CSV', type='csv')` puis `pd.read_csv(fichier)`",
+          "Tester `if fichier is not None` : rien n'est envoyé au premier tour",
+          "`st.multiselect` pour choisir les colonnes à afficher"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Graphiques natifs : line_chart, bar_chart, scatter_chart, map",
+        "front": "Affiche l'historique des températures. Quels types de graphiques Streamlit propose-t-il nativement ?",
+        "body": "`temp = pd.read_csv('temperature.csv')`\n**`st.line_chart(temp)`** : une courbe par colonne numérique, avec **zoom** à la molette et infobulles. En une ligne, sans matplotlib.\nLes graphiques natifs de la doc : **`st.area_chart`**, **`st.bar_chart`**, **`st.line_chart`**, **`st.scatter_chart`** (nuage de points, avec `x=`, `y=`, `color=`), et **`st.map`** (points sur une carte). Ils prennent un DataFrame et se débrouillent.\nPour plus de contrôle, Streamlit affiche les figures des grandes librairies : **matplotlib** (`st.pyplot`), **plotly** (`st.plotly_chart`, interactif), **altair / vega-lite** (`st.altair_chart`), **bokeh**, **pydeck** (cartes 3D), et **graphviz** pour des diagrammes.\nRègle simple : un aperçu rapide → graphique natif ; une figure soignée ou personnalisée → matplotlib via `st.pyplot` ; une figure interactive → plotly.",
+        "keypoints": [
+          "**`st.line_chart(df)`** : courbes avec zoom, une ligne de code",
+          "Natifs : area, bar, line, **scatter_chart**, **map**",
+          "Externes : matplotlib (`st.pyplot`), plotly, altair, bokeh, pydeck, graphviz",
+          "Rapide → natif ; soigné → matplotlib ; interactif → plotly"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Un graphique matplotlib dans l'app",
+        "front": "Affiche le nuage prix / surface de houses.csv dans Streamlit avec matplotlib",
+        "body": "`import matplotlib.pyplot as plt`\n`df = pd.read_csv('houses.csv')`\n`fig1, ax = plt.subplots()`\n`ax.scatter(df['size'], df['price'])`\n`ax.set_xlabel('Surface (m²)')`\n`ax.set_ylabel('Prix')`\n**`st.pyplot(fig1)`**\nOn crée la figure comme d'habitude, et on **passe l'objet figure** à `st.pyplot`. Pas de `plt.show()` : il essaierait d'ouvrir une fenêtre sur le serveur, pas dans la page.\nPourquoi matplotlib plutôt que `st.scatter_chart` ? Pour tout ce qui est personnalisé : tracer la **droite de régression** par-dessus le nuage (`ax.plot(xs, w0 + w1 * xs, color='red')`), plusieurs sous-graphiques (`plt.subplots(1, 2)`), un histogramme avec une densité théorique, des annotations. La figure se met à jour à chaque relance du script, donc à chaque changement de widget : brancher un slider sur w1 et voir la droite bouger prend trois lignes.",
+        "keypoints": [
+          "`fig1, ax = plt.subplots()` ; `ax.scatter(df['size'], df['price'])`",
+          "**`st.pyplot(fig1)`** : passer la figure, pas `plt.show()`",
+          "matplotlib pour le personnalisé : droite de régression, sous-graphiques, annotations",
+          "La figure se redessine à chaque interaction"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "@st.cache_data : ne pas recharger à chaque clic",
+        "front": "Explique le problème que résout st.cache_data et comment il fonctionne. Décris l'expérience time.sleep(5)",
+        "body": "Le problème : comme le script est rejoué à chaque interaction, une fonction `load_data()` qui lit un gros CSV est **relancée à chaque clic**. L'expérience le rend visible : mettre `time.sleep(5)` dans `load_data`, lancer l'app, et constater qu'on attend **5 secondes à chaque interaction**, même un simple clic de bouton.\nLa solution : un **décorateur** au-dessus de la fonction.\n`@st.cache_data`\n`def load_data(chemin):`\n`    time.sleep(5)`\n`    return pd.read_csv(chemin)`\nFonctionnement : la **première fois** que la fonction est appelée avec des arguments donnés, elle s'exécute et Streamlit **mémorise son résultat** (dans un dictionnaire arguments → résultat). Les appels suivants **avec les mêmes arguments** renvoient le résultat mémorisé **sans exécuter** la fonction. D'où : 5 secondes au premier chargement, puis plus jamais. Des arguments différents (un autre chemin) déclenchent un nouveau calcul, mémorisé à son tour.\n`st.cache_data` convient aux **données** (DataFrame, tableaux, résultats de calcul). `st.cache_resource` sert aux **ressources** qu'on ne copie pas : connexion à une base, modèle chargé en mémoire. L'ancien `st.cache` est déprécié. Ensuite : enlever le `time.sleep`.",
+        "keypoints": [
+          "Problème : `load_data` relancée à **chaque clic** (visible avec `time.sleep(5)`)",
+          "**`@st.cache_data`** au-dessus de la fonction",
+          "1er appel : exécute et **mémorise** (par arguments) ; appels suivants : résultat direct",
+          "`cache_data` pour les données, `cache_resource` pour connexions / modèles"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "st.session_state : se souvenir entre deux tours",
+        "front": "Comment garder une valeur d'une interaction à l'autre ? Initialise une clé page à « accueil » sans l'écraser",
+        "body": "**`st.session_state`** est un **dictionnaire qui survit aux relances** du script, pendant toute la session de l'utilisateur (l'onglet ouvert). C'est la seule mémoire entre deux interactions.\n`st.write(st.session_state)` l'affiche (vide au début).\nInitialiser **sans écraser** à chaque relance :\n`if 'page' not in st.session_state:`\n`    st.session_state['page'] = 'accueil'`\nSans le `if`, chaque rejou du script remettrait « accueil » et on ne pourrait jamais changer de page.\nLire : `st.session_state['page']` (ou `st.session_state.page`). Écrire : `st.session_state['page'] = 'page2'`.\n`if st.session_state['page'] == 'accueil':`\n`    st.write('coucou page accueil')`\nExemple classique, le compteur : `if 'n' not in st.session_state: st.session_state.n = 0` puis `if st.button('+1'): st.session_state.n += 1` puis `st.write(st.session_state.n)`. Sans session_state, le compteur resterait à 1.",
+        "keypoints": [
+          "**`st.session_state`** : dictionnaire qui **survit aux relances**",
+          "Initialiser avec `if 'page' not in st.session_state:` (sinon écrasé à chaque tour)",
+          "Lire `st.session_state['page']`, écrire `st.session_state['page'] = 'page2'`",
+          "Le compteur de clics : impossible sans, trivial avec"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Sidebar et navigation multipage",
+        "front": "Ajoute deux boutons accueil / page2 dans la barre latérale qui changent la page affichée",
+        "body": "La **sidebar** est le panneau latéral gauche. Deux écritures : `st.sidebar.button('accueil')`, ou un bloc `with st.sidebar:` dans lequel tous les `st.…` vont dans le panneau.\nLa navigation « maison », avec session_state :\n`if 'page' not in st.session_state:`\n`    st.session_state['page'] = 'accueil'`\n`if st.sidebar.button('accueil'):`\n`    st.session_state['page'] = 'accueil'`\n`if st.sidebar.button('page2'):`\n`    st.session_state['page'] = 'page2'`\n`if st.session_state['page'] == 'accueil':`\n`    st.write('coucou page accueil')`\n`elif st.session_state['page'] == 'page2':`\n`    st.write('coucou page2')`\nUn clic : le bouton renvoie True le temps d'un tour, on écrit la page dans session_state, le script est rejoué, et le bon bloc s'affiche. Sans session_state, le choix serait perdu au tour suivant.\nLa version native : un dossier **`pages/`** à côté de `app.py`, un fichier par page (`pages/1_Accueil.py`, `pages/2_Page2.py`) ; Streamlit ajoute tout seul le menu dans la sidebar. Plus récent encore : `st.navigation` et `st.Page`.",
+        "keypoints": [
+          "`st.sidebar.button(...)` ou `with st.sidebar:`",
+          "Bouton → écrire `st.session_state['page']` → le script rejoué affiche le bon bloc",
+          "`if / elif` sur `st.session_state['page']`",
+          "Natif : dossier **`pages/`**, un fichier par page"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "st.map : des points sur une carte",
+        "front": "Affiche Paris, Lyon et Aix-en-Provence sur une carte",
+        "body": "`villes = pd.DataFrame({`\n`    'lat': [48.8566, 45.7640, 43.5297],`\n`    'lon': [2.3522, 4.8357, 5.4474],`\n`})`\n**`st.map(villes)`**\nLa fonction cherche des colonnes nommées **lat** et **lon** (ou latitude / longitude, ou `latitude=` / `longitude=` en paramètres pour d'autres noms) et affiche un point par ligne sur un fond de carte, centré et zoomé automatiquement.\nOptions : `size=` (rayon des points, en mètres, ou une colonne du DataFrame), `color=` (une couleur ou une colonne), `zoom=`.\nCas d'usage data : les ventes par magasin, les joueurs par ville, les capteurs d'une usine. Pour une vraie carte interactive (couches, infobulles, 3D), on passe à `st.pydeck_chart` ; `st.map` est le raccourci pour voir vite où sont les points.",
+        "keypoints": [
+          "DataFrame avec colonnes **`lat`** et **`lon`** ; **`st.map(df)`**",
+          "Paris (48.8566, 2.3522), Lyon (45.7640, 4.8357), Aix (43.5297, 5.4474)",
+          "`size=`, `color=`, `zoom=`",
+          "Plus poussé : `st.pydeck_chart`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Une app complète : de la data au modèle",
+        "front": "Assemble : chargement caché, slider de surface, prédiction par régression linéaire, affichage. Quelle structure ?",
+        "body": "La structure type d'une app data, dans l'ordre du script :\n**1. Charger, en cache** : `@st.cache_data` sur `load_data()` qui lit `houses.csv`.\n**2. Entraîner, en cache aussi** : `@st.cache_data` sur `train(df)` qui renvoie les poids (w0, w1) d'une régression prix ~ surface (notre fit numpy, ou sklearn). Entraîner à chaque clic serait absurde.\n**3. Montrer les données** : `st.dataframe(df.head())`, un `st.pyplot` avec le nuage et la droite apprise.\n**4. Interagir** : `surface = st.slider('Surface (m²)', 10, 300, 80)`.\n**5. Prédire et afficher** : `prix = w0 + w1 * surface` puis `st.metric('Prix estimé', f'{prix:,.0f} €')`.\nÀ chaque mouvement du slider, le script est rejoué : les étapes 1 et 2 sont **instantanées** (cache), la 5 recalcule la prédiction. C'est la « mise en production » du projet de machine learning, version minimale : le modèle appris est branché sur une interface utilisable.\nAjouts naturels : un `st.file_uploader` pour changer de dataset, un `st.selectbox` pour choisir la feature, la MSE sur le jeu de test dans un `st.metric`.",
+        "keypoints": [
+          "Ordre : **charger (cache) → entraîner (cache) → montrer → widget → prédire**",
+          "`@st.cache_data` sur `load_data` **et** sur `train`",
+          "`surface = st.slider(...)` ; `st.metric('Prix estimé', ...)`",
+          "= la mise en production minimale d'un modèle"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "Quelle commande lance une app Streamlit écrite dans app.py ?",
+        "choices": [
+          "streamlit run app.py",
+          "python app.py",
+          "streamlit app.py",
+          "python -m app"
+        ],
+        "answer": 0,
+        "explain": "streamlit run démarre le serveur et ouvre localhost:8501. python app.py exécute le script une fois, sans interface.",
+        "difficulty": "facile",
+        "topic": "lancer"
+      },
+      {
+        "q": "name = st.text_input('Prénom'). Que contient name ?",
+        "choices": [
+          "La chaîne saisie par l'utilisateur, vide tant qu'il n'a rien tapé",
+          "Un objet widget sur lequel on appelle .value pour lire le texte",
+          "True si l'utilisateur a validé le champ, False sinon",
+          "Une fonction à appeler pour récupérer la saisie"
+        ],
+        "answer": 0,
+        "explain": "Un widget Streamlit renvoie directement sa valeur. D'où le if name: qui n'affiche « Bonjour » qu'une fois le champ rempli.",
+        "difficulty": "facile",
+        "topic": "widgets"
+      },
+      {
+        "q": "Que se passe-t-il dans Streamlit à chaque interaction de l'utilisateur ?",
+        "choices": [
+          "Tout le script est ré-exécuté du haut en bas",
+          "Seule la fonction liée au widget touché est appelée",
+          "Seules les lignes situées après le widget sont ré-exécutées",
+          "Rien côté Python, la page se met à jour en JavaScript"
+        ],
+        "answer": 0,
+        "explain": "C'est le modèle d'exécution : un print dans le script réapparaît à chaque clic. D'où le besoin du cache et de session_state.",
+        "difficulty": "facile",
+        "topic": "exécution"
+      },
+      {
+        "q": "compteur = 0 ; if st.button('+1'): compteur += 1 ; st.write(compteur). Que voit-on après trois clics ?",
+        "choices": [
+          "1 : le script repart de compteur = 0 à chaque clic",
+          "3 : chaque clic ajoute 1 comme prévu",
+          "0 : st.button ne renvoie jamais True",
+          "Une erreur : compteur n'est pas défini au deuxième clic"
+        ],
+        "answer": 0,
+        "explain": "Le script est rejoué entièrement : compteur est remis à 0 puis incrémenté une fois. Pour compter, il faut st.session_state.",
+        "difficulty": "moyen",
+        "topic": "exécution"
+      },
+      {
+        "q": "Quelle famille de widgets n'existe pas dans Streamlit ?",
+        "choices": [
+          "Les widgets de glisser-déposer entre deux listes",
+          "Les entrées de date et d'heure",
+          "Les envois de fichiers et la caméra",
+          "Les sélections : radio, selectbox, multiselect, slider"
+        ],
+        "answer": 0,
+        "explain": "Boutons, sélection, numérique, texte, date / heure et autres entrées (file_uploader, camera_input, data_editor) sont les familles de la doc. Le glisser-déposer entre listes n'en fait pas partie.",
+        "difficulty": "moyen",
+        "topic": "widgets"
+      },
+      {
+        "q": "Quelle est la façon la plus courte d'afficher un DataFrame df dans l'app ?",
+        "choices": [
+          "st.write(df)",
+          "print(df)",
+          "st.text(df)",
+          "df.show()"
+        ],
+        "answer": 0,
+        "explain": "st.write reconnaît le DataFrame et l'affiche en tableau interactif (st.dataframe fait pareil). print écrit dans le terminal, st.text afficherait du texte brut.",
+        "difficulty": "facile",
+        "topic": "affichage"
+      },
+      {
+        "q": "Comment afficher l'historique de températures d'un DataFrame temp en une ligne, avec zoom ?",
+        "choices": [
+          "st.line_chart(temp)",
+          "st.pyplot(temp)",
+          "st.write(temp.plot())",
+          "st.chart(temp, kind='line')"
+        ],
+        "answer": 0,
+        "explain": "Le graphique natif prend le DataFrame et trace une courbe par colonne numérique, zoomable. st.pyplot attend une figure matplotlib.",
+        "difficulty": "facile",
+        "topic": "graphiques"
+      },
+      {
+        "q": "Comment afficher une figure matplotlib fig1 dans Streamlit ?",
+        "choices": [
+          "st.pyplot(fig1)",
+          "plt.show()",
+          "st.line_chart(fig1)",
+          "st.image(fig1)"
+        ],
+        "answer": 0,
+        "explain": "st.pyplot reçoit l'objet figure. plt.show() tenterait d'ouvrir une fenêtre sur le serveur.",
+        "difficulty": "facile",
+        "topic": "graphiques"
+      },
+      {
+        "q": "Une fonction load_data avec time.sleep(5) est appelée dans le script. Sans cache, quand attend-on 5 secondes ?",
+        "choices": [
+          "À chaque interaction, puisque le script est rejoué",
+          "Uniquement au premier chargement de la page",
+          "Uniquement quand on modifie le fichier source",
+          "Jamais, Streamlit exécute les fonctions en arrière-plan"
+        ],
+        "answer": 0,
+        "explain": "C'est l'expérience du module : chaque clic relance le script, donc load_data, donc les 5 secondes. @st.cache_data ramène l'attente au seul premier appel.",
+        "difficulty": "moyen",
+        "topic": "cache"
+      },
+      {
+        "q": "Comment fonctionne @st.cache_data sur une fonction ?",
+        "choices": [
+          "Le résultat est mémorisé par arguments ; les appels suivants avec les mêmes arguments ne l'exécutent plus",
+          "La fonction est exécutée en arrière-plan pendant que la page s'affiche",
+          "La fonction n'est exécutée qu'une fois par seconde au maximum",
+          "Le résultat est sauvegardé sur disque et rechargé au prochain lancement de l'app"
+        ],
+        "answer": 0,
+        "explain": "Un dictionnaire arguments → résultat. Un nouvel argument (un autre chemin de fichier) déclenche un nouveau calcul, mémorisé à son tour.",
+        "difficulty": "moyen",
+        "topic": "cache"
+      },
+      {
+        "q": "Quelle différence entre st.cache_data et st.cache_resource ?",
+        "choices": [
+          "cache_data pour des données, cache_resource pour des connexions ou des modèles",
+          "cache_data expire après une minute, cache_resource ne s'efface jamais",
+          "cache_data mémorise en RAM, cache_resource écrit sur le disque dur",
+          "cache_data est réservé aux fonctions sans aucun argument"
+        ],
+        "answer": 0,
+        "explain": "cache_data copie le résultat (sûr pour des données) ; cache_resource garde l'objet unique partagé, adapté aux ressources qu'on ne duplique pas.",
+        "difficulty": "difficile",
+        "topic": "cache"
+      },
+      {
+        "q": "Pourquoi initialiser une clé avec if 'page' not in st.session_state plutôt que st.session_state['page'] = 'accueil' seul ?",
+        "choices": [
+          "Sans le if, la valeur serait remise à « accueil » à chaque relance du script",
+          "Sans le if, Streamlit lève une erreur si la clé existe déjà",
+          "Le if rend l'initialisation plus rapide au premier chargement",
+          "Le if est obligatoire pour toute écriture dans session_state"
+        ],
+        "answer": 0,
+        "explain": "Le script est rejoué à chaque interaction : une affectation inconditionnelle écraserait le choix de page fait au tour précédent.",
+        "difficulty": "moyen",
+        "topic": "session_state"
+      },
+      {
+        "q": "Qu'est-ce que st.session_state ?",
+        "choices": [
+          "Un dictionnaire qui survit aux relances du script pendant la session",
+          "Un cache disque partagé entre tous les utilisateurs de l'app",
+          "La liste des widgets affichés sur la page courante",
+          "Une variable globale réinitialisée à chaque interaction"
+        ],
+        "answer": 0,
+        "explain": "C'est la seule mémoire entre deux tours : compteur, page courante, choix de l'utilisateur. Propre à chaque session (chaque onglet).",
+        "difficulty": "facile",
+        "topic": "session_state"
+      },
+      {
+        "q": "Comment placer un bouton dans le panneau latéral gauche ?",
+        "choices": [
+          "st.sidebar.button('accueil')",
+          "st.button('accueil', side='left')",
+          "st.left.button('accueil')",
+          "st.panel('accueil')"
+        ],
+        "answer": 0,
+        "explain": "Le sous-module sidebar reprend les fonctions de st. L'autre écriture est le bloc with st.sidebar:.",
+        "difficulty": "facile",
+        "topic": "sidebar"
+      },
+      {
+        "q": "Que doit contenir le DataFrame passé à st.map ?",
+        "choices": [
+          "Des colonnes nommées lat et lon (ou latitude et longitude)",
+          "Des colonnes x et y en pixels de la carte",
+          "Une colonne adresse que Streamlit géocode",
+          "Une colonne ville avec des noms de villes connus"
+        ],
+        "answer": 0,
+        "explain": "Un point par ligne, positionné par sa latitude et sa longitude. Streamlit ne fait pas de géocodage d'adresses.",
+        "difficulty": "facile",
+        "topic": "map"
+      },
+      {
+        "q": "Dans une app qui prédit un prix avec un slider de surface, pourquoi mettre l'entraînement du modèle sous @st.cache_data ?",
+        "choices": [
+          "Pour ne pas réentraîner le modèle à chaque mouvement du slider",
+          "Pour que le modèle soit entraîné sur le GPU",
+          "Pour partager les poids avec les autres utilisateurs",
+          "Parce que Streamlit refuse d'exécuter du numpy sans cache"
+        ],
+        "answer": 0,
+        "explain": "Le script est rejoué à chaque interaction : sans cache, chaque déplacement du slider relancerait la descente de gradient. Avec, les poids sont calculés une fois et réutilisés.",
+        "difficulty": "moyen",
+        "topic": "app complète"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Documentation Streamlit",
+        "url": "https://docs.streamlit.io/get-started"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+        "caption": "Streamlit : un script Python ordinaire devient une page web avec des widgets",
+        "credit": "Wikimedia Commons · GPL (logo Python)",
+        "link": "https://commons.wikimedia.org/wiki/File:Python-logo-notext.svg"
+      },
+      {
+        "url": "https://img.youtube.com/vi/7pbhs1jLhRA/hqdefault.jpg",
+        "caption": "Korben : créer une web app rapidement avec Streamlit",
+        "credit": "Korben · YouTube",
+        "link": "https://www.youtube.com/watch?v=7pbhs1jLhRA"
+      },
+      {
+        "url": "https://img.youtube.com/vi/nMLjpDfptz8/hqdefault.jpg",
+        "caption": "Formation Streamlit : introduction et présentation des modules",
+        "credit": "J.A DATATECH CONSULTING · YouTube",
+        "link": "https://www.youtube.com/watch?v=nMLjpDfptz8"
+      }
+    ],
+    "links": [
+      {
+        "label": "Korben – Comment créer une web app rapidement avec Streamlit ? (en français)",
+        "url": "https://www.youtube.com/watch?v=7pbhs1jLhRA",
+        "kind": "youtube"
+      },
+      {
+        "label": "J.A DATATECH – Formation Streamlit : introduction et modules (n°1, en français)",
+        "url": "https://www.youtube.com/watch?v=nMLjpDfptz8",
+        "kind": "youtube"
+      },
+      {
+        "label": "J.A DATATECH – Créer une application multi-pages avec Streamlit",
+        "url": "https://www.youtube.com/watch?v=bybdfk3UVT0",
+        "kind": "youtube"
+      },
+      {
+        "label": "FORMASYS – Une simple web app machine learning avec Python et Streamlit",
+        "url": "https://www.youtube.com/watch?v=u0Syto1oAGA",
+        "kind": "youtube"
+      },
+      {
+        "label": "Streamlit – get started (installation, premier script)",
+        "url": "https://docs.streamlit.io/get-started",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – comment tourne une app (le script rejoué)",
+        "url": "https://docs.streamlit.io/develop/concepts/architecture/run-your-app",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – les widgets",
+        "url": "https://docs.streamlit.io/develop/api-reference/widgets",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – les graphiques (natifs, matplotlib, plotly…)",
+        "url": "https://docs.streamlit.io/develop/api-reference/charts",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – st.pyplot",
+        "url": "https://docs.streamlit.io/develop/api-reference/charts/st.pyplot",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – st.map",
+        "url": "https://docs.streamlit.io/develop/api-reference/charts/st.map",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – le cache (cache_data, cache_resource)",
+        "url": "https://docs.streamlit.io/develop/concepts/architecture/caching",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – session state",
+        "url": "https://docs.streamlit.io/develop/concepts/architecture/session-state",
+        "kind": "doc"
+      },
+      {
+        "label": "Streamlit – st.sidebar",
+        "url": "https://docs.streamlit.io/develop/api-reference/layout/st.sidebar",
+        "kind": "doc"
+      }
+    ]
+  },
+  {
+    "id": "descente-gradient-python",
+    "num": "05",
+    "special": true,
+    "title": "Descente de gradient en Python",
+    "summary": "Le notebook de descente de gradient refait pas à pas : f et f′ comme fonctions Python, la boucle en cinq lignes qui retrouve 2,32768, garder la trajectoire pour la tracer avec matplotlib, tester plusieurs learning rates en une boucle, la version numpy à plusieurs variables qui marche sans changer une ligne, les critères d'arrêt en code, et la dérivée numérique pour vérifier un gradient calculé à la main.",
+    "topics": [
+      "def f(x), def f_prime(x), lambda ; une fonction est un objet qu'on passe en paramètre",
+      "gradient_descent(f_prime, x0, lr, n_iter) en cinq lignes → 2.32768",
+      "history.append(x) et tracé de la trajectoire sur la parabole",
+      "boucle sur les learning rates : 0.1, 0.3, 0.5, 1.0, 1.1",
+      "version numpy : point = np.array, gradient = np.array, même boucle",
+      "critères d'arrêt : norm(g) < tol, break, max_iter, np.isfinite",
+      "dérivée numérique (f(x+h) − f(x−h)) / 2h et gradient check"
+    ],
+    "fiches": [
+      {
+        "title": "f et f′ comme fonctions Python",
+        "front": "Écris f(x) = (x − 2)² et sa dérivée en Python. Pourquoi peut-on passer f′ en paramètre ?",
+        "body": "En Python, une fonction se définit avec `def` et rend sa valeur avec `return` :\n`def f(x):`\n`    return (x - 2) ** 2`\n`def f_prime(x):`\n`    return 2 * (x - 2)`\n`**` est la puissance. L'**indentation** (4 espaces) délimite le corps de la fonction : pas d'accolades.\nCe qui compte pour la suite : **une fonction est un objet** qu'on peut ranger dans une variable et **passer en paramètre** à une autre fonction. `g = f_prime` puis `g(3)` renvoie 2. C'est exactement le rôle de `f_derivative` dans la version C++, mais sans `std::function` : en Python, tout est déjà un objet.\nPour une petite fonction jetable, la **lambda** : `f_prime = lambda x: 2 * (x - 2)`, même chose en une ligne.\nOn vérifie dans une cellule : `f(3)` → 1, `f_prime(3)` → 2, `f_prime(1)` → −2. Et comme `(x - 2) ** 2` marche aussi sur un tableau numpy, `f(np.array([1, 2, 3]))` → [1, 0, 1] : la fonction est vectorisée gratuitement.",
+        "keypoints": [
+          "`def f(x): return (x - 2) ** 2` ; `def f_prime(x): return 2 * (x - 2)`",
+          "Indentation = corps de la fonction ; `**` = puissance",
+          "Une fonction est un **objet** : on peut la passer en paramètre",
+          "`lambda x: 2 * (x - 2)` pour une fonction en une ligne ; vectorisée d'office"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "La boucle de descente en cinq lignes",
+        "front": "Code gradient_descent(f_prime, x0, lr, n_iter). Que renvoie-t-elle pour x0 = 3, lr = 0.1, 5 itérations ?",
+        "body": "`def gradient_descent(f_prime, x0, lr, n_iter):`\n`    x = x0`\n`    for _ in range(n_iter):`\n`        x = x - lr * f_prime(x)`\n`    return x`\n`range(n_iter)` compte de 0 à n_iter − 1, donc n_iter tours ; `_` est le nom qu'on donne à une variable de boucle qu'on n'utilise pas. À chaque tour, la ligne **`x = x - lr * f_prime(x)`** est la formule x ← x − α·f′(x) mot pour mot.\n`gradient_descent(f_prime, 3, 0.1, 5)` renvoie **2.32768**, exactement la valeur du corrigé papier-crayon. `gradient_descent(f_prime, 1, 0.1, 5)` renvoie **1.67232**. Avec 100 itérations, 2.0000000000004 : la convergence vers l'argmin 2.\nLa fonction est **générique** : elle reçoit la dérivée en paramètre. Pour minimiser une autre fonction, on passe une autre dérivée, sans toucher à la boucle. Même idée que le C++, en cinq lignes au lieu de quinze, et sans déclarer un seul type.",
+        "keypoints": [
+          "`for _ in range(n_iter): x = x - lr * f_prime(x)`",
+          "`gradient_descent(f_prime, 3, 0.1, 5)` → **2.32768**, comme au papier-crayon",
+          "Depuis 1 : **1.67232** ; 100 itérations : ≈ 2",
+          "Générique : la dérivée est un **paramètre**"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Garder la trajectoire pour la tracer",
+        "front": "Modifie la fonction pour renvoyer toutes les positions, puis trace-les sur la parabole",
+        "body": "Pour voir la descente, on garde toutes les positions dans une **liste** :\n`def gradient_descent(f_prime, x0, lr, n_iter):`\n`    history = [x0]`\n`    x = x0`\n`    for _ in range(n_iter):`\n`        x = x - lr * f_prime(x)`\n`        history.append(x)`\n`    return history`\n`history.append(x)` ajoute au bout de la liste. `gradient_descent(f_prime, 3, 0.1, 5)` renvoie `[3, 2.8, 2.64, 2.512, 2.4096, 2.32768]`, et `history[-1]` est la position finale.\nTracer sur la courbe :\n`xs = np.linspace(0, 4, 100)`\n`plt.plot(xs, f(xs))`\n`h = np.array(history)`\n`plt.plot(h, f(h), marker='o', color='red')`\n`plt.show()`\nOn voit les points rouges descendre le long de la parabole avec des **pas de plus en plus petits**. `plt.plot(history, marker='o')` seul trace x en fonction du numéro d'itération : une courbe qui s'aplatit vers 2. Les deux graphiques disent la même chose que les cinq lignes de calcul, en une image.",
+        "keypoints": [
+          "`history = [x0]` puis `history.append(x)` à chaque tour",
+          "→ `[3, 2.8, 2.64, 2.512, 2.4096, 2.32768]` ; `history[-1]` = position finale",
+          "Sur la courbe : `plt.plot(xs, f(xs))` puis `plt.plot(h, f(h), marker='o')`",
+          "On **voit** les pas rétrécir"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Tester le learning rate en une boucle",
+        "front": "Essaie α = 0,1 ; 0,3 ; 0,5 ; 1 ; 1,1 depuis x0 = 3 en une boucle. Que voit-on ?",
+        "body": "Le notebook sert à ça : essayer vite.\n`for lr in [0.1, 0.3, 0.5, 1.0, 1.1]:`\n`    print(lr, gradient_descent(f_prime, 3, lr, 5))`\nSortie, après 5 itérations :\n**0.1** → 2.32768 (lent mais sûr)\n**0.3** → 2.01024 (plus rapide)\n**0.5** → 2.0 (pile, coïncidence propre à cette parabole)\n**1.0** → 1 (la suite oscille 3, 1, 3, 1, 3, 1 : jamais au fond)\n**1.1** → −0.49 (0.8, 3.44, 0.27, 4.07, −0.49… : ça s'éloigne à chaque tour, ça **diverge**)\nAvec la version `history`, `plt.plot(h, label=f'lr = {lr}')` pour chaque lr puis `plt.legend()` superpose les trajectoires : convergence rapide, oscillation et explosion sur un seul graphique.\nLa **f-string** `f'lr = {lr}'` insère la valeur dans le texte, et `print(f'{x:.4f}')` arrondit à 4 décimales pour un affichage propre.\nC'est la version code de la règle : trop petit = lent, trop grand = oscille ou diverge. On teste 0,1 / 0,01 / 0,001 et on regarde la loss.",
+        "keypoints": [
+          "`for lr in [0.1, 0.3, 0.5, 1.0, 1.1]: print(lr, gradient_descent(...))`",
+          "0.1 → 2.33 ; 0.3 → 2.01 ; 0.5 → 2 ; 1.0 → **oscille** (3, 1, 3, 1…) ; 1.1 → **diverge**",
+          "Superposer les trajectoires avec `label=` et `plt.legend()`",
+          "f-string : `f'lr = {lr}'`, `f'{x:.4f}'`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Version numpy à plusieurs variables",
+        "front": "f(x, y) = (x − 2)² + (y + 1)² depuis (3, 0). Comment adapter le code ? Quel piège avec les entiers ?",
+        "body": "Le point devient un **tableau numpy** et la dérivée un gradient :\n`def grad(p):`\n`    x, y = p`\n`    return np.array([2 * (x - 2), 2 * (y + 1)])`\n`x, y = p` **déballe** le tableau de deux cases dans deux variables.\nLa boucle **ne change pas** : `p = p - lr * grad(p)` soustrait case par case grâce à la vectorisation. `gradient_descent(grad, np.array([3.0, 0.0]), 0.1, 5)` renvoie `[2.32768, -0.67232]`, les deux colonnes du corrigé papier-crayon, en un seul appel.\nPiège : `np.array([3, 0])` crée un tableau d'**entiers**. Selon la version de numpy, `p = p - lr * grad(p)` crée alors un nouveau tableau flottant (ça passe), mais `p -= lr * grad(p)` (mise à jour sur place) refuse ou tronque les décimales. Toujours des flottants pour un point de départ : `[3.0, 0.0]` ou `dtype=float`.\nAvec un million de poids, même code : `p` est un tableau d'un million de cases, `grad(p)` aussi, et la ligne de mise à jour est identique. C'est la vectorisation qui permet de ne jamais écrire de boucle sur les poids.",
+        "keypoints": [
+          "Le point = `np.array([3.0, 0.0])`, la dérivée = un gradient `np.array([...])`",
+          "`x, y = p` déballe ; la boucle `p = p - lr * grad(p)` ne change pas",
+          "→ `[2.32768, -0.67232]`, les deux colonnes du corrigé",
+          "Piège : `[3, 0]` entiers → écrire `[3.0, 0.0]`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Critères d'arrêt en code",
+        "front": "Ajoute un arrêt automatique quand le gradient est presque nul. Pourquoi garder max_iter ?",
+        "body": "Un nombre d'itérations fixe est simple, mais on peut s'arrêter dès que ça ne bouge plus :\n`def gradient_descent(f_prime, x0, lr, max_iter=10000, tol=1e-6):`\n`    x = x0`\n`    for i in range(max_iter):`\n`        g = f_prime(x)`\n`        if np.linalg.norm(g) < tol:`\n`            break`\n`        x = x - lr * g`\n`    return x, i`\n`np.linalg.norm(g)` est la longueur du gradient (sa valeur absolue à une variable) ; sous `tol`, la pente est quasi nulle, on est au fond, et **`break`** sort de la boucle. `max_iter=10000` et `tol=1e-6` sont des **valeurs par défaut** : on peut appeler sans les préciser.\n`max_iter` reste indispensable : si α est trop grand, le gradient ne devient jamais petit et la boucle tournerait sans fin.\nAutre critère : la fonction ne baisse plus, `abs(f(x_new) - f(x)) < tol`. Et un garde-fou contre la divergence : `if not np.isfinite(x).all(): raise ValueError('divergence : réduire lr')`.\nRenvoyer aussi `i`, le nombre d'itérations utilisées, permet de comparer les learning rates : plus petit i = convergence plus rapide.",
+        "keypoints": [
+          "Arrêt quand `np.linalg.norm(g) < tol` → **`break`**",
+          "Toujours un `max_iter` : sinon boucle infinie si ça diverge",
+          "Autre critère : `abs(f(x_new) - f(x)) < tol` ; `np.isfinite` contre la divergence",
+          "`max_iter=10000, tol=1e-6` : des valeurs par défaut"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Dérivée numérique : vérifier un gradient à la main",
+        "front": "Comment approcher f′(x) sans formule ? À quoi sert le gradient check ? Différence avec l'autodiff ?",
+        "body": "Quand on n'a pas f′, ou qu'on doute de son calcul, on l'**approche** avec la définition et un tout petit h :\n`def derivee_num(f, x, h=1e-5):`\n`    return (f(x + h) - f(x - h)) / (2 * h)`\nC'est le taux de variation (f(x + h) − f(x)) / h en version **centrée** (des deux côtés), plus précise. `derivee_num(f, 3)` → 2.0000000000575, contre 2 exactement pour `f_prime(3)`.\nUsage principal : le **gradient check**. On calcule le gradient de la MSE avec sa formule, puis numériquement en bougeant chaque poids de h, et on compare. S'ils diffèrent, la formule a un signe ou un facteur faux (le piège prédiction − attendu, le 2/n oublié). C'est le test unitaire des gradients écrits à la main.\nÀ ne pas confondre avec la **différentiation automatique** : ici c'est une approximation, sensible au choix de h, et il faut une évaluation de f par poids (un million d'évaluations pour un million de poids). L'autodiff donne le gradient exact en une passe. La dérivée numérique sert à **vérifier**, pas à entraîner.",
+        "keypoints": [
+          "`(f(x + h) - f(x - h)) / (2 * h)` avec h = 1e-5",
+          "**Gradient check** : comparer la formule à la version numérique",
+          "Détecte un signe faux ou un facteur oublié",
+          "Approximation, une évaluation par poids : pour vérifier, pas pour entraîner"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "f_prime(x) = 2 * (x − 2) et la boucle x = x − lr * f_prime(x). Que renvoie gradient_descent(f_prime, 3, 0.1, 5) ?",
+        "choices": [
+          "2.32768",
+          "2.4096",
+          "2.512",
+          "3.2768"
+        ],
+        "answer": 0,
+        "explain": "Cinq tours : 2.8, 2.64, 2.512, 2.4096, 2.32768. 2.4096 est la valeur après 4 tours, 2.512 après 3 ; 3.2768 aurait le signe inversé.",
+        "difficulty": "facile",
+        "topic": "boucle"
+      },
+      {
+        "q": "Que signifie for _ in range(5) ?",
+        "choices": [
+          "Répéter 5 fois, sans utiliser le compteur",
+          "Répéter jusqu'à ce que _ vaille 5",
+          "Parcourir les 5 premiers éléments d'une liste nommée _",
+          "Répéter 4 fois, range excluant sa borne"
+        ],
+        "answer": 0,
+        "explain": "range(5) produit 0, 1, 2, 3, 4 : cinq tours. _ est la convention pour une variable de boucle dont on ne se sert pas.",
+        "difficulty": "facile",
+        "topic": "python"
+      },
+      {
+        "q": "Pourquoi peut-on passer f_prime en paramètre à gradient_descent en Python ?",
+        "choices": [
+          "Une fonction est un objet comme un autre, qu'on range dans une variable ou un argument",
+          "Parce que gradient_descent la recompile à chaque itération",
+          "Parce que Python exige de déclarer toute fonction avant de la passer",
+          "On ne peut pas : il faut la convertir en chaîne de caractères"
+        ],
+        "answer": 0,
+        "explain": "g = f_prime puis g(3) marche. Pas de std::function : tout est objet. C'est ce qui rend la descente générique.",
+        "difficulty": "moyen",
+        "topic": "python"
+      },
+      {
+        "q": "history = [3] puis history.append(2.8). Que vaut history ?",
+        "choices": [
+          "[3, 2.8]",
+          "[2.8, 3]",
+          "[3, [2.8]]",
+          "2.8"
+        ],
+        "answer": 0,
+        "explain": "append ajoute l'élément au bout de la liste. Pour tracer la trajectoire, on convertit ensuite avec np.array(history).",
+        "difficulty": "facile",
+        "topic": "trajectoire"
+      },
+      {
+        "q": "Depuis x0 = 3 avec lr = 1.0, que renvoie la descente sur (x − 2)² après 5 itérations ?",
+        "choices": [
+          "1 : la suite oscille 3, 1, 3, 1, 3, 1",
+          "2 : elle converge en un seul pas",
+          "3 : elle ne bouge pas du tout",
+          "Une valeur énorme : elle diverge"
+        ],
+        "answer": 0,
+        "explain": "Chaque pas saute par-dessus le fond : 3 → 1 → 3 → 1 → 3 → 1. C'est lr = 0.5 qui tombe pile sur 2, et lr = 1.1 qui diverge.",
+        "difficulty": "moyen",
+        "topic": "learning rate"
+      },
+      {
+        "q": "Pourquoi écrire np.array([3.0, 0.0]) et non np.array([3, 0]) comme point de départ ?",
+        "choices": [
+          "Pour un tableau de flottants, capable de stocker des décimales",
+          "Pour que numpy reconnaisse un point à deux dimensions",
+          "Parce que les entiers rendent la descente plus lente",
+          "Parce que np.array refuse les listes d'entiers"
+        ],
+        "answer": 0,
+        "explain": "[3, 0] donne un dtype entier ; une mise à jour sur place avec des décimales échoue ou tronque. Les flottants évitent le piège.",
+        "difficulty": "moyen",
+        "topic": "numpy"
+      },
+      {
+        "q": "p est un tableau de 2 cases et grad(p) aussi. Que fait p = p − lr * grad(p) ?",
+        "choices": [
+          "Chaque coordonnée est mise à jour avec sa propre dérivée partielle, en une ligne",
+          "Seule la première coordonnée est mise à jour",
+          "Une erreur : on ne soustrait pas un tableau à un tableau",
+          "Les deux coordonnées reçoivent la même mise à jour, la moyenne du gradient"
+        ],
+        "answer": 0,
+        "explain": "Vectorisation : soustraction case par case. C'est w ← w − α·∇f(w) sans boucle sur les composantes, valable pour un million de poids.",
+        "difficulty": "moyen",
+        "topic": "numpy"
+      },
+      {
+        "q": "À quoi sert break dans la boucle de descente ?",
+        "choices": [
+          "À sortir de la boucle dès que le gradient est assez petit",
+          "À relancer l'itération avec un learning rate plus petit",
+          "À mettre la boucle en pause pour afficher x",
+          "À ignorer l'itération courante et passer à la suivante"
+        ],
+        "answer": 0,
+        "explain": "break quitte la boucle for immédiatement. Passer à l'itération suivante, c'est continue.",
+        "difficulty": "facile",
+        "topic": "arrêt"
+      },
+      {
+        "q": "Pourquoi garder max_iter même avec un critère d'arrêt sur le gradient ?",
+        "choices": [
+          "Si ça diverge, le gradient ne devient jamais petit et la boucle serait infinie",
+          "Parce que Python limite les boucles for à 10 000 tours",
+          "Pour que le résultat soit le même quel que soit le learning rate",
+          "Parce que np.linalg.norm a besoin d'un nombre d'itérations"
+        ],
+        "answer": 0,
+        "explain": "Avec un learning rate trop grand, la norme du gradient grossit au lieu de tendre vers zéro. max_iter est le filet de sécurité.",
+        "difficulty": "moyen",
+        "topic": "arrêt"
+      },
+      {
+        "q": "f(x) = (x − 2)². Que vaut (f(3 + h) − f(3 − h)) / (2h) pour h très petit ?",
+        "choices": [
+          "≈ 2, la dérivée en 3",
+          "≈ 1, la valeur f(3)",
+          "≈ 0, h étant négligeable",
+          "≈ 4, deux fois la dérivée"
+        ],
+        "answer": 0,
+        "explain": "C'est le taux de variation centré, qui approche f′(3) = 2(3 − 2) = 2. Numériquement : 2.0000000000575.",
+        "difficulty": "difficile",
+        "topic": "dérivée numérique"
+      },
+      {
+        "q": "À quoi sert le gradient check ?",
+        "choices": [
+          "À comparer le gradient calculé à la main avec sa version numérique",
+          "À éviter de recalculer le gradient à chaque itération",
+          "À choisir automatiquement le meilleur learning rate",
+          "À vérifier que toutes les composantes du gradient sont positives"
+        ],
+        "answer": 0,
+        "explain": "Un signe inversé ou un facteur 2/n oublié se voit tout de suite. C'est le test unitaire des gradients écrits à la main.",
+        "difficulty": "moyen",
+        "topic": "dérivée numérique"
+      },
+      {
+        "q": "Quelle différence entre la dérivée numérique et la différentiation automatique ?",
+        "choices": [
+          "La numérique approche par petits pas ; l'automatique est exacte (règle de la chaîne)",
+          "La numérique est exacte ; l'automatique n'est qu'une approximation par petits pas",
+          "Aucune : ce sont deux noms de la même méthode de calcul de dérivées",
+          "La numérique ne marche qu'à une variable, l'automatique qu'à plusieurs"
+        ],
+        "answer": 0,
+        "explain": "La numérique coûte une évaluation par poids et dépend de h ; l'autodiff (PyTorch) donne tout le gradient en une passe, exactement. L'une vérifie, l'autre entraîne.",
+        "difficulty": "moyen",
+        "topic": "dérivée numérique"
+      }
+    ],
+    "sources": [
+      {
+        "label": "Wikipédia – Algorithme du gradient",
+        "url": "https://fr.wikipedia.org/wiki/Algorithme_du_gradient"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Gradient_descent.svg",
+        "caption": "Ce que trace history sur une fonction à deux variables : les pas vers le fond du bol",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Gradient_descent.svg"
+      },
+      {
+        "url": "https://img.youtube.com/vi/C0vhs1lVVjE/hqdefault.jpg",
+        "caption": "Machine Learnia : visualiser l'évolution de son modèle pendant la descente, en Python",
+        "credit": "Machine Learnia · YouTube",
+        "link": "https://www.youtube.com/watch?v=C0vhs1lVVjE"
+      }
+    ],
+    "links": [
+      {
+        "label": "Machine Learnia – Visualiser l'évolution de son modèle (descente en Python)",
+        "url": "https://www.youtube.com/watch?v=C0vhs1lVVjE",
+        "kind": "youtube"
+      },
+      {
+        "label": "3Blue1Brown – Gradient descent, how neural networks learn",
+        "url": "https://www.youtube.com/watch?v=IHZwWFHWa-w",
+        "kind": "youtube"
+      },
+      {
+        "label": "StatQuest – Gradient Descent, Step-by-Step",
+        "url": "https://www.youtube.com/watch?v=sDv4f4s2SB8",
+        "kind": "youtube"
+      },
+      {
+        "label": "Python – fonctions, def, lambda (tutoriel officiel en français)",
+        "url": "https://docs.python.org/fr/3/tutorial/controlflow.html",
+        "kind": "doc"
+      },
+      {
+        "label": "matplotlib – tutoriel pyplot (tracer la trajectoire)",
+        "url": "https://matplotlib.org/stable/tutorials/pyplot.html",
+        "kind": "doc"
+      },
+      {
+        "label": "Google Colab – pour exécuter le notebook",
+        "url": "https://colab.research.google.com/",
+        "kind": "doc"
+      },
+      {
+        "label": "Algorithme du gradient",
+        "url": "https://fr.wikipedia.org/wiki/Algorithme_du_gradient",
+        "kind": "wiki"
+      }
+    ]
+  },
+  {
+    "id": "regression-numpy",
+    "num": "06",
+    "special": true,
+    "title": "Régression linéaire en numpy",
+    "summary": "La régression linéaire du TP C++ refaite en numpy : les données en tableaux, predict en une ligne, mse en une ligne, le gradient en deux lignes, fit en cinq, avec le même exemple X = [1, 2], y = [3, 5] qui donne 17 → 1,685 → 0,169 puis (1, 2) après 200 itérations. Puis l'écriture matricielle avec x0 = 1 qui marche pour p features, une classe LinearRegression en Python, la même chose avec scikit-learn, train / test, la sigmoïde et la BCE en numpy, et la droite apprise tracée sur le nuage.",
+    "topics": [
+      "données : X, y, w en flottants ; normaliser les features",
+      "predict : w[0] + w[1] * X",
+      "mse : np.mean((y_pred − y) ** 2)",
+      "gradient : error = predict − y ; [2·mean(error), 2·mean(error·X)]",
+      "fit : w = w − lr * gradient ; 17 → 1.685 → 0.169 → … → (1, 2)",
+      "X_b = np.c_[np.ones(n), X] ; X_b @ w ; (2/n) X_b.T @ error",
+      "class LinearRegression : __init__, fit, predict, mse",
+      "scikit-learn : LinearRegression().fit(X.reshape(-1, 1), y), intercept_, coef_",
+      "train_test_split, normaliser avec le train",
+      "sigmoid, classe (p > 0.5), BCE avec np.clip",
+      "tracer la droite apprise et la courbe de loss"
+    ],
+    "fiches": [
+      {
+        "title": "Les données en numpy",
+        "front": "Écris X, y et w pour l'exemple X = [1, 2], y = [3, 5]. Que vérifier ? Quand normaliser ?",
+        "body": "`X = np.array([1.0, 2.0])`\n`y = np.array([3.0, 5.0])`\n`w = np.array([0.0, 0.0])`\nDes **flottants** partout (le `.0`), sinon numpy crée des entiers et les mises à jour décimales posent problème. X est le vecteur des features (une seule ici), y celui des réponses, w = (w0, w1) = (biais, pente).\nSur un vrai dataset : `df = pd.read_csv('houses.csv')`, `X = df['size'].to_numpy()`, `y = df['price'].to_numpy()`. Même forme, mille lignes au lieu de deux.\nRéflexe : `X.shape[0] == y.shape[0]`, autant d'exemples que de réponses.\nEt quand les features ont des échelles très différentes (surface en m², prix en centaines de milliers), on **normalise** : `X = (X - X.mean()) / X.std()`, sinon la descente de gradient zigzague et il faut un learning rate minuscule. Sur [1, 2] ce n'est pas nécessaire ; sur des prix immobiliers, ça l'est. Garder `X.mean()` et `X.std()` de côté pour normaliser pareil les nouvelles entrées.",
+        "keypoints": [
+          "`X = np.array([1.0, 2.0])`, `y = np.array([3.0, 5.0])`, `w = np.array([0.0, 0.0])` : des **flottants**",
+          "Vrai dataset : `df['size'].to_numpy()`, `df['price'].to_numpy()`",
+          "Vérifier `X.shape[0] == y.shape[0]`",
+          "Échelles différentes → **normaliser** `(X - X.mean()) / X.std()`"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "predict en une ligne",
+        "front": "Code predict(X, w). Que renvoie-t-elle pour w = (0, 0) et w = (0,8 ; 1,3) ?",
+        "body": "`def predict(X, w):`\n`    return w[0] + w[1] * X`\n`w[1] * X` multiplie **toutes** les valeurs de X par la pente, `w[0] +` ajoute le biais à chacune : un vecteur de prédictions, sans boucle. La boucle `for (float x : X) push_back(...)` du C++ est devenue une expression.\n`predict(X, np.array([0.0, 0.0]))` → `[0., 0.]`\n`predict(X, np.array([0.8, 1.3]))` → `[2.1, 3.4]`\nLes mêmes valeurs que dans le corrigé à la main. Le résultat a la forme de X : une prédiction par exemple.\nUne fonction Python renvoie un tableau numpy sans rien déclarer : pas de `vector<float>`, le type est celui de ce qu'on renvoie. Et `predict(10.0, w)` marche aussi avec un simple nombre : la prédiction pour une seule maison.",
+        "keypoints": [
+          "`return w[0] + w[1] * X` : vectorisé, un vecteur de prédictions",
+          "w = (0, 0) → [0, 0] ; w = (0.8, 1.3) → **[2.1, 3.4]**",
+          "La boucle C++ devient une expression",
+          "Marche pour un tableau ou un seul nombre"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "mse en une ligne",
+        "front": "Code mse(y, y_pred). Que vaut-elle pour w = (0, 0) puis w = (0,8 ; 1,3) ?",
+        "body": "`def mse(y, y_pred):`\n`    return np.mean((y_pred - y) ** 2)`\n`y_pred - y` : les erreurs, case par case. `** 2` : chacune au carré. `np.mean` : la moyenne. Trois opérations vectorisées ; la somme divisée par n du C++ est devenue `np.mean`.\n`mse(y, predict(X, np.array([0.0, 0.0])))` → **17.0** (erreurs [−3, −5], carrés [9, 25], moyenne 17).\n`mse(y, predict(X, np.array([0.8, 1.3])))` → **1.685**.\nL'ordre `y_pred - y` ou `y - y_pred` ne change rien ici, le carré efface le signe. Il comptera pour le gradient.\nLa même ligne marche si y et y_pred sont des Series pandas, puisqu'elles se comportent comme des tableaux numpy. Et `np.sqrt(mse(...))`, la RMSE, s'exprime dans l'unité de y (des euros), plus lisible pour un humain.",
+        "keypoints": [
+          "`np.mean((y_pred - y) ** 2)`",
+          "w = (0, 0) → **17** ; w = (0.8, 1.3) → **1.685**",
+          "Somme / n du C++ = `np.mean`",
+          "L'ordre de la soustraction est indifférent dans la MSE ; RMSE = `np.sqrt(mse)`"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Le gradient en deux lignes",
+        "front": "Code gradient(X, y, w). Que renvoie-t-elle en w = (0, 0) ? Où est le piège du signe ?",
+        "body": "`def gradient(X, y, w):`\n`    error = predict(X, w) - y`\n`    return np.array([2 * np.mean(error), 2 * np.mean(error * X)])`\n`error` est le vecteur **prédiction − attendu** (l'ordre compte : c'est la dérivée de (ŷ − y)²). `2 * np.mean(error)` est grad0, deux fois la moyenne des erreurs ; `2 * np.mean(error * X)` est grad1, deux fois la moyenne des erreurs pondérées par la feature. Les deux boucles `grad0 += error ; grad1 += error * X[i]` puis `2 * grad / n` du C++ tiennent dans ces deux `np.mean`.\n`gradient(X, y, np.array([0.0, 0.0]))` → **[−8., −13.]** : erreurs [−3, −5], moyenne −4, fois 2 = −8 ; erreurs × X = [−3, −10], moyenne −6,5, fois 2 = −13. Exactement le corrigé.\n`gradient(X, y, np.array([0.8, 1.3]))` → `[-2.5, -4.1]`.\nVérification possible avec la dérivée numérique du chapitre précédent : bouger w0 de h, mesurer la variation de la MSE, comparer à −8. Si on avait écrit `y - predict(X, w)`, on obtiendrait [8, 13] et la descente monterait.",
+        "keypoints": [
+          "`error = predict(X, w) - y` : **prédiction − attendu**",
+          "`np.array([2 * np.mean(error), 2 * np.mean(error * X)])`",
+          "w = (0, 0) → **[−8, −13]** ; w = (0.8, 1.3) → [−2.5, −4.1]",
+          "Les boucles C++ deviennent deux `np.mean`"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "fit : la boucle d'entraînement",
+        "front": "Code fit(X, y, w, lr, n_iter) et affiche la MSE à chaque tour. Que voit-on ?",
+        "body": "`def fit(X, y, w, lr, n_iter):`\n`    for i in range(n_iter):`\n`        w = w - lr * gradient(X, y, w)`\n`        print(i, w, mse(y, predict(X, w)))`\n`    return w`\nLa ligne **`w = w - lr * gradient(X, y, w)`** met à jour les deux poids d'un coup : la descente de gradient générique, vectorisée. Le `print` (à enlever ensuite) montre l'entraînement en direct, avec `fit(X, y, np.zeros(2), 0.1, 200)` :\n0 → w = [0.8, 1.3], MSE = 1.685\n1 → w = [1.05, 1.71], MSE = 0.169\n2 → w = [1.127, 1.84], MSE = 0.019\n9 → w = [1.15, 1.91], MSE = 0.002\n199 → w = [1.009, 1.994], MSE ≈ 0.000008\nLa MSE **baisse à chaque tour** et les poids se rapprochent de **(1, 2)**, la droite y = 2x + 1 qui passe par les deux points. Si la MSE montait, il faudrait suspecter le signe de `error` ou un lr trop grand.\n`np.zeros(2)` pour partir de (0, 0). Garder les MSE dans une liste (`losses.append(...)`) et les tracer donne la **courbe de loss**, l'outil numéro un pour surveiller un entraînement.",
+        "keypoints": [
+          "`for i in range(n_iter): w = w - lr * gradient(X, y, w)`",
+          "MSE : **17 → 1.685 → 0.169 → 0.019** … → ≈ 0 ; w → **(1, 2)**",
+          "La MSE doit baisser à chaque tour, sinon signe ou lr",
+          "Tracer les MSE = la **courbe de loss**"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "L'astuce x0 = 1 en matriciel",
+        "front": "Comment écrire predict et gradient avec une colonne de 1 et des produits matriciels, valables pour p features ?",
+        "body": "Pour plusieurs features sans réécrire le gradient, on ajoute une **colonne de 1** devant X, l'astuce x0 = 1 du cours :\n`X_b = np.c_[np.ones(len(X)), X]` → forme (n, 2) pour une feature, (n, p + 1) en général. `np.c_` colle des colonnes côte à côte.\nAlors tout devient un produit matriciel :\n`predict = X_b @ w` (chaque ligne fait Σ wi·xi : le produit scalaire du cours)\n`error = X_b @ w - y`\n`gradient = (2 / len(y)) * X_b.T @ error`\n`w = w - lr * gradient`\n`X_b.T @ error` calcule d'un coup Σ ei (première ligne de la transposée : les 1) et Σ ei·xi (deuxième ligne : les x). Avec p features, le même code renvoie p + 1 composantes. Pas une ligne à changer entre une et cent features.\nSur X = [1, 2], y = [3, 5] : `X_b = [[1, 1], [1, 2]]`, et le gradient en w = 0 vaut bien [−8, −13]. C'est la forme sous laquelle on écrit la régression linéaire « pour de vrai », et celle qu'on retrouve dans les formules de scikit-learn.",
+        "keypoints": [
+          "**`X_b = np.c_[np.ones(len(X)), X]`** : la colonne de 1 = x0",
+          "`predict = X_b @ w` ; `gradient = (2/n) * X_b.T @ (X_b @ w - y)`",
+          "Même code pour 1 ou 100 features",
+          "X_b.T @ error = les deux sommes (Σ e, Σ e·x) d'un coup"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Une classe LinearRegression en Python",
+        "front": "Écris une classe LinearRegression avec fit, predict et mse. Que sont self et __init__ ?",
+        "body": "`class LinearRegression:`\n`    def __init__(self):`\n`        self.w = None`\n`    def fit(self, X, y, lr=0.01, n_iter=1000):`\n`        X_b = np.c_[np.ones(len(X)), X]`\n`        self.w = np.zeros(X_b.shape[1])`\n`        for _ in range(n_iter):`\n`            self.w = self.w - lr * (2 / len(y)) * X_b.T @ (X_b @ self.w - y)`\n`        return self`\n`    def predict(self, X):`\n`        return np.c_[np.ones(len(X)), X] @ self.w`\n`    def mse(self, X, y):`\n`        return np.mean((self.predict(X) - y) ** 2)`\n`self` est l'objet lui-même ; `self.w` range les poids (pas besoin de setWeights / getWeights : on lit `model.w`). `__init__` est le constructeur, appelé par `LinearRegression()`. `lr=0.01` est une **valeur par défaut**, qu'on peut surcharger.\nUtilisation : `model = LinearRegression()` ; `model.fit(X, y, lr=0.1, n_iter=200)` ; `model.w` → [1.009, 1.994] ; `model.predict(np.array([10.0]))` → ≈ 21 ; `model.mse(X, y)`.\nMêmes méthodes que la classe C++, en vingt lignes, et déjà multi-features grâce à X_b.",
+        "keypoints": [
+          "`class LinearRegression:` avec `__init__`, `fit`, `predict`, `mse`",
+          "`self` = l'objet ; `self.w` remplace setWeights / getWeights",
+          "`model.fit(X, y, lr=0.1, n_iter=200)` ; `model.w` ; `model.predict(...)`",
+          "Multi-features d'office grâce à X_b"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "La même chose avec scikit-learn",
+        "front": "Entraîne une régression linéaire scikit-learn sur X, y. Où sont w0 et w1 ? Pourquoi reshape(-1, 1) ?",
+        "body": "`from sklearn.linear_model import LinearRegression`\n`model = LinearRegression()`\n`model.fit(X.reshape(-1, 1), y)`\n`model.intercept_` → 1.0 (w0) ; `model.coef_` → [2.0] (w1)\n`model.predict(np.array([[10.0]]))` → [21.]\nscikit-learn attend **X en 2D**, (n exemples, p features) : d'où `reshape(-1, 1)` pour une seule feature, ou directement `df[['size']]`. Les attributs appris finissent par un **underscore** : `intercept_`, `coef_`.\nDifférence avec notre fit : sklearn ne fait pas de descente de gradient, il résout l'**équation exacte** des moindres carrés (une formule matricielle). Résultat identique, sans learning rate ni itérations, en une fraction de seconde. La descente de gradient reste la méthode générale, celle qui marche aussi pour les réseaux de neurones où aucune formule exacte n'existe.\n`from sklearn.linear_model import LogisticRegression` a la même interface (`fit`, `predict`, `predict_proba`) pour la classification. C'est la force de sklearn : **tous les modèles s'utilisent pareil**, et `model.score(X_test, y_test)` donne une note standard.",
+        "keypoints": [
+          "`LinearRegression().fit(X.reshape(-1, 1), y)` ; `intercept_`, `coef_`",
+          "X doit être **2D** (n, p) → `reshape(-1, 1)` ou `df[['size']]`",
+          "sklearn résout la formule exacte ; même droite que la descente",
+          "Tous les modèles sklearn : `fit`, `predict` (+ `predict_proba`, `score`)"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Train / test en Python",
+        "front": "Sépare X, y en entraînement et test avec scikit-learn, puis à la main. Quelle règle pour la normalisation ?",
+        "body": "`from sklearn.model_selection import train_test_split`\n`X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)`\n20 % des exemples partent dans le jeu de test, tirés **au hasard** (`random_state=0` fixe le tirage pour reproduire). L'ordre des quatre variables renvoyées est à connaître par cœur.\n`model.fit(X_train, y_train)`\n`mse_train = model.mse(X_train, y_train)`\n`mse_test = model.mse(X_test, y_test)`\nSi `mse_test` est proche de `mse_train` : le modèle **généralise**. Bien plus haute : **sur-apprentissage** (ou un jeu de test trop petit).\nÀ la main sans sklearn : `idx = rng.permutation(len(X))` mélange les indices, `n_test = len(X) // 5`, `test = idx[:n_test]`, `train = idx[n_test:]`, puis `X[train]`, `X[test]` : l'indexation par liste d'indices de numpy.\nRègle absolue : normaliser avec la moyenne et l'écart-type **du train** seulement, et les appliquer au test. Sinon le test « fuit » dans l'entraînement et la mesure ne vaut plus rien.",
+        "keypoints": [
+          "`X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)`",
+          "fit sur train, mse sur **train et test**, comparer",
+          "À la main : `rng.permutation` + indexation par indices",
+          "Normaliser avec les stats du **train** seulement"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Sigmoïde et BCE en numpy",
+        "front": "Code sigmoid, la classe prédite et la BCE. Pourquoi np.clip avant np.log ?",
+        "body": "`def sigmoid(z):`\n`    return 1 / (1 + np.exp(-z))`\nVectorisée : `sigmoid(np.array([-10, 0, 10]))` → `[0.00005, 0.5, 0.99995]`.\nRégression logistique : `p = sigmoid(w[0] + w[1] * X)` donne P(classe = 1 | x) ; la classe prédite est `(p > 0.5).astype(int)` (le masque booléen converti en 0 / 1).\nLa BCE :\n`def bce(y, p):`\n`    p = np.clip(p, 1e-7, 1 - 1e-7)`\n`    return -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))`\nLe `np.clip` évite `log(0)` = −∞ quand une probabilité vaut exactement 0 ou 1 : on la borne à 0,0000001 près. Sans ça, une seule prédiction trop sûre donne une loss infinie et des `nan` partout.\nVérification des cas du cours : `bce(np.array([1.]), np.array([0.99]))` → 0.01 (raison avec confiance) ; `bce(np.array([1.]), np.array([0.01]))` → 4.6 (tort avec confiance) ; `bce(np.array([1.]), np.array([0.5]))` → 0.693.\nLe gradient de la BCE pour la régression logistique a la même forme que celui de la MSE, avec `error = p - y` et sans le facteur 2 : la même fonction `gradient` marche en remplaçant `predict` par `sigmoid(predict)`.",
+        "keypoints": [
+          "`sigmoid(z) = 1 / (1 + np.exp(-z))`, vectorisée",
+          "Classe : `(p > 0.5).astype(int)`",
+          "`bce = -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))` avec **`np.clip(p, 1e-7, 1 - 1e-7)`**",
+          "0.99 → 0.01 ; 0.01 → 4.6 ; 0.5 → 0.693"
+        ],
+        "tier": 3
+      },
+      {
+        "title": "Tracer la droite apprise et la courbe de loss",
+        "front": "Dessine le nuage avec la droite du modèle, puis la courbe de loss. Que doit-on voir ?",
+        "body": "`fig, ax = plt.subplots()`\n`ax.scatter(X, y, label='données')`\n`xs = np.linspace(X.min(), X.max(), 100)`\n`ax.plot(xs, w[0] + w[1] * xs, color='red', label='modèle')`\n`ax.legend()`\n`plt.show()` (ou `st.pyplot(fig)` dans l'app)\nSur X = [1, 2], y = [3, 5], la droite rouge passe par les deux points. Sur houses.csv, on voit si elle suit le nuage, et où elle se trompe (les maisons loin de la droite).\nDeuxième graphique indispensable : la **courbe de loss**, `ax.plot(losses)` avec les MSE gardées pendant fit. Elle doit **descendre puis s'aplatir**. Si elle remonte ou zigzague : learning rate trop grand. Si elle descend à peine : trop petit, ou des features à normaliser.\nTroisième, pour la classification : le nuage coloré par la classe prédite, `ax.scatter(X, y, c=classes)`.\nAvec un slider Streamlit sur w1, la droite bouge en direct : la version Python de la démo interactive du cours, en dix lignes.",
+        "keypoints": [
+          "`ax.scatter(X, y)` + `ax.plot(xs, w[0] + w[1] * xs, color='red')`",
+          "La droite doit suivre le nuage",
+          "**Courbe de loss** `ax.plot(losses)` : descend puis s'aplatit",
+          "Slider Streamlit sur w1 → la droite bouge en direct"
+        ],
+        "tier": 1
+      }
+    ],
+    "quiz": [
+      {
+        "q": "def predict(X, w): return w[0] + w[1] * X. Que renvoie predict(np.array([1., 2.]), np.array([0.8, 1.3])) ?",
+        "choices": [
+          "[2.1, 3.4]",
+          "[0.8, 1.3]",
+          "2.1",
+          "[1.3, 2.6]"
+        ],
+        "answer": 0,
+        "explain": "0.8 + 1.3 × 1 = 2.1 et 0.8 + 1.3 × 2 = 3.4, calculés d'un coup par vectorisation. [1.3, 2.6] oublie le biais.",
+        "difficulty": "facile",
+        "topic": "predict"
+      },
+      {
+        "q": "Comment s'écrit la MSE en numpy ?",
+        "choices": [
+          "np.mean((y_pred − y) ** 2)",
+          "np.sum(y_pred − y) ** 2",
+          "np.mean(y_pred − y) ** 2",
+          "(y_pred − y) ** 2 / 2"
+        ],
+        "answer": 0,
+        "explain": "Erreurs, carré case par case, moyenne. Mettre le carré après la moyenne ou après la somme change le calcul : (−3 + −5)² n'est pas 9 + 25.",
+        "difficulty": "facile",
+        "topic": "mse"
+      },
+      {
+        "q": "error = predict(X, w) − y. Que vaut 2 * np.mean(error * X) ?",
+        "choices": [
+          "grad1, la dérivée de la MSE par rapport à la pente w1",
+          "grad0, la dérivée de la MSE par rapport au biais w0",
+          "La MSE elle-même, moyennée sur les exemples",
+          "Le nouveau w1 après mise à jour"
+        ],
+        "answer": 0,
+        "explain": "Deux fois la moyenne des erreurs pondérées par la feature : la composante w1 du gradient. grad0 est 2 * np.mean(error), sans le X.",
+        "difficulty": "moyen",
+        "topic": "gradient"
+      },
+      {
+        "q": "X = [1, 2], y = [3, 5], w = (0, 0). Que renvoie gradient(X, y, w) codé avec deux np.mean ?",
+        "choices": [
+          "[−8, −13]",
+          "[8, 13]",
+          "[−4, −6.5]",
+          "[−3, −5]"
+        ],
+        "answer": 0,
+        "explain": "Erreurs [−3, −5] : 2 × moyenne = −8 ; erreurs × X = [−3, −10] : 2 × moyenne = −13. [8, 13] aurait le signe de l'erreur inversé, [−4, −6.5] oublie le facteur 2.",
+        "difficulty": "moyen",
+        "topic": "gradient"
+      },
+      {
+        "q": "Quelle ligne met à jour les deux poids d'un coup dans fit ?",
+        "choices": [
+          "w = w − lr * gradient(X, y, w)",
+          "w = w + lr * gradient(X, y, w)",
+          "w[0] = w[0] − lr * gradient(X, y, w)",
+          "w = gradient(X, y, w) − lr * w"
+        ],
+        "answer": 0,
+        "explain": "Soustraction vectorisée du gradient multiplié par le pas. Le plus ferait monter la loss, l'indexation w[0] ne mettrait à jour qu'un poids (et planterait sur les formes).",
+        "difficulty": "facile",
+        "topic": "fit"
+      },
+      {
+        "q": "Pendant fit, la MSE affichée monte à chaque itération au lieu de descendre. Cause la plus probable ?",
+        "choices": [
+          "Le signe de error est inversé, ou le learning rate est trop grand",
+          "Il manque des exemples dans le jeu de test, ou il est trop petit",
+          "np.mean a été utilisé à la place de np.sum dans la MSE",
+          "Les poids ont été initialisés à zéro au lieu de valeurs aléatoires"
+        ],
+        "answer": 0,
+        "explain": "Un gradient de signe opposé fait grimper la loss ; un lr trop grand la fait osciller ou exploser. np.mean est correct, et partir de zéro est normal.",
+        "difficulty": "moyen",
+        "topic": "fit"
+      },
+      {
+        "q": "À quoi sert np.c_[np.ones(len(X)), X] ?",
+        "choices": [
+          "À ajouter la colonne x0 = 1 : le biais devient un poids comme les autres",
+          "À normaliser X en ajoutant 1 à chaque valeur avant l'entraînement",
+          "À dupliquer X pour obtenir une deuxième feature identique",
+          "À convertir X en flottants, np.ones étant en float64"
+        ],
+        "answer": 0,
+        "explain": "C'est l'astuce x0 = 1 : avec la colonne de 1, X_b @ w calcule w0 + w1·x pour chaque ligne et le gradient devient un produit matriciel valable pour p features.",
+        "difficulty": "moyen",
+        "topic": "matriciel"
+      },
+      {
+        "q": "X_b a une colonne de 1 puis les features. Que calcule X_b.T @ (X_b @ w − y) ?",
+        "choices": [
+          "Les sommes Σ e et Σ e·x du gradient, une par poids",
+          "La MSE totale, à un facteur 2/n près sur chaque exemple",
+          "Les prédictions X_b @ w pour chaque exemple",
+          "La transposée de la matrice des erreurs, ligne par ligne"
+        ],
+        "answer": 0,
+        "explain": "X_b @ w − y est le vecteur des erreurs ; la transposée multiplie la colonne de 1 par les erreurs (Σ e) et la colonne des x par les erreurs (Σ e·x). Il reste à multiplier par 2/n.",
+        "difficulty": "difficile",
+        "topic": "matriciel"
+      },
+      {
+        "q": "Que désigne self dans une méthode d'une classe Python ?",
+        "choices": [
+          "L'objet lui-même, qui porte ses attributs comme self.w",
+          "Le nom de la classe",
+          "Un mot-clé qui rend la méthode privée",
+          "Le premier argument fourni par l'utilisateur"
+        ],
+        "answer": 0,
+        "explain": "model.fit(X, y) appelle fit(model, X, y) : self est model. self.w sont les poids de cet objet, d'où l'inutilité de setWeights / getWeights.",
+        "difficulty": "facile",
+        "topic": "classe"
+      },
+      {
+        "q": "Pourquoi model.fit(X.reshape(-1, 1), y) et pas model.fit(X, y) avec scikit-learn ?",
+        "choices": [
+          "sklearn exige X en 2D : n lignes, une colonne par feature",
+          "sklearn exige X trié par ordre croissant",
+          "reshape convertit X en flottants",
+          "Sans reshape, sklearn prendrait y comme feature"
+        ],
+        "answer": 0,
+        "explain": "Un vecteur (n,) est ambigu pour sklearn ; (n, 1) dit clairement « n exemples, 1 feature ». df[['size']] donne la bonne forme directement.",
+        "difficulty": "moyen",
+        "topic": "sklearn"
+      },
+      {
+        "q": "Où lit-on le biais et la pente après un fit scikit-learn ?",
+        "choices": [
+          "model.intercept_ et model.coef_",
+          "model.w0 et model.w1",
+          "model.bias et model.slope",
+          "model.get_weights()"
+        ],
+        "answer": 0,
+        "explain": "Les attributs appris se terminent par un underscore. Sur X = [1, 2], y = [3, 5] : intercept_ = 1, coef_ = [2].",
+        "difficulty": "moyen",
+        "topic": "sklearn"
+      },
+      {
+        "q": "Dans quel ordre train_test_split renvoie-t-il ses quatre résultats ?",
+        "choices": [
+          "X_train, X_test, y_train, y_test",
+          "X_train, y_train, X_test, y_test",
+          "X_test, X_train, y_test, y_train",
+          "train, test, X, y"
+        ],
+        "answer": 0,
+        "explain": "D'abord les deux morceaux de X, puis les deux morceaux de y. Inverser l'ordre donne un modèle entraîné sur n'importe quoi sans message d'erreur.",
+        "difficulty": "moyen",
+        "topic": "train / test"
+      },
+      {
+        "q": "Pourquoi np.clip(p, 1e-7, 1 − 1e-7) avant np.log dans la BCE ?",
+        "choices": [
+          "Pour éviter log(0) = −∞ quand une probabilité vaut exactement 0 ou 1",
+          "Pour ramener les probabilités entre 0 et 1, la sigmoïde pouvant dépasser",
+          "Pour accélérer np.log sur les grands tableaux",
+          "Pour arrondir les probabilités à 7 décimales"
+        ],
+        "answer": 0,
+        "explain": "Une prédiction trop sûre et fausse donnerait une loss infinie puis des nan. Le clip borne p à un cheveu de 0 et de 1 ; la sigmoïde, elle, reste toujours dans ]0, 1[.",
+        "difficulty": "difficile",
+        "topic": "BCE"
+      },
+      {
+        "q": "Que renvoie (p > 0.5).astype(int) pour p = [0.2, 0.7, 0.5] ?",
+        "choices": [
+          "[0, 1, 0]",
+          "[0, 1, 1]",
+          "[False, True, False]",
+          "[0.2, 0.7, 0.5]"
+        ],
+        "answer": 0,
+        "explain": "Le masque [False, True, False] (0.5 n'est pas strictement supérieur à 0.5) converti en entiers : les classes prédites.",
+        "difficulty": "moyen",
+        "topic": "BCE"
+      },
+      {
+        "q": "À quoi ressemble une courbe de loss normale pendant l'entraînement ?",
+        "choices": [
+          "Elle descend puis s'aplatit",
+          "Elle monte puis s'aplatit",
+          "Elle oscille régulièrement autour de zéro",
+          "Elle reste plate puis descend brusquement à la fin"
+        ],
+        "answer": 0,
+        "explain": "17 → 1.685 → 0.169 → 0.019 → … : forte baisse puis plateau près du minimum. Une courbe qui remonte ou zigzague signale un learning rate trop grand.",
+        "difficulty": "facile",
+        "topic": "tracer"
+      }
+    ],
+    "sources": [
+      {
+        "label": "scikit-learn – LinearRegression",
+        "url": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Linear_regression.svg",
+        "caption": "Le résultat attendu : la droite w0 + w1·x tracée par-dessus le nuage de points",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Linear_regression.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Linear_least_squares_example2.svg",
+        "caption": "Ce que minimise fit : la somme des carrés de ces écarts verticaux, np.mean((y_pred − y) ** 2)",
+        "credit": "Wikimedia Commons · CC BY-SA 3.0",
+        "link": "https://commons.wikimedia.org/wiki/File:Linear_least_squares_example2.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Sigmoid-function-2.svg",
+        "caption": "sigmoid(z) = 1 / (1 + np.exp(−z)) : de −10 à 10, la sortie va de presque 0 à presque 1",
+        "credit": "Wikimedia Commons · CC0",
+        "link": "https://commons.wikimedia.org/wiki/File:Sigmoid-function-2.svg"
+      },
+      {
+        "url": "https://img.youtube.com/vi/vG6tDQc86Rs/hqdefault.jpg",
+        "caption": "Machine Learnia : la régression linéaire codée avec numpy, de A à Z",
+        "credit": "Machine Learnia · YouTube",
+        "link": "https://www.youtube.com/watch?v=vG6tDQc86Rs"
+      }
+    ],
+    "links": [
+      {
+        "label": "Machine Learnia – ML#8 : régression linéaire avec numpy",
+        "url": "https://www.youtube.com/watch?v=vG6tDQc86Rs",
+        "kind": "youtube"
+      },
+      {
+        "label": "Machine Learnia – ML#6 : régression linéaire, écriture matricielle",
+        "url": "https://www.youtube.com/watch?v=8Y3r7F47Xfo",
+        "kind": "youtube"
+      },
+      {
+        "label": "Machine Learnia – le notebook numpy de la régression (GitHub)",
+        "url": "https://github.com/MachineLearnia/Regression-lineaire-numpy",
+        "kind": "doc"
+      },
+      {
+        "label": "Machine Learnia – PYTHON SKLEARN : LinearRegression et supervised learning (20/30)",
+        "url": "https://www.youtube.com/watch?v=P6kSc3qVph0",
+        "kind": "youtube"
+      },
+      {
+        "label": "scikit-learn – LinearRegression (intercept_, coef_)",
+        "url": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html",
+        "kind": "doc"
+      },
+      {
+        "label": "scikit-learn – train_test_split",
+        "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html",
+        "kind": "doc"
+      },
+      {
+        "label": "scikit-learn – LogisticRegression",
+        "url": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html",
+        "kind": "doc"
+      },
+      {
+        "label": "Python – les classes (tutoriel officiel en français)",
+        "url": "https://docs.python.org/fr/3/tutorial/classes.html",
+        "kind": "doc"
+      },
+      {
+        "label": "Google – La régression linéaire (Crash Course, en français)",
+        "url": "https://developers.google.com/machine-learning/crash-course/linear-regression?hl=fr",
+        "kind": "doc"
+      }
+    ]
+  },
+  {
+    "id": "probas-python",
+    "num": "07",
+    "special": true,
+    "title": "Probabilités et stats en Python",
+    "summary": "Les probabilités du chapitre de maths, vérifiées en simulant : np.random et les graines, estimer une probabilité par une fréquence (la moyenne d'un masque), l'espérance d'un dé et la loi des grands nombres, l'indépendance de deux pièces, le test médical de Bayes calculé puis simulé, la moyenne et l'écart-type empiriques comme maximum de vraisemblance, l'aire sous la densité, et epsilon-greedy en dix lignes.",
+    "topics": [
+      "np.random.default_rng(graine) : integers, random, normal, choice, permutation",
+      "probabilité = fréquence : np.mean(masque) ; & | ~ = ET OU NON",
+      "espérance ≈ np.mean, loi des grands nombres avec np.cumsum, dé truqué",
+      "deux pièces : indépendance, ET, OU, incompatibles",
+      "Bayes : test médical calculé puis simulé, conditionnelle = masque puis moyenne",
+      "np.mean / np.std = estimateurs du maximum de vraisemblance ; histogramme + densité",
+      "aire sous la densité : masque, norm.cdf, règle des 68 %",
+      "epsilon-greedy : argmax, rng.random() < eps, moyenne incrémentale"
+    ],
+    "fiches": [
+      {
+        "title": "Simuler le hasard : np.random",
+        "front": "Crée un générateur reproductible. Simule 1000 lancers de dé, un événement de probabilité 0,3, une loi normale, un dé truqué",
+        "body": "`rng = np.random.default_rng(0)` crée un **générateur** avec une **graine** (0) : les tirages seront les mêmes à chaque exécution, ce qui permet de reproduire un résultat et de le déboguer. Sans graine, ils changent à chaque fois.\n`rng.integers(1, 7, size=1000)` : 1000 lancers de dé (borne haute **exclue**, donc 1 à 6).\n`rng.random(size=10)` : 10 réels uniformes entre 0 et 1. **`rng.random() < 0.3`** est vrai avec probabilité 0,3 : la façon standard de simuler un événement de probabilité p.\n`rng.normal(170, 8, size=1000)` : loi normale de moyenne 170 et d'écart-type 8.\n`rng.choice(['pile', 'face'], size=10)` : tirage dans une liste ; `rng.choice([1, 2, 3, 4, 5, 6], size=1000, p=[.1, .1, .1, .1, .1, .5])` : un **dé truqué**, avec la probabilité de chaque face.\n`rng.permutation(n)` : les entiers 0 à n − 1 mélangés (pour un train / test à la main).\nL'ancienne API vue dans les exercices, `np.random.randn(10)` et `np.random.randint(-10, 10, 10)`, fait la même chose sans générateur explicite ; `np.random.seed(0)` y fixe la graine.",
+        "keypoints": [
+          "`rng = np.random.default_rng(0)` : générateur + **graine** reproductible",
+          "`rng.integers(1, 7, size=n)` dé ; `rng.random()` uniforme ; `rng.normal(mu, sigma, size)`",
+          "**`rng.random() < p`** simule un événement de probabilité p",
+          "`rng.choice(valeurs, size, p=...)` : dé truqué ; `rng.permutation`"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Une probabilité, c'est une fréquence : la moyenne d'un masque",
+        "front": "Estime P(6), P(pair et > 4), P(pair ou > 4) sur 10 000 lancers simulés",
+        "body": "`lancers = rng.integers(1, 7, size=10000)`\n`np.mean(lancers == 6)` → ≈ 0.167\n`lancers == 6` est un masque de True / False ; **la moyenne d'un masque est une proportion** (True vaut 1, False 0). Sur 10 000 lancers, la proportion de 6 approche 1/6 : c'est la définition fréquentiste de la probabilité, et le pont entre numpy et le chapitre de probas.\nLes opérateurs des masques sont les ET / OU / NON des probabilités :\n`np.mean((lancers % 2 == 0) & (lancers > 4))` → ≈ 0.167 (pair ET > 4 : seulement le 6, 1/6)\n`np.mean((lancers % 2 == 0) | (lancers > 4))` → ≈ 0.667 (pair OU > 4 : {2, 4, 5, 6}, 4/6)\n`np.mean(~(lancers == 6))` → ≈ 0.833 (NON 6, 5/6)\nEt on vérifie la formule P(A ou B) = P(A) + P(B) − P(A et B) : 0.5 + 0.333 − 0.167 = 0.667. Plus n est grand, plus la fréquence colle à la probabilité exacte : essayer 100, 1 000, 100 000 lancers et regarder l'écart fondre.",
+        "keypoints": [
+          "**`np.mean(masque)` = une proportion** = une probabilité estimée",
+          "`np.mean(lancers == 6)` ≈ 1/6",
+          "`&`, `|`, `~` = ET, OU, NON des probabilités",
+          "P(pair ou > 4) ≈ 0.667 = 0.5 + 0.333 − 0.167"
+        ],
+        "tier": 1
+      },
+      {
+        "title": "Espérance et loi des grands nombres",
+        "front": "Vérifie que la moyenne des lancers tend vers 3,5. Trace la moyenne courante. Que donne le dé truqué ?",
+        "body": "`np.mean(lancers)` → ≈ 3.5 : la **moyenne empirique** des lancers approche l'**espérance** du dé. C'est la **loi des grands nombres** : la moyenne de n tirages converge vers E[X] quand n grandit.\nLa voir converger :\n`moyennes = np.cumsum(lancers) / np.arange(1, len(lancers) + 1)`\n`plt.plot(moyennes)` ; `plt.axhline(3.5, color='red')`\n`np.cumsum` fait les sommes cumulées, divisées par 1, 2, 3, … : la moyenne après chaque lancer. La courbe part n'importe où (les premiers lancers) et se stabilise sur la ligne rouge à 3,5.\nLe dé truqué : `truque = rng.choice(np.arange(1, 7), size=10000, p=[.1, .1, .1, .1, .1, .5])` puis `np.mean(truque)` → ≈ 4.5, comme le calcul 6 × 0,5 + 15 × 0,1.\nL'espérance exacte par la formule, en numpy : `valeurs = np.arange(1, 7)` ; `probas = np.full(6, 1/6)` ; `np.sum(valeurs * probas)` → 3.5. C'est Σ x·P(X = x) en une ligne, et `valeurs @ probas` fait pareil (un produit scalaire, encore).",
+        "keypoints": [
+          "`np.mean(lancers)` ≈ **3.5** : loi des grands nombres",
+          "Moyenne courante : `np.cumsum(lancers) / np.arange(1, n + 1)`, tracée, se stabilise",
+          "Dé truqué (p=[.1,.1,.1,.1,.1,.5]) → ≈ **4.5**",
+          "Formule : `np.sum(valeurs * probas)` = Σ x·P(X = x)"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Deux pièces : indépendance, ET, OU",
+        "front": "Simule deux pièces. Vérifie P(pile et pile), P(au moins un pile), l'indépendance. Montre un cas dépendant et un cas incompatible",
+        "body": "`a = rng.integers(0, 2, size=10000)` (0 = face, 1 = pile)\n`b = rng.integers(0, 2, size=10000)`\n`np.mean((a == 1) & (b == 1))` → ≈ 0.25 : pile ET pile, 1/2 × 1/2.\n`np.mean((a == 1) | (b == 1))` → ≈ 0.75 : au moins un pile, 1/2 + 1/2 − 1/4.\nTester l'**indépendance** : comparer `np.mean((a == 1) & (b == 1))` à `np.mean(a == 1) * np.mean(b == 1)`. Égaux (à l'erreur de simulation près) : indépendants. Deux tirages séparés le sont.\nUn cas **dépendant** : `c = a` (la deuxième pièce recopie la première). `np.mean((a == 1) & (c == 1))` → 0.5, alors que le produit donne 0.25. La formule du produit échoue : les événements ne sont pas indépendants.\nUn cas **incompatible** : « a = 1 » et « a = 0 » sur le même lancer : `np.mean((a == 1) & (a == 0))` → 0 exactement. Et le OU vaut 1 : P(A) + P(B) sans rien retirer, puisque P(A et B) = 0.",
+        "keypoints": [
+          "Pile et pile : `np.mean((a == 1) & (b == 1))` ≈ **0.25** ; au moins un : ≈ **0.75**",
+          "Indépendance : P(A et B) ≈ P(A) × P(B), vérifiable en une ligne",
+          "`c = a` : dépendants, P(A et C) = 0.5 ≠ 0.25",
+          "Incompatibles : `(a == 1) & (a == 0)` → 0"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Bayes : le test médical, calculé puis simulé",
+        "front": "Calcule P(malade | positif) avec la formule, puis retrouve-la par simulation. Comment coder une probabilité conditionnelle ?",
+        "body": "Le calcul direct :\n`prior = 0.01` (1 % de malades)\n`sensibilite = 0.99` (P(positif | malade))\n`faux_positif = 0.05` (P(positif | sain))\n`p_positif = sensibilite * prior + faux_positif * (1 - prior)` → 0.0594\n`posterior = sensibilite * prior / p_positif` → **0.1667**\nLa simulation, pour y croire :\n`n = 1_000_000`\n`malade = rng.random(n) < prior`\n`positif = np.where(malade, rng.random(n) < sensibilite, rng.random(n) < faux_positif)`\n`np.mean(malade[positif])` → ≈ 0.167\n`malade` est un masque (1 % de True). `np.where` tire le test avec la bonne probabilité selon le cas. Et **`malade[positif]`** garde les gens dont le test est positif : la moyenne de ce sous-tableau est P(malade | positif). **Une probabilité conditionnelle, c'est filtrer par un masque puis faire la moyenne.** « Sachant B » = « parmi les lignes où B est vrai ».\nOn peut vérifier chaque terme : `np.mean(positif)` ≈ 0.0594, `np.mean(positif[malade])` ≈ 0.99. Le `1_000_000` avec des underscores est du Python normal, juste plus lisible.",
+        "keypoints": [
+          "Calcul : `posterior = sens * prior / (sens * prior + fp * (1 - prior))` → **0.1667**",
+          "Simulation : masque `malade`, test tiré avec `np.where`",
+          "**`np.mean(malade[positif])`** : conditionnelle = filtrer puis moyenner",
+          "« Sachant B » = « parmi les lignes où B est vrai »"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Moyenne et écart-type empiriques : le maximum de vraisemblance",
+        "front": "Tire 1000 tailles selon une loi normale (170, 8). Que valent np.mean et np.std ? Trace l'histogramme et la densité ajustée",
+        "body": "`tailles = rng.normal(170, 8, size=1000)`\n`np.mean(tailles)` → ≈ 170 ; `np.std(tailles)` → ≈ 8\nOn a tiré selon une loi normale de paramètres (170, 8), et la **moyenne empirique** et l'**écart-type empirique** les retrouvent : ce sont les estimateurs du **maximum de vraisemblance** pour la loi normale, exactement ce que dit le cours. Plus l'échantillon est grand, plus ils sont proches (essayer size=10 : ça bouge beaucoup).\nVoir l'ajustement :\n`fig, ax = plt.subplots()`\n`ax.hist(tailles, bins=30, density=True)`\n`xs = np.linspace(140, 200, 200)`\n`mu, sigma = np.mean(tailles), np.std(tailles)`\n`ax.plot(xs, np.exp(-(xs - mu) ** 2 / (2 * sigma ** 2)) / (sigma * np.sqrt(2 * np.pi)), color='red')`\n`density=True` met l'histogramme à l'échelle d'une densité (aire 1), et la courbe rouge est la densité normale avec les paramètres estimés : elle épouse les barres.\n`df.describe()` fait ces calculs colonne par colonne : `mean` et `std` sont ces estimateurs sur des données réelles (le `std` de pandas divise par n − 1, une variante sans importance ici).",
+        "keypoints": [
+          "`np.mean` et `np.std` d'un échantillon normal → **μ et σ** : les estimateurs MV",
+          "Plus l'échantillon est grand, plus c'est précis",
+          "`ax.hist(x, bins=30, density=True)` + densité normale en rouge",
+          "`df.describe()` = ces estimateurs sur chaque colonne"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Densité : l'aire sous la courbe, en code",
+        "front": "Calcule P(162 < X < 178) par simulation puis exactement. Que vaut P(X = 170) ?",
+        "body": "P(a < X < b) est l'aire sous la densité entre a et b. Deux façons de l'obtenir :\n**Par simulation**, encore une moyenne de masque : `np.mean((tailles > 162) & (tailles < 178))` → ≈ 0.68. C'est la règle des **68 %** : à moins d'un écart-type de la moyenne (170 ± 8), 68 % des valeurs. `np.mean(np.abs(tailles - 170) < 16)` → ≈ 0.95 pour deux écarts-types.\n**Par la valeur exacte**, avec scipy : `from scipy.stats import norm` puis `norm.cdf(178, 170, 8) - norm.cdf(162, 170, 8)` → 0.6827. `cdf` (fonction de répartition) est l'aire à gauche d'un point ; la différence de deux cdf est l'aire entre les deux.\nEt la probabilité d'une valeur exacte : `np.mean(tailles == 170.0)` → 0.0 (aucune valeur ne tombe pile dessus), ce qui illustre P(X = x) = 0 pour une variable continue. Seuls les intervalles ont une probabilité.\n`norm.pdf(x, 170, 8)` donne la hauteur de la densité (la courbe rouge de la fiche précédente, sans écrire la formule).",
+        "keypoints": [
+          "Simulation : `np.mean((x > a) & (x < b))` ; règle des **68 %** à ± 1 σ, 95 % à ± 2 σ",
+          "Exact : `norm.cdf(b, mu, sigma) - norm.cdf(a, mu, sigma)`",
+          "`np.mean(x == 170.0)` → 0 : P(X = x) = 0 en continu",
+          "`norm.pdf` = la densité, `norm.cdf` = l'aire à gauche"
+        ],
+        "tier": 2
+      },
+      {
+        "title": "Epsilon-greedy en dix lignes",
+        "front": "Code epsilon-greedy pour k restaurants aux qualités inconnues. Compare ε = 0, 0,1 et 1",
+        "body": "k restaurants aux qualités inconnues : `vraies = np.array([3.0, 5.0, 4.0])` (le 2ᵉ est le meilleur, mais l'agent ne le sait pas), `k = len(vraies)`.\n`Q = np.zeros(k)` (qualité estimée de chacun) ; `N = np.zeros(k)` (nombre de visites) ; `eps = 0.1`\n`for soir in range(1000):`\n`    if rng.random() < eps:`\n`        a = rng.integers(k)` (exploration : au hasard)\n`    else:`\n`        a = np.argmax(Q)` (exploitation : le meilleur connu)\n`    r = rng.normal(vraies[a], 1.0)` (la note du repas, bruitée)\n`    N[a] += 1`\n`    Q[a] += (r - Q[a]) / N[a]` (moyenne incrémentale)\n`rng.random() < eps` est vrai avec probabilité ε, `np.argmax(Q)` est le meilleur bras connu. La ligne `Q[a] += (r - Q[a]) / N[a]` met à jour la moyenne des notes de a sans stocker l'historique : après trois notes 1, 3, 2, Q vaut bien 2.\nExpérience : lancer avec `eps = 0` (le fidèle : reste souvent bloqué sur le premier restaurant correct), `eps = 1` (le pif : moyenne médiocre), `eps = 0.1` (bon compromis), en cumulant `total += r`. Puis faire décroître ε : `eps = max(0.01, eps * 0.995)` à chaque soir, beaucoup d'exploration au début, presque plus à la fin.\nC'est le squelette de l'apprentissage par renforcement : des estimations Q, une politique qui les exploite, et un peu de hasard pour ne pas se figer.",
+        "keypoints": [
+          "`if rng.random() < eps: a = rng.integers(k) else: a = np.argmax(Q)`",
+          "Moyenne incrémentale : `Q[a] += (r - Q[a]) / N[a]`",
+          "Comparer eps = 0, 0.1, 1 sur la récompense cumulée",
+          "ε décroissant : `eps = max(0.01, eps * 0.995)`"
+        ],
+        "tier": 3
+      }
+    ],
+    "quiz": [
+      {
+        "q": "À quoi sert la graine dans rng = np.random.default_rng(0) ?",
+        "choices": [
+          "À obtenir les mêmes tirages à chaque exécution",
+          "À ne tirer que des zéros, la graine valant 0",
+          "À accélérer la génération des nombres aléatoires",
+          "À limiter les tirages à l'intervalle [0, 1]"
+        ],
+        "answer": 0,
+        "explain": "Un générateur pseudo-aléatoire part d'un état initial : même graine, même suite. Indispensable pour déboguer et comparer deux expériences.",
+        "difficulty": "facile",
+        "topic": "random"
+      },
+      {
+        "q": "Que renvoie rng.integers(1, 7, size=100) ?",
+        "choices": [
+          "100 entiers de 1 à 6, comme un dé",
+          "100 entiers de 1 à 7, 7 inclus",
+          "7 entiers entre 1 et 100, comme un tirage",
+          "100 réels décimaux entre 1 et 7"
+        ],
+        "answer": 0,
+        "explain": "Borne haute exclue, comme partout dans numpy. Pour des réels, rng.random ou rng.uniform.",
+        "difficulty": "facile",
+        "topic": "random"
+      },
+      {
+        "q": "Que vaut np.mean(lancers == 6) sur beaucoup de lancers d'un dé équilibré ?",
+        "choices": [
+          "Environ 0.167, la proportion de 6",
+          "6, la valeur la plus fréquente",
+          "Environ 3.5, la moyenne du dé",
+          "True si le 6 est sorti au moins une fois"
+        ],
+        "answer": 0,
+        "explain": "lancers == 6 est un masque ; sa moyenne est la fraction de True, qui approche 1/6. C'est la probabilité estimée par la fréquence.",
+        "difficulty": "facile",
+        "topic": "fréquence"
+      },
+      {
+        "q": "Comment simuler un événement de probabilité 0.3 ?",
+        "choices": [
+          "rng.random() < 0.3",
+          "rng.integers(0, 3)",
+          "rng.random() == 0.3",
+          "rng.normal(0.3)"
+        ],
+        "answer": 0,
+        "explain": "Un réel uniforme entre 0 et 1 tombe sous 0.3 dans 30 % des cas. L'égalité exacte avec 0.3 n'arrive jamais.",
+        "difficulty": "moyen",
+        "topic": "random"
+      },
+      {
+        "q": "moyennes = np.cumsum(lancers) / np.arange(1, n + 1). Que représente cette courbe ?",
+        "choices": [
+          "La moyenne des lancers après chaque tirage, qui se stabilise",
+          "La somme des lancers, qui croît linéairement avec n",
+          "La probabilité de chaque face au fil des tirages",
+          "L'écart-type des lancers, qui tend vers zéro"
+        ],
+        "answer": 0,
+        "explain": "Somme cumulée divisée par le nombre de lancers : la moyenne courante. Sa stabilisation vers l'espérance est la loi des grands nombres.",
+        "difficulty": "moyen",
+        "topic": "espérance"
+      },
+      {
+        "q": "a et b sont deux tableaux de 0 / 1 tirés indépendamment (deux pièces). Que vaut np.mean((a == 1) & (b == 1)) ?",
+        "choices": [
+          "Environ 0.25",
+          "Environ 0.5",
+          "Environ 0.75",
+          "Exactement 0"
+        ],
+        "answer": 0,
+        "explain": "Pile ET pile : 1/2 × 1/2 pour des événements indépendants. 0.75 serait le OU, 0 le cas incompatible.",
+        "difficulty": "moyen",
+        "topic": "indépendance"
+      },
+      {
+        "q": "Comment vérifier numériquement que deux événements A et B sont indépendants ?",
+        "choices": [
+          "Comparer np.mean(A & B) à np.mean(A) * np.mean(B)",
+          "Vérifier que np.mean(A & B) vaut 0",
+          "Comparer np.mean(A | B) à np.mean(A) + np.mean(B)",
+          "Vérifier que A et B ont la même moyenne"
+        ],
+        "answer": 0,
+        "explain": "Indépendants ⇔ P(A et B) = P(A)·P(B). Un ET nul caractérise des événements incompatibles, pas indépendants.",
+        "difficulty": "moyen",
+        "topic": "indépendance"
+      },
+      {
+        "q": "malade et positif sont deux masques booléens. Que calcule np.mean(malade[positif]) ?",
+        "choices": [
+          "P(malade | positif) : la proportion de malades parmi les tests positifs",
+          "P(positif | malade) : la proportion de positifs parmi les malades",
+          "P(malade et positif) sur toute la population",
+          "Le nombre de malades dont le test est positif"
+        ],
+        "answer": 0,
+        "explain": "malade[positif] garde les lignes où le test est positif ; la moyenne de ce sous-tableau est la proportion de malades parmi elles. Filtrer puis moyenner = conditionner.",
+        "difficulty": "difficile",
+        "topic": "bayes"
+      },
+      {
+        "q": "Que calcule np.where(malade, rng.random(n) < 0.99, rng.random(n) < 0.05) ?",
+        "choices": [
+          "Un test positif avec probabilité 0.99 pour les malades et 0.05 pour les sains",
+          "Un test positif pour tous ceux dont le tirage est sous 0.99",
+          "Les indices des malades dont le tirage est sous 0.99",
+          "La probabilité moyenne d'un test positif"
+        ],
+        "answer": 0,
+        "explain": "np.where(cond, a, b) prend a là où cond est vrai, b ailleurs : la sensibilité pour les malades, le taux de faux positifs pour les sains.",
+        "difficulty": "moyen",
+        "topic": "bayes"
+      },
+      {
+        "q": "tailles = rng.normal(170, 8, 1000). Que valent approximativement np.mean(tailles) et np.std(tailles) ?",
+        "choices": [
+          "170 et 8 : les paramètres retrouvés par maximum de vraisemblance",
+          "0 et 1 : la loi normale est toujours centrée réduite",
+          "170 et 64 : l'écart-type est la variance",
+          "85 et 4 : la moitié des paramètres"
+        ],
+        "answer": 0,
+        "explain": "Moyenne et écart-type empiriques sont les estimateurs MV de μ et σ. 64 serait la variance (σ²), pas l'écart-type.",
+        "difficulty": "moyen",
+        "topic": "vraisemblance"
+      },
+      {
+        "q": "Que renvoie norm.cdf(178, 170, 8) − norm.cdf(162, 170, 8) ?",
+        "choices": [
+          "≈ 0.68, l'aire sous la densité entre 162 et 178",
+          "≈ 0.95, l'aire à deux écarts-types",
+          "16, la largeur de l'intervalle",
+          "0, une valeur exacte ayant une probabilité nulle"
+        ],
+        "answer": 0,
+        "explain": "cdf est l'aire à gauche ; la différence est l'aire entre 170 − 8 et 170 + 8, soit un écart-type de chaque côté : 68 %.",
+        "difficulty": "moyen",
+        "topic": "densité"
+      },
+      {
+        "q": "Dans epsilon-greedy, que fait np.argmax(Q) ?",
+        "choices": [
+          "Il choisit le bras à la meilleure estimation : l'exploitation",
+          "Il choisit un bras au hasard parmi les k : l'exploration",
+          "Il renvoie la plus grande récompense reçue jusqu'ici",
+          "Il remet toutes les estimations Q à zéro"
+        ],
+        "answer": 0,
+        "explain": "argmax renvoie l'indice du maximum de Q : le meilleur choix connu. L'exploration, c'est rng.integers(k).",
+        "difficulty": "facile",
+        "topic": "epsilon-greedy"
+      },
+      {
+        "q": "Après N[a] += 1, on fait Q[a] += (r − Q[a]) / N[a]. Que devient Q[a] ?",
+        "choices": [
+          "La moyenne de toutes les récompenses du bras a, sans historique",
+          "La dernière récompense reçue sur le bras a, les autres oubliées",
+          "La somme des récompenses reçues sur le bras a depuis le début",
+          "La récompense moyenne de tous les bras confondus"
+        ],
+        "answer": 0,
+        "explain": "C'est la moyenne incrémentale : après les notes 1, 3, 2, Q vaut 2. Un seul nombre par bras suffit, pas de liste à garder.",
+        "difficulty": "difficile",
+        "topic": "epsilon-greedy"
+      }
+    ],
+    "sources": [
+      {
+        "label": "numpy – le module random",
+        "url": "https://numpy.org/doc/stable/reference/random/index.html"
+      }
+    ],
+    "images": [
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Largenumbers.svg",
+        "caption": "Loi des grands nombres : la moyenne courante des lancers se stabilise sur l'espérance 3,5 (ce que trace np.cumsum / np.arange)",
+        "credit": "Wikimedia Commons · CC0",
+        "link": "https://commons.wikimedia.org/wiki/File:Largenumbers.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Fair_dice_probability_distribution.svg",
+        "caption": "La loi du dé équilibré : ce que np.mean(lancers == k) retrouve pour chaque face",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Fair_dice_probability_distribution.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Normal_Distribution_PDF.svg",
+        "caption": "Densités normales : ce que rng.normal(mu, sigma) tire, et ce que np.mean / np.std retrouvent",
+        "credit": "Wikimedia Commons · domaine public",
+        "link": "https://commons.wikimedia.org/wiki/File:Normal_Distribution_PDF.svg"
+      },
+      {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Las_Vegas_slot_machines.jpg",
+        "caption": "Le bandit manchot : k machines aux gains inconnus, epsilon-greedy choisit laquelle jouer",
+        "credit": "Wikimedia Commons · CC BY-SA 3.0",
+        "link": "https://commons.wikimedia.org/wiki/File:Las_Vegas_slot_machines.jpg"
+      }
+    ],
+    "links": [
+      {
+        "label": "numpy – le module random (default_rng, integers, normal, choice)",
+        "url": "https://numpy.org/doc/stable/reference/random/index.html",
+        "kind": "doc"
+      },
+      {
+        "label": "numpy – Generator.integers",
+        "url": "https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.integers.html",
+        "kind": "doc"
+      },
+      {
+        "label": "scipy – scipy.stats.norm (pdf, cdf)",
+        "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html",
+        "kind": "doc"
+      },
+      {
+        "label": "Seeing Theory – probabilités de base, interactif",
+        "url": "https://seeing-theory.brown.edu/basic-probability/index.html",
+        "kind": "doc"
+      },
+      {
+        "label": "3Blue1Brown – Bayes theorem, the geometry of changing beliefs",
+        "url": "https://www.youtube.com/watch?v=HZGCoVF3YvM",
+        "kind": "youtube"
+      },
+      {
+        "label": "StatQuest – Maximum Likelihood, clearly explained",
+        "url": "https://www.youtube.com/watch?v=XepXtl9YKwc",
+        "kind": "youtube"
+      },
+      {
+        "label": "DataMListic – Multi-Armed Bandits Explained: Epsilon-Greedy vs UCB",
+        "url": "https://www.youtube.com/watch?v=8CquWcViBfg",
+        "kind": "youtube"
+      },
+      {
+        "label": "Loi des grands nombres",
+        "url": "https://fr.wikipedia.org/wiki/Loi_des_grands_nombres",
+        "kind": "wiki"
+      },
+      {
+        "label": "Bandit manchot (exploration / exploitation)",
+        "url": "https://fr.wikipedia.org/wiki/Bandit_manchot_(math%C3%A9matiques)",
+        "kind": "wiki"
+      }
+    ]
+  }
+]
