@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CONFETTI_COLORS, pick, rand, renderRich } from '../helpers.jsx'
 import { saveScore } from '../storage.js'
-import { goofyMain, goofySub } from '../goofy.js'
+import { goofyMain as goofyMainPool, goofySub as goofySubPool } from '../goofy.js'
 
 /* =====================================================================
    ÉCRAN DE RÉSULTAT — goofy + confettis
    ===================================================================== */
 export default function ResultView({ category, score, total, log, title, storeKey, canContinue, onRetry, onBack }) {
   const pct = Math.round((score / total) * 100)
-  const goofy = useMemo(() => pick(goofyMain(category)), [])
-  const goofySub = useMemo(() => pick(goofySub(category)), [])
+  // NB : les variables locales ne doivent pas porter le nom des fonctions importées,
+  // sinon l'appel dans useMemo tombe sur la const locale pas encore initialisée (TDZ).
+  const goofy = useMemo(() => pick(goofyMainPool(category)), [])
+  const goofySub = useMemo(() => pick(goofySubPool(category)), [])
   const [best, setBest] = useState(null)
   const savedRef = useRef(false)
   useEffect(() => {
