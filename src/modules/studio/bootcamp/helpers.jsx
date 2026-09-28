@@ -27,6 +27,7 @@ export function shuffle(arr) {
 export const pick = (arr) => arr[Math.floor(rand() * arr.length)]
 
 // Rendu "markdown-léger" : **gras** et `code`
+const NEWLINE = String.fromCharCode(10)
 const RICH_SPLIT = new RegExp('([*]{2}[^*]+[*]{2}|`[^`]+`)', 'g')
 export function renderRich(text) {
   if (!text) return null
@@ -34,7 +35,10 @@ export function renderRich(text) {
   return parts.map((p, i) => {
     if (p.startsWith('**') && p.endsWith('**')) return <strong key={i}>{p.slice(2, -2)}</strong>
     if (p.startsWith('`') && p.endsWith('`')) return <code key={i}>{p.slice(1, -1)}</code>
-    return <span key={i}>{p}</span>
+    // Un saut de ligne dans le JSON devient un <br/> : utile pour les corrigés pas à pas
+    const lines = p.split(NEWLINE)
+    if (lines.length === 1) return <span key={i}>{p}</span>
+    return <span key={i}>{lines.map((l, j) => (j === 0 ? l : [<br key={'b' + j} />, l]))}</span>
   })
 }
 

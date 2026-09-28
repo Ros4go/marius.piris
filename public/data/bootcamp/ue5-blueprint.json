@@ -246,7 +246,7 @@
     ],
     "quiz": [
       {
-        "q": "Selon le cours, quel est le rôle d'un moteur de jeu ?",
+        "q": "Quel est le rôle d'un moteur de jeu ?",
         "choices": [
           "Dessiner uniquement les modèles 3D et animations du jeu",
           "Écrire seulement le code réseau et les serveurs en ligne",
@@ -271,7 +271,7 @@
           "Valve ; concurrents : Unity, CryEngine, Source"
         ],
         "answer": 0,
-        "explain": "Unreal Engine est un moteur propriétaire d'Epic Games ; le cours cite comme principaux concurrents Unity, CryEngine (Crytek) et Godot.",
+        "explain": "Unreal Engine est un moteur propriétaire d'Epic Games ; ses principaux concurrents sont Unity, CryEngine (Crytek) et Godot.",
         "difficulty": "facile",
         "topic": "Unreal Engine / Epic Games",
         "def": {
@@ -297,7 +297,7 @@
         }
       },
       {
-        "q": "D'après le comparatif du cours, sur quoi Unity se démarque-t-il d'Unreal ?",
+        "q": "Face à Unreal, sur quoi Unity se démarque-t-il généralement ?",
         "choices": [
           "La qualité du rendu et la performance native du C++",
           "Simplicité de prise en main et compilation rapide",
@@ -305,7 +305,7 @@
           "Les outils complets d'édition de mesh et animation"
         ],
         "answer": 1,
-        "explain": "Le cours note qu'Unity se démarque par sa simplicité, sa rapidité de compilation, ses outils 2D et ses exports mobiles plus légers, tandis qu'Unreal excelle sur le rendu, le réseau et le C++.",
+        "explain": "Unity se démarque par sa simplicité, sa rapidité de compilation, ses outils 2D et ses exports mobiles plus légers, tandis qu'Unreal excelle sur le rendu, le réseau et le C++.",
         "difficulty": "moyen",
         "topic": "comparatif Unity / Unreal",
         "def": {
@@ -339,7 +339,7 @@
           "Ils ne fonctionnent qu'en C++, pas en Blueprint"
         ],
         "answer": 0,
-        "explain": "Le cours précise qu'on peut commencer avec un projet vide et y intégrer plus tard des templates (FPS, TPS...) : ils sont ajoutables à tout moment.",
+        "explain": "On peut commencer avec un projet vide et y intégrer plus tard des templates (FPS, TPS...) : ils sont ajoutables à tout moment.",
         "difficulty": "moyen",
         "topic": "templates de projet",
         "def": {
@@ -569,7 +569,7 @@
         }
       },
       {
-        "q": "Quelles deux options le cours recommande-t-il de cocher pour améliorer le rendu d'un niveau ?",
+        "q": "Quelles deux options est-il recommandé de cocher pour améliorer le rendu d'un niveau ?",
         "choices": [
           "Nanite sur chaque mesh et Lumen sur la caméra active",
           "Real Time Capture (Sky Light) et Volumetric Fog",
@@ -577,7 +577,7 @@
           "Auto Exposure et Motion Blur sur le Post Process"
         ],
         "answer": 1,
-        "explain": "Le cours indique de cocher Real Time Capture dans la Sky Light et Volumetric Fog dans l'Exponential Height Fog pour un meilleur rendu.",
+        "explain": "Il est recommandé de cocher Real Time Capture dans la Sky Light et Volumetric Fog dans l'Exponential Height Fog pour un meilleur rendu.",
         "difficulty": "difficile",
         "topic": "Sky Light Real Time Capture / Volumetric Fog",
         "def": {
@@ -1693,7 +1693,7 @@
       },
       {
         "title": "Les 3 events principaux et Event ActorBeginOverlap",
-        "body": "À la création d'une **Blueprint Class**, trois événements principaux sont proposés d'emblée : **Event BeginPlay**, **Event Tick** (vus au chapitre précédent) et **Event ActorBeginOverlap**. L'**Event ActorBeginOverlap** est appelé lorsqu'un autre Actor entre en **overlap** (chevauchement) avec la collision de cet Actor. Il fournit le paramètre **Other Actor** (l'acteur qui a provoqué le chevauchement), très utile pour savoir avec quoi on interagit. Comme les deux autres, il n'est **actif que si un bloc est branché** sur sa sortie (optimisation du moteur).",
+        "body": "À la création d'une **Blueprint Class**, trois événements principaux sont proposés d'emblée : **Event BeginPlay**, **Event Tick** et **Event ActorBeginOverlap**. L'**Event ActorBeginOverlap** est appelé lorsqu'un autre Actor entre en **overlap** (chevauchement) avec la collision de cet Actor. Il fournit le paramètre **Other Actor** (l'acteur qui a provoqué le chevauchement), très utile pour savoir avec quoi on interagit. Comme les deux autres, il n'est **actif que si un bloc est branché** sur sa sortie (optimisation du moteur).",
         "keypoints": [
           "3 events par défaut : **BeginPlay**, **Tick**, **ActorBeginOverlap**",
           "**ActorBeginOverlap** : un autre Actor chevauche la collision",
@@ -1896,7 +1896,7 @@
           "Event Awake, Event Update, Event OnTriggerEnter"
         ],
         "answer": 1,
-        "explain": "Les trois events principaux d'une Blueprint Class sont BeginPlay, Tick (vus au chapitre précédent) et ActorBeginOverlap. (Awake/Update/OnTriggerEnter sont des noms Unity.)",
+        "explain": "Les trois events principaux d'une Blueprint Class sont BeginPlay, Tick et ActorBeginOverlap. (Awake/Update/OnTriggerEnter sont des noms Unity.)",
         "difficulty": "facile",
         "topic": "Event ActorBeginOverlap et les 3 events principaux",
         "def": {
@@ -2194,7 +2194,7 @@
         }
       },
       {
-        "q": "Pourquoi faut-il penser à faire un unbind (RemoveEventListener) des Event Dispatchers, et quelle bonne pratique le cours recommande-t-il ?",
+        "q": "Pourquoi faut-il penser à faire un unbind (RemoveEventListener) des Event Dispatchers, et quelle bonne pratique est recommandée ?",
         "choices": [
           "Les bind ne coûtent rien : il est totalement inutile de les retirer un jour",
           "Les bind coûtent des ressources : retirer l'inutile via un graph dédié",
@@ -2202,7 +2202,7 @@
           "Le unbind sert seulement à recolorer les nœuds de l'event graph"
         ],
         "answer": 1,
-        "explain": "Les bind consomment des ressources ; quand ils ne sont plus utiles il faut les retirer (unbind). Pour éviter un event graph « spaghetti », le cours recommande un graph dédié aux bind/unbind.",
+        "explain": "Les bind consomment des ressources ; quand ils ne sont plus utiles il faut les retirer (unbind). Pour éviter un event graph « spaghetti », une bonne pratique est un graph dédié aux bind/unbind.",
         "difficulty": "moyen",
         "topic": "Event Dispatchers (pattern observer)",
         "def": {
@@ -3154,7 +3154,7 @@
     "fiches": [
       {
         "title": "Variables et fonctions : definitions et signature",
-        "body": "Regle d'or du cours : **si vous utilisez plus de deux fois une valeur, elle doit etre une variable, et si vous utilisez plus de deux fois un calcul, il doit etre une fonction**. Une **variable** est un emplacement ou une valeur est stockee, et cette valeur peut changer pendant l'execution. Une **fonction** est un **bloc de code reutilisable** concu pour executer une tache specifique. Son objectif principal est de **simplifier le graphe Blueprint** en remplacant de longs groupes de noeuds par une seule boite, ce qui ameliore aussi l'organisation et la lisibilite du code. La **signature** d'une fonction declare son **nom** (identifiant), ses **entrees** (les parametres) et ses **sorties** (le resultat).",
+        "body": "Regle d'or : **si vous utilisez plus de deux fois une valeur, elle doit etre une variable, et si vous utilisez plus de deux fois un calcul, il doit etre une fonction**. Une **variable** est un emplacement ou une valeur est stockee, et cette valeur peut changer pendant l'execution. Une **fonction** est un **bloc de code reutilisable** concu pour executer une tache specifique. Son objectif principal est de **simplifier le graphe Blueprint** en remplacant de longs groupes de noeuds par une seule boite, ce qui ameliore aussi l'organisation et la lisibilite du code. La **signature** d'une fonction declare son **nom** (identifiant), ses **entrees** (les parametres) et ses **sorties** (le resultat).",
         "keypoints": [
           "Regle : un calcul utilise plus de 2 fois doit devenir une fonction",
           "Variable = valeur stockee, modifiable a l'execution",
@@ -3324,7 +3324,7 @@
     ],
     "quiz": [
       {
-        "q": "Selon la regle enoncee dans le cours, a partir de quand un calcul doit-il devenir une fonction ?",
+        "q": "Selon la regle d'or des fonctions, a partir de quand un calcul doit-il devenir une fonction ?",
         "choices": [
           "Dès la toute première utilisation du calcul",
           "Seulement au-delà de dix utilisations",
@@ -3332,7 +3332,7 @@
           "Jamais : mieux vaut dupliquer le code"
         ],
         "answer": 2,
-        "explain": "Le cours pose la regle : si une valeur sert plus de deux fois elle doit etre une variable, et si un calcul sert plus de deux fois il doit etre une fonction. Cela ameliore la reutilisation, l'organisation et la lisibilite.",
+        "explain": "La regle d'or : si une valeur sert plus de deux fois elle doit etre une variable, et si un calcul sert plus de deux fois il doit etre une fonction. Cela ameliore la reutilisation, l'organisation et la lisibilite.",
         "difficulty": "facile",
         "topic": "Definitions variables et fonctions",
         "def": {
@@ -3869,7 +3869,7 @@
     "num": "05",
     "special": false,
     "title": "HUD & Widgets",
-    "summary": "Ce chapitre couvre l'UMG (Unreal Motion Graphics), le systeme d'interface utilisateur natif d'Unreal Engine 5.4 construit sur le framework Slate. On y apprend a creer des Widget Blueprints (User Widgets), a travailler dans les deux environnements Designer (visualisation, Palette, Hierarchie) et Graph (logique), a organiser le layout avec les panneaux (Canvas Panel, Vertical/Horizontal Box, Stack Box, Spacer), a positionner les elements avec les Ancres (Anchors), l'Alignment et le DPI Scaling. Le cours detaille l'affichage a l'ecran (Create Widget + Add to Viewport), le cycle de vie (Pre-Construct, Construct, Tick), la performance (invalidation/caching, event-driven vs bindings, virtualisation), les variables de widget (Is Variable, Expose on Spawn), la communication (Event Dispatchers), les animations (Timeline/Sequenceur, keyframes, Play Animation), les evenements interactifs (OnClicked, OnHovered, Slider), le Widget Component pour l'UI 3D/diegetique, et l'architecture professionnelle de gestion de l'UI via la classe HUD, le PlayerController, le Z-Order et la GameInstance, jusqu'a la realisation d'un HUD responsive (barres de vie/faim/soif).",
+    "summary": "Ce chapitre couvre l'UMG (Unreal Motion Graphics), le systeme d'interface utilisateur natif d'Unreal Engine 5.4 construit sur le framework Slate. On y apprend a creer des Widget Blueprints (User Widgets), a travailler dans les deux environnements Designer (visualisation, Palette, Hierarchie) et Graph (logique), a organiser le layout avec les panneaux (Canvas Panel, Vertical/Horizontal Box, Stack Box, Spacer), a positionner les elements avec les Ancres (Anchors), l'Alignment et le DPI Scaling. On detaille l'affichage a l'ecran (Create Widget + Add to Viewport), le cycle de vie (Pre-Construct, Construct, Tick), la performance (invalidation/caching, event-driven vs bindings, virtualisation), les variables de widget (Is Variable, Expose on Spawn), la communication (Event Dispatchers), les animations (Timeline/Sequenceur, keyframes, Play Animation), les evenements interactifs (OnClicked, OnHovered, Slider), le Widget Component pour l'UI 3D/diegetique, et l'architecture professionnelle de gestion de l'UI via la classe HUD, le PlayerController, le Z-Order et la GameInstance, jusqu'a la realisation d'un HUD responsive (barres de vie/faim/soif).",
     "topics": [
       "UMG et framework Slate",
       "Widget Blueprint : Designer, Graph, Palette, Hierarchie",
@@ -3916,7 +3916,7 @@
       },
       {
         "title": "Types de widgets : User Widget, Native, Widget Component",
-        "body": "Le cours distingue trois familles. 1) **User Widget (ou Widget Blueprint)** : la classe parente par defaut pour construire une UI ; elle peut heriter d'autres classes pour le style ou les fonctionnalites. Bonne pratique : chaque element complexe (barre de sante, emplacement d'inventaire) doit etre **son propre Widget Blueprint** pour favoriser la reutilisation. 2) **Native Widgets (composants)** : les briques de base trouvees dans la **Palette**, comme **Text, Image, Button ou Border**. 3) **Widget Component** : un composant qui permet d'afficher un User Widget dans l'environnement **3D** du monde (**World Space** / 3D Widget), utilise pour les interfaces interactives (clavier virtuel) ou les HUD flottants au-dessus des acteurs ; on y choisit la **classe de User Widget** a afficher et sa taille de rendu (**Draw Size**).",
+        "body": "On distingue trois familles. 1) **User Widget (ou Widget Blueprint)** : la classe parente par defaut pour construire une UI ; elle peut heriter d'autres classes pour le style ou les fonctionnalites. Bonne pratique : chaque element complexe (barre de sante, emplacement d'inventaire) doit etre **son propre Widget Blueprint** pour favoriser la reutilisation. 2) **Native Widgets (composants)** : les briques de base trouvees dans la **Palette**, comme **Text, Image, Button ou Border**. 3) **Widget Component** : un composant qui permet d'afficher un User Widget dans l'environnement **3D** du monde (**World Space** / 3D Widget), utilise pour les interfaces interactives (clavier virtuel) ou les HUD flottants au-dessus des acteurs ; on y choisit la **classe de User Widget** a afficher et sa taille de rendu (**Draw Size**).",
         "keypoints": [
           "**User Widget** = classe parente par defaut d'une UI",
           "Chaque element complexe = son propre Widget (reutilisation)",
@@ -4239,7 +4239,7 @@
         }
       },
       {
-        "q": "Pourquoi le cours deconseille-t-il d'utiliser l'Event Tick sur les widgets ?",
+        "q": "Pourquoi est-il deconseille d'utiliser l'Event Tick sur les widgets ?",
         "choices": [
           "Il ne fonctionne pas dans un Widget Blueprint",
           "Il tourne à chaque frame et charge le CPU",
@@ -4392,7 +4392,7 @@
         }
       },
       {
-        "q": "Pourquoi le cours recommande-t-il d'eviter les Property Bindings pour les UIs performantes ?",
+        "q": "Pourquoi est-il recommande d'eviter les Property Bindings pour les UIs performantes ?",
         "choices": [
           "Les Bindings ne marchent qu'avec les Widget 3D",
           "Les Bindings bloquent l'usage des ancres du Canvas Panel",
@@ -6396,7 +6396,7 @@
     "num": "07",
     "special": false,
     "title": "Intelligence Artificielle",
-    "summary": "Ce chapitre couvre l'IA de jeu vidéo dans Unreal Engine 5.4, de la théorie à la pratique. On part de la philosophie de l'IA (donner l'illusion d'intelligence, une IA au service du jeu), de la notion d'agent et des grands domaines (déplacement/navigation, perception, décision, planification, apprentissage). On étudie les techniques décisionnelles (FSM, Decision Tree, Behavior Tree, Utility, AI Planner) puis, en détail, le Behavior Tree d'Unreal : Root, Task, composites Sequence et Selector, Decorators (Observer Aborts), Services et Blackboard, pilotés par un AI Controller via le nœud Run Behavior Tree. Côté perception, on met en place l'AIPerception Component (sens Sight/Hearing/Touch/Damage) et l'AIPerceptionStimuliSource. Côté navigation, on couvre le NavMesh (RecastNavMesh, Recast & Detour), le Nav Mesh Bounds Volume, les NavMesh Invokers, les NavLink Proxies, l'évitement Detour Crowd et l'EQS. Le TP construit un NPC qui patrouille aléatoirement (GetRandomLocation + MoveTo) et chasse le joueur à vue.",
+    "summary": "Ce chapitre couvre l'IA de jeu vidéo dans Unreal Engine 5.4, de la théorie à la pratique. On part de la philosophie de l'IA (donner l'illusion d'intelligence, une IA au service du jeu), de la notion d'agent et des grands domaines (déplacement/navigation, perception, décision, planification, apprentissage). On étudie les techniques décisionnelles (FSM, Decision Tree, Behavior Tree, Utility, AI Planner) puis, en détail, le Behavior Tree d'Unreal : Root, Task, composites Sequence et Selector, Decorators (Observer Aborts), Services et Blackboard, pilotés par un AI Controller via le nœud Run Behavior Tree. Côté perception, on met en place l'AIPerception Component (sens Sight/Hearing/Touch/Damage) et l'AIPerceptionStimuliSource. Côté navigation, on couvre le NavMesh (RecastNavMesh, Recast & Detour), le Nav Mesh Bounds Volume, les NavMesh Invokers, les NavLink Proxies, l'évitement Detour Crowd et l'EQS. L'exemple guidé construit un NPC qui patrouille aléatoirement (GetRandomLocation + MoveTo) et chasse le joueur à vue.",
     "topics": [
       "Philosophie de l'IA de jeu",
       "Agent intelligent",
@@ -6418,12 +6418,12 @@
       "NavMesh Invokers et NavLink Proxy",
       "Detour Crowd",
       "EQS",
-      "AI MoveTo et mise en place TP"
+      "AI MoveTo et mise en place d'un NPC"
     ],
     "fiches": [
       {
         "title": "L'IA dans le jeu vidéo : philosophie et définitions",
-        "body": "Dans les jeux, l'IA désigne la mise en œuvre d'un **comportement apparemment intelligent** chez divers agents. L'objectif n'est pas de simuler une vraie intelligence, mais de donner au joueur **l'illusion d'une intelligence**. Principes clés du cours : l'**IA est au service du jeu**, pas l'inverse ; une IA ultra-performante ne fait pas forcément un bon jeu ; **tricher est tout à fait envisageable** ; et surtout, **une bonne IA est celle que l'on ne voit pas**. Le lead IA de Naughty Dog (The Last of Us) résume : le but des NPC qui cherchent le joueur n'est pas de le trouver, mais de **présenter un gameplay intéressant**. Une IA de jeu se compose à parts égales d'**algorithmes génériques 'état de l'art'** (souvent issus de la recherche, réutilisables), d'**heuristiques** (règles qui marchent dans la plupart des cas, spécifiques au jeu) et de **hacks** (solutions sur-mesure à des cas particuliers). Même un algorithme générique devra presque toujours être adapté au jeu cible.",
+        "body": "Dans les jeux, l'IA désigne la mise en œuvre d'un **comportement apparemment intelligent** chez divers agents. L'objectif n'est pas de simuler une vraie intelligence, mais de donner au joueur **l'illusion d'une intelligence**. Principes clés : l'**IA est au service du jeu**, pas l'inverse ; une IA ultra-performante ne fait pas forcément un bon jeu ; **tricher est tout à fait envisageable** ; et surtout, **une bonne IA est celle que l'on ne voit pas**. Le lead IA de Naughty Dog (The Last of Us) résume : le but des NPC qui cherchent le joueur n'est pas de le trouver, mais de **présenter un gameplay intéressant**. Une IA de jeu se compose à parts égales d'**algorithmes génériques 'état de l'art'** (souvent issus de la recherche, réutilisables), d'**heuristiques** (règles qui marchent dans la plupart des cas, spécifiques au jeu) et de **hacks** (solutions sur-mesure à des cas particuliers). Même un algorithme générique devra presque toujours être adapté au jeu cible.",
         "keypoints": [
           "But : donner l'**illusion** d'intelligence, pas la performance max",
           "L'IA est **au service du jeu** ; tricher est acceptable",
@@ -6527,7 +6527,7 @@
       },
       {
         "title": "Behavior Tree dans Unreal : Root, Task, Sequence, Selector",
-        "body": "Dans Unreal, le **Root** est unique, constitue le point de départ, ne peut avoir qu'**une seule connexion** et **ne peut recevoir ni décorateurs ni services**. Les **Task** sont les **feuilles** de l'arbre, les nœuds qui **'font' des choses** et n'ont **pas de connexion de sortie** (ex : MoveTo, Wait). Les **nœuds composites** ont un parent et un ou plusieurs enfants et contrôlent le parcours. Le **Sequence** exécute ses enfants **de gauche à droite** et **s'arrête dès qu'un enfant échoue** : si un enfant échoue, la séquence échoue ; si tous réussissent, la séquence réussit (utile pour un ordre précis : courir → se mettre à couvert → tirer). Le **Selector** exécute ses enfants **de gauche à droite** et **s'arrête dès qu'un enfant réussit** : si un enfant réussit, le sélecteur réussit ; si tous échouent, le sélecteur échoue (le cours le décrit comme un genre de switch/case). Il existe aussi le composite **Simple Parallel**.",
+        "body": "Dans Unreal, le **Root** est unique, constitue le point de départ, ne peut avoir qu'**une seule connexion** et **ne peut recevoir ni décorateurs ni services**. Les **Task** sont les **feuilles** de l'arbre, les nœuds qui **'font' des choses** et n'ont **pas de connexion de sortie** (ex : MoveTo, Wait). Les **nœuds composites** ont un parent et un ou plusieurs enfants et contrôlent le parcours. Le **Sequence** exécute ses enfants **de gauche à droite** et **s'arrête dès qu'un enfant échoue** : si un enfant échoue, la séquence échoue ; si tous réussissent, la séquence réussit (utile pour un ordre précis : courir → se mettre à couvert → tirer). Le **Selector** exécute ses enfants **de gauche à droite** et **s'arrête dès qu'un enfant réussit** : si un enfant réussit, le sélecteur réussit ; si tous échouent, le sélecteur échoue (une sorte de switch/case). Il existe aussi le composite **Simple Parallel**.",
         "keypoints": [
           "**Root** : unique, 1 connexion, ni décorateur ni service",
           "**Task** : feuilles ; exécutent une action (MoveTo, Wait)",
@@ -6553,7 +6553,7 @@
       },
       {
         "title": "Blackboard, AI Controller et Run Behavior Tree",
-        "body": "Le **Blackboard** est la **mémoire de l'IA** : il stocke les **valeurs clés (keys)** que le Behavior Tree utilise. Il sert d'**interface de stockage** et de **point d'accès unique aux inputs** du BT, évite les références multiples sur les divers agents, et **plusieurs agents peuvent partager un même Blackboard** pour communiquer. Le BT est **géré au niveau du controller** : le **AI Controller** est affecté au Character via la variable **AI Controller Class** (catégorie **Pawn** des Details du Pawn). L'AIController **prend possession** du Pawn et lance l'arbre avec le nœud **Run Behavior Tree** ; une fois l'arbre lancé, il est joué en continu. Dans le TP : on crée un dossier AI, un **BP_NPC** (Character, avec skeletal mesh + classe d'animation), un **AIC_NPCController**, un Behavior Tree **BT_NPC** et un Blackboard **BB_NPC** ; le Blackboard est normalement assigné automatiquement à la racine du BT.",
+        "body": "Le **Blackboard** est la **mémoire de l'IA** : il stocke les **valeurs clés (keys)** que le Behavior Tree utilise. Il sert d'**interface de stockage** et de **point d'accès unique aux inputs** du BT, évite les références multiples sur les divers agents, et **plusieurs agents peuvent partager un même Blackboard** pour communiquer. Le BT est **géré au niveau du controller** : le **AI Controller** est affecté au Character via la variable **AI Controller Class** (catégorie **Pawn** des Details du Pawn). L'AIController **prend possession** du Pawn et lance l'arbre avec le nœud **Run Behavior Tree** ; une fois l'arbre lancé, il est joué en continu. En pratique : on crée un dossier AI, un **BP_NPC** (Character, avec skeletal mesh + classe d'animation), un **AIC_NPCController**, un Behavior Tree **BT_NPC** et un Blackboard **BB_NPC** ; le Blackboard est normalement assigné automatiquement à la racine du BT.",
         "keypoints": [
           "**Blackboard** = mémoire de l'IA ; stocke des **keys**",
           "Plusieurs agents peuvent **partager** un Blackboard",
@@ -6566,7 +6566,7 @@
       },
       {
         "title": "AI Perception et Stimuli Source dans Unreal",
-        "body": "Pour donner des sens à l'IA, on ajoute un **AIPerception Component** sur l'**AI Controller** et on lui configure un ou plusieurs **sens (Senses)** : **Sight (vue)**, **Hearing (ouïe)**, **Touch**, **Damage**, etc. (chaque sens se règle dans les Details : rayon, angle de vision, affiliation…). Pour qu'un acteur soit **détectable**, il faut lui ajouter le composant **AIPerceptionStimuliSource** et l'**enregistrer comme source pour les sens voulus** (option *Register as Source for Senses* : vue, son, dégâts…). Dans le TP, on ajoute ce composant au **ThirdPersonCharacter**. La détection se gère via l'événement **On Target Perception Updated** de l'AIPerception, dont on utilise le résultat pour mettre à jour une clé du Blackboard (attention à respecter le nom littéral, identique à la variable bool du Blackboard, et à utiliser la fonction Get Blackboard et non la variable). Le cours rappelle qu'on simule la perception humaine par des **traces (line of sight)** intermittentes et un **produit scalaire (dot product)** pour vérifier que la cible est dans la direction du regard de l'IA.",
+        "body": "Pour donner des sens à l'IA, on ajoute un **AIPerception Component** sur l'**AI Controller** et on lui configure un ou plusieurs **sens (Senses)** : **Sight (vue)**, **Hearing (ouïe)**, **Touch**, **Damage**, etc. (chaque sens se règle dans les Details : rayon, angle de vision, affiliation…). Pour qu'un acteur soit **détectable**, il faut lui ajouter le composant **AIPerceptionStimuliSource** et l'**enregistrer comme source pour les sens voulus** (option *Register as Source for Senses* : vue, son, dégâts…). En pratique, on ajoute ce composant au **ThirdPersonCharacter**. La détection se gère via l'événement **On Target Perception Updated** de l'AIPerception, dont on utilise le résultat pour mettre à jour une clé du Blackboard (attention à respecter le nom littéral, identique à la variable bool du Blackboard, et à utiliser la fonction Get Blackboard et non la variable). On simule la perception humaine par des **traces (line of sight)** intermittentes et un **produit scalaire (dot product)** pour vérifier que la cible est dans la direction du regard de l'IA.",
         "keypoints": [
           "**AIPerception** sur l'AI Controller ; Sight/Hearing/Touch/Damage",
           "Cible détectable = **AIPerceptionStimuliSource** enregistré",
@@ -6592,7 +6592,7 @@
       },
       {
         "title": "Mise en pratique : patrouille aléatoire puis chasse à vue",
-        "body": "Le TP construit un NPC qui **patrouille aléatoirement** puis **chasse le joueur** à vue. On crée une **Task** (bouton *New Task*) qui commence par écouter l'exécution (**Event Receive Execute AI**) et se termine toujours par un **Finish Execute**. La tâche **GetRandomLocation** récupère la position de l'IA et choisit un **point aléatoire sur le NavMesh dans un rayon de 1500** (GetRandomLocationInNavigableRadius), via une variable **publique** de type **BlackboardKeySelector** (nommée BBKey) qui pointe vers une clé du Blackboard. Le vecteur obtenu est stocké dans une clé **Vector** du Blackboard (ex : **targetLocation**). Dans le BT, la séquence **PATROL** enchaîne **GetRandomLocation → MoveTo → Wait** (nœuds déjà fournis) ; avec une seule clé, le BT alimente automatiquement GetRandomLocation et **MoveTo** avec targetLocation. Pour la **chasse**, on ajoute une séquence **Chase** (GetPlayerLocation + MoveTo/ChasePlayer, variable targetFoundLocation). Le choix d'état se fait avec une clé booléenne **playerInFOV** et un **décorateur Blackboard** sur chaque séquence, mis à jour par l'événement On Target Perception Updated. Réglages fins : **Observer Aborts = Both**, un **Cooldown à 0,2 s** contre le tremblement, et un lissage de rotation (décocher *Use Controller Rotation Yaw*, activer *Orient Rotation to Movement* dans le Character Movement).",
+        "body": "L'exemple guidé construit un NPC qui **patrouille aléatoirement** puis **chasse le joueur** à vue. On crée une **Task** (bouton *New Task*) qui commence par écouter l'exécution (**Event Receive Execute AI**) et se termine toujours par un **Finish Execute**. La tâche **GetRandomLocation** récupère la position de l'IA et choisit un **point aléatoire sur le NavMesh dans un rayon de 1500** (GetRandomLocationInNavigableRadius), via une variable **publique** de type **BlackboardKeySelector** (nommée BBKey) qui pointe vers une clé du Blackboard. Le vecteur obtenu est stocké dans une clé **Vector** du Blackboard (ex : **targetLocation**). Dans le BT, la séquence **PATROL** enchaîne **GetRandomLocation → MoveTo → Wait** (nœuds déjà fournis) ; avec une seule clé, le BT alimente automatiquement GetRandomLocation et **MoveTo** avec targetLocation. Pour la **chasse**, on ajoute une séquence **Chase** (GetPlayerLocation + MoveTo/ChasePlayer, variable targetFoundLocation). Le choix d'état se fait avec une clé booléenne **playerInFOV** et un **décorateur Blackboard** sur chaque séquence, mis à jour par l'événement On Target Perception Updated. Réglages fins : **Observer Aborts = Both**, un **Cooldown à 0,2 s** contre le tremblement, et un lissage de rotation (décocher *Use Controller Rotation Yaw*, activer *Orient Rotation to Movement* dans le Character Movement).",
         "keypoints": [
           "**Task** : Event Receive Execute AI → **Finish Execute**",
           "**GetRandomLocation** : point NavMesh (rayon 1500) → clé Vector",
@@ -6601,12 +6601,12 @@
         ],
         "versionNote": "",
         "tier": 2,
-        "front": "TP : NPC qui patrouille puis chasse le joueur"
+        "front": "Exemple guidé : NPC qui patrouille puis chasse le joueur"
       }
     ],
     "quiz": [
       {
-        "q": "Quelle affirmation résume le mieux la philosophie de l'IA de jeu vidéo présentée dans le cours ?",
+        "q": "Quelle affirmation résume le mieux la philosophie de l'IA de jeu vidéo ?",
         "choices": [
           "L'IA doit être la plus performante possible pour toujours battre le joueur",
           "Une bonne IA reste invisible et donne l'illusion d'intelligence au jeu",
@@ -6614,7 +6614,7 @@
           "Tricher est totalement proscrit ; l'IA doit jouer de façon équitable"
         ],
         "answer": 1,
-        "explain": "Le cours insiste : le but est l'illusion d'intelligence, l'IA est au service du jeu, tricher est envisageable, et une bonne IA est celle que l'on ne voit pas. Une IA ultra-performante ne fait pas forcément un bon jeu.",
+        "explain": "L'essentiel : le but est l'illusion d'intelligence, l'IA est au service du jeu, tricher est envisageable, et une bonne IA est celle que l'on ne voit pas. Une IA ultra-performante ne fait pas forcément un bon jeu.",
         "difficulty": "facile",
         "topic": "Philosophie de l'IA de jeu",
         "def": {
@@ -6640,7 +6640,7 @@
         }
       },
       {
-        "q": "Quels sont les grands domaines de l'IA de jeu cités dans le cours ?",
+        "q": "Quels sont les grands domaines de l'IA de jeu ?",
         "choices": [
           "Compilation, sérialisation, streaming, éclairage et compression audio",
           "Déplacement, perception, décision, planification, apprentissage",
@@ -6708,7 +6708,7 @@
         }
       },
       {
-        "q": "Selon le cours, comment est généralement gérée la vue (vision) d'un agent ?",
+        "q": "Comment est généralement gérée la vue (vision) d'un agent ?",
         "choices": [
           "Par une détection de collision directement sur le corps de l'agent",
           "Via des cônes de visibilité définis par une distance et un angle",
@@ -6742,7 +6742,7 @@
         }
       },
       {
-        "q": "Quelle est une limitation majeure des Finite State Machines (FSM) selon le cours ?",
+        "q": "Quelle est une limitation majeure des Finite State Machines (FSM) ?",
         "choices": [
           "Toutes les transitions doivent être prévues, d'où une maintenance lourde",
           "Elles ne peuvent gérer qu'un seul et unique état durant toute la partie",
@@ -6835,7 +6835,7 @@
           "Il ne peut posséder aucun node enfant sous sa branche parente"
         ],
         "answer": 0,
-        "explain": "Le Selector exécute ses enfants de gauche à droite et s'arrête au premier succès (le sélecteur réussit alors). Si tous échouent, le sélecteur échoue. Le cours le décrit comme une sorte de switch/case.",
+        "explain": "Le Selector exécute ses enfants de gauche à droite et s'arrête au premier succès (le sélecteur réussit alors). Si tous échouent, le sélecteur échoue. On peut le voir comme une sorte de switch/case.",
         "difficulty": "moyen",
         "topic": "Composites (Sequence, Selector)",
         "def": {
@@ -6871,7 +6871,7 @@
         "answer": 2,
         "explain": "Les Task sont les feuilles de l'arbre, les nœuds qui réalisent des actions (MoveTo, Wait, etc.) et n'ont pas de connexion de sortie.",
         "difficulty": "facile",
-        "topic": "AI MoveTo et mise en place TP",
+        "topic": "AI MoveTo et mise en place d'un NPC",
         "def": {
           "term": "Task (Behavior Tree)",
           "text": "Feuille du Behavior Tree : nœud qui exécute une action concrète (MoveTo, Wait...) et ne possède pas de connexion de sortie."
@@ -7031,7 +7031,7 @@
         }
       },
       {
-        "q": "Dans le TP de patrouille, la tâche GetRandomLocation choisit un point aléatoire sur le NavMesh dans un rayon de 1500 autour de l'IA. Où ce résultat est-il stocké et via quel type de variable ?",
+        "q": "Dans un NPC de patrouille, la tâche GetRandomLocation choisit un point aléatoire sur le NavMesh dans un rayon de 1500 autour de l'IA. Où ce résultat est-il stocké et via quel type de variable ?",
         "choices": [
           "Dans un fichier texte externe, via une variable string",
           "Dans le Game Instance global du jeu, via une variable de type int",
@@ -7041,7 +7041,7 @@
         "answer": 2,
         "explain": "La tâche démarre par Event Receive Execute AI, choisit un point aléatoire sur le NavMesh (rayon 1500) et stocke ce Vector dans une clé du Blackboard (targetLocation) via une variable publique BlackboardKeySelector, avant Finish Execute. La séquence PATROL enchaîne ensuite GetRandomLocation, MoveTo et Wait.",
         "difficulty": "moyen",
-        "topic": "AI MoveTo et mise en place TP",
+        "topic": "AI MoveTo et mise en place d'un NPC",
         "def": {
           "term": "BlackboardKeySelector",
           "text": "Variable publique d'une Task qui pointe vers une clé du Blackboard (ici une clé Vector, targetLocation) où stocker le résultat calculé."
@@ -7100,7 +7100,7 @@
         "topic": "AIPerceptionStimuliSource (cible détectable)"
       },
       {
-        "q": "Monde ouvert immense ; construire tout le NavMesh au démarrage coûte trop cher. La solution du cours ?",
+        "q": "Monde ouvert immense ; construire tout le NavMesh au démarrage coûte trop cher. La solution habituelle ?",
         "choices": [
           "réduire la résolution des cellules (Cell Size) du NavMesh",
           "des NavMesh Invokers : navigation construite autour des acteurs marqués",

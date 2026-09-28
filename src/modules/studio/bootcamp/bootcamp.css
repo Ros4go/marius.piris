@@ -499,11 +499,15 @@
 }
 .bc-result-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
 .bc-result-ring .pct {
+  /* flex colonne : le % et le score sont centrés ENSEMBLE dans l'anneau
+     (en grid, chaque enfant était centré dans sa propre rangée, d'où un % trop haut) */
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 .bc-result-ring .pct .big {
   font-family: 'Anton', sans-serif;
