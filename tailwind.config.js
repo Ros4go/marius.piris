@@ -1,6 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
+  // Neuvième Vie (JS brut, sans Tailwind) et Archipelago (sa propre config) sont exclus.
+  content: [
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}',
+    '!./src/modules/studio/jeux/neuvieme-vie/**',
+    '!./src/modules/archipelago/**',
+  ],
   theme: {
     extend: {
       colors: {

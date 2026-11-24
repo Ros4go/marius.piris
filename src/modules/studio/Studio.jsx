@@ -1,11 +1,13 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { useRoute, navigate, segments } from '../../core/router.js'
-import PersonaBg from '../../components/PersonaBg.jsx'
+import { Suspense, useEffect } from 'react'
+import { useRoute, navigate } from '../../core/router.js'
+import PersonaBg from '../../shell/PersonaBg.jsx'
+import ErrorBoundary from '../../shell/ErrorBoundary.jsx'
+import { CATALOG } from './catalog.js'
 
-// Chargés à la demande : ces deux modules pèsent l'essentiel du bundle,
-// inutile de les télécharger pour afficher l'accueil ou le catalogue.
-const FrometonsGame = lazy(() => import('../games/frometons/FrometonsGame.jsx'))
-const Bootcamp = lazy(() => import('./bootcamp/Bootcamp.jsx'))
+// Anciennes URL internes conservées.
+const REDIRECTS = {
+  '/studio/ue5': '/studio/bootcamp/ue5-blueprint', // ex module « Blueprint Bootcamp »
+}
 
 // Redirection déclarative (appeler navigate() pendant le rendu est interdit).
 function Redirect({ to }) {
@@ -31,138 +33,6 @@ const FX = [
   { l: 8, s: 6, d: 19, t: -12 },
 ]
 
-// Combined "Jeux & Outils" hub. Everything interactive lives here, one click away.
-//
-// AJOUTER UN MODULE : une entrée dans CATALOG suffit.
-//   - cat: 'jeu' | 'outil'  (section d'affichage)
-//   - page React interne   -> { kind: 'route', path: '/studio/xxx' }  (+ rendu ci-dessous)
-//   - page autonome / lien -> { kind: 'external', href: '/xxx.html' }
-//   - image OU icon (emoji) pour la vignette
-const CATALOG = [
-  // --- Jeux (du plus récent au plus ancien) ---
-  {
-    id: 'avenue-frochot',
-    cat: 'jeu',
-    title: '1 Avenue Frochot',
-    tagline: "Aventure horrifique en FPS : une nuit dans un hôtel où tout le monde ment, mais chaque mensonge cache une part de vérité.",
-    image: '/assets/images/avenue-frochot.webp',
-    kind: 'external',
-    href: 'https://rosago.itch.io/1-avenue-frochot',
-    tags: ['Horreur', 'Unity', 'Brackeys Jam'],
-  },
-  {
-    id: 'echoes-of-above',
-    cat: 'jeu',
-    title: 'Echoes of Above',
-    tagline: "Action-aventure sur Steam : frappe les projectiles ennemis en plein vol et renvoie-les dans un monde mythologique abandonné des dieux. Projet ISART Digital, en équipe de plus de 20.",
-    image: '/assets/images/echoes-of-above.webp',
-    kind: 'external',
-    href: 'https://store.steampowered.com/app/4196130/Echoes_of_Above/',
-    tags: ['Action', 'Steam', 'ISART Digital'],
-  },
-  {
-    id: 'worm-with-a-shotgun',
-    cat: 'jeu',
-    title: 'Worm With a Shotgun',
-    tagline: "Action en jam de 3 jours : un ver armé d'un fusil à pompe défonce les bâtiments avant de manquer d'oxygène.",
-    image: '/assets/images/worm-with-a-shotgun.webp',
-    kind: 'external',
-    href: 'https://komixa.itch.io/worm-with-a-shotgun',
-    tags: ['Action', 'Unity', 'Gone Fishing Jam'],
-  },
-  {
-    id: 'casting-scales',
-    cat: 'jeu',
-    title: 'Casting Scales',
-    tagline: 'Rogue-lite musical : ton piano est ton grimoire et ta barre de vie, joue des gammes pour lancer des sorts.',
-    image: '/assets/images/casting-scales.webp',
-    kind: 'external',
-    href: 'https://rosago.itch.io/casting-scales',
-    tags: ['Rythme', 'Rogue-lite', 'Kenney Jam'],
-  },
-  {
-    id: 'mytho-logie',
-    cat: 'jeu',
-    title: 'Mytho-Logie',
-    tagline: "Détourne des affiches de propagande à coups de stickers, au cœur d'une guerre entre Apollon et Artémis.",
-    image: '/assets/images/Mytho_Logie_Poster.webp',
-    kind: 'external',
-    href: 'https://camille-bonnus.itch.io/mytho-logie',
-    tags: ['Simulation', 'Unity', 'itch.io'],
-  },
-  {
-    id: 'frometons-clicker',
-    cat: 'jeu',
-    title: 'Frometons Clicker',
-    tagline: 'Jeu incrémental : produis des frometons et gère un marché fromager.',
-    image: '/assets/images/Fromecoin.webp',
-    fit: 'contain',
-    kind: 'route',
-    path: '/studio/frometons',
-    tags: ['Idle', 'React', 'Web'],
-  },
-  {
-    id: 'neuvieme-vie',
-    cat: 'jeu',
-    title: 'La Neuvième Vie',
-    tagline: "Jeu d'aventure et de plateforme 2D, 100% JavaScript.",
-    image: '/games/neuvieme-vie/imageLogo/Cat.png',
-    fit: 'contain',
-    kind: 'external',
-    href: '/games/neuvieme-vie/index.html',
-    tags: ['Plateforme', '2D', 'JavaScript'],
-  },
-  {
-    id: 'pot-of-greed',
-    cat: 'jeu',
-    title: 'Pot Of Greed',
-    tagline: "Rogue-lite 2D solo : combinaison procédurale d'objets et inventaire.",
-    image: 'https://img.itch.zone/aW1hZ2UvMjc5MTY4OS8yMDY1ODI2NS5wbmc=/original/4xn%2Bh4.png',
-    kind: 'external',
-    href: 'https://shazalsadepts.itch.io/pot-of-greed',
-    tags: ['Rogue-lite', 'Unity', 'itch.io'],
-  },
-  {
-    id: 'super-sushi-speed',
-    cat: 'jeu',
-    title: 'Super Sushi Speed',
-    tagline: 'Jeu de rythme : un sushi mutant dans des niveaux semi-procéduraux.',
-    image: 'https://img.itch.zone/aW1hZ2UvMjUwMTAwNS8xNDg1NzU5MS5wbmc=/original/SxiYq9.png',
-    kind: 'external',
-    href: 'https://shazalsadepts.itch.io/super-sushi-speed',
-    tags: ['Rythme', 'Godot', 'itch.io'],
-  },
-  {
-    id: 'guitare',
-    cat: 'outil',
-    title: 'MarousFive',
-    tagline: 'Manche & modes, accords + doigtés, jeu de notes et métronome.',
-    icon: '🎸',
-    kind: 'external',
-    href: '/pages/guitare.html',
-    tags: ['Guitare', 'Modes', 'Métronome'],
-  },
-  {
-    id: 'bootcamp',
-    cat: 'outil',
-    title: 'Game Dev Bootcamp',
-    tagline: 'Réviser le game dev par catégories : fiches mémo + quiz + examen blanc. Première catégorie : UE5 Blueprint.',
-    icon: '🎓',
-    kind: 'route',
-    path: '/studio/bootcamp',
-    tags: ['Révision', 'Quiz', 'UE5'],
-  },
-  {
-    id: 'redac-emails',
-    cat: 'outil',
-    title: 'Premier jet',
-    tagline: "Aide à la rédaction d'emails de candidature : stage, alternance ou poste.",
-    icon: '✉️',
-    kind: 'external',
-    href: '/pages/generateur-emails.html',
-    tags: ['Emails', 'Candidature', 'Rédaction'],
-  },
-]
 
 // One slanted roster panel — character-select style.
 function Panel({ item, num }) {
@@ -234,36 +104,32 @@ function Roster({ jeux, outils }) {
 
 export default function Studio() {
   const route = useRoute()
-  const seg = segments(route) // ['studio'] or ['studio','frometons']
 
-  if (seg[1] === 'frometons') {
+  if (REDIRECTS[route]) return <Redirect to={REDIRECTS[route]} />
+
+  // Page React interne du catalogue (et ses sous-routes, ex. /studio/bootcamp/cuda).
+  const page = CATALOG.find(
+    (it) => it.kind === 'route' && (route === it.path || route.startsWith(it.path + '/'))
+  )
+  if (page) {
+    const Page = page.component
+    const content = (
+      <ErrorBoundary key={page.id}>
+        <Suspense fallback={null}>
+          <Page />
+        </Suspense>
+      </ErrorBoundary>
+    )
+    if (!page.back) return content
     return (
       <div>
-        <button
-          className="btn ghost mb-6"
-          onClick={() => {
-            navigate('/studio')
-          }}
-        >
+        <button className="btn ghost mb-6" onClick={() => navigate('/studio')}>
           <span>◄ Retour</span>
         </button>
-        <Suspense fallback={null}>
-          <FrometonsGame />
-        </Suspense>
+        {content}
       </div>
     )
   }
-
-  if (seg[1] === 'bootcamp') {
-    return (
-      <Suspense fallback={null}>
-        <Bootcamp />
-      </Suspense>
-    )
-  }
-
-  // Ancienne URL du module « Blueprint Bootcamp » : on renvoie vers sa catégorie.
-  if (seg[1] === 'ue5') return <Redirect to="/studio/bootcamp/ue5-blueprint" />
 
   return (
     <div className="studio">

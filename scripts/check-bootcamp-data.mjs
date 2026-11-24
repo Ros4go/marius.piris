@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Vérifie le contenu du Bootcamp : tous les JSON de public/data/bootcamp/ et leur
-// cohérence avec le registre src/modules/studio/bootcamp/categories.js.
+// Vérifie le contenu du Bootcamp : le data.json de chaque catégorie
+// (src/modules/studio/outils/bootcamp/categories/<id>/data.json) et leur cohérence
+// avec le registre categories.js.
 // Lancé avant chaque build (npm run build) et à la main via `npm run check:bootcamp`.
 // Les JSON sont édités à la main : ce script attrape une virgule manquante, un index
 // de réponse hors limites ou une difficulté inconnue avant que la page ne casse.
@@ -9,8 +10,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const DIR = join(ROOT, 'public', 'data', 'bootcamp')
-const REGISTRY = join(ROOT, 'src', 'modules', 'studio', 'bootcamp', 'categories.js')
+const BOOTCAMP = join(ROOT, 'src', 'modules', 'studio', 'outils', 'bootcamp')
+const DIR = join(BOOTCAMP, 'categories')
+const REGISTRY = join(BOOTCAMP, 'categories.js')
 const DIFFICULTIES = ['facile', 'moyen', 'difficile']
 const TIERS = [1, 2, 3]
 
@@ -110,14 +112,18 @@ const { CATEGORIES } = await import(pathToFileURL(REGISTRY).href)
 const referenced = new Set()
 for (const cat of CATEGORIES) {
   if (!isStr(cat.id) || !isStr(cat.data)) { fail(`registre : catégorie sans id ou sans data (${JSON.stringify(cat.id)})`); continue }
-  const file = join(ROOT, 'public', cat.data)
+  // Sous Node, `new URL('./data.json', import.meta.url).href` donne une URL file:// vers le fichier.
+  if (!cat.data.startsWith('file:')) { fail(`registre : « ${cat.id} » : data doit être new URL('./data.json', import.meta.url).href`); continue }
+  const file = fileURLToPath(cat.data)
   referenced.add(resolve(file))
-  if (!existsSync(file)) fail(`registre : « ${cat.id} » pointe vers ${cat.data}, introuvable dans public/`)
+  if (!existsSync(file)) fail(`registre : « ${cat.id} » pointe vers ${file}, introuvable`)
 }
 
-// 2) Chaque JSON du dossier : structure valide, et rattaché à une catégorie.
-const files = existsSync(DIR) ? readdirSync(DIR).filter((f) => f.endsWith('.json')).sort() : []
-if (files.length === 0) fail(`aucun JSON dans ${DIR}`)
+// 2) Chaque categories/<id>/data.json : structure valide, et rattaché à une catégorie.
+const files = existsSync(DIR)
+  ? readdirSync(DIR, { withFileTypes: true }).filter((d) => d.isDirectory() && existsSync(join(DIR, d.name, 'data.json'))).map((d) => `${d.name}/data.json`).sort()
+  : []
+if (files.length === 0) fail(`aucun data.json dans ${DIR}`)
 for (const name of files) {
   const file = join(DIR, name)
   let data

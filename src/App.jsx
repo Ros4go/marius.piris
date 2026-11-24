@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRoute, navigate } from './core/router.js'
 import { modules, moduleForPath } from './core/modules.js'
-import Menu from './components/Menu.jsx'
-import Splash from './components/Splash.jsx'
-import Shell from './components/Shell.jsx'
+import Menu from './shell/Menu.jsx'
+import Splash from './shell/Splash.jsx'
+import Shell from './shell/Shell.jsx'
+import ErrorBoundary from './shell/ErrorBoundary.jsx'
 
 export default function App() {
   const route = useRoute()
@@ -47,7 +48,9 @@ export default function App() {
     return (
       <div className="stage">
         <Shell>
-          <Comp />
+          <ErrorBoundary key={mod.id}>
+            <Comp />
+          </ErrorBoundary>
         </Shell>
         {splash && <Splash label={splash.label} aoa={splash.aoa} />}
       </div>

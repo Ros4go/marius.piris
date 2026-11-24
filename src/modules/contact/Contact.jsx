@@ -1,4 +1,4 @@
-import PersonaBg from '../../components/PersonaBg.jsx'
+import PersonaBg from '../../shell/PersonaBg.jsx'
 
 // Chaque réseau a son slug Simple Icons (logo) + sa couleur de marque (chaînes hex sans #).
 const LINKS = [

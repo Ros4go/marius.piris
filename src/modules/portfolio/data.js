@@ -1,5 +1,21 @@
-// Portfolio content. Asset URLs are relative ('/assets/...') so they follow the
-// site wherever it is hosted. Project descriptions keep their original HTML markup.
+import img_MythoLogie1 from '../../assets/projets/MythoLogie1.webp'
+import img_MythoLogie2 from '../../assets/projets/MythoLogie2.webp'
+import img_MythoLogie3 from '../../assets/projets/MythoLogie3.webp'
+import img_MythoLogie4 from '../../assets/projets/MythoLogie4.webp'
+import img_Mytho_Logie_Poster from '../../assets/projets/Mytho_Logie_Poster.webp'
+import img_Sirius_TechArt0 from '../../assets/projets/Sirius_TechArt0.webp'
+import img_Sirius_TechArt1 from '../../assets/projets/Sirius_TechArt1.webp'
+import img_Sirius_TechArt2 from '../../assets/projets/Sirius_TechArt2.webp'
+import img_Sirius_TechArt3 from '../../assets/projets/Sirius_TechArt3.webp'
+import img_Sirius_TechArt4 from '../../assets/projets/Sirius_TechArt4.webp'
+import img_avenue_frochot from '../../assets/projets/avenue-frochot.webp'
+import img_casting_scales from '../../assets/projets/casting-scales.webp'
+import img_echoes_of_above from '../../assets/projets/echoes-of-above.webp'
+import img_worm_with_a_shotgun from '../../assets/projets/worm-with-a-shotgun.webp'
+
+// Portfolio content. Les images de projets sont importées depuis src/assets/projets
+// (partagées avec le catalogue du Studio) : Vite leur donne un nom versionné au build.
+// Le CV reste dans public/ pour garder une URL fixe. Project descriptions keep their original HTML markup.
 
 export const bio = [
   `Je m'appelle Marius Piris, étudiant en 3ème année de Game Programming à Isart Digital Paris. Je suis passionné par le développement de jeux vidéo, la création et la conception. Je possède de solides compétences en programmation, notamment en <strong>C++, C, C#, Python et Java</strong>.`,
@@ -26,7 +42,7 @@ export const projects = [
       Jouable dans le navigateur.`,
     link: 'https://rosago.itch.io/1-avenue-frochot',
     images: [
-      '/assets/images/avenue-frochot.webp',
+      img_avenue_frochot,
       'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3NS5wbmc=/original/BSGHA%2F.png',
       'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3Ni5wbmc=/original/V3MM20.png',
       'https://img.itch.zone/aW1hZ2UvNDk0OTQ4NC8yOTYxNTI3Ny5wbmc=/original/m612Ql.png',
@@ -51,7 +67,7 @@ export const projects = [
       Sorti le 23 juin 2026, gratuit sur Steam.`,
     link: 'https://store.steampowered.com/app/4196130/Echoes_of_Above/',
     images: [
-      '/assets/images/echoes-of-above.webp',
+      img_echoes_of_above,
       'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/14f7fa7c9fad1dcc38cf1d7f2fdf392b8540b651/ss_14f7fa7c9fad1dcc38cf1d7f2fdf392b8540b651.1920x1080.jpg',
       'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/0c1bd6336d1bf2eafac20ac278f4c8c6766eaee8/ss_0c1bd6336d1bf2eafac20ac278f4c8c6766eaee8.1920x1080.jpg',
       'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4196130/84f2ce6e73738182785c1224c188fa92d36b1de2/ss_84f2ce6e73738182785c1224c188fa92d36b1de2.1920x1080.jpg',
@@ -76,7 +92,7 @@ export const projects = [
       Jouable dans le navigateur.`,
     link: 'https://komixa.itch.io/worm-with-a-shotgun',
     images: [
-      '/assets/images/worm-with-a-shotgun.webp',
+      img_worm_with_a_shotgun,
       'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxMS5wbmc=/original/JYPnEi.png',
       'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxMi5wbmc=/original/gzMcK8.png',
       'https://img.itch.zone/aW1hZ2UvNDkwNzYwMi8yOTMzOTYxNS5wbmc=/original/rKdP9Q.png',
@@ -102,7 +118,7 @@ export const projects = [
       Jouable dans le navigateur.`,
     link: 'https://rosago.itch.io/casting-scales',
     images: [
-      '/assets/images/casting-scales.webp',
+      img_casting_scales,
       'https://img.itch.zone/aW1nLzI4NTk2NzQ4LnBuZw==/original/C%2FZj4f.png',
       'https://img.itch.zone/aW1nLzI4NTk2NzkyLnBuZw==/original/pK3W%2FI.png',
       'https://img.itch.zone/aW1hZ2UvNDc5NDIxNS8yODU5NjE0Ni5wbmc=/original/REjjN%2B.png',
@@ -129,11 +145,11 @@ export const projects = [
       Ce projet offre une expérience visuelle riche et interactive.`,
     link: null,
     images: [
-      '/assets/images/Sirius_TechArt0.webp',
-      '/assets/images/Sirius_TechArt1.webp',
-      '/assets/images/Sirius_TechArt2.webp',
-      '/assets/images/Sirius_TechArt3.webp',
-      '/assets/images/Sirius_TechArt4.webp',
+      img_Sirius_TechArt0,
+      img_Sirius_TechArt1,
+      img_Sirius_TechArt2,
+      img_Sirius_TechArt3,
+      img_Sirius_TechArt4,
     ],
     videoUrl: 'https://www.youtube.com/embed/9DvdSvEg0Sw',
     skills: ['Unreal Engine 5', 'C++', 'Tech-Art', 'Procedural Generation', 'Shaders', 'VFX', 'Game Design', 'Teamwork'],
@@ -154,11 +170,11 @@ export const projects = [
       Ce projet fut un défi technique stimulant, réalisé en quelques jours, démontrant ma capacité à livrer des solutions créatives sous pression.`,
     link: null,
     images: [
-      '/assets/images/MythoLogie1.webp',
-      '/assets/images/MythoLogie4.webp',
-      '/assets/images/MythoLogie2.webp',
-      '/assets/images/MythoLogie3.webp',
-      '/assets/images/Mytho_Logie_Poster.webp',
+      img_MythoLogie1,
+      img_MythoLogie4,
+      img_MythoLogie2,
+      img_MythoLogie3,
+      img_Mytho_Logie_Poster,
     ],
     videoUrl: 'https://www.youtube.com/embed/iL_0Sh8zlkU',
     skills: ['Unity', 'C#', 'Puzzle Game', '2D', 'Game Jam', 'Narrative', 'CSV Database'],

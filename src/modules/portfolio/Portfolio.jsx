@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import GenericModal from '../../components/GenericModal.jsx'
-import PersonaBg from '../../components/PersonaBg.jsx'
+import GenericModal from '../../ui/Modal.jsx'
+import PersonaBg from '../../shell/PersonaBg.jsx'
 import { bio, cvUrl, projects, experiences, formations, categorizedSkills } from './data.js'
 
 const LINKEDIN = 'https://www.linkedin.com/in/marius-piris/'
