@@ -704,6 +704,22 @@
 .bc-detail { margin-top: 16px; }
 .bc-detail-body { margin-top: 8px; font-family: 'Inter'; font-size: 13px; line-height: 1.6; color: #c8c2ba; }
 
+/* Code : blocs ```…``` (renderRich) et code en ligne. Jamais en capitales, même
+   dans les titres en Anton (recto des cartes) ou l'énoncé des questions. */
+.bc-codeblock {
+  display: block; white-space: pre; overflow-x: auto; text-align: left;
+  margin: 8px 0; padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.4); border-left: 3px solid rgba(253, 246, 238, 0.22);
+  font-family: Consolas, 'SFMono-Regular', Menlo, monospace; font-size: 12.5px; line-height: 1.5;
+  font-weight: 400; letter-spacing: 0; text-transform: none; color: #e6e1d9;
+}
+.bc-card-front-text code, .bc-qtext code, .bc-choice code {
+  font-family: Consolas, 'SFMono-Regular', Menlo, monospace; text-transform: none; letter-spacing: 0;
+}
+.bc-card-front-text code { font-size: 0.78em; }
+.bc-card-front-text .bc-codeblock { font-size: 13px; line-height: 1.45; max-width: 100%; }
+.bc-qtext .bc-codeblock { font-size: 13px; }
+
 /* actions cartes */
 .bc-card-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .bc-navbtn { cursor: pointer; background: rgba(253, 246, 238, 0.06); border: 1px solid rgba(253, 246, 238, 0.16); color: var(--cream); font-family: 'Oswald'; font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; padding: 11px 14px; transition: background 0.14s; }

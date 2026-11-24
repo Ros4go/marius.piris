@@ -76,6 +76,32 @@ function lengthBias(chapters) {
   return hits
 }
 
+// Indices globaux qui trahissent la bonne réponse sans connaître le cours :
+// - elle est la plus longue des 4 bien plus souvent qu'au hasard (25 %) ;
+// - dans les questions oui / non, elle est presque toujours du même côté.
+// Les backticks (mise en forme du code) ne comptent pas dans les longueurs.
+function answerTells(chapters) {
+  const len = (s) => String(s).replace(/`/g, '').length
+  let n = 0, longest = 0, oui = 0, non = 0
+  chapters.forEach((ch) => (ch.quiz || []).forEach((q) => {
+    if (!isArr(q.choices) || !Number.isInteger(q.answer) || !q.choices[q.answer]) return
+    n++
+    const good = len(q.choices[q.answer])
+    if (q.choices.every((c, i) => i === q.answer || len(c) < good)) longest++
+    if (q.choices.filter((c) => /^(oui|non)\b/i.test(c)).length >= 2) {
+      if (/^oui\b/i.test(q.choices[q.answer])) oui++
+      else if (/^non\b/i.test(q.choices[q.answer])) non++
+    }
+  }))
+  const tells = []
+  const pct = n ? Math.round((100 * longest) / n) : 0
+  if (pct > 40) tells.push(`bonne réponse la plus longue dans ${pct} % des questions (hasard : 25 %)`)
+  if (oui + non >= 6 && Math.max(oui, non) >= 3 * Math.max(Math.min(oui, non), 1)) {
+    tells.push(`questions oui / non : la bonne réponse est « ${oui > non ? 'oui' : 'non'} » ${Math.max(oui, non)} fois sur ${oui + non}`)
+  }
+  return tells
+}
+
 let failed = false
 const fail = (msg) => { failed = true; console.error('✗ ' + msg) }
 
@@ -112,6 +138,7 @@ for (const name of files) {
     console.log(`✓ ${name} : ${r.chapters} chapitres, ${r.fiches} fiches, ${r.quiz} questions${linked}`)
     const bias = lengthBias(data)
     if (bias.length) console.log(`  ⚠ ${bias.length} question(s) dont la bonne réponse est nettement plus longue : ${bias.slice(0, 6).join(', ')}${bias.length > 6 ? '…' : ''}`)
+    for (const tell of answerTells(data)) console.log(`  ⚠ ${tell}`)
   }
 }
 process.exit(failed ? 1 : 0)
