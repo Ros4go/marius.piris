@@ -12,7 +12,7 @@ export const GLOSSARY = [
   { term: 'Compute capability', aliases: ['compute capability', 'cc', 'cuda compute'], def: "La version x.y d'un GPU NVIDIA (prop.major, prop.minor) : x la génération, y la révision. Elle fixe les limites et le nombre de cœurs par SM. Ex. 6.1 Pascal, 8.6 Ampere, 8.9 Ada." },
   { term: 'Warp', aliases: ['warp', 'warps', 'warpsize'], def: "Un paquet de 32 threads exécutés ensemble : ils font la même instruction au même moment. D'où les tailles de bloc multiples de 32." },
   { term: 'PCI Express', aliases: ['pci express', 'pci', 'bus pci'], def: "Le bus qui relie la carte graphique à la carte mère. Toutes les copies host ↔ device passent par lui : c'est souvent le goulot d'étranglement." },
-  { term: 'Jetson', aliases: ['jetson', 'tx2', 'jetson tx2'], def: "Cartes embarquées NVIDIA où CPU (ARM) et GPU sont dans la même puce. La TX2 de l'école a un GPU Pascal 6.2 de 2 SM, soit 256 cœurs CUDA." },
+  { term: 'Jetson', aliases: ['jetson'], def: "Modules embarqués NVIDIA (Nano, Orin…) où CPU ARM et GPU sont sur la même puce et partagent la même mémoire : peu de consommation, pour la robotique ou la vision embarquée." },
   // --- compilation ---
   { term: 'nvcc', aliases: ['nvcc'], def: "Le compilateur CUDA. Il sépare le code GPU (compilé en PTX puis en code machine) du code CPU (confié à cl.exe ou gcc). Usage : nvcc prog.cu -o prog." },
   { term: 'PTX', aliases: ['ptx'], def: "Parallel Thread eXecution : l'assembleur virtuel de CUDA, indépendant du modèle de GPU. Le driver peut le recompiler pour une carte plus récente." },
@@ -58,11 +58,23 @@ export const GLOSSARY = [
   { term: 'FP32 / FP64', aliases: ['fp32', 'fp64', 'simple précision', 'double précision'], def: "Calcul en float (32 bits) ou en double (64 bits). Sur les GeForce, le FP64 est des dizaines de fois plus lent que le FP32." },
   { term: 'FLOPS', aliases: ['flops', 'gflops', 'tflops'], def: "Opérations flottantes par seconde. Toujours préciser FP32 ou FP64." },
   // --- images ---
-  { term: 'PGM', aliases: ['pgm', 'p2', 'p5'], def: "Format d'image en niveaux de gris : en-tête texte (P2 ou P5, largeur hauteur, valeur max) puis les pixels, en texte (P2) ou 1 octet par pixel (P5)." },
   { term: 'Histogramme', aliases: ['histogramme', 'histogrammes'], def: "Pour chaque valeur de pixel (0 à 255), le nombre de pixels qui ont cette valeur." },
   { term: 'Sobel', aliases: ['sobel', 'prewitt', 'roberts'], def: "Masques de convolution 3 × 3 qui calculent le gradient d'une image pour en détecter les contours. Horizontal : [−1 0 1 ; −2 0 2 ; −1 0 1]." },
   { term: 'Gradient', aliases: ['gradient', 'gradients'], def: "La variation d'intensité entre pixels voisins, selon x et selon y. Il est grand sur un contour. Module : √(Gx² + Gy²)." },
-  { term: 'gnuplot', aliases: ['gnuplot'], def: "Outil en ligne de commande pour tracer des courbes à partir de fichiers de colonnes : plot \"f.dat\" using 1:2 with lines." },
+  // --- performance et écosystème ---
+  { term: "Loi d'Amdahl", aliases: ['amdahl', "loi d'amdahl"], def: "L'accélération d'un programme est plafonnée par sa partie qui reste séquentielle : parallélisable à 90 %, il ne peut pas aller plus de 10 fois plus vite." },
+  { term: 'SIMT', aliases: ['simt'], def: "Single Instruction, Multiple Threads : le modèle des GPU NVIDIA. On écrit le code d'un thread, et le matériel exécute les threads par warps de 32 qui suivent la même instruction." },
+  { term: 'Occupation', aliases: ['occupation', 'occupancy'], def: "Nombre de warps actifs sur un SM par rapport au maximum possible. Limitée par les registres, la shared memory et le nombre de blocs ; elle aide à masquer la lenteur de la mémoire." },
+  { term: 'Stream', aliases: ['stream', 'streams'], def: "File de commandes (copies, kernels) exécutées dans l'ordre. Deux streams différents peuvent travailler en même temps, ce qui permet de recouvrir copies et calcul." },
+  { term: 'Mémoire unifiée', aliases: ['mémoire unifiée', 'cudamallocmanaged'], def: "Mémoire allouée avec cudaMallocManaged : un seul pointeur pour le CPU et le GPU, les données migrant automatiquement. Les transferts ont toujours lieu, en coulisses." },
+  { term: 'Mémoire épinglée', aliases: ['mémoire épinglée', 'pinned', 'cudamallochost'], def: "Mémoire du CPU verrouillée en RAM (cudaMallocHost), que le GPU lit directement : transferts plus rapides, et possibles en asynchrone pendant un calcul." },
+  { term: 'Intensité arithmétique', aliases: ['intensité arithmétique', 'roofline'], def: "Nombre d'opérations par octet lu ou écrit en mémoire. Faible : le kernel est limité par la bande passante mémoire ; forte : par la puissance de calcul." },
+  { term: 'Tensor core', aliases: ['tensor core', 'tensor cores'], def: "Unité spécialisée dans les produits de petites matrices en précision réduite (FP16, BF16, INT8…), apparue avec Volta. Elle accélère surtout l'IA, via cuBLAS ou cuDNN." },
+  { term: 'OpenCL', aliases: ['opencl'], def: "Standard ouvert de calcul parallèle (Khronos), qui tourne sur des GPU et CPU de nombreux fabricants. Même modèle que CUDA, mais plus verbeux et moins outillé." },
+  { term: 'HIP', aliases: ['hip', 'rocm'], def: "La plateforme de calcul d'AMD (ROCm), dont l'API reprend presque mot pour mot celle de CUDA : un code CUDA se convertit en HIP quasi automatiquement." },
+  { term: 'Compute shader', aliases: ['compute shader', 'compute shaders'], def: "Programme de calcul exécuté sur le GPU via une API graphique (DirectX, Vulkan, OpenGL, Metal). C'est le calcul GPU des moteurs de jeu, car il marche sur toutes les cartes." },
+  { term: 'cuBLAS', aliases: ['cublas'], def: "Bibliothèque NVIDIA d'algèbre linéaire sur GPU (produits de matrices…), optimisée pour chaque génération et pour les Tensor cores." },
+  { term: 'Thrust', aliases: ['thrust'], def: "Bibliothèque C++ façon STL qui trie, réduit ou transforme des tableaux sur le GPU sans écrire de kernel." },
 ]
 
 export const matchGlossary = makeGlossaryMatcher(GLOSSARY)
